@@ -3,7 +3,7 @@
     /// <summary>
     /// 表单通知邮件审批Dto
     /// </summary>
-    public class FormNoticeDto
+    public class FormNoticeReviewDto
     {
         /// <summary>
         /// 表单Id

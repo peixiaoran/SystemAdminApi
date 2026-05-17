@@ -58,7 +58,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             if (nextStep.NextStepId == 0)
             {
+                // 没有下一步骤，核准完成邮件通知申请人
                 await ApproveForm(formId);
+                await NotifyApplicantApproved(formId);
                 return true;
             }
 
@@ -72,7 +74,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 // 获取当前步骤信息，通知剩余待审批人
                 var (currentStepInfo, _) = await GetCurrentStepInfo(formId);
-                await NotifyPendingReviewers(formId, currentStepInfo.StepId, ReviewResult.Approve);
+                await NotifyPendingReviewers(formId, currentStepInfo.StepId);
             }
 
             return true;
@@ -103,7 +105,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                     if (skippedNext.NextStepId == 0)
                     {
+                        // 没有下一步骤，核准完成邮件通知申请人
                         await ApproveForm(formId);
+                        await NotifyApplicantApproved(formId);
                         return false;
                     }
 
@@ -135,7 +139,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
                                  .ExecuteCommandAsync();
 
-                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, selfAppointments, ReviewType.Automatic, string.Empty, _loginuser.UserId);
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
                     }
                     else if (reviewMode == ReviewMode.OrReview.ToEnumString())
                     {
@@ -151,12 +155,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
                                  .ExecuteCommandAsync();
 
-                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, selfAppointments, ReviewType.Automatic, string.Empty, _loginuser.UserId);
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
 
                         foreach (long otherUserId in otherPendingUserIds)
                         {
                             var otherAppointments = await GetStepReviewUsers(formId, stepInfo, otherUserId);
-                            await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, otherAppointments, ReviewType.Automatic, string.Empty, otherUserId);
+                            await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
                         }
                     }
                     else if (reviewMode == ReviewMode.AndReview.ToEnumString())
@@ -167,7 +171,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId == selfPendingUserId)
                                  .ExecuteCommandAsync();
 
-                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, selfAppointments, ReviewType.Automatic, string.Empty, _loginuser.UserId);
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
 
                         // 会审还有其他人未签，停止自动推进
                         bool othersPending = await _db.Queryable<PendingReviewEntity>()
@@ -221,7 +225,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                          .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
                          .ExecuteCommandAsync();
 
-                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, selfAppointments, reviewType, comment, _loginuser.UserId);
+                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
             }
             else if (reviewMode == ReviewMode.OrReview.ToEnumString())
             {
@@ -236,13 +240,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                          .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
                          .ExecuteCommandAsync();
 
-                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, selfAppointments, reviewType, comment, _loginuser.UserId);
+                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
 
                 foreach (long otherUserId in otherPendingUserIds)
                 {
                     // 其他人的自动操作记录：操作人视为归属人本人
                     var otherAppointments = await GetStepReviewUsers(formId, stepInfo, otherUserId);
-                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, otherAppointments, ReviewType.Automatic, string.Empty, otherUserId);
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
                 }
             }
             else if (reviewMode == ReviewMode.AndReview.ToEnumString())
@@ -252,7 +256,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                          .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId == selfOriginalUserId)
                          .ExecuteCommandAsync();
 
-                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, selfAppointments, reviewType, comment, _loginuser.UserId);
+                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
             }
 
             await _db.Updateable<FormInstanceEntity>()
@@ -1603,7 +1607,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="comment"></param>
         /// <param name="operatorUserId"></param>
         /// <returns></returns>
-        private async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, List<UserAppointment> appointments, ReviewType reviewType, string comment, long operatorUserId)
+        private async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType,long operatorUserId)
         {
             if (!appointments.Any())
             {
@@ -1649,7 +1653,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         FormId = formId,
                         StepId = stepId,
                         ReviewResult = result.ToEnumString(),
-                        RejectStepId = null,
+                        RejectStepId = rejectStepId,
                         Comment = comment,
                         ReviewType = reviewType.ToEnumString(),
                         AppointmentType = appointmentCode,
@@ -1694,7 +1698,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         .Where(pending => pending.FormId == formId)
                                         .ExecuteCommandAsync();
 
-            var insertResult = await InsertReviewRecords(formId, CurrentStep.StepId, ReviewResult.Reject, selfAppointments, ReviewType.Manual, rejectForm.Comment, _loginuser.UserId);
+            var insertResult = await InsertReviewRecords(formId, CurrentStep.StepId, ReviewResult.Reject, rejectStepId, selfAppointments, rejectForm.Comment, ReviewType.Manual, _loginuser.UserId);
 
             var updateResult = await _db.Updateable<FormInstanceEntity>()
                                         .SetColumns(instance => instance.FormStatus == FormStatus.Rejected.ToEnumString())
@@ -1714,7 +1718,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 await EnsurePendingReviewExists(formId, RejectStep.StepId);
 
                 // 5. 通知剩余待审批人
-                await NotifyPendingReviewers(formId, rejectStepId, ReviewResult.Reject);
+                await NotifyPendingReviewers(formId, rejectStepId);
 
                 return true;
             }
@@ -1728,7 +1732,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="formId"></param>
         /// <param name="stepId"></param>
         /// <returns></returns>
-        private async Task NotifyPendingReviewers(long formId, long stepId, ReviewResult reviewResult)
+        private async Task NotifyPendingReviewers(long formId, long stepId)
         {
             var now = DateTime.Now;
             var template = EmailTemplateLoader.GetReviewNotice();
@@ -1739,7 +1743,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
                                       .InnerJoin<WorkflowStepEntity>((instance, formtype, step) => instance.CurrentStepId == step.StepId)
                                       .Where((instance, formtype, step) => instance.FormId == formId)
-                                      .Select((instance, formtype, step) => new FormNoticeDto
+                                      .Select((instance, formtype, step) => new FormNoticeReviewDto
                                       {
                                           FormId = instance.FormId,
                                           FormNo = instance.FormNo,
@@ -1752,30 +1756,41 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             // 2. 待审批用户
             var pendingUserIds = await _db.Queryable<PendingReviewEntity>()
-                .With(SqlWith.NoLock)
-                .Where(p => p.FormId == formId && p.StepId == stepId)
-                .Select(p => p.ReviewUserId)
-                .ToListAsync();
+                                          .With(SqlWith.NoLock)
+                                          .Where(pending => pending.FormId == formId && pending.StepId == stepId)
+                                          .Select(pending => pending.ReviewUserId)
+                                          .ToListAsync();
+
+            if (pendingUserIds.Count == 0)
+            {
+                return;
+            }
 
             // 3. 代理人替换（字典 O(1)）
             var agentMap = (await _db.Queryable<UserAgentEntity>()
                                      .With(SqlWith.NoLock)
-                                     .Where(a => pendingUserIds.Contains(a.SubstituteUserId) && a.StartTime <= now && a.EndTime >= now)
-                                     .Select(a => new { a.SubstituteUserId, a.AgentUserId })
+                                     .Where(useragent => pendingUserIds.Contains(useragent.SubstituteUserId) && useragent.StartTime <= now && useragent.EndTime >= now)
+                                     .Select(useragent => new { useragent.SubstituteUserId, useragent.AgentUserId })
                                      .ToListAsync())
-                                     .ToDictionary(a => a.SubstituteUserId, a => a.AgentUserId);
+                                     .ToDictionary(useragent => useragent.SubstituteUserId, useragent => useragent.AgentUserId);
 
             var notifyUserIds = pendingUserIds
                                 .Select(id => agentMap.TryGetValue(id, out var agentId) ? agentId : id)
                                 .Distinct()
                                 .ToList();
 
-            // 4. 收件人（仅订阅实时通知的）
+            // 4. 收件人（仅订阅实时通知且邮箱有效）
             var userInfoList = await _db.Queryable<UserInfoEntity>()
                                         .With(SqlWith.NoLock)
-                                        .Where(u => notifyUserIds.Contains(u.UserId) && u.IsRealtimeNotification == 1)
+                                        .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                         .ToListAsync();
 
+            if (userInfoList.Count == 0)
+            {
+                return;
+            }
+
+            // 5. 模板预渲染（与收件人无关的部分）
             var bodyBase = template
                 .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
                 .Replace("{{FormTypeNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameCn ?? string.Empty))
@@ -1786,7 +1801,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             // 6. 生成 token + 批量入库
             var expirationTime = now.AddDays(15);
-            var tokens = userInfoList.ToDictionary(u => u.UserId, _ => GenerateSecureToken());
+            var tokens = userInfoList.ToDictionary(user => user.UserId, _ => GenerateSecureToken());
 
             var tokenEntities = tokens.Select(kv => new FormNotificationTokenEntity
             {
@@ -1816,6 +1831,114 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     Body = body,
                 });
             }
+        }
+
+        /// <summary>
+        /// 邮件通知申请人表单核准完成（有代理人优先通知代理人）
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        private async Task NotifyApplicantApproved(long formId)
+        {
+            var now = DateTime.Now;
+            var template = EmailTemplateLoader.GetReviewNotice();
+
+            // 1. 表单 + 申请人
+            var formNotice = await _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                                      .InnerJoin<UserInfoEntity>((instance, formtype, userInfo) => instance.ApplicantUserId == userInfo.UserId)
+                                      .Where((instance, formtype, userInfo) => instance.FormId == formId)
+                                      .Select((instance, formtype, userInfo) => new FormNoticeApprovedDto
+                                      {
+                                          FormId = instance.FormId,
+                                          FormNo = instance.FormNo,
+                                          FormTypeNameCn = formtype.FormTypeNameCn,
+                                          FormTypeNameEn = formtype.FormTypeNameEn,
+                                          ReviewPath = formtype.ReviewPath,
+                                          ApplicantUserId = userInfo.UserId,
+                                          ApplicantUserNameCn = userInfo.UserNameCn,
+                                          ApplicantUserNameEn = userInfo.UserNameEn,
+                                          ApplicantGender = userInfo.Gender,
+                                          ApplicantEmail = userInfo.Email,
+                                          ApplicantIsRealtimeNotification = userInfo.IsRealtimeNotification,
+                                      }).FirstAsync();
+
+            // 2. 查代理人（生效中的）
+            var agentUserId = await _db.Queryable<UserAgentEntity>()
+                                       .With(SqlWith.NoLock)
+                                       .Where(useragent => useragent.SubstituteUserId == formNotice.ApplicantUserId && useragent.StartTime <= now && useragent.EndTime >= now)
+                                       .Select(useragent => (long?)useragent.AgentUserId)
+                                       .FirstAsync();
+
+            // 3. 选定收件人：代理人优先（且订阅实时通知） → 申请人兜底
+            UserInfoEntity? recipient;
+
+            if (agentUserId.HasValue)
+            {
+                // 3.1 有代理人：仅当代理人订阅了实时通知才发给代理人
+                recipient = await _db.Queryable<UserInfoEntity>()
+                                     .With(SqlWith.NoLock)
+                                     .Where(user => user.UserId == agentUserId.Value && user.IsRealtimeNotification == 1)
+                                     .FirstAsync();
+            }
+            else
+            {
+                recipient = null;
+            }
+
+            if (recipient == null)
+            {
+                // 3.2 无代理人 / 代理人未订阅：回退到申请人
+                if (formNotice.ApplicantIsRealtimeNotification != 1 || string.IsNullOrWhiteSpace(formNotice.ApplicantEmail))
+                {
+                    return;
+                }
+
+                recipient = new UserInfoEntity
+                {
+                    UserId = formNotice.ApplicantUserId,
+                    UserNameCn = formNotice.ApplicantUserNameCn,
+                    UserNameEn = formNotice.ApplicantUserNameEn,
+                    Gender = formNotice.ApplicantGender,
+                    Email = formNotice.ApplicantEmail,
+                };
+            }
+
+            // 4. 生成 token + 入库
+            var expirationTime = now.AddDays(15);
+            var token = GenerateSecureToken();
+
+            var tokenEntity = new FormNotificationTokenEntity
+            {
+                FormId = formNotice.FormId,
+                ReviewUserId = recipient.UserId,
+                Token = token,
+                ExpirationTime = expirationTime,
+                CreatedDate = now,
+            };
+
+            await _db.Insertable(tokenEntity).ExecuteCommandAsync();
+
+            // 5. 组装邮件内容
+            var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, token);
+            var greeting = BuildGreeting(recipient.UserNameCn, recipient.UserNameEn, recipient.Gender);
+
+            var body = template
+                .Replace("{{Greeting}}", greeting)
+                .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
+                .Replace("{{FormTypeNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameCn ?? string.Empty))
+                .Replace("{{FormTypeNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameEn ?? string.Empty))
+                .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
+                .Replace("{{ReviewUrl}}", reviewUrl);
+
+            // 6. 发送
+            await _mailKitEmail.SendAsync(new EmailMessage
+            {
+                To = new List<string> { recipient.Email },
+                Subject = $"[核准完成 / Approved] {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
+                Body = body,
+            });
         }
 
         #endregion

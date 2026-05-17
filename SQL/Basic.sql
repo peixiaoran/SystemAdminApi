@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 17/05/2026 02:30:22
+ Date: 17/05/2026 18:41:09
 */
 
 
@@ -4584,6 +4584,18 @@ GO
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoginSuccessful', N'2026-05-17 01:29:57.447')
 GO
 
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'2050599625240481792', N'::1', N'LoginSuccessful', N'2026-05-17 12:03:51.207')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'2050599625240481792', N'::1', N'LoginSuccessful', N'2026-05-17 12:08:41.190')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoggedOut', N'2026-05-17 13:06:41.760')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'2050597318784323584', N'::1', N'LoginSuccessful', N'2026-05-17 13:06:49.677')
+GO
+
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'127.0.0.1', N'LoginSuccessful', N'2026-05-16 14:43:28.420')
 GO
 
@@ -4626,6 +4638,12 @@ GO
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoginSuccessful', N'2026-05-17 02:20:47.823')
 GO
 
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoggedOut', N'2026-05-17 13:04:46.410')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'2050597318784323584', N'::1', N'LoginSuccessful', N'2026-05-17 13:04:51.720')
+GO
+
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-05-17 00:22:20.647')
 GO
 
@@ -4633,6 +4651,15 @@ INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALU
 GO
 
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoginSuccessful', N'2026-05-17 00:22:37.387')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-05-17 18:01:08.537')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoggedOut', N'2026-05-17 18:01:54.223')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'2050597318784323584', N'::1', N'LoginSuccessful', N'2026-05-17 18:01:58.177')
 GO
 
 

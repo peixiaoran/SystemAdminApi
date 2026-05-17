@@ -220,7 +220,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 表单核准
+        /// 表单驳回
         /// </summary>
         /// <param name="rejectForm"></param>
         /// <returns></returns>
