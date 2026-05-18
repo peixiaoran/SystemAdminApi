@@ -73,20 +73,46 @@
                     <tr>
                         <td class="ep-section" style="padding:4px 32px 8px 32px;">
                             <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <!-- 单号 + 表单类型 合并一行 -->
                                 <tr>
-                                    <td class="ep-label" width="120" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">单号 / No.</td>
-                                    <td class="ep-value" style="color:#303133;font-size:14px;padding:8px 0;line-height:1.5;">{{FormNo}}</td>
-                                </tr>
-                                <tr>
-                                    <td class="ep-label" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">表单类型 / Type</td>
+                                    <td class="ep-label" width="120" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">单号 / Type</td>
                                     <td class="ep-value" style="color:#303133;font-size:14px;padding:8px 0;line-height:1.5;">
-                                        {{FormTypeNameCn}} <span style="color:#c0c4cc;">/ {{FormTypeNameEn}}</span>
+                                        {{FormNo}} <span style="color:#c0c4cc;">|</span> {{FormTypeNameCn}} <span style="color:#c0c4cc;">/ {{FormTypeNameEn}}</span>
                                     </td>
                                 </tr>
+                                <!-- 申请人 -->
                                 <tr>
-                                    <td class="ep-label" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">当前步骤 / Step</td>
+                                    <td class="ep-label" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">申请人 / Applicant</td>
                                     <td class="ep-value" style="color:#303133;font-size:14px;padding:8px 0;line-height:1.5;">
-                                        {{CurrentStepNameCn}} <span style="color:#c0c4cc;">/ {{CurrentStepNameEn}}</span>
+                                        {{ApplicantUserCn}} <span style="color:#c0c4cc;">/ {{ApplicantUserEn}}</span>
+                                    </td>
+                                </tr>
+                                <!-- 意见 -->
+                                <tr>
+                                    <td class="ep-label" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">意见 / Comment</td>
+                                    <td class="ep-value" style="color:#303133;font-size:14px;padding:8px 0;line-height:1.5;word-break:break-word;">
+                                        {{Comment}}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- 分隔间距 -->
+                    <tr>
+                        <td class="ep-section" style="padding:0 32px;">
+                            <div style="height:1px;line-height:1px;font-size:0;background-color:#ebeef5;">&nbsp;</div>
+                        </td>
+                    </tr>
+
+                    <!-- 当前步骤（单独区块） -->
+                    <tr>
+                        <td class="ep-section" style="padding:16px 32px 8px 32px;">
+                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0">
+                                <tr>
+                                    <td class="ep-label" width="120" style="color:#909399;font-size:13px;padding:8px 0;vertical-align:top;">当前步骤 / Step</td>
+                                    <td class="ep-value" style="color:#303133;font-size:14px;padding:8px 0;line-height:1.5;font-weight:500;">
+                                        {{CurrentStepNameCn}} <span style="color:#c0c4cc;font-weight:normal;">/ {{CurrentStepNameEn}}</span>
                                     </td>
                                 </tr>
                             </table>
@@ -120,11 +146,11 @@
                                     <!-- 登入系统（次按钮） -->
                                     <td class="ep-btn-stack" align="center" valign="middle" style="border-radius:4px;">
                                         <!--[if mso]>
-                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{LoginUrl}}" style="height:36px;v-text-anchor:middle;width:150px;" arcsize="12%" strokecolor="#409eff" fillcolor="#ffffff">
-                            <w:anchorlock/>
-                            <center style="color:#409eff;font-family:'Microsoft YaHei',sans-serif;font-size:14px;">登入系统 / Sign In</center>
-                        </v:roundrect>
-                        <![endif]-->
+                                        <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{LoginUrl}}" style="height:36px;v-text-anchor:middle;width:150px;" arcsize="12%" strokecolor="#409eff" fillcolor="#ffffff">
+                                            <w:anchorlock/>
+                                            <center style="color:#409eff;font-family:'Microsoft YaHei',sans-serif;font-size:14px;">登入系统 / Sign In</center>
+                                        </v:roundrect>
+                                        <![endif]-->
                                         <!--[if !mso]><!-->
                                         <a href="{{LoginUrl}}" class="ep-btn"
                                            style="display:inline-block;background-color:#ffffff;color:#409eff;text-decoration:none;font-size:14px;line-height:1;padding:10px 20px;border:1px solid #409eff;border-radius:4px;">

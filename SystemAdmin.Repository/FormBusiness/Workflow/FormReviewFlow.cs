@@ -145,7 +145,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
 
             // 获取审批结果
-            formReview.stepReviewFlowList = await GetFormReviewResult(formId, formDetail.CurrentStepId, stepReviewList);
+            formReview.stepReviewFlowList = await GetFormReviewResult(formId, formDetail.RuleId, formDetail.CurrentStepId, stepReviewList);
             formReview.RejectCount = await GetRejectCount(formId);
             return formReview;
         }
@@ -563,7 +563,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 while (currentPositionSort >= 1)
                 {
                     while (currentDeptLevelSort >= 1)
-                    {       
+                    {
                         #region SQL
 
                         var autoResult = await _db.Ado.SqlQueryAsync<UserReview>($@"
@@ -1341,75 +1341,94 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 取最后一笔驳回记录之后的有效核准数据
+        /// 获取表单审批结果
         /// </summary>
-        private async Task<List<FormReviewRecordEntity>> GetValidReviewRecords(long formId)
+        /// <param name="formId"></param>
+        /// <param name="ruleId"></param>
+        /// <param name="currentStepId"></param>
+        /// <param name="reviewFlow"></param>
+        /// <returns></returns>
+        public async Task<List<StepReview>> GetFormReviewResult(long formId, long ruleId, long currentStepId, List<StepReview> reviewFlow)
         {
-            var reviewRecord = await _db.Queryable<FormReviewRecordEntity>()
-                                        .With(SqlWith.NoLock)
-                                        .Where(record => record.FormId == formId)
-                                        .OrderBy(record => record.ReviewDateTime)
-                                        .ToListAsync();
+            // 1. 取得该表单的所有审批记录(按时间升序)
+            var allRecords = await _db.Queryable<FormReviewRecordEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .Where(record => record.FormId == formId)
+                                      .OrderBy(record => record.ReviewDateTime)
+                                      .ToListAsync();
 
-            int lastRejectedIndex = -1;
-            for (int i = reviewRecord.Count - 1; i >= 0; i--)
-            {
-                if (reviewRecord[i].ReviewResult == ReviewResult.Reject.ToEnumString())
-                {
-                    lastRejectedIndex = i;
-                    break;
-                }
-            }
+            // 2. 取得当前规则下每个步骤的排序号 (StepId -> SortOrder)
+            var ruleSteps = await _db.Queryable<WorkflowRuleStepEntity>()
+                                     .With(SqlWith.NoLock)
+                                     .Where(rule => rule.RuleId == ruleId)
+                                     .ToListAsync();
 
-            return lastRejectedIndex >= 0
-                    ? reviewRecord.Skip(lastRejectedIndex + 1).ToList()
-                    : reviewRecord;
-        }
+            var stepOrderMap = ruleSteps.ToDictionary(rulestep => rulestep.CurrentStepId, rulestep => rulestep.SortOrder);
 
-        /// <summary>
-        /// 获取表单审批结果，填充每个步骤及每位审批人员的状态
-        /// </summary>
-        public async Task<List<StepReview>> GetFormReviewResult(long formId, long currentStepId, List<StepReview> reviewFlow)
-        {
-            var validRecords = await GetValidReviewRecords(formId);
+            // 3. 预先把驳回记录抽出来
+            var rejectRecords = allRecords
+                                .Where(record => record.ReviewResult == ReviewResult.Reject.ToEnumString())
+                                .OrderByDescending(record => record.ReviewDateTime)
+                                .ToList();
 
+            // 4. 预先把核准记录抽出来
+            var approveRecords = allRecords
+                .Where(record => record.ReviewResult == ReviewResult.Approve.ToEnumString())
+                .ToList();
+
+            // 5. 逐步骤填充状态
             foreach (var flow in reviewFlow)
             {
                 if (flow.Skip == 1)
                 {
                     continue;
                 }
-                else
+
+                // 取步骤在流程中的排序号
+                stepOrderMap.TryGetValue(flow.StepId, out int targetStepOrder);
+
+                // 找出会影响当前被判断步骤的最后一次驳回
+                // 影响判定:驳回目标步骤的排序 <= 被判断步骤的排序
+                var lastRejectAffectingThisStep = rejectRecords.FirstOrDefault(record =>
                 {
-                    foreach (var user in flow.stepReviewUser)
+                    if (!record.RejectStepId.HasValue)
                     {
-                        bool isCurrentStep = currentStepId == flow.StepId;
+                        return true;
+                    }
 
-                        if (!isCurrentStep)
-                        {
-                            // 步骤不匹配，检查历史记录是否有核准
-                            bool hasSigned = validRecords.Any(record =>
-                                record.StepId == flow.StepId &&
-                                (record.OperationUserId == user.ReviewUserId || record.OperationUserId == user.AgentUserId));
+                    // 取得驳回目标步骤的排序号
+                    stepOrderMap.TryGetValue(record.RejectStepId.Value, out int rejectTargetOrder);
 
-                            user.Result = hasSigned
-                                ? FormReviewResult.Approve.ToEnumString()
-                                : FormReviewResult.Unsigned.ToEnumString();
-                        }
-                        else
-                        {
-                            // 步骤匹配，再看该用户是否已核准
-                            bool hasSigned = validRecords.Any(record =>
-                                record.StepId == flow.StepId &&
-                                (record.OperationUserId == user.ReviewUserId || record.OperationUserId == user.AgentUserId));
+                    // 驳回目标排在被判断步骤的前面或等于被判断步骤，才会让被判断步骤需要重审
+                    return rejectTargetOrder <= targetStepOrder;
+                });
 
-                            user.Result = hasSigned
-                                ? FormReviewResult.Approve.ToEnumString()
-                                : FormReviewResult.UnderReview.ToEnumString();
-                        }
+                // 该步骤的有效核准起点时间
+                DateTime? validAfter = lastRejectAffectingThisStep?.ReviewDateTime;
+
+                bool isCurrentStep = currentStepId == flow.StepId;
+
+                foreach (var user in flow.stepReviewUser)
+                {
+                    bool hasApprove = approveRecords.Any(record =>
+                        record.StepId == flow.StepId && record.OriginalUserId == user.ReviewUserId &&
+                        (validAfter == null || record.ReviewDateTime > validAfter.Value));
+
+                    if (!isCurrentStep)
+                    {
+                        user.Result = hasApprove
+                            ? FormReviewResult.Approve.ToEnumString()
+                            : FormReviewResult.Unsigned.ToEnumString();
+                    }
+                    else
+                    {
+                        user.Result = hasApprove
+                            ? FormReviewResult.Approve.ToEnumString()
+                            : FormReviewResult.UnderReview.ToEnumString();
                     }
                 }
             }
+
             return reviewFlow;
         }
 
@@ -1474,6 +1493,5 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         );
 
         #endregion
-
     }
 }

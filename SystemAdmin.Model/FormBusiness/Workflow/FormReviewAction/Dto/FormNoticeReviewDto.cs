@@ -26,9 +26,19 @@
         public string FormTypeNameEn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 表单类型审批路径
+        /// 申请人姓名（中文）
         /// </summary>
-        public string ReviewPath { get; set; } = string.Empty;
+        public string ApplicantUserCn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 申请人姓名（英文）
+        /// </summary>
+        public string ApplicantUserEn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 意见
+        /// </summary>
+        public string Comment { get; set; } = string.Empty;
 
         /// <summary>
         /// 当前步骤名称（中文）
@@ -39,5 +49,10 @@
         /// 当前步骤名称（英文）
         /// </summary>
         public string CurrentStepNameEn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 表单类型审批路径
+        /// </summary>
+        public string ReviewPath { get; set; } = string.Empty;
     }
 }

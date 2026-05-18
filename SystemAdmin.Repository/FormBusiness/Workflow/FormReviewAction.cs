@@ -1683,7 +1683,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .With(SqlWith.NoLock)
                                       .Where(step => step.StepId == rejectStepId)
                                       .FirstAsync();
-            // 1. 当前步骤信息
+            // 2. 当前步骤信息
             var CurrentStep = await _db.Queryable<FormInstanceEntity>()
                                        .With(SqlWith.NoLock)
                                        .InnerJoin<WorkflowStepEntity>((instance, step) => instance.CurrentStepId == step.StepId)
@@ -1694,6 +1694,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 2. 处理驳回步骤：清待审 -> 新增审批日志 -> 更新表单状态
             var selfAppointments = await GetStepReviewUsers(formId, CurrentStep, _loginuser.UserId);
 
+            // 3. 清空待审批人
             var deleteResult = await _db.Deleteable<PendingReviewEntity>()
                                         .Where(pending => pending.FormId == formId)
                                         .ExecuteCommandAsync();
@@ -1711,13 +1712,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
             else
             {
-                // 3. 推进步骤
+                // 4. 推进步骤
                 await AdvanceCurrentStep(formId, rejectStepId);
 
-                // 4. 初始化当前步骤的待审批人
+                // 5. 初始化当前步骤的待审批人
                 await EnsurePendingReviewExists(formId, RejectStep.StepId);
 
-                // 5. 通知剩余待审批人
+                // 6. 通知剩余待审批人
                 await NotifyPendingReviewers(formId, rejectStepId);
 
                 return true;
@@ -1739,19 +1740,25 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             // 1. 表单 + 当前步骤
             var formNotice = await _db.Queryable<FormInstanceEntity>()
-                                      .With(SqlWith.NoLock)
                                       .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
-                                      .InnerJoin<WorkflowStepEntity>((instance, formtype, step) => instance.CurrentStepId == step.StepId)
-                                      .Where((instance, formtype, step) => instance.FormId == formId)
-                                      .Select((instance, formtype, step) => new FormNoticeReviewDto
+                                      .InnerJoin<UserInfoEntity>((instance, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
+                                      .InnerJoin<FormReviewRecordEntity>((instance, formtype, applyuser, record) => instance.FormId == record.FormId && record.ReviewDateTime == SqlFunc.Subqueryable<FormReviewRecordEntity>()
+                                                                           .Where(record => record.FormId == instance.FormId)
+                                                                           .Max(record => record.ReviewDateTime))
+                                      .InnerJoin<WorkflowStepEntity>((instance, formtype, applyuser, record, step) => instance.CurrentStepId == step.StepId)
+                                      .Where((instance, formtype, applyuser, record, step) => instance.FormId == formId)
+                                      .Select((instance, formtype, applyuser, record, step) => new FormNoticeReviewDto
                                       {
                                           FormId = instance.FormId,
                                           FormNo = instance.FormNo,
                                           FormTypeNameCn = formtype.FormTypeNameCn,
                                           FormTypeNameEn = formtype.FormTypeNameEn,
-                                          ReviewPath = formtype.ReviewPath,
+                                          ApplicantUserCn = applyuser.UserNameCn,
+                                          ApplicantUserEn = applyuser.UserNameEn,
+                                          Comment = record.Comment,
                                           CurrentStepNameCn = step.StepNameCn,
                                           CurrentStepNameEn = step.StepNameEn,
+                                          ReviewPath = formtype.ReviewPath,
                                       }).FirstAsync();
 
             // 2. 待审批用户
@@ -1790,11 +1797,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return;
             }
 
-            // 5. 模板预渲染（与收件人无关的部分）
+            // 5. 模板预渲染
             var bodyBase = template
                 .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
                 .Replace("{{FormTypeNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameCn ?? string.Empty))
                 .Replace("{{FormTypeNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameEn ?? string.Empty))
+                .Replace("{{ApplicantUserCn}}", System.Net.WebUtility.HtmlEncode(formNotice.ApplicantUserCn ?? string.Empty))
+                .Replace("{{ApplicantUserEn}}", System.Net.WebUtility.HtmlEncode(formNotice.ApplicantUserEn ?? string.Empty))
+                .Replace("{{Comment}}", System.Net.WebUtility.HtmlEncode(formNotice.Comment ?? string.Empty))
                 .Replace("{{CurrentStepNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.CurrentStepNameCn ?? string.Empty))
                 .Replace("{{CurrentStepNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.CurrentStepNameEn ?? string.Empty))
                 .Replace("{{LoginUrl}}", _formNotice.LoginUrl);

@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001115 (17.00.1115)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Form
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 17/05/2026 18:41:03
+ Date: 18/05/2026 16:33:22
 */
 
 
@@ -473,7 +473,7 @@ GO
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051655239114821632', N'1987217256446300160', N'LVR-2026050005', N'Approved', N'1903486709602062340', N'2051186400535121920', N'0', N'1903486709602062340', N'2026-05-05 21:28:21.533', N'1903486709602062341', N'2026-05-06 19:22:46.927')
 GO
 
-INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051987743411671040', N'1987217256446300160', N'LVR-2026050007', N'Rejected', N'1903486709602062336', N'2051185303204532224', N'2009898117243211776', N'1903486709602062336', N'2026-05-06 19:29:36.753', N'1903486709602062336', N'2026-05-06 19:29:43.757')
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051987743411671040', N'1987217256446300160', N'LVR-2026050007', N'Rejected', N'1903486709602062336', N'2051185303204532224', N'2009897830268932096', N'1903486709602062336', N'2026-05-06 19:29:36.753', N'1903486709602062336', N'2026-05-06 19:29:43.757')
 GO
 
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051990037100367872', N'1987217256446300160', N'LVR-2026050008', N'Approved', N'1903486709602062336', N'2051185303204532224', N'0', N'1903486709602062336', N'2026-05-06 19:38:43.627', N'1903486709602062336', N'2026-05-06 19:38:50.670')
@@ -595,6 +595,12 @@ GO
 INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2051987743411671040', N'2050599625240481792', N'mmnaEJfonmUMd3ATMCVR_19wKeLVRVG8oLs2VExZWco', N'2026-06-01 18:03:20.160', N'2026-05-17 18:03:20.160')
 GO
 
+INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2051987743411671040', N'1903486709602062341', N'cu8m--hZTWfJiY4qc9pM_I5AgmiMRSOOtOzppZ8JAJc', N'2026-06-02 16:22:47.767', N'2026-05-18 16:22:47.767')
+GO
+
+INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2051987743411671040', N'1903486709602062340', N'quVFPS94HZrPJMBX5gUTZPZjWClUHDgBDdAzyjHO7s0', N'2026-06-02 16:26:45.687', N'2026-05-18 16:26:45.687')
+GO
+
 
 -- ----------------------------
 -- Table structure for FormReviewRecord
@@ -649,7 +655,7 @@ EXEC sp_addextendedproperty
 GO
 
 EXEC sp_addextendedproperty
-'MS_Description', N'审批意见',
+'MS_Description', N'意见',
 'SCHEMA', N'Form',
 'TABLE', N'FormReviewRecord',
 'COLUMN', N'Comment'
@@ -848,6 +854,15 @@ INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [Reje
 GO
 
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2032353104544010240', N'Reject', N'2009898117243211776', N'123321', N'Manual', N'Actual', N'1903486709602062341', N'1903486709602062341', N'2026-05-17 18:03:20.143')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2009898117243211776', N'Approve', NULL, N'Price update for part number 90400464A0 for the Tesla INBOARD SIDESHIELD PAINTED LH model. I''m requesting your approval so the system will allow me to continue generating POs and avoid any shortages', N'Manual', N'Actual', N'2050597318784323584', N'2050597318784323584', N'2026-05-18 16:21:12.000')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2009898117243211776', N'Approve', NULL, N'EST B2 WELD 鼎睿达CCD配件，原厂购买，故只有一家询核价', N'Manual', N'Actual', N'2050599625240481792', N'2050599625240481792', N'2026-05-18 16:22:47.650')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2032353104544010240', N'Reject', N'2009897830268932096', N'It is too early to applied , let wait until Aug 2026', N'Manual', N'Actual', N'1903486709602062341', N'1903486709602062341', N'2026-05-18 16:26:45.637')
 GO
 
 
@@ -1283,10 +1298,7 @@ GO
 -- ----------------------------
 -- Records of PendingReview
 -- ----------------------------
-INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2051987743411671040', N'2009898117243211776', N'Actual', N'2050599625240481792')
-GO
-
-INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2051987743411671040', N'2009898117243211776', N'Actual', N'2050597318784323584')
+INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2051987743411671040', N'2009897830268932096', N'Actual', N'1903486709602062340')
 GO
 
 
