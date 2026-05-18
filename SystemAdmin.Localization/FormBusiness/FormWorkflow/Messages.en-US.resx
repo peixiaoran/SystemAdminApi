@@ -204,4 +204,7 @@
   <data name="WorkflowStepExist" xml:space="preserve">
     <value>There is already a rule configured for this step. Please delete the corresponding rule step first</value>
   </data>
+  <data name="FormNoticeReviewSubject" xml:space="preserve">
+    <value>Pending Review</value>
+  </data>
 </root>

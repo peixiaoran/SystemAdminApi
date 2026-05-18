@@ -204,4 +204,7 @@
   <data name="WorkflowStepExist" xml:space="preserve">
     <value>步骤已有对应规则配置，请先删除对应的规则步骤</value>
   </data>
+  <data name="FormNoticeReviewSubject" xml:space="preserve">
+    <value>待审批</value>
+  </data>
 </root>

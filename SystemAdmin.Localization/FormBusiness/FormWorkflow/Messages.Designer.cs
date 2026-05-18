@@ -61,6 +61,15 @@ namespace SystemAdmin.Localization.FormBusiness.FormWorkflow {
         }
         
         /// <summary>
+        ///   查找类似 待审批 的本地化字符串。
+        /// </summary>
+        public static string FormNoticeReviewSubject {
+            get {
+                return ResourceManager.GetString("FormNoticeReviewSubject", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 签核最高上限删除失败 的本地化字符串。
         /// </summary>
         public static string FormReviewLimitDeleteFailed {

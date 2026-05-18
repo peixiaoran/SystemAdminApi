@@ -1773,7 +1773,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return;
             }
 
-            // 3. 代理人替换（字典 O(1)）
+            // 3. 代理人替换
             var agentMap = (await _db.Queryable<UserAgentEntity>()
                                      .With(SqlWith.NoLock)
                                      .Where(useragent => pendingUserIds.Contains(useragent.SubstituteUserId) && useragent.StartTime <= now && useragent.EndTime >= now)
@@ -1786,7 +1786,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                 .Distinct()
                                 .ToList();
 
-            // 4. 收件人（仅订阅实时通知且邮箱有效）
+            // 4. 收件人
             var userInfoList = await _db.Queryable<UserInfoEntity>()
                                         .With(SqlWith.NoLock)
                                         .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
@@ -1809,7 +1809,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 .Replace("{{CurrentStepNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.CurrentStepNameEn ?? string.Empty))
                 .Replace("{{LoginUrl}}", _formNotice.LoginUrl);
 
-            // 6. 生成 token + 批量入库
+            // 6. 生成 token + 批量新增
             var expirationTime = now.AddDays(15);
             var tokens = userInfoList.ToDictionary(user => user.UserId, _ => GenerateSecureToken());
 
@@ -1837,7 +1837,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 await _mailKitEmail.SendAsync(new EmailMessage
                 {
                     To = new List<string> { user.Email },
-                    Subject = $"[待审批 / Pending Review] {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
+                    Subject = $"待审批 / Pending Review {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
                     Body = body,
                 });
             }
@@ -1881,25 +1881,27 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                        .Select(useragent => (long?)useragent.AgentUserId)
                                        .FirstAsync();
 
-            // 3. 选定收件人：代理人优先（且订阅实时通知） → 申请人兜底
+            // 3. 选定收件人：有代理人 → 仅发代理人（不回退）；无代理人 → 发申请人
             UserInfoEntity? recipient;
 
             if (agentUserId.HasValue)
             {
-                // 3.1 有代理人：仅当代理人订阅了实时通知才发给代理人
+                // 有代理人：仅当代理人订阅了实时通知且邮箱有效才发，否则放弃
                 recipient = await _db.Queryable<UserInfoEntity>()
                                      .With(SqlWith.NoLock)
-                                     .Where(user => user.UserId == agentUserId.Value && user.IsRealtimeNotification == 1)
+                                     .Where(user => user.UserId == agentUserId.Value
+                                                    && user.IsRealtimeNotification == 1
+                                                    && !string.IsNullOrEmpty(user.Email))
                                      .FirstAsync();
+
+                if (recipient == null)
+                {
+                    return;
+                }
             }
             else
             {
-                recipient = null;
-            }
-
-            if (recipient == null)
-            {
-                // 3.2 无代理人 / 代理人未订阅：回退到申请人
+                // 无代理人：发申请人，需订阅实时通知且邮箱有效
                 if (formNotice.ApplicantIsRealtimeNotification != 1 || string.IsNullOrWhiteSpace(formNotice.ApplicantEmail))
                 {
                     return;
@@ -1915,7 +1917,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 };
             }
 
-            // 4. 生成 token + 入库
+            // 4. 生成 token 新增
             var expirationTime = now.AddDays(15);
             var token = GenerateSecureToken();
 
@@ -1946,7 +1948,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             await _mailKitEmail.SendAsync(new EmailMessage
             {
                 To = new List<string> { recipient.Email },
-                Subject = $"[核准完成 / Approved] {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
+                Subject = $"核准完成 / Approved {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
                 Body = body,
             });
         }
