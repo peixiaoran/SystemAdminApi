@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
+﻿namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
 {
     public class FormNoticeApprovedDto
     {
@@ -14,22 +10,22 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
         /// <summary>
         /// 表单编号
         /// </summary>
-        public string FormNo { get; set; }
+        public string FormNo { get; set; } = string.Empty;
 
         /// <summary>
         /// 表单类型中文名
         /// </summary>
-        public string FormTypeNameCn { get; set; }
+        public string FormTypeNameCn { get; set; } = string.Empty;
 
         /// <summary>
         /// 表单类型英文名
         /// </summary>
-        public string FormTypeNameEn { get; set; }
+        public string FormTypeNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 审批页面路径
         /// </summary>
-        public string ReviewPath { get; set; }
+        public string ReviewPath { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人 UserId
@@ -39,12 +35,12 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
         /// <summary>
         /// 申请人中文名
         /// </summary>
-        public string ApplicantUserNameCn { get; set; }
+        public string ApplicantUserNameCn { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人英文名
         /// </summary>
-        public string ApplicantUserNameEn { get; set; }
+        public string ApplicantUserNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人性别
@@ -54,7 +50,7 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
         /// <summary>
         /// 申请人邮箱
         /// </summary>
-        public string ApplicantEmail { get; set; }
+        public string ApplicantEmail { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人是否订阅实时通知（1=是，0=否）
