@@ -157,6 +157,11 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         public int IsRealtimeNotification { get; set; }
 
         /// <summary>
+        /// 邮件通知语言
+        /// </summary>
+        public string NoticeLanguage { get; set; } = string.Empty;
+
+        /// <summary>
         /// 是否定时邮件通知
         /// </summary>
         public int IsScheduledNotification { get; set; }
