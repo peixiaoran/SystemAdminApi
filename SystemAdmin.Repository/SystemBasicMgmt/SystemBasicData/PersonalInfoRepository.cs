@@ -139,6 +139,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                  IsReview = user.IsReview,
                                  IsRealtimeNotification = user.IsRealtimeNotification,
                                  IsScheduledNotification = user.IsScheduledNotification,
+                                 NoticeLanguage = user.NoticeLanguage,
                                  IsAgent = user.IsAgent,
                                  IsPartTime = user.IsPartTime,
                                  IsFreeze = user.IsFreeze,
@@ -162,6 +163,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                 user.AvatarAddress,
                                 user.IsRealtimeNotification,
                                 user.IsScheduledNotification,
+                                user.NoticeLanguage,
                                 user.ModifiedBy,
                                 user.ModifiedDate
                             }).Where(personal => personal.UserId == loginUserId)

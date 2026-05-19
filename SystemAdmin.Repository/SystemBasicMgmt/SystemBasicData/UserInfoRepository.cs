@@ -299,6 +299,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                       IsReview = user.IsReview,
                                       IsRealtimeNotification = user.IsRealtimeNotification,
                                       IsScheduledNotification = user.IsScheduledNotification,
+                                      NoticeLanguage = user.NoticeLanguage,
                                       IsAgent = user.IsAgent,
                                       IsPartTime = user.IsPartTime,
                                       IsFreeze = user.IsFreeze,

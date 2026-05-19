@@ -74,7 +74,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 // 获取当前步骤信息，通知剩余待审批人
                 var (currentStepInfo, _) = await GetCurrentStepInfo(formId);
-                await NotifyPendingReviewers(formId, currentStepInfo.StepId);
+                await NotifyPendingReviewers(formId, currentStepInfo.StepId, ReviewResult.Approve);
             }
 
             return true;
@@ -1719,7 +1719,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 await EnsurePendingReviewExists(formId, RejectStep.StepId);
 
                 // 6. 通知剩余待审批人
-                await NotifyPendingReviewers(formId, rejectStepId);
+                await NotifyPendingReviewers(formId, rejectStepId, ReviewResult.Reject);
 
                 return true;
             }
@@ -1732,11 +1732,18 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         /// <param name="formId"></param>
         /// <param name="stepId"></param>
+        /// <param name="result"></param>
         /// <returns></returns>
-        private async Task NotifyPendingReviewers(long formId, long stepId)
+        private async Task NotifyPendingReviewers(long formId, long stepId, ReviewResult result)
         {
             var now = DateTime.Now;
-            var template = EmailTemplateLoader.GetReviewNotice();
+
+            // 根据审批结果选择模板
+            var template = result == ReviewResult.Approve
+                ? EmailTemplateLoader.GetApproveNotice()
+                : EmailTemplateLoader.GetRejectNotice();
+
+            var subjectPrefix = result == ReviewResult.Approve ? "待审批 / Pending Review" : "已驳回 / Rejected";
 
             // 1. 表单 + 当前步骤
             var formNotice = await _db.Queryable<FormInstanceEntity>()
@@ -1792,11 +1799,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                         .ToListAsync();
 
-            if (userInfoList.Count == 0)
-            {
-                return;
-            }
-
             // 5. 模板预渲染
             var bodyBase = template
                 .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
@@ -1837,21 +1839,21 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 await _mailKitEmail.SendAsync(new EmailMessage
                 {
                     To = new List<string> { user.Email },
-                    Subject = $"待审批 / Pending Review {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
+                    Subject = $"{subjectPrefix} {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
                     Body = body,
                 });
             }
         }
 
         /// <summary>
-        /// 邮件通知申请人表单核准完成（有代理人优先通知代理人）
+        /// 邮件通知申请人表单核准完成
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
         private async Task NotifyApplicantApproved(long formId)
         {
             var now = DateTime.Now;
-            var template = EmailTemplateLoader.GetReviewNotice();
+            var template = EmailTemplateLoader.GetApproveNotice();
 
             // 1. 表单 + 申请人
             var formNotice = await _db.Queryable<FormInstanceEntity>()

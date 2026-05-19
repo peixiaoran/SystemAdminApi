@@ -111,6 +111,11 @@
         public int IsScheduledNotification { get; set; }
 
         /// <summary>
+        /// 邮件通知语言
+        /// </summary>
+        public string NoticeLanguage { get; set; } = string.Empty;
+
+        /// <summary>
         /// 是否冻结
         /// </summary>
         public int IsFreeze { get; set; }

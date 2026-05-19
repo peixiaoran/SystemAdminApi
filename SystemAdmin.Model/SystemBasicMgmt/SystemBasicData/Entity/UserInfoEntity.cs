@@ -109,6 +109,11 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         public int IsScheduledNotification { get; set; }
 
         /// <summary>
+        /// 邮件通知语言
+        /// </summary>
+        public string NoticeLanguage { get; set; } = string.Empty;
+
+        /// <summary>
         /// 是否代理其他员工
         /// </summary>
         public int IsAgent { get; set; }

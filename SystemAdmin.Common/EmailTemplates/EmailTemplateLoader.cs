@@ -9,9 +9,11 @@ namespace SystemAdmin.Common.EmailTemplates
         private static readonly ConcurrentDictionary<string, string> _cache = new();
 
         /// <summary>
-        /// 读取审批通知邮件模板
+        /// 读取核准通知邮件模板
         /// </summary>
-        public static string GetReviewNotice() => Load("ReviewNotice.html");
+        public static string GetApproveNotice() => Load("FormBusiness.ApproveNotice.html");
+
+        public static string GetRejectNotice() => Load("FormBusiness.RejectNotice.html");
 
         private static string Load(string fileName)
         {
