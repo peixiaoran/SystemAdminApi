@@ -49,33 +49,37 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 手动核准：手动操作处理当前步骤
             bool hasPendingUsers = await ProcessStepApproval(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
 
+            // 还有剩余待审批人
             if (hasPendingUsers)
             {
-                // 还有剩余待审批人
                 return true;
             }
-
-            var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
-
-            if (nextStep.NextStepId == 0)
+            else
             {
-                // 没有下一步骤，核准完成邮件通知申请人
-                await ApproveForm(formId);
-                await NotifyApplicantApproved(formId);
-                return true;
-            }
+                var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
 
-            // 推进步骤
-            await AdvanceCurrentStep(formId, nextStep.NextStepId);
+                if (nextStep.NextStepId == 0)
+                {
+                    // 没有下一步骤，核准完成邮件通知申请人
+                    await ApproveForm(formId);
+                    await NotifyApplicantApproved(formId);
+                    return true;
+                }
+                else
+                {
+                    // 推进步骤
+                    await AdvanceCurrentStep(formId, nextStep.NextStepId);
 
-            // 自动核准：继续检查后续步骤是否自动推进
-            bool needNotify = await AutoApproveIfSelfInNextSteps(formId);
+                    // 自动核准：继续检查后续步骤是否自动推进
+                    bool needNotify = await AutoApproveIfSelfInNextSteps(formId);
 
-            if (needNotify)
-            {
-                // 获取当前步骤信息，通知剩余待审批人
-                var (currentStepInfo, _) = await GetCurrentStepInfo(formId);
-                await NotifyPendingReviewers(formId, currentStepInfo.StepId, ReviewResult.Approve);
+                    if (needNotify)
+                    {
+                        // 获取当前步骤信息，通知剩余待审批人
+                        var (currentStepInfo, _) = await GetCurrentStepInfo(formId);
+                        await NotifyPendingReviewers(formId, currentStepInfo.StepId, ReviewResult.Approve);
+                    }
+                }
             }
 
             return true;
