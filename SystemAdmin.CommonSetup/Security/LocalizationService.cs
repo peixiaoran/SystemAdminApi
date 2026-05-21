@@ -31,10 +31,10 @@ namespace SystemAdmin.CommonSetup.Security
 
         /// <summary>
         /// 获取多语言文案
-        /// 用法：
-        /// _msg.ReturnMsg("SystemBasicMgmt.SystemAuth.LoginSuccess");
-        /// _msg.ReturnMsg("SystemBasicMgmt.SystemAuth.LoginFailedRemainTimes", 3);
         /// </summary>
+        /// <param name="fullKey"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
         public string ReturnMsg(string fullKey, params object?[] args)
         {
             if (string.IsNullOrWhiteSpace(fullKey))
@@ -53,6 +53,74 @@ namespace SystemAdmin.CommonSetup.Security
             var culture = GetCultureFromHeader();
 
             // 1) 按请求语言读取
+            var value = resourceManager.GetString(resxKey, culture);
+
+            // 2) zh-CN 兜底
+            if (string.IsNullOrEmpty(value))
+                value = resourceManager.GetString(resxKey, new CultureInfo("zh-CN"));
+
+            // 3) en-US 兜底
+            if (string.IsNullOrEmpty(value))
+                value = resourceManager.GetString(resxKey, new CultureInfo("en-US"));
+
+            // 4) 全部没有 → 返回 fullKey（更好定位是哪个模块哪个key漏了）
+            if (string.IsNullOrEmpty(value))
+                return fullKey;
+
+            // 5) 安全格式化
+            try
+            {
+                return args is { Length: > 0 }
+                    ? string.Format(value, args)
+                    : value;
+            }
+            catch
+            {
+                return value;
+            }
+        }
+
+        /// <summary>
+        /// 获取多语言文案
+        /// </summary>
+        /// <param name="fullKey"></param>
+        /// <param name="language"></param>
+        /// <param name="args"></param>
+        /// <returns></returns>
+        public string ReturnMsg(string fullKey, string language, params object?[] args)
+        {
+            if (string.IsNullOrWhiteSpace(fullKey))
+                return string.Empty;
+
+            // 解析：模块路径 + resxKey
+            var (modulePath, resxKey) = ResolveModuleAndResxKey(fullKey);
+
+            // 拿到对应模块的 ResourceManager
+            var resourceManager = GetResourceManager(modulePath);
+
+            // 如果模块找不到，直接返回 fullKey（便于暴露漏配）
+            if (resourceManager is null)
+                return fullKey;
+
+            // 优先使用显式指定的语言，否则从 Header 解析
+            CultureInfo culture;
+            if (!string.IsNullOrWhiteSpace(language))
+            {
+                try
+                {
+                    culture = new CultureInfo(language);
+                }
+                catch (CultureNotFoundException)
+                {
+                    culture = GetCultureFromHeader();
+                }
+            }
+            else
+            {
+                culture = GetCultureFromHeader();
+            }
+
+            // 1) 按指定/请求语言读取
             var value = resourceManager.GetString(resxKey, culture);
 
             // 2) zh-CN 兜底

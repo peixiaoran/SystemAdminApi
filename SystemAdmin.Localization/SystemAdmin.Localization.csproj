@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="FormBusiness\Workflow\Messages.resx~RF1ec81719.TMP" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Compile Update="CustMat\CustMatBasicInfo\Messages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -33,6 +37,11 @@
       <DependentUpon>Messages.resx</DependentUpon>
     </Compile>
     <Compile Update="FormBusiness\FormLifecycle\Messages.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Messages.resx</DependentUpon>
+    </Compile>
+    <Compile Update="FormBusiness\Workflow\Messages.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
       <DependentUpon>Messages.resx</DependentUpon>
@@ -92,6 +101,10 @@
     </EmbeddedResource>
     <EmbeddedResource Update="FormBusiness\FormLifecycle\Messages.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <EmbeddedResource Update="FormBusiness\Workflow\Messages.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Messages.Designer.cs</LastGenOutput>
     </EmbeddedResource>
     <EmbeddedResource Update="SystemBasicMgmt\SystemAuth\Message.resx">

@@ -117,70 +117,73 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="WorkflowStepDeleteFailed" xml:space="preserve">
-    <value>步骤删除失败</value>
+  <data name="EmailNoticeApprovedTitle" xml:space="preserve">
+    <value>核准完成通知</value>
   </data>
-  <data name="WorkflowStepDeleteSuccess" xml:space="preserve">
-    <value>步骤删除成功</value>
+  <data name="EmailNoticeBtnReview" xml:space="preserve">
+    <value>前往审批</value>
   </data>
-  <data name="WorkflowStepInsertFailed" xml:space="preserve">
-    <value>步骤新增失败</value>
+  <data name="EmailNoticeBtnSignIn" xml:space="preserve">
+    <value>登入系统</value>
   </data>
-  <data name="WorkflowStepInsertSuccess" xml:space="preserve">
-    <value>步骤新增成功</value>
+  <data name="EmailNoticeBtnViewForm" xml:space="preserve">
+    <value>查看表单</value>
   </data>
-  <data name="WorkflowStepUpdateFailed" xml:space="preserve">
-    <value>步骤修改失败</value>
+  <data name="EmailNoticeExpireHint" xml:space="preserve">
+    <value>链接 15 天内有效</value>
   </data>
-  <data name="WorkflowStepUpdateSuccess" xml:space="preserve">
-    <value>步骤修改成功</value>
+  <data name="EmailNoticeFooter" xml:space="preserve">
+    <value>系统自动发送，请勿回复</value>
   </data>
-  <data name="WorkflowRuleInsertSuccess" xml:space="preserve">
-    <value>规则新增成功</value>
+  <data name="EmailNoticeGreetingDefault" xml:space="preserve">
+    <value>您好 {0}</value>
   </data>
-  <data name="WorkflowRuleInsertFailed" xml:space="preserve">
-    <value>规则新增失败</value>
+  <data name="EmailNoticeGreetingTemplate" xml:space="preserve">
+    <value>尊敬的 {0} {1}，您好！</value>
   </data>
-  <data name="WorkflowRuleDeleteSuccess" xml:space="preserve">
-    <value>规则删除成功</value>
+  <data name="EmailNoticeGreetingTitleFemale" xml:space="preserve">
+    <value>女士</value>
   </data>
-  <data name="WorkflowRuleDeleteFailed" xml:space="preserve">
-    <value>规则删除失败</value>
+  <data name="EmailNoticeGreetingTitleMale" xml:space="preserve">
+    <value>先生</value>
   </data>
-  <data name="WorkflowRuleUpdateFailed" xml:space="preserve">
-    <value>规则修改失败</value>
+  <data name="EmailNoticeLabelApplicant" xml:space="preserve">
+    <value>申请人</value>
   </data>
-  <data name="WorkflowRuleUpdateSuccess" xml:space="preserve">
-    <value>规则修改成功</value>
+  <data name="EmailNoticeLabelComment" xml:space="preserve">
+    <value>意见</value>
   </data>
-  <data name="WorkflowRuleRepat" xml:space="preserve">
-    <value>已有对应条件的规则，请勿重复配置</value>
+  <data name="EmailNoticeLabelFormNo" xml:space="preserve">
+    <value>单号</value>
   </data>
-  <data name="WorkflowRuleStepInsertSuccess" xml:space="preserve">
-    <value>规则步骤新增成功</value>
+  <data name="EmailNoticeLabelFormType" xml:space="preserve">
+    <value>表单类型</value>
   </data>
-  <data name="WorkflowRuleStepInsertFailed" xml:space="preserve">
-    <value>规则步骤新增失败</value>
+  <data name="EmailNoticeLabelResult" xml:space="preserve">
+    <value>结果</value>
   </data>
-  <data name="WorkflowRuleStepDeleteFailed" xml:space="preserve">
-    <value>规则步骤删除失败</value>
+  <data name="EmailNoticeLabelStep" xml:space="preserve">
+    <value>当前步骤</value>
   </data>
-  <data name="WorkflowRuleStepDeleteSuccess" xml:space="preserve">
-    <value>规则步骤删除成功</value>
+  <data name="EmailNoticePendingTitle" xml:space="preserve">
+    <value>待审批通知</value>
   </data>
-  <data name="WorkflowRuleStepUpdateSuccess" xml:space="preserve">
-    <value>规则步骤修改成功</value>
+  <data name="EmailNoticeRejectedTitle" xml:space="preserve">
+    <value>驳回通知</value>
   </data>
-  <data name="WorkflowRuleStepUpdateFailed" xml:space="preserve">
-    <value>规则步骤修改失败</value>
+  <data name="EmailNoticeResultApproved" xml:space="preserve">
+    <value>核准</value>
   </data>
-  <data name="WorkflowRuleStepRepat" xml:space="preserve">
-    <value>规则已有对应的步骤及下一步骤，请勿重复配置</value>
+  <data name="EmailNoticeResultRejected" xml:space="preserve">
+    <value>驳回</value>
   </data>
-  <data name="WorkflowRuleExist" xml:space="preserve">
-    <value>规则已有步骤配置，请先删除对应配置</value>
+  <data name="EmailNoticeSubjectApproved" xml:space="preserve">
+    <value>核准完成</value>
   </data>
-  <data name="WorkflowStepExist" xml:space="preserve">
-    <value>步骤已有对应规则配置，请先删除对应的规则步骤</value>
+  <data name="EmailNoticeSubjectPending" xml:space="preserve">
+    <value>待审批</value>
+  </data>
+  <data name="EmailNoticeSubjectRejected" xml:space="preserve">
+    <value>已驳回</value>
   </data>
 </root>

@@ -26,6 +26,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private readonly AppUrlOptions _formNotice;
         private readonly LocalizationService _localization;
         private readonly Language _lang;
+        private readonly string _this = "FormBusiness.Workflow";
 
         public FormReviewAction(CurrentUser loginuser, SqlSugarScope db, MailKitEmailSender mailKitEmail, IOptions<AppUrlOptions> formNotice, LocalizationService localization, Language lang)
         {
@@ -1727,23 +1728,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 邮件通知
 
-        /// <summary>
-        /// 邮件通知待审批人
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepId"></param>
-        /// <param name="result"></param>
-        /// <returns></returns>
         private async Task NotifyPendingReviewers(long formId, long stepId, ReviewResult result)
         {
             var now = DateTime.Now;
-
-            // 根据审批结果选择模板
-            var template = result == ReviewResult.Approve
-                ? EmailTemplateLoader.GetApproveNotice()
-                : EmailTemplateLoader.GetRejectNotice();
-
-            var subjectPrefix = result == ReviewResult.Approve ? "待审批 / Pending Review" : "已驳回 / Rejected";
 
             // 1. 表单 + 当前步骤
             var formNotice = await _db.Queryable<FormInstanceEntity>()
@@ -1793,25 +1780,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                 .Distinct()
                                 .ToList();
 
-            // 4. 收件人
+            // 4. 收件人（含 NoticeLanguage）
             var userInfoList = await _db.Queryable<UserInfoEntity>()
                                         .With(SqlWith.NoLock)
                                         .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                         .ToListAsync();
 
-            // 5. 模板预渲染
-            var bodyBase = template
-                .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
-                .Replace("{{FormTypeNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameCn ?? string.Empty))
-                .Replace("{{FormTypeNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameEn ?? string.Empty))
-                .Replace("{{ApplicantUserCn}}", System.Net.WebUtility.HtmlEncode(formNotice.ApplicantUserCn ?? string.Empty))
-                .Replace("{{ApplicantUserEn}}", System.Net.WebUtility.HtmlEncode(formNotice.ApplicantUserEn ?? string.Empty))
-                .Replace("{{Comment}}", System.Net.WebUtility.HtmlEncode(formNotice.Comment ?? string.Empty))
-                .Replace("{{CurrentStepNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.CurrentStepNameCn ?? string.Empty))
-                .Replace("{{CurrentStepNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.CurrentStepNameEn ?? string.Empty))
-                .Replace("{{LoginUrl}}", _formNotice.LoginUrl);
-
-            // 6. 生成 token + 批量新增
+            // 5. 生成 token + 批量新增
             var expirationTime = now.AddDays(15);
             var tokens = userInfoList.ToDictionary(user => user.UserId, _ => GenerateSecureToken());
 
@@ -1826,20 +1801,80 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             await _db.Insertable(tokenEntities).ExecuteCommandAsync();
 
-            // 7. 逐人发送
+            // 6. 模板
+            var template = result == ReviewResult.Approve
+                ? EmailTemplateLoader.GetApproveNotice()
+                : EmailTemplateLoader.GetRejectNotice();
+
+            // 7. 逐人发送（按 NoticeLanguage 渲染）
             foreach (var user in userInfoList)
             {
-                var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, tokens[user.UserId]);
-                var greeting = BuildGreeting(user.UserNameCn, user.UserNameEn, user.Gender);
+                var lang = user.NoticeLanguage;
 
-                var body = bodyBase
+                // ===== Greeting 内联构造 =====
+                var rawName = lang == "zh-CN" 
+                              ? user.UserNameCn
+                              : user.UserNameEn;
+                var name = System.Net.WebUtility.HtmlEncode(rawName ?? string.Empty);
+
+                var titleKey = user.Gender switch
+                {
+                    1 => $"{_this}.EmailNoticeGreetingTitleMale",
+                    2 => $"{_this}.EmailNoticeGreetingTitleFemale",
+                    _ => $"{_this}.EmailNoticeGreetingTitleDefault",
+                };
+                var title = _localization.ReturnMsg(titleKey, lang);
+
+                var greeting = _localization.ReturnMsg($"{_this}.EmailNoticeGreetingTemplate", lang, name, title);
+
+                // ===== Greeting 结束 =====
+
+                // 本地化文案
+                var headerTitle = result == ReviewResult.Approve
+                    ? _localization.ReturnMsg($"{_this}.EmailNoticeApprovedTitle", lang)
+                    : _localization.ReturnMsg($"{_this}.EmailNoticeRejectedTitle", lang);
+
+                var subjectPrefix = result == ReviewResult.Approve
+                    ? _localization.ReturnMsg($"{_this}.EmailNoticeSubjectApproved", lang)
+                    : _localization.ReturnMsg($"{_this}.EmailNoticeSubjectRejected", lang);
+
+                var resultText = result == ReviewResult.Approve
+                    ? _localization.ReturnMsg($"{_this}.EmailNoticeResultApproved", lang)
+                    : _localization.ReturnMsg($"{_this}.EmailNoticeResultRejected", lang);
+
+                // 按语言挑选业务字段
+                var formTypeName = lang == "zh-CN" ? formNotice.FormTypeNameCn : formNotice.FormTypeNameEn;
+                var applicantUser = lang == "zh-CN" ? formNotice.ApplicantUserCn : formNotice.ApplicantUserEn;
+                var currentStepName = lang == "zh-CN" ? formNotice.CurrentStepNameCn : formNotice.CurrentStepNameEn;
+
+                var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, tokens[user.UserId]);
+
+                var body = template
+                    .Replace("{{Title}}", System.Net.WebUtility.HtmlEncode(headerTitle))
                     .Replace("{{Greeting}}", greeting)
+                    .Replace("{{LabelFormNo}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
+                    .Replace("{{LabelFormType}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
+                    .Replace("{{LabelApplicant}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
+                    .Replace("{{LabelResult}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
+                    .Replace("{{LabelComment}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
+                    .Replace("{{LabelStep}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
+                    .Replace("{{ResultText}}", System.Net.WebUtility.HtmlEncode(resultText))
+                    .Replace("{{BtnReview}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
+                    .Replace("{{BtnSignIn}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
+                    .Replace("{{ExpireHint}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeExpireHint", lang)))
+                    .Replace("{{FooterText}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFooter", lang)))
+                    .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
+                    .Replace("{{FormTypeName}}", System.Net.WebUtility.HtmlEncode(formTypeName ?? string.Empty))
+                    .Replace("{{ApplicantUser}}", System.Net.WebUtility.HtmlEncode(applicantUser ?? string.Empty))
+                    .Replace("{{Comment}}", System.Net.WebUtility.HtmlEncode(formNotice.Comment ?? string.Empty))
+                    .Replace("{{CurrentStepName}}", System.Net.WebUtility.HtmlEncode(currentStepName ?? string.Empty))
+                    .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
                     .Replace("{{ReviewUrl}}", reviewUrl);
 
                 await _mailKitEmail.SendAsync(new EmailMessage
                 {
                     To = new List<string> { user.Email },
-                    Subject = $"{subjectPrefix} {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
+                    Subject = $"{subjectPrefix} {formNotice.FormNo} - {formTypeName}",
                     Body = body,
                 });
             }
@@ -1848,8 +1883,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 邮件通知申请人表单核准完成
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         private async Task NotifyApplicantApproved(long formId)
         {
             var now = DateTime.Now;
@@ -1874,21 +1907,21 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           ApplicantGender = userInfo.Gender,
                                           ApplicantEmail = userInfo.Email,
                                           ApplicantIsRealtimeNotification = userInfo.IsRealtimeNotification,
+                                          ApplicantNoticeLanguage = userInfo.NoticeLanguage,
                                       }).FirstAsync();
 
-            // 2. 查代理人（生效中的）
+            // 2. 代理人
             var agentUserId = await _db.Queryable<UserAgentEntity>()
                                        .With(SqlWith.NoLock)
                                        .Where(useragent => useragent.SubstituteUserId == formNotice.ApplicantUserId && useragent.StartTime <= now && useragent.EndTime >= now)
                                        .Select(useragent => (long?)useragent.AgentUserId)
                                        .FirstAsync();
 
-            // 3. 选定收件人：有代理人 → 仅发代理人（不回退）；无代理人 → 发申请人
+            // 3. 选定收件人
             UserInfoEntity? recipient;
 
             if (agentUserId.HasValue)
             {
-                // 有代理人：仅当代理人订阅了实时通知且邮箱有效才发，否则放弃
                 recipient = await _db.Queryable<UserInfoEntity>()
                                      .With(SqlWith.NoLock)
                                      .Where(user => user.UserId == agentUserId.Value
@@ -1903,7 +1936,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
             else
             {
-                // 无代理人：发申请人，需订阅实时通知且邮箱有效
                 if (formNotice.ApplicantIsRealtimeNotification != 1 || string.IsNullOrWhiteSpace(formNotice.ApplicantEmail))
                 {
                     return;
@@ -1916,10 +1948,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     UserNameEn = formNotice.ApplicantUserNameEn,
                     Gender = formNotice.ApplicantGender,
                     Email = formNotice.ApplicantEmail,
+                    NoticeLanguage = formNotice.ApplicantNoticeLanguage,
                 };
             }
 
-            // 4. 生成 token 新增
+            // 4. 生成 token
             var expirationTime = now.AddDays(15);
             var token = GenerateSecureToken();
 
@@ -1934,23 +1967,55 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             await _db.Insertable(tokenEntity).ExecuteCommandAsync();
 
-            // 5. 组装邮件内容
+            // 5. 按收件人语言渲染
+            var lang = recipient.NoticeLanguage;
+
+            // ===== Greeting 内联构造 =====
+            var rawName = lang == "zh-CN" ? recipient.UserNameCn : recipient.UserNameEn;
+            var name = System.Net.WebUtility.HtmlEncode(rawName ?? string.Empty);
+
+            var titleKey = recipient.Gender switch
+            {
+                1 => $"{_this}.EmailNoticeGreetingTitleMale",
+                2 => $"{_this}.EmailNoticeGreetingTitleFemale",
+                _ => $"{_this}.EmailNoticeGreetingTitleDefault",
+            };
+            var title = _localization.ReturnMsg(titleKey, lang);
+
+            var greeting = _localization.ReturnMsg($"{_this}.EmailNoticeGreetingTemplate", lang, name, title);
+
+            // ===== Greeting 结束 =====
+
+            var headerTitle = _localization.ReturnMsg($"{_this}.EmailNoticeApprovedTitle", lang);
+            var subjectPrefix = _localization.ReturnMsg($"{_this}.EmailNoticeSubjectApproved", lang);
+            var resultText = _localization.ReturnMsg($"{_this}.EmailNoticeResultApproved", lang);
+
+            var formTypeName = lang == "zh-CN" ? formNotice.FormTypeNameCn : formNotice.FormTypeNameEn;
             var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, token);
-            var greeting = BuildGreeting(recipient.UserNameCn, recipient.UserNameEn, recipient.Gender);
 
             var body = template
+                .Replace("{{Title}}", System.Net.WebUtility.HtmlEncode(headerTitle))
                 .Replace("{{Greeting}}", greeting)
+                .Replace("{{LabelFormNo}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
+                .Replace("{{LabelFormType}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
+                .Replace("{{LabelApplicant}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
+                .Replace("{{LabelResult}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
+                .Replace("{{LabelComment}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
+                .Replace("{{LabelStep}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
+                .Replace("{{ResultText}}", System.Net.WebUtility.HtmlEncode(resultText))
+                .Replace("{{BtnReview}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
+                .Replace("{{BtnSignIn}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
+                .Replace("{{ExpireHint}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeExpireHint", lang)))
+                .Replace("{{FooterText}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFooter", lang)))
                 .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
-                .Replace("{{FormTypeNameCn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameCn ?? string.Empty))
-                .Replace("{{FormTypeNameEn}}", System.Net.WebUtility.HtmlEncode(formNotice.FormTypeNameEn ?? string.Empty))
+                .Replace("{{FormTypeName}}", System.Net.WebUtility.HtmlEncode(formTypeName ?? string.Empty))
                 .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
                 .Replace("{{ReviewUrl}}", reviewUrl);
 
-            // 6. 发送
             await _mailKitEmail.SendAsync(new EmailMessage
             {
                 To = new List<string> { recipient.Email },
-                Subject = $"核准完成 / Approved {formNotice.FormNo} - {formNotice.FormTypeNameCn}",
+                Subject = $"{subjectPrefix} {formNotice.FormNo} - {formTypeName}",
                 Body = body,
             });
         }
@@ -2019,25 +2084,19 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                           .TrimEnd('=');
         }
 
+        /// <summary>
+        /// 拼接待审批地址
+        /// </summary>
+        /// <param name="baseDomain"></param>
+        /// <param name="reviewPath"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         private static string BuildReviewUrl(string baseDomain, string reviewPath, string token)
         {
             var separator = reviewPath?.Contains('?') == true ? "&" : "?";
             return $"{baseDomain}{reviewPath}{separator}token={Uri.EscapeDataString(token)}";
         }
-
-        private static string BuildGreeting(string userNameCn, string userNameEn, int gender)
-        {
-            // Gender: 1=男, 其他=女（按需调整）
-            var cnTitle = gender == 1 ? "先生" : "女士";
-            var enTitle = gender == 1 ? "Mr." : "Ms.";
-
-            var cnName = System.Net.WebUtility.HtmlEncode(userNameCn ?? string.Empty);
-            var enName = System.Net.WebUtility.HtmlEncode(userNameEn ?? string.Empty);
-
-            // 例：尊敬的 张三 先生 / Dear Mr. San Zhang，您好！
-            return $"尊敬的 {cnName} {cnTitle} / Dear {enTitle} {enName}，您好！";
-        }
-
+        
         #endregion
     }
 }

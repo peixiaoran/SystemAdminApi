@@ -53,6 +53,11 @@
         public string ApplicantEmail { get; set; } = string.Empty;
 
         /// <summary>
+        /// 申请人通知语言
+        /// </summary>
+        public string ApplicantNoticeLanguage { get; set; } = string.Empty;
+
+        /// <summary>
         /// 申请人是否订阅实时通知（1=是，0=否）
         /// </summary>
         public int ApplicantIsRealtimeNotification { get; set; }
