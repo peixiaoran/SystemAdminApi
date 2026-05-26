@@ -4,7 +4,7 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto
 {
     /// <summary>
-    /// 员工代理了哪些人Dto
+    /// 用户代理了哪些人Dto
     /// </summary>
     public class UserAgentProactiveDto
     {

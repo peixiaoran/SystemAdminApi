@@ -41,7 +41,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -57,13 +57,13 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                             user.Nationality == nation.NationId)
                            .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
                     user.UserNo.Contains(getPage.UserNo));
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
@@ -105,7 +105,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工绑定表单树
+        /// 查询用户绑定表单树
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -158,7 +158,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 删除员工表单绑定
+        /// 删除用户表单绑定
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -168,7 +168,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 新增员工表单绑定
+        /// 新增用户表单绑定
         /// </summary>
         /// <param name="entityList"></param>
         /// <returns></returns>

@@ -3,13 +3,13 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Entity
 {
     /// <summary>
-    /// 员工权限实体
+    /// 用户权限实体
     /// </summary>
     [SugarTable("[Basic].[UserRole]")]
     public class SysUserRoleEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

@@ -154,7 +154,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -170,12 +170,12 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                             user.Nationality == nation.NationId)
                            .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((user, dept, position, labor, nation) => user.UserNo.Contains(getPage.UserNo));
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
@@ -238,7 +238,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        ///  新增步骤-指定部门员工级别
+        ///  新增步骤-指定部门用户级别
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -248,7 +248,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 新增步骤-指定员工
+        /// 新增步骤-指定用户
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -305,7 +305,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 删除步骤-指定部门员工级别
+        /// 删除步骤-指定部门用户级别
         /// </summary>
         /// <param name="stepId"></param>
         /// <returns></returns>
@@ -317,7 +317,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 删除步骤-指定员工
+        /// 删除步骤-指定用户
         /// </summary>
         /// <param name="stepId"></param>
         /// <returns></returns>
@@ -414,7 +414,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 查询步骤-指定部门员工级别实体
+        /// 查询步骤-指定部门用户级别实体
         /// </summary>
         /// <param name="stepId"></param>
         /// <returns></returns>
@@ -428,7 +428,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 查询步骤-指定员工实体
+        /// 查询步骤-指定用户实体
         /// </summary>
         /// <param name="stepId"></param>
         /// <returns></returns>

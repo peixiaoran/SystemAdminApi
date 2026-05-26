@@ -3,7 +3,7 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries
 {
     /// <summary>
-    /// 查询员工分页请求参数
+    /// 查询用户分页请求参数
     /// </summary>
     public class GetUserInfoPage : PageModel
     {
@@ -13,12 +13,12 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries
         public string DepartmentId { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名
+        /// 用户姓名
         /// </summary>
         public string UserName { get; set; } = string.Empty;
     }

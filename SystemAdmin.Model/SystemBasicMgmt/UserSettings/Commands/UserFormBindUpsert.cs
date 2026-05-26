@@ -1,12 +1,12 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Commands
 {
     /// <summary>
-    /// 员工绑定表单新增/修改类
+    /// 用户绑定表单新增/修改类
     /// </summary>
     public class UserFormUpsert
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public string UserId { get; set; } = string.Empty;
 

@@ -67,7 +67,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询所有员工信息
+        /// 查询所有用户信息
         /// </summary>
         /// <returns></returns>
         public async Task<List<UserInfoEntity>> GetUserInfoList()

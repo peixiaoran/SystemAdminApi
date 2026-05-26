@@ -11,12 +11,12 @@
         Org = 1,
 
         /// <summary>
-        /// 指定部门员工级别
+        /// 指定部门用户级别
         /// </summary>
         DeptUser = 2,
 
         /// <summary>
-        /// 指定员工
+        /// 指定用户
         /// </summary>
         User = 3,
 

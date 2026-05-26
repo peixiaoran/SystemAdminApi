@@ -44,12 +44,12 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
         public string AppointmentType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 原本审批员工Id
+        /// 原本审批用户Id
         /// </summary>
         public long OriginalUserId { get; set; }
 
         /// <summary>
-        /// 实际审批员工Id
+        /// 实际审批用户Id
         /// </summary>
         public long OperationUserId { get; set; }
 

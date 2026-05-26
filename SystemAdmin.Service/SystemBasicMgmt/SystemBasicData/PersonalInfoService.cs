@@ -85,7 +85,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 上传员工头像
+        /// 上传用户头像
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="file"></param>

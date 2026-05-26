@@ -4,23 +4,23 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto
 {
     /// <summary>
-    /// 员工分页Dto
+    /// 用户分页Dto
     /// </summary>
     public class UserAgentDto
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
         public long UserId { get; set; }
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名
+        /// 用户姓名
         /// </summary>
         public string UserName { get; set; } = string.Empty;
 

@@ -466,7 +466,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息 的本地化字符串。
+        ///   查找类似 用户信息 的本地化字符串。
         /// </summary>
         internal static string UserExcel_UserInfo {
             get {
@@ -475,7 +475,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工姓名（中文） 的本地化字符串。
+        ///   查找类似 用户姓名（中文） 的本地化字符串。
         /// </summary>
         internal static string UserExcel_UserNameCn {
             get {
@@ -484,7 +484,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工姓名（英文） 的本地化字符串。
+        ///   查找类似 用户姓名（英文） 的本地化字符串。
         /// </summary>
         internal static string UserExcel_UserNameEn {
             get {
@@ -493,7 +493,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工工号 的本地化字符串。
+        ///   查找类似 用户工号 的本地化字符串。
         /// </summary>
         internal static string UserExcel_UserNo {
             get {
@@ -529,7 +529,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息删除失败 的本地化字符串。
+        ///   查找类似 用户信息删除失败 的本地化字符串。
         /// </summary>
         internal static string UserInfoDeleteFailed {
             get {
@@ -538,7 +538,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息删除成功 的本地化字符串。
+        ///   查找类似 用户信息删除成功 的本地化字符串。
         /// </summary>
         internal static string UserInfoDeleteSuccess {
             get {
@@ -547,7 +547,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息新增失败 的本地化字符串。
+        ///   查找类似 用户信息新增失败 的本地化字符串。
         /// </summary>
         internal static string UserInfoInsertFailed {
             get {
@@ -556,7 +556,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息新增成功 的本地化字符串。
+        ///   查找类似 用户信息新增成功 的本地化字符串。
         /// </summary>
         internal static string UserInfoInsertSuccess {
             get {
@@ -565,7 +565,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息修改失败 的本地化字符串。
+        ///   查找类似 用户信息修改失败 的本地化字符串。
         /// </summary>
         internal static string UserInfoUpdateFailed {
             get {
@@ -574,7 +574,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemBasicData {
         }
         
         /// <summary>
-        ///   查找类似 员工信息修改成功 的本地化字符串。
+        ///   查找类似 用户信息修改成功 的本地化字符串。
         /// </summary>
         internal static string UserInfoUpdateSuccess {
             get {

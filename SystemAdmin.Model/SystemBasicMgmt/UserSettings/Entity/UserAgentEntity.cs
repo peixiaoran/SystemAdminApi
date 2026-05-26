@@ -3,18 +3,18 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity
 {
     /// <summary>
-    /// 员工代理实体类
+    /// 用户代理实体类
     /// </summary>
     [SugarTable("[Basic].[UserAgent]")]
     public class UserAgentEntity
     {
         /// <summary>
-        /// 被代理员工Id
+        /// 被代理用户Id
         /// </summary>
         public long SubstituteUserId { get; set; }
 
         /// <summary>
-        /// 代理员工Id
+        /// 代理用户Id
         /// </summary>
         public long AgentUserId { get; set; }
 

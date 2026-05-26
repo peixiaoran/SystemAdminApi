@@ -85,7 +85,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工兼任分页
+        /// 查询用户兼任分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -103,7 +103,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -121,7 +121,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 新增员工兼任
+        /// 新增用户兼任
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
@@ -129,7 +129,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         {
             try
             {
-                // 判断员工是否有重复（按照员工Id、兼任部门）
+                // 判断用户是否有重复（按照用户Id、兼任部门）
                 var isPartTime = await _userPartTimeRepo.GetUserPartTimeCount(long.Parse(upsert.UserId), long.Parse(upsert.PartTimeDeptId), long.Parse(upsert.PartTimePositionId));
                 if (isPartTime)
                 {
@@ -167,7 +167,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 删除员工兼任
+        /// 删除用户兼任
         /// </summary>
         /// <param name="upsertdel"></param>
         /// <returns></returns>
@@ -176,9 +176,9 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
             try
             {
                 await _db.BeginTranAsync();
-                // 删除员工兼任
+                // 删除用户兼任
                 var count = await _userPartTimeRepo.DeleteUserPartTime(upsertdel);
-                // 判断员工是否还有兼任，如果没有就修改兼任状态为0
+                // 判断用户是否还有兼任，如果没有就修改兼任状态为0
                 var isPartTime = await _userPartTimeRepo.GetUserPartTimeIsExist(long.Parse(upsertdel.Old_UserId));
                 if (!isPartTime)
                 {
@@ -199,7 +199,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工兼任实体
+        /// 查询用户兼任实体
         /// </summary>
         /// <param name="getEntity"></param>
         /// <returns></returns>
@@ -218,7 +218,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 修改员工兼任
+        /// 修改用户兼任
         /// </summary>
         /// <param name="upsertdel"></param>
         /// <returns></returns>
@@ -226,7 +226,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         {
             try
             {
-                // 判断员工是否有重复（按照员工Id、新兼任部门、新兼任职级）
+                // 判断用户是否有重复（按照用户Id、新兼任部门、新兼任职级）
                 var isPartTime = await _userPartTimeRepo.GetUserPartTimeCount(long.Parse(upsertdel.UserId), long.Parse(upsertdel.PartTimeDeptId), long.Parse(upsertdel.PartTimePositionId));
                 if (isPartTime)
                 {
@@ -247,13 +247,13 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
 
                     await _db.BeginTranAsync();
                     var updateUserPartCount = await _userPartTimeRepo.UpdateUserPartTime(upsertdel, entity);
-                    // 判断老员工是否还有兼任，如果没有就修改兼任状态为0
+                    // 判断老用户是否还有兼任，如果没有就修改兼任状态为0
                     var oldUserPartIsExist = await _userPartTimeRepo.GetUserPartTimeIsExist(long.Parse(upsertdel.Old_UserId));
                     if (!oldUserPartIsExist)
                     {
                         await _userPartTimeRepo.UpdateUserPartTime(long.Parse(upsertdel.Old_UserId), 0);
                     }
-                    // 修改新员工的兼任状态为1
+                    // 修改新用户的兼任状态为1
                     await _userPartTimeRepo.UpdateUserPartTime(long.Parse(upsertdel.UserId), 1);
                     await _db.CommitTranAsync();
 

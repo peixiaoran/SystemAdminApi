@@ -4,7 +4,7 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto
 {
     /// <summary>
-    /// 员工表单绑定表单Dto
+    /// 用户表单绑定表单Dto
     /// </summary>
     public class UserFormViewTreeDto
     {

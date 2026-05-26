@@ -62,7 +62,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormWorkflow
 
         [HttpPost]
         [Tags("表单业务管理-表单流程配置")]
-        [EndpointSummary("[流程步骤详情] 员工职级下拉")]
+        [EndpointSummary("[流程步骤详情] 用户职级下拉")]
         public async Task<Result<List<PositionDropDto>>> GetPositionDrop()
         {
             return await _workflowStepService.GetPositionDrop();
@@ -78,7 +78,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormWorkflow
 
 		[HttpPost]
 		[Tags("表单业务管理-表单流程配置")]
-		[EndpointSummary("[流程步骤详情] 查询员工信息分页")]
+		[EndpointSummary("[流程步骤详情] 查询用户信息分页")]
 		public async Task<ResultPaged<UserInfoDto>> GetUserInfoPage(GetUserInfoPage getPage)
 		{
 			return await _workflowStepService.GetUserInfoPage(getPage);

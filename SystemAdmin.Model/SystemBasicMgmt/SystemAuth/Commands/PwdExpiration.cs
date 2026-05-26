@@ -6,7 +6,7 @@
     public class PwdExpiration
     {
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         private string _userNo = string.Empty;
         public string UserNo

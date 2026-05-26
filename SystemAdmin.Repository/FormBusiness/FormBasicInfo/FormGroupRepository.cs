@@ -54,7 +54,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         }
 
         /// <summary>
-        /// 删除员工表单类别绑定
+        /// 删除用户表单类别绑定
         /// </summary>
         /// <param name="formGroupId"></param>
         /// <returns></returns>

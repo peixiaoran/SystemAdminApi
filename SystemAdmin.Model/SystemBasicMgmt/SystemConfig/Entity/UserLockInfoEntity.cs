@@ -3,13 +3,13 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity
 {
     /// <summary>
-    /// 员工账号锁定信息实体
+    /// 用户账号锁定信息实体
     /// </summary>
     [SugarTable("[Basic].[UserLock]")]
     public class UserLockEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

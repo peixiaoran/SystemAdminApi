@@ -8,7 +8,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto
     public class FormNotificationUserDto
     {
         /// <summary>
-        /// 员工信息
+        /// 用户信息
         /// </summary>
         public UserInfoEntity user { get; set; } = new UserInfoEntity();
 

@@ -241,7 +241,7 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.SystemMgmt {
         }
         
         /// <summary>
-        ///   查找类似 该角色已被员工使用，请先调整员工角色后再删除。 的本地化字符串。
+        ///   查找类似 该角色已被用户使用，请先调整用户角色后再删除。 的本地化字符串。
         /// </summary>
         internal static string RoleRoleUsed {
             get {

@@ -203,7 +203,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 查询表单待审批员工
+        /// 查询表单待审批用户
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>

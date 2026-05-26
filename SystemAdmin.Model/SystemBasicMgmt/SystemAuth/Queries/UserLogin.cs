@@ -1,7 +1,7 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Queries
 {
     /// <summary>
-    /// 员工登录请求参数
+    /// 用户登录请求参数
     /// </summary>
     public class UserLogin
     {

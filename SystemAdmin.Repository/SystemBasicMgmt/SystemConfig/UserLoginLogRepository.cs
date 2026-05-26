@@ -19,7 +19,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemConfig
         }
 
         /// <summary>
-        /// 查询员工登录日志分页
+        /// 查询用户登录日志分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -37,7 +37,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemConfig
             {
                 query = query.Where((userloginlog, user, loginbehaviordic) => userloginlog.IP.Contains(getPage.IP));
             }
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((userloginlog, user, loginbehaviordic) => user.UserNo.Contains(getPage.UserNo));

@@ -31,7 +31,7 @@
         public int IsStartStep { get; set; }
 
         /// <summary>
-        /// 步骤指派规则（依组织架构、指定部门员工级别、指定员工、自定义）
+        /// 步骤指派规则（依组织架构、指定部门用户级别、指定用户、自定义）
         /// </summary>
         public string Assignment { get; set; } = string.Empty;
 
@@ -61,12 +61,12 @@
         public WorkflowStepOrgUpsert stepOrgUpsert { get; set; } = new WorkflowStepOrgUpsert();
 
         /// <summary>
-        /// 步骤指定部门员工级别新增/修改类
+        /// 步骤指定部门用户级别新增/修改类
         /// </summary>
         public WorkflowStepDeptUserUpsert stepDeptUserUpsert { get; set; } = new WorkflowStepDeptUserUpsert();
 
         /// <summary>
-        /// 步骤指定员工新增/修改类
+        /// 步骤指定用户新增/修改类
         /// </summary>
         public WorkflowStepUserUpsert stepUserUpsert { get; set; } = new WorkflowStepUserUpsert();
 

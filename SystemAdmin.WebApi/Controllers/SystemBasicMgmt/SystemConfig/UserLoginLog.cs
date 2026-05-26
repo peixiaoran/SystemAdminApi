@@ -21,7 +21,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemConfig
 
         [HttpPost]
         [Tags("系统基础管理-系统设定模块")]
-        [EndpointSummary("[员工登录日志] 查询登录日志分页")]
+        [EndpointSummary("[用户登录日志] 查询登录日志分页")]
         public async Task<ResultPaged<UserLogOutDto>> GetUserLoginLogPage([FromBody] GetUserLoginLogPage getPage)
         {
             return await _userLoginLogService.GetUserLoginLogPage(getPage);

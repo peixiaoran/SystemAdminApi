@@ -142,7 +142,7 @@
     <value>Failed to delete part-time assignment</value>
   </data>
   <data name="UserPartTimeIsExist" xml:space="preserve">
-    <value>This employee already holds this part-time position in the department and cannot be set again</value>
+    <value>This user already holds this part-time position in the department and cannot be set again</value>
   </data>
   <data name="UserPartTimeUpdateSuccess" xml:space="preserve">
     <value>Part-time assignment updated successfully</value>
@@ -153,19 +153,19 @@
   <data name="UserFormInsertSuccess" xml:space="preserve">
     <value>Form binding configured successfully</value>
   </data>
-  <data name="UserAgentSameEmployee" xml:space="preserve">
-    <value>The agent and the target employee cannot be the same person</value>
+  <data name="UserAgentSameUser" xml:space="preserve">
+    <value>The agent and the target user cannot be the same person</value>
   </data>
   <data name="UserAgentTargetHasAgentRole" xml:space="preserve">
-    <value>The target employee already acts as an agent for another employee. Nested delegation is not allowed</value>
+    <value>The target user already acts as an agent for another user. Nested delegation is not allowed</value>
   </data>
   <data name="UserAgentTargetAlreadyAgented" xml:space="preserve">
-    <value>The target employee is already delegated by another employee. Multiple delegations are not allowed</value>
+    <value>The target user is already delegated by another user. Multiple delegations are not allowed</value>
   </data>
   <data name="UserAgentAlreadyAgented" xml:space="preserve">
-    <value>The agent employee is already delegated by another employee and cannot act as an agent.</value>
+    <value>The agent user is already delegated by another user and cannot act as an agent.</value>
   </data>
   <data name="HasMultipleTargets" xml:space="preserve">
-    <value>The agent employee already delegates another employee. Multiple delegations are not allowed</value>
+    <value>The agent user already delegates another user. Multiple delegations are not allowed</value>
   </data>
 </root>

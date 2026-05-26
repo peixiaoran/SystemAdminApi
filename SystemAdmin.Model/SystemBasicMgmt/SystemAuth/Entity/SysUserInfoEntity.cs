@@ -3,13 +3,13 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Entity
 {
     /// <summary>
-    /// 员工实体类
+    /// 用户实体类
     /// </summary>
     [SugarTable("[Basic].[UserInfo]")]
     public class SysUserInfoEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         [SugarColumn(IsPrimaryKey = true, ColumnDescription = "Primary Key")]
         public long UserId { get; set; }
@@ -25,17 +25,17 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Entity
         public long PositionId { get; set; }
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（中文）
+        /// 用户姓名（中文）
         /// </summary>
         public string UserNameCn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（英文）
+        /// 用户姓名（英文）
         /// </summary>
         public string UserNameEn { get; set; } = string.Empty;
     }

@@ -21,32 +21,32 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.UserSettings
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工表单绑定] 部门下拉")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户表单绑定] 部门下拉")]
         public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
         {
             return await _userFormBindService.GetDepartmentDrop();
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工表单绑定] 查询员工分页")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户表单绑定] 查询用户分页")]
         public async Task<ResultPaged<UserFormDto>> GetUserInfoPage([FromBody] GetUserFormPage getPage)
         {
             return await _userFormBindService.GetUserInfoPage(getPage);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工表单绑定] 查询员工表单绑定树")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户表单绑定] 查询用户表单绑定树")]
         public async Task<Result<List<UserFormViewTreeDto>>> GetUserFormViewTree([FromForm] string userId)
         {
             return await _userFormBindService.GetUserFormViewTree(userId);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工表单绑定] 更新员工表单绑定")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户表单绑定] 更新用户表单绑定")]
         public async Task<Result<int>> UpdateUserForm([FromBody] UserFormUpsert upsert)
         {
             return await _userFormBindService.UpdateUserForm(upsert);

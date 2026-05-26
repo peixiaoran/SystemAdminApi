@@ -55,7 +55,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-系统管理模块")]
-        [EndpointSummary("[个人信息] 上传员工头像")]
+        [EndpointSummary("[个人信息] 上传用户头像")]
         public async Task<Result<string>> UploadAvatar([FromForm] string userId, IFormFile file)
         {
             return await _personalInfoService.UploadAvatar(userId, file);

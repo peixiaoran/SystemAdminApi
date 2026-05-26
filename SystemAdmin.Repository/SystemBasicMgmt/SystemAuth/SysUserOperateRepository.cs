@@ -16,7 +16,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 员工登录前查询是否有效
+        /// 用户登录前查询是否有效
         /// </summary>
         /// <param name="sysLogin"></param>
         /// <returns></returns>
@@ -31,7 +31,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 查询员工锁定次数
+        /// 查询用户锁定次数
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -44,7 +44,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 将员工设置为冻结状态
+        /// 将用户设置为冻结状态
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -57,7 +57,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 记录员工登录日志
+        /// 记录用户登录日志
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -67,7 +67,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 新增员工密码错误记录
+        /// 新增用户密码错误记录
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -77,7 +77,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 增加员工密码错误记录
+        /// 增加用户密码错误记录
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="numberErrors"></param>
@@ -91,7 +91,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 清空员工锁定记录
+        /// 清空用户锁定记录
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -103,7 +103,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 记录员工登出日志
+        /// 记录用户登出日志
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -113,7 +113,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 登出前获取员工信息
+        /// 登出前获取用户信息
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -126,7 +126,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 查询员工信息
+        /// 查询用户信息
         /// </summary>
         /// <param name="userNo"></param>
         /// <returns></returns>
@@ -139,7 +139,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 员工账号解锁
+        /// 用户账号解锁
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="passWord"></param>
@@ -160,7 +160,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 删除员工锁定信息
+        /// 删除用户锁定信息
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>

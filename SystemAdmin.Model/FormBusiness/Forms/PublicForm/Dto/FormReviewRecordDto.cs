@@ -66,12 +66,12 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto
         public string AppointmentTypeName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 原本审批员工姓名
+        /// 原本审批用户姓名
         /// </summary>
         public string OriginalUserName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 实际审批员工姓名
+        /// 实际审批用户姓名
         /// </summary>
         public string OperationUserName { get; set; } = string.Empty;
 

@@ -163,7 +163,7 @@
     <value>角色新增失败</value>
   </data>
   <data name="RoleRoleUsed" xml:space="preserve">
-    <value>该角色已被员工使用，请先调整员工角色后再删除</value>
+    <value>该角色已被用户使用，请先调整用户角色后再删除</value>
   </data>
   <data name="RoleDeleteSuccess" xml:space="preserve">
     <value>角色删除成功</value>

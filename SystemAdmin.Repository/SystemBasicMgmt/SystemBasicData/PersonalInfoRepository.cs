@@ -215,7 +215,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 员工密码加密（Argon2id）
+        /// 用户密码加密（Argon2id）
         /// </summary>
         /// <param name="password"></param>
         /// <param name="salt"></param>
@@ -245,7 +245,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工密码
+        /// 查询用户密码
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>

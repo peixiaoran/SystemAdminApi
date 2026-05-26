@@ -20,7 +20,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
 
         [HttpPost]
         [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 员工登录")]
+        [EndpointSummary("[身份验证] 用户登录")]
         [AllowAnonymous]
         public async Task<Result<SysUserLoginReturnDto>> UserLogin([FromBody] UserLogin sysLogin)
         {
@@ -65,7 +65,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
 
         [HttpPost]
         [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 员工登出")]
+        [EndpointSummary("[身份验证] 用户登出")]
         public async Task<Result<int>> UserLogOut()
         {
             return await _sysUserOperateService.UserLogOut();

@@ -3,13 +3,13 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
 {
     /// <summary>
-    /// 员工角色实体
+    /// 用户角色实体
     /// </summary>
     [SugarTable("[Basic].[UserRole]")]
     public class UserRoleEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

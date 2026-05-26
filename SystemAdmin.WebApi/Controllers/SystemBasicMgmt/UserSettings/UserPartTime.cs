@@ -22,72 +22,72 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.UserSettings
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 职业下拉")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 职业下拉")]
         public async Task<Result<List<UserLaborDropDto>>> GetLaborDrop()
         {
             return await _userPartTimeService.GetLaborDrop();
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 部门下拉")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 部门下拉")]
         public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
         {
             return await _userPartTimeService.GetDepartmentDrop();
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 职级下拉")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 职级下拉")]
         public async Task<Result<List<PositionDropDto>>> GetPositionDrop()
         {
             return await _userPartTimeService.GetPositionDrop();
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 新增员工兼任")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 新增用户兼任")]
         public async Task<Result<int>> InsertUserPartTime([FromBody] UserPartTimeInsert upsert)
         {
             return await _userPartTimeService.InsertUserPartTime(upsert);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 删除员工兼任")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 删除用户兼任")]
         public async Task<Result<int>> DeleteUserPartTime([FromBody] UserPartTimeUpdateDel upsertdel)
         {
             return await _userPartTimeService.DeleteUserPartTime(upsertdel);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 修改员工兼任")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 修改用户兼任")]
         public async Task<Result<int>> UpdateUserPartTime([FromBody] UserPartTimeUpdateDel upsertdel)
         {
             return await _userPartTimeService.UpdateUserPartTime(upsertdel);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 查询员工分页")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 查询用户分页")]
         public async Task<ResultPaged<UserPartTimeViewDto>> GetUserPartTimeView([FromBody] GetUserInfoPage getPage)
         {
             return await _userPartTimeService.GetUserPartTimeView(getPage);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 查询员工兼任分页")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 查询用户兼任分页")]
         public async Task<ResultPaged<UserPartTimeDto>> GetUserPartTimePage(GetUserPartTimePage getPage)
         {
             return await _userPartTimeService.GetUserPartTimePage(getPage);
         }
 
         [HttpPost]
-        [Tags("系统基础管理-员工相关配置")]
-        [EndpointSummary("[员工兼任] 查询员工兼任实体")]
+        [Tags("系统基础管理-用户相关配置")]
+        [EndpointSummary("[用户兼任] 查询用户兼任实体")]
         public async Task<Result<UserPartTimeDto>> GetUserPartTimeEntity(GetUserPartTimeEntity getEntity)
         {
             return await _userPartTimeService.GetUserPartTimeEntity(getEntity);

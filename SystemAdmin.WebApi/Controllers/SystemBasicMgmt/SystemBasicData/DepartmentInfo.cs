@@ -21,7 +21,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 部门下拉")]
+        [EndpointSummary("[用户信息] 部门下拉")]
         public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
         {
             return await _departmentInfoService.GetDepartmentDrop();

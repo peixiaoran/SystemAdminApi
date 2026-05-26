@@ -1,12 +1,12 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Commands
 {
     /// <summary>
-    /// 员工兼任修改/删除类
+    /// 用户兼任修改/删除类
     /// </summary>
     public class UserPartTimeUpdateDel
     {
         /// <summary>
-        /// 员工Id（老）
+        /// 用户Id（老）
         /// </summary>
         public string Old_UserId { get; set; } = string.Empty;
 
@@ -21,7 +21,7 @@
         public string Old_PartTimePositionId { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public string UserId { get; set; } = string.Empty;
 

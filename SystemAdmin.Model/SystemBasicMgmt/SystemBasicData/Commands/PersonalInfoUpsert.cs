@@ -9,7 +9,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Commands
     public class PersonalInfoUpsert
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
         public long UserId { get; set; }

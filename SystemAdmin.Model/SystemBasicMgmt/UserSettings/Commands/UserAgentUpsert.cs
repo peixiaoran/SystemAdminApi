@@ -1,7 +1,7 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Commands
 {
     /// <summary>
-    /// 员工代理配置新增/修改类
+    /// 用户代理配置新增/修改类
     /// </summary>
     public class UserAgentUpsert
     {

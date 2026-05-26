@@ -175,22 +175,22 @@
     <value>密码长度需为 8–16 位，并包含大小写字母、数字及特殊字符</value>
   </data>
   <data name="UserInfoInsertSuccess" xml:space="preserve">
-    <value>员工信息新增成功</value>
+    <value>用户信息新增成功</value>
   </data>
   <data name="UserInfoInsertFailed" xml:space="preserve">
-    <value>员工信息新增失败</value>
+    <value>用户信息新增失败</value>
   </data>
   <data name="UserInfoDeleteSuccess" xml:space="preserve">
-    <value>员工信息删除成功</value>
+    <value>用户信息删除成功</value>
   </data>
   <data name="UserInfoDeleteFailed" xml:space="preserve">
-    <value>员工信息删除失败</value>
+    <value>用户信息删除失败</value>
   </data>
   <data name="UserInfoUpdateSuccess" xml:space="preserve">
-    <value>员工信息修改成功</value>
+    <value>用户信息修改成功</value>
   </data>
   <data name="UserInfoUpdateFailed" xml:space="preserve">
-    <value>员工信息修改失败</value>
+    <value>用户信息修改失败</value>
   </data>
   <data name="PersonalUpdateSuccess" xml:space="preserve">
     <value>个人信息修改成功</value>
@@ -253,60 +253,60 @@
     <value>上传失败</value>
   </data>
   <data name="UserExcel_UserNo" xml:space="preserve">
-    <value>员工工号</value>
-    <comment>员工Excel导出-员工工号</comment>
+    <value>用户工号</value>
+    <comment>用户Excel导出-用户工号</comment>
   </data>
   <data name="UserExcel_UserNameCn" xml:space="preserve">
-    <value>员工姓名（中文）</value>
-    <comment>员工Excel导出-员工姓名（中文）</comment>
+    <value>用户姓名（中文）</value>
+    <comment>用户Excel导出-用户姓名（中文）</comment>
   </data>
   <data name="UserExcel_UserNameEn" xml:space="preserve">
-    <value>员工姓名（英文）</value>
-    <comment>员工Excel导出-员工姓名（英文）</comment>
+    <value>用户姓名（英文）</value>
+    <comment>用户Excel导出-用户姓名（英文）</comment>
   </data>
   <data name="UserExcel_DepartmentName" xml:space="preserve">
     <value>所属部门</value>
-    <comment>员工Excel导出-所属部门</comment>
+    <comment>用户Excel导出-所属部门</comment>
   </data>
   <data name="UserExcel_PositionName" xml:space="preserve">
     <value>职级</value>
-    <comment>员工Excel导出-职级</comment>
+    <comment>用户Excel导出-职级</comment>
   </data>
   <data name="UserExcel_GenderName" xml:space="preserve">
     <value>性别</value>
-    <comment>员工Excel导出-性别</comment>
+    <comment>用户Excel导出-性别</comment>
   </data>
   <data name="UserExcel_NationalityName" xml:space="preserve">
     <value>国籍</value>
-    <comment>员工Excel导出-国籍</comment>
+    <comment>用户Excel导出-国籍</comment>
   </data>
   <data name="UserExcel_IsEmployedName" xml:space="preserve">
     <value>是否在职</value>
-    <comment>员工Excel导出-是否在职</comment>
+    <comment>用户Excel导出-是否在职</comment>
   </data>
   <data name="UserExcel_IsReviewName" xml:space="preserve">
     <value>是否签核</value>
-    <comment>员工Excel导出-是否签核</comment>
+    <comment>用户Excel导出-是否签核</comment>
   </data>
   <data name="UserExcel_IsFreezeName" xml:space="preserve">
     <value>是否冻结</value>
-    <comment>员工Excel导出-是否冻结</comment>
+    <comment>用户Excel导出-是否冻结</comment>
   </data>
   <data name="UserExcel_UserInfo" xml:space="preserve">
-    <value>员工信息</value>
-    <comment>员工Excel导出-员工信息</comment>
+    <value>用户信息</value>
+    <comment>用户Excel导出-用户信息</comment>
   </data>
   <data name="UserExcel_HireDate" xml:space="preserve">
     <value>入职日期</value>
-    <comment>员工Excel导出-入职日期</comment>
+    <comment>用户Excel导出-入职日期</comment>
   </data>
   <data name="UserExcel_Email" xml:space="preserve">
     <value>邮箱</value>
-    <comment>员工Excel导出-邮箱</comment>
+    <comment>用户Excel导出-邮箱</comment>
   </data>
   <data name="UserExcel_PhoneNumber" xml:space="preserve">
     <value>电话号码</value>
-    <comment>员工Excel导出-电话号码</comment>
+    <comment>用户Excel导出-电话号码</comment>
   </data>
   <data name="DeptInfoDeptCodeExist" xml:space="preserve">
     <value>部门代码已存在，请重新输入</value>

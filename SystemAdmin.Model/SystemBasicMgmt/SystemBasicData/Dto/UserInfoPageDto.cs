@@ -4,12 +4,12 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
 {
     /// <summary>
-    /// 员工分页查询Dto
+    /// 用户分页查询Dto
     /// </summary>
     public class UserInfoPageDto
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
         public long UserId { get; set; }
@@ -26,17 +26,17 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         public string DepartmentName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（中文）
+        /// 用户姓名（中文）
         /// </summary>
         public string UserNameCn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（英文）
+        /// 用户姓名（英文）
         /// </summary>
         public string UserNameEn { get; set; } = string.Empty;
 

@@ -47,7 +47,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 员工登录
+        /// 用户登录
         /// </summary>
         /// <param name="httpResponse"></param>
         /// <param name="sysLogin"></param>
@@ -59,13 +59,13 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 var ip = GetLocalIPv4();
                 var nowTime = DateTime.Now;
 
-                // 查询员工
+                // 查询用户
                 var user = await _sysUserOperateRepo.LoginGetUserInfo(sysLogin);
 
                 if (user == null)
                 {
                     await _db.BeginTranAsync();
-                    // 员工不存在
+                    // 用户不存在
                     await _sysUserOperateRepo.AddUserLoginLogInfo(new UserLogOutEntity
                     {
                         UserId = 0,
@@ -176,7 +176,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 员工登出
+        /// 用户登出
         /// </summary>
         /// <returns></returns>
         public async Task<Result<int>> UserLogOut()
@@ -185,7 +185,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             {
                 var user = await _sysUserOperateRepo.GetUserInfoForUserLogOut(_loginuser.UserId);
 
-                // 判断员工是否存在
+                // 判断用户是否存在
                 if (user == null)
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}UserNotFound"));
@@ -223,13 +223,13 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             {
                 var user = await _sysUserOperateRepo.GetUserInfo(userNo);
 
-                // 判断员工是否在职
+                // 判断用户是否在职
                 if (user == null || string.IsNullOrWhiteSpace(user.Email))
                 {
                     return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}EmailNotFound"));
                 }
 
-                // 判断员工是否被冻结
+                // 判断用户是否被冻结
                 if (user.IsFreeze == 0)
                 {
                     return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}UserNotFreeze"));
@@ -339,7 +339,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             {
                 var user = await _sysUserOperateRepo.GetUserInfo(userNo);
 
-                // 判断员工是否在职
+                // 判断用户是否在职
                 if (user == null || string.IsNullOrWhiteSpace(user.Email))
                 {
                     return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}EmailNotFound"));
@@ -384,10 +384,10 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         {
             try
             {
-                // 查询员工信息
+                // 查询用户信息
                 var user = await _sysUserOperateRepo.GetUserInfo(upsert.UserNo);
 
-                // 判断员工是否在职
+                // 判断用户是否在职
                 if (user == null)
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}UserNotFound"));
@@ -433,9 +433,9 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     string saltString = Convert.ToBase64String(salt);
                     string passwordHash = HashPasswordWithArgon2id(upsert.PassWord, salt);
 
-                    // 更新员工密码
+                    // 更新用户密码
                     int count = await _sysUserOperateRepo.PwdExpirationUpdate(user.UserId, passwordHash, saltString, DateTime.Now.AddDays(user.ExpirationDays));
-                    // 清空员工锁定记录
+                    // 清空用户锁定记录
                     await _sysUserOperateRepo.EmptyUserLock(user.UserId);
                     await _db.CommitTranAsync();
 
@@ -520,7 +520,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 员工密码加密（Argon2Id）
+        /// 用户密码加密（Argon2Id）
         /// </summary>
         /// <param name="password"></param>
         /// <param name="salt"></param>

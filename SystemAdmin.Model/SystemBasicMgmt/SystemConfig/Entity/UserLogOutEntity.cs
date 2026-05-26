@@ -3,7 +3,7 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity
 {
     /// <summary>
-    /// 员工登录日志实体类
+    /// 用户登录日志实体类
     /// </summary>
     [SugarTable("[Basic].[UserLogOut]")]
     public class UserLogOutEntity

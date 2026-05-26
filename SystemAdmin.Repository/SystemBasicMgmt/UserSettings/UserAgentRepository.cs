@@ -41,7 +41,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -57,13 +57,13 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                             user.Nationality == nation.NationId)
                            .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
                     user.UserNo.Contains(getPage.UserNo));
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
@@ -106,7 +106,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询可代理其他员工分页
+        /// 查询可代理其他用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -121,13 +121,13 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationId)
                            .Where((user, dept, position, labor, nation) => user.IsAgent == 0 && user.UserId != long.Parse(getPage.SubstituteUserId) && user.IsFreeze == 0);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
                     user.UserNo == getPage.UserNo);
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((user, dept, position, labor, nation) =>
@@ -168,7 +168,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 新增员工代理人
+        /// 新增用户代理人
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -178,7 +178,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 删除员工代理人
+        /// 删除用户代理人
         /// </summary>
         /// <param name="agentUserId"></param>
         /// <returns></returns>
@@ -190,7 +190,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 修改员工代理状态
+        /// 修改用户代理状态
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="isAgent"></param>
@@ -204,7 +204,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工代理了哪些人列表
+        /// 查询用户代理了哪些人列表
         /// </summary>
         /// <param name="getList"></param>
         /// <returns></returns>
@@ -230,7 +230,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询此员工被哪些人代理列表
+        /// 查询此用户被哪些人代理列表
         /// </summary>
         /// <param name="substituteUserId"></param>
         /// <returns></returns>
@@ -256,7 +256,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询被代理员工是否代理了其他员工
+        /// 查询被代理用户是否代理了其他用户
         /// </summary>
         /// <param name="substituteUserId"></param>
         /// <returns></returns>
@@ -268,7 +268,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询被代理员工是否被代理
+        /// 查询被代理用户是否被代理
         /// </summary>
         /// <param name="substituteUserId"></param>
         /// <returns></returns>
@@ -280,7 +280,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询代理员工是否被代理
+        /// 查询代理用户是否被代理
         /// </summary>
         /// <param name="agentUserId"></param>
         /// <returns></returns>
@@ -292,7 +292,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询代理员工是否代理了其他员工
+        /// 查询代理用户是否代理了其他用户
         /// </summary>
         /// <param name="agentUserId"></param>
         /// <returns></returns>

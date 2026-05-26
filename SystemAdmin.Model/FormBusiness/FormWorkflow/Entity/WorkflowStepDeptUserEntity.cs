@@ -3,7 +3,7 @@
 namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
 {
     /// <summary>
-    /// 步骤指定部门员工级别表
+    /// 步骤指定部门用户级别表
     /// </summary>
     [SugarTable("[Form].[WorkflowStepDeptUser]")]
     public class WorkflowStepDeptUserEntity

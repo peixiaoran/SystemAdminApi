@@ -14,13 +14,12 @@ namespace SystemAdmin.Common.Excel
         /// <param name="dt"></param>
         /// <param name="headers"></param>
         /// <param name="enableFilter"></param>
+        /// <summary>
         public static void ApplyStandardStyle(ExcelWorksheet ws, DataTable dt, Dictionary<string, string> headers, bool enableFilter, Dictionary<string, ExcelColumnConfig> columnConfigs)
         {
-            if (ws == null || dt == null || headers == null || headers.Count == 0)
-                return;
-
             int colIndex = 1;
             int colCount = headers.Count;
+            int rowCount = dt.Rows.Count + 1; // 含表头的真实总行数
 
             // 1. 写列头
             foreach (var header in headers)
@@ -30,7 +29,8 @@ namespace SystemAdmin.Common.Excel
             }
 
             // 2. 先套列格式（必须在写数据之前，Text格式 @ 才有效）
-            if (columnConfigs != null)
+            //    关键：范围限定到真实数据行 rowCount，绝不要用整列 1048576，否则会生成上百万样式记录导致极慢、文件巨大
+            if (columnConfigs != null && dt.Rows.Count > 0)
             {
                 colIndex = 1;
                 foreach (var header in headers)
@@ -38,7 +38,7 @@ namespace SystemAdmin.Common.Excel
                     if (columnConfigs.TryGetValue(header.Key, out var config)
                         && !string.IsNullOrEmpty(config.Format))
                     {
-                        ws.Cells[2, colIndex, 1048576, colIndex]
+                        ws.Cells[2, colIndex, rowCount, colIndex]
                             .Style.Numberformat.Format = config.Format;
                     }
                     colIndex++;
@@ -53,13 +53,25 @@ namespace SystemAdmin.Common.Excel
                 foreach (var header in headers)
                 {
                     if (dt.Columns.Contains(header.Key))
-                        ws.Cells[rowIndex, colIndex].Value = row[header.Key];
+                    {
+                        // 对于文本格式列，转成字符串写入，绕开 EPPlus 的类型推断，
+                        // 防止工号前导零丢失、长手机号变科学计数、邮箱 @ 被解析
+                        bool isText = columnConfigs != null
+                            && columnConfigs.TryGetValue(header.Key, out var cfg)
+                            && cfg.Format == "@";
+
+                        var value = row[header.Key];
+                        if (value == DBNull.Value)
+                            value = null;
+
+                        ws.Cells[rowIndex, colIndex].Value = (isText && value != null)
+                            ? value.ToString()
+                            : value;
+                    }
                     colIndex++;
                 }
                 rowIndex++;
             }
-
-            int rowCount = dt.Rows.Count + 1;
 
             // 4. 表头样式
             var headerRange = ws.Cells[1, 1, 1, colCount];
@@ -74,7 +86,7 @@ namespace SystemAdmin.Common.Excel
 
             ws.Row(1).Height = 25;
 
-            // 5. 数据对齐样式
+            // 5. 数据对齐样式（范围同样限定到 rowCount）
             if (rowCount > 1)
             {
                 colIndex = 1;

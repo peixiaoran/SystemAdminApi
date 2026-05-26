@@ -27,7 +27,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 国籍下拉")]
+        [EndpointSummary("[用户信息] 国籍下拉")]
         public async Task<Result<List<NationalityDropDto>>> GetNationalityDrop()
         {
             return await _userInfoService.GetNationalityDrop();
@@ -35,7 +35,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 部门下拉")]
+        [EndpointSummary("[用户信息] 部门下拉")]
         public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
         {
             return await _userInfoService.GetDepartmentDrop();
@@ -43,7 +43,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 职级下拉")]
+        [EndpointSummary("[用户信息] 职级下拉")]
         public async Task<Result<List<PositionDropDto>>> GetPositionDrop()
         {
             return await _userInfoService.GetPositionDrop();
@@ -51,7 +51,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 职业下拉")]
+        [EndpointSummary("[用户信息] 职业下拉")]
         public async Task<Result<List<UserLaborDropDto>>> GetLaborDrop()
         {
             return await _userInfoService.GetLaborDrop();
@@ -59,7 +59,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 角色下拉")]
+        [EndpointSummary("[用户信息] 角色下拉")]
         public async Task<Result<List<RoleInfoDropDto>>> GetRoleDrop()
         {
             return await _userInfoService.GetRoleDrop();
@@ -67,7 +67,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 上传员工头像（新增员工）")]
+        [EndpointSummary("[用户信息] 上传用户头像（新增用户）")]
         public async Task<Result<string>> UploadAvatarInsert([FromForm]IFormFile file)
         {
             return await _userInfoService.UploadAvatar(file);
@@ -75,7 +75,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 上传员工头像（修改员工）")]
+        [EndpointSummary("[用户信息] 上传用户头像（修改用户）")]
         public async Task<Result<string>> UploadAvatarUpdate([FromForm]string userId, IFormFile file)
         {
             return await _userInfoService.UploadAvatar(userId, file);
@@ -83,7 +83,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 新增员工信息")]
+        [EndpointSummary("[用户信息] 新增用户信息")]
         public async Task<Result<int>> InsertUserInfo([FromBody] UserInfoUpsert upsert)
         {
             return await _userInfoService.InsertUserInfo(upsert);
@@ -91,7 +91,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 删除员工信息")]
+        [EndpointSummary("[用户信息] 删除用户信息")]
         public async Task<Result<int>> DeleteUserInfo([FromForm] string userId)
         {
             return await _userInfoService.DeleteUserInfo(userId);
@@ -99,7 +99,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 修改员工信息")]
+        [EndpointSummary("[用户信息] 修改用户信息")]
         public async Task<Result<int>> UpdateUserInfo([FromBody] UserInfoUpsert upsert)
         {
             return await _userInfoService.UpdateUserInfo(upsert);
@@ -107,7 +107,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 查询员工实体")]
+        [EndpointSummary("[用户信息] 查询用户实体")]
         public async Task<Result<UserInfoEntityDto>> GetUserInfoEntity([FromForm] string userId)
         {
             return await _userInfoService.GetUserInfoEntity(userId);
@@ -115,7 +115,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 查询员工分页")]
+        [EndpointSummary("[用户信息] 查询用户分页")]
         public async Task<ResultPaged<UserInfoPageDto>> GetUserInfoPage([FromBody] GetUserInfoPage getPage)
         {
             return await _userInfoService.GetUserInfoPage(getPage);
@@ -123,7 +123,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
-        [EndpointSummary("[员工信息] 导出Excel表格")]
+        [EndpointSummary("[用户信息] 导出Excel表格")]
         public async Task<IActionResult> ExportUserExcel([FromBody] GetUserInfoExcel getExcel)
         {
             var bytes = await _userInfoService.GetUserInfoExcel(getExcel);

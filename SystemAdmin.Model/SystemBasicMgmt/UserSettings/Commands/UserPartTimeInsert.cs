@@ -1,12 +1,12 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Commands
 {
     /// <summary>
-    /// 员工兼任新增/修改类
+    /// 用户兼任新增/修改类
     /// </summary>
     public class UserPartTimeInsert
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public string UserId { get; set; } = string.Empty;
 

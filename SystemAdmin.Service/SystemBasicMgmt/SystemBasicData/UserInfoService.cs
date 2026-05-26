@@ -131,7 +131,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 上传员工头像（新增员工）
+        /// 上传用户头像（新增用户）
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
@@ -174,7 +174,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 上传员工头像（修改）
+        /// 上传用户头像（修改）
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
@@ -224,7 +224,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 新增员工
+        /// 新增用户
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
@@ -248,7 +248,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                 string saltString = Convert.ToBase64String(salt);
                 long userId = SnowFlakeSingle.Instance.NextId();
 
-                // 新增员工信息
+                // 新增用户信息
                 var entity = new UserInfoEntity()
                 {
                     UserId = userId,
@@ -283,7 +283,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                 await _db.BeginTranAsync();
                 int insertUserCount = await _userInfoRepo.InsertUserInfo(entity);
 
-                // 新增员工权限
+                // 新增用户权限
                 var insertUserRole = new UserRoleEntity()
                 {
                     UserId = userId,
@@ -307,7 +307,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工
+        /// 删除用户
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -316,17 +316,17 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
             try
             {
                 await _db.BeginTranAsync();
-                // 删除员工信息
+                // 删除用户信息
                 int delUserCount = await _userInfoRepo.DeleteUserInfo(long.Parse(userId));
-                // 删除员工权限
+                // 删除用户权限
                 int delUserRoleCount = await _userInfoRepo.DeleteUserRoleInfo(long.Parse(userId));
-                // 删除员工代理
+                // 删除用户代理
                 int delUserAgentCount = await _userInfoRepo.DeleteUserAgent(long.Parse(userId));
-                // 删除员工兼任
+                // 删除用户兼任
                 int delUserPartTimeCount = await _userInfoRepo.DeleteUserPartTime(long.Parse(userId));
-                // 删除员工表单绑定
+                // 删除用户表单绑定
                 int delUserFormCount = await _userInfoRepo.DeleteUserForm(long.Parse(userId));
-                // 删除员工账号锁定记录
+                // 删除用户账号锁定记录
                 int delUserLockCount = await _userInfoRepo.DeleteUserLock(long.Parse(userId));
                 await _db.CommitTranAsync();
 
@@ -343,7 +343,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 修改员工
+        /// 修改用户
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
@@ -375,7 +375,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     updatePassWord = user.PassWord;
                 }
 
-                // 修改员工信息
+                // 修改用户信息
                 var entity = new UserInfoEntity
                 {
                     UserId = long.Parse(upsert.UserId),
@@ -410,7 +410,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                 await _db.BeginTranAsync();
                 int updateUserCount = await _userInfoRepo.UpdateUserInfo(entity);
 
-                // 修改员工角色
+                // 修改用户角色
                 var updateUserRole = new UserRoleEntity()
                 {
                     UserId = long.Parse(upsert.UserId),
@@ -434,7 +434,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工实体
+        /// 查询用户实体
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -453,7 +453,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -471,7 +471,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 导出员工Excel表格
+        /// 导出用户Excel表格
         /// </summary>
         /// <param name="getExcel"></param>
         /// <returns></returns>
@@ -518,7 +518,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     { "IsFreezeName", _localization.ReturnMsg($"{_thisExcel}IsFreezeName") }
                 };
 
-                ExcelStyleHelper.ApplyStandardStyle(ws, dt, headers, true, columnConfigs);
+                ExcelStyleHelper.ApplyStandardStyle(ws, dt, headers, false, columnConfigs);
                 package.Workbook.CalcMode = ExcelCalcMode.Manual;
 
                 return package.GetAsByteArray();
@@ -557,7 +557,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 员工密码加密（Argon2id）
+        /// 用户密码加密（Argon2id）
         /// </summary>
         /// <param name="password"></param>
         /// <param name="salt"></param>

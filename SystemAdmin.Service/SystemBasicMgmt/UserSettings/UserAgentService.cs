@@ -47,7 +47,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -65,7 +65,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询可代理其他员工分页
+        /// 查询可代理其他用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -83,7 +83,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 新增员工代理人
+        /// 新增用户代理人
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
@@ -91,41 +91,41 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         {
             try
             {
-                // 检查被代理员工是否与代理员工一致
+                // 检查被代理用户是否与代理用户一致
                 if (upsert.SubstituteUserId == upsert.AgentUserId)
                 {
-                    // 被代理员工不能和代理员工相同
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}AgentSameEmployee"));
+                    // 被代理用户不能和代理用户相同
+                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}AgentSameUser"));
                 }
 
-                // 查询被代理员工已代理其他员工
+                // 查询被代理用户已代理其他用户
                 bool subAgentIsAgent = await _userAgentRepo.GetSubAgentIsAgent(long.Parse(upsert.SubstituteUserId));
                 if (subAgentIsAgent)
                 {
-                    // 被代理员工已代理其他员工，不能嵌套代理
+                    // 被代理用户已代理其他用户，不能嵌套代理
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}TargetHasAgentRole"));
                 }
 
-                // 查询被代理员工已被其他员工代理
+                // 查询被代理用户已被其他用户代理
                 bool subAgentIsSubAgent = await _userAgentRepo.GetSubAgentIsSubAgent(long.Parse(upsert.SubstituteUserId));
                 if (subAgentIsSubAgent)
                 {
-                    // 被代理员工已被其他员工代理，不可多人员代理
+                    // 被代理用户已被其他用户代理，不可多人员代理
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}TargetAlreadyAgented"));
                 }
 
-                // 查询代理员工已被其他员工代理
+                // 查询代理用户已被其他用户代理
                 bool agentIsSubAgent = await _userAgentRepo.GetAgentIsSubAgent(long.Parse(upsert.AgentUserId));
                 if (agentIsSubAgent)
                 {
-                    // 代理员工已被其他员工代理，不能作为代理员工
+                    // 代理用户已被其他用户代理，不能作为代理用户
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}AlreadyAgented"));
                 }
-                // 查询代理员工已代理其他员工
+                // 查询代理用户已代理其他用户
                 bool agentIsAgent = await _userAgentRepo.GetAgentIsAgent(long.Parse(upsert.AgentUserId));
                 if (agentIsAgent)
                 {
-                    // 代理员工已代理其他员工，不可多人员代理
+                    // 代理用户已代理其他用户，不可多人员代理
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}HasMultipleTargets"));
                 }
                 else
@@ -142,9 +142,9 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
                     };
 
                     await _db.BeginTranAsync();
-                    // 新增员工代理人配置
+                    // 新增用户代理人配置
                     int insertUserAgentCount = await _userAgentRepo.InsertUserAgent(insertUserAgent);
-                    // 更新员工代理状态
+                    // 更新用户代理状态
                     var updateUserAgentCount = await _userAgentRepo.UpdateUserAgent(long.Parse(upsert.AgentUserId), 1);
                     await _db.CommitTranAsync();
 
@@ -162,7 +162,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 删除员工代理关系
+        /// 删除用户代理关系
         /// </summary>
         /// <param name="agentUserId"></param>
         /// <returns></returns>
@@ -171,7 +171,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
             try
             {
                 await _db.BeginTranAsync();
-                // 删除员工代理配置
+                // 删除用户代理配置
                 var delSubAgentCount = await _userAgentRepo.DeleteUserAgent(long.Parse(agentUserId));
                 var updateUserAgentCount = await _userAgentRepo.UpdateUserAgent(long.Parse(agentUserId), 0);
                 await _db.CommitTranAsync();
@@ -189,7 +189,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询此员工代理的员工列表
+        /// 查询此用户代理的用户列表
         /// </summary>
         /// <param name="getList"></param>
         /// <returns></returns>
@@ -207,7 +207,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询此员工被哪个员工代理列表
+        /// 查询此用户被哪个用户代理列表
         /// </summary>
         /// <param name="substituteUserId"></param>
         /// <returns></returns>

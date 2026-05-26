@@ -169,28 +169,28 @@
     <value>Failed to update occupation information</value>
   </data>
   <data name="UserInfoUserNoRepat" xml:space="preserve">
-    <value>Employee ID or account already exists. Please re-enter</value>
+    <value>User ID or account already exists. Please re-enter</value>
   </data>
   <data name="UserInfoValidationPassWrodError" xml:space="preserve">
     <value>Password must be 8–16 characters long and include uppercase letters, lowercase letters, numbers, and special characters</value>
   </data>
   <data name="UserInfoInsertSuccess" xml:space="preserve">
-    <value>Employee information created successfully</value>
+    <value>User information created successfully</value>
   </data>
   <data name="UserInfoInsertFailed" xml:space="preserve">
-    <value>Failed to create employee information</value>
+    <value>Failed to create user information</value>
   </data>
   <data name="UserInfoDeleteSuccess" xml:space="preserve">
-    <value>Employee information deleted successfully</value>
+    <value>User information deleted successfully</value>
   </data>
   <data name="UserInfoDeleteFailed" xml:space="preserve">
-    <value>Failed to delete employee information</value>
+    <value>Failed to delete user information</value>
   </data>
   <data name="UserInfoUpdateSuccess" xml:space="preserve">
-    <value>Employee information updated successfully</value>
+    <value>User information updated successfully</value>
   </data>
   <data name="UserInfoUpdateFailed" xml:space="preserve">
-    <value>Failed to update employee information</value>
+    <value>Failed to update user information</value>
   </data>
   <data name="PersonalUpdateSuccess" xml:space="preserve">
     <value>Personal information updated successfully</value>
@@ -253,13 +253,13 @@
     <value>Upload failed</value>
   </data>
   <data name="UserExcel_UserNo" xml:space="preserve">
-    <value>Employee No</value>
+    <value>User No</value>
   </data>
   <data name="UserExcel_UserNameCn" xml:space="preserve">
-    <value>Employee Name (Chinese)</value>
+    <value>User Name (Chinese)</value>
   </data>
   <data name="UserExcel_UserNameEn" xml:space="preserve">
-    <value>Employee Name (English)</value>
+    <value>User Name (English)</value>
   </data>
   <data name="UserExcel_DepartmentName" xml:space="preserve">
     <value>Department</value>

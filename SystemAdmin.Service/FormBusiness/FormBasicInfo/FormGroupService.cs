@@ -76,13 +76,13 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
                 await _db.BeginTranAsync();
                 // 删除表单组别
                 int delFormGroupCount = await _formGroupRepo.DeleteFormGroupInfo(long.Parse(formGroupId));
-                // 删除员工表单组别绑定
+                // 删除用户表单组别绑定
                 int delUserGroupBindCount = await _formGroupRepo.DeleteUserFormTypeBind(long.Parse(formGroupId));
                 // 删除表单组别下的表单类别
                 int delFormTypeCount = await _formGroupRepo.DeleteFormTypeInfo(long.Parse(formGroupId));
                 // 获取被删除表单组别下的表单类别Id
                 var delformTypeList = await _formGroupRepo.GetFormTypeIds(long.Parse(formGroupId));
-                // 删除员工组别下的员工表单类别绑定
+                // 删除用户组别下的用户表单类别绑定
                 int delFormTypeBindCount = await _formGroupRepo.DeleteUserFromType(delformTypeList);
                 await _db.CommitTranAsync();
 

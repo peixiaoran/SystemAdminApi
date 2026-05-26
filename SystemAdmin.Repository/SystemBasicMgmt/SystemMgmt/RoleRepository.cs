@@ -30,7 +30,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
         }
 
         /// <summary>
-        /// 查询角色是否绑定员工
+        /// 查询角色是否绑定用户
         /// </summary>
         /// <param name="roleId"></param>
         /// <returns></returns>

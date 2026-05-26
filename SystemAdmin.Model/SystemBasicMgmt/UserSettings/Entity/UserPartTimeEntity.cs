@@ -3,13 +3,13 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity
 {
     /// <summary>
-    /// 员工兼任实体表
+    /// 用户兼任实体表
     /// </summary>
     [SugarTable("[Basic].[UserPartTime]")]
     public class UserPartTimeEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

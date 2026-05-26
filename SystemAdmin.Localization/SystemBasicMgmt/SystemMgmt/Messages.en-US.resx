@@ -163,7 +163,7 @@
     <value>Failed to create role</value>
   </data>
   <data name="RoleRoleUsed" xml:space="preserve">
-    <value>This role is assigned to employees. Please reassign employees before deleting it</value>
+    <value>This role is assigned to users. Please reassign users before deleting it</value>
   </data>
   <data name="RoleDeleteSuccess" xml:space="preserve">
     <value>Role deleted successfully</value>

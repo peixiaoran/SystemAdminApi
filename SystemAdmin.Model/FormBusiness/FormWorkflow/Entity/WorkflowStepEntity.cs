@@ -35,7 +35,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         public int IsStartStep { get; set; }
 
         /// <summary>
-        /// 步骤指派规则（依组织架构、指定部门员工级别、指定员工、自定义）
+        /// 步骤指派规则（依组织架构、指定部门用户级别、指定用户、自定义）
         /// </summary>
         public string Assignment { get; set; } = string.Empty;
 

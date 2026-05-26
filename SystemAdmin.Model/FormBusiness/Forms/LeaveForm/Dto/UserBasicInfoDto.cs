@@ -1,22 +1,22 @@
 ﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
 {
     /// <summary>
-    /// 表单员工基本信息
+    /// 表单用户基本信息
     /// </summary>
     public class UserBasicInfoDto
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名
+        /// 用户姓名
         /// </summary>
         public string UserName { get; set; } = string.Empty;
 

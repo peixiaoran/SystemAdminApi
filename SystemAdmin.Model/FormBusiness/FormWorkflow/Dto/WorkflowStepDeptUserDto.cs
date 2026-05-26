@@ -4,7 +4,7 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
 {
     /// <summary>
-    /// 步骤指定部门员工级别Dto
+    /// 步骤指定部门用户级别Dto
     /// </summary>
     public class WorkflowStepDeptUserDto
     {

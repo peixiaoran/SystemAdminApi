@@ -86,7 +86,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工兼任分页
+        /// 查询用户兼任分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -102,13 +102,13 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .LeftJoin<PositionInfoEntity>((user, userpart, dept, position, p_userdept, p_userpos) => userpart.PartTimePositionId == p_userpos.PositionId)
                            .Where((user, userpart, dept, position, p_userdept, p_userpos) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((user, userpart, dept, position, p_userdept, p_userpos) =>
                     user.UserNo.Contains(getPage.UserNo));
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((user, userpart, dept, position, p_userdept, p_userpos) =>
@@ -128,7 +128,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
             {
                 UserId = user.UserId,
                 UserNo = user.UserNo,
-                // 员工姓名
+                // 用户姓名
                 UserName = _lang.Locale == "zh-CN"
                                                  ? user.UserNameCn
                                                  : user.UserNameEn,
@@ -159,7 +159,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工兼任职业分页
+        /// 查询用户兼任职业分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -175,12 +175,12 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .LeftJoin<UserLaborEntity>((user, dept, position, nation, labor) => user.LaborId == labor.LaborId)
                            .Where((user, dept, position, nation, labor) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where((user, dept, position, nation, labor) => user.UserNo == getPage.UserNo);
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((user, dept, position, nation, labor) =>
@@ -222,7 +222,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 新增员工兼任
+        /// 新增用户兼任
         /// </summary>
         /// <param name="userPartTimeEntity"></param>
         /// <returns></returns>
@@ -232,7 +232,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 删除员工兼任
+        /// 删除用户兼任
         /// </summary>
         /// <param name="upsertdel"></param>
         /// <returns></returns>
@@ -244,7 +244,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工是否还有兼任
+        /// 查询用户是否还有兼任
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -257,7 +257,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 修改员工兼任状态
+        /// 修改用户兼任状态
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="isPartTime"></param>
@@ -271,7 +271,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工兼任是否有重复（按照员工Id、兼任部门、兼任职级）
+        /// 查询用户兼任是否有重复（按照用户Id、兼任部门、兼任职级）
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="partTimeDeptId"></param>
@@ -286,7 +286,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工兼任实体
+        /// 查询用户兼任实体
         /// </summary>
         /// <param name="getEntity"></param>
         /// <returns></returns>
@@ -300,7 +300,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 修改员工兼任
+        /// 修改用户兼任
         /// </summary>
         /// <param name="upsertdel"></param>
         /// <param name="userPartTimeEntity"></param>

@@ -3,7 +3,7 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Queries
 {
     /// <summary>
-    /// 查询员工登录日志分页请求参数
+    /// 查询用户登录日志分页请求参数
     /// </summary>
     public class GetUserLoginLogPage : PageModel
     {
@@ -13,7 +13,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Queries
         public string IP { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 

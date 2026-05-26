@@ -3,7 +3,7 @@
 namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
 {
     /// <summary>
-    /// 步骤指定员工表
+    /// 步骤指定用户表
     /// </summary>
     [SugarTable("[Form].[WorkflowStepUser]")]
     public class WorkflowStepUserEntity
@@ -20,7 +20,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         public long DepartmentId { get; set; }
 
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

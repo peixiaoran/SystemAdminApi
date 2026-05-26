@@ -1,12 +1,12 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Dto
 {
     /// <summary>
-    /// 员工账号锁定信息Dto
+    /// 用户账号锁定信息Dto
     /// </summary>
     public class UserLockDto
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

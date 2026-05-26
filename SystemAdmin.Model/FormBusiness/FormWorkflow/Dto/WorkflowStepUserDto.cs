@@ -4,7 +4,7 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
 {
     /// <summary>
-    /// 步骤指定员工Dto
+    /// 步骤指定用户Dto
     /// </summary>
     public class WorkflowStepUserDto
     {
@@ -21,7 +21,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         public long DepartmentId { get; set; }
 
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
         public long UserId { get; set; }

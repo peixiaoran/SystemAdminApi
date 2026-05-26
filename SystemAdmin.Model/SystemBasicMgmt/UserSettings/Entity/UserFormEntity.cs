@@ -3,13 +3,13 @@
 namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity
 {
     /// <summary>
-    /// 员工表单绑定实体表
+    /// 用户表单绑定实体表
     /// </summary>
     [SugarTable("[Basic].[UserForm]")]
     public class UserFormEntity
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public long UserId { get; set; }
 

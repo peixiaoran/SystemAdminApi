@@ -125,7 +125,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 新增员工
+        /// 新增用户
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -135,7 +135,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 新增员工角色
+        /// 新增用户角色
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -145,7 +145,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工
+        /// 删除用户
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -157,7 +157,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工角色对照信息
+        /// 删除用户角色对照信息
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -169,7 +169,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工代理
+        /// 删除用户代理
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -181,7 +181,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工兼任
+        /// 删除用户兼任
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -193,7 +193,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工表单绑定
+        /// 删除用户表单绑定
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -205,7 +205,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除员工账号锁定记录
+        /// 删除用户账号锁定记录
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -217,7 +217,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 修改员工
+        /// 修改用户
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -236,7 +236,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 修改员工角色
+        /// 修改用户角色
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
@@ -253,7 +253,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 修改员工头像
+        /// 修改用户头像
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="userAvatar"></param>
@@ -267,7 +267,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工实体
+        /// 查询用户实体
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -310,7 +310,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -324,18 +324,18 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationId);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
                 query = query.Where(user => user.UserNo.Contains(getPage.UserNo));
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where(user => user.UserNameCn.Contains(getPage.UserName) || user.UserNameEn.Contains(getPage.UserName));
             }
             // 部门Id
-            if (getPage.DepartmentId != "-1")
+            if (getPage.DepartmentId != "0")
             {
                 query = query.Where(user => user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
@@ -366,7 +366,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工密码
+        /// 查询用户密码
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -397,7 +397,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 查询员工信息列表（导出Excel）
+        /// 查询用户信息列表（导出Excel）
         /// </summary>
         /// <param name="getUserExcel"></param>
         /// <returns></returns>
@@ -410,18 +410,18 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationId);
 
-            // 员工工号
+            // 用户工号
             if (!string.IsNullOrEmpty(getUserExcel.UserNo))
             {
                 query = query.Where(user => user.UserNo.Contains(getUserExcel.UserNo));
             }
-            // 员工姓名
+            // 用户姓名
             if (!string.IsNullOrEmpty(getUserExcel.UserName))
             {
                 query = query.Where(user => user.UserNameCn.Contains(getUserExcel.UserName) || user.UserNameEn.Contains(getUserExcel.UserName));
             }
             // 部门Id
-            if (getUserExcel.DepartmentId != "-1")
+            if (getUserExcel.DepartmentId != "0")
             {
                 query = query.Where(user => user.DepartmentId == long.Parse(getUserExcel.DepartmentId));
             }
@@ -443,22 +443,22 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                                     : position.PositionNameEn,
                                    HireDate = user.HireDate,
                                    GenderName = user.Gender == 1
-                                                    ? _localization.ReturnMsg($"{_thisExcel}UserExcel_GenderMale")
-                                                    : _localization.ReturnMsg($"{_thisExcel}UserExcel_GenderFemale"),
+                                                    ? _localization.ReturnMsg($"{_thisExcel}GenderMale")
+                                                    : _localization.ReturnMsg($"{_thisExcel}GenderFemale"),
                                    NationalityName = _lang.Locale == "zh-CN"
                                                     ? nation.NationNameCn
                                                     : nation.NationNameEn,
                                    Email = user.Email,
                                    PhoneNumber = user.PhoneNumber,
                                    IsEmployedName = _lang.Locale == "zh-CN"
-                                                    ? _localization.ReturnMsg($"{_thisExcel}UserExcel_IsEmployedCurrent")
-                                                    : _localization.ReturnMsg($"{_thisExcel}UserExcel_IsEmployedFormer"),
+                                                    ? _localization.ReturnMsg($"{_thisExcel}IsEmployedCurrent")
+                                                    : _localization.ReturnMsg($"{_thisExcel}IsEmployedFormer"),
                                    IsReviewName = _lang.Locale == "zh-CN"
-                                                    ? _localization.ReturnMsg($"{_thisExcel}UserExcel_IsReviewRequired")
-                                                    : _localization.ReturnMsg($"{_thisExcel}UserExcel_IsReviewNorequired"),
+                                                    ? _localization.ReturnMsg($"{_thisExcel}IsReviewRequired")
+                                                    : _localization.ReturnMsg($"{_thisExcel}IsReviewNorequired"),
                                    IsFreezeName = _lang.Locale == "zh-CN"
-                                                    ? _localization.ReturnMsg($"{_thisExcel}UserExcel_IsFreezeNormal")
-                                                    : _localization.ReturnMsg($"{_thisExcel}UserExcel_IsReviewFrozen"),
+                                                    ? _localization.ReturnMsg($"{_thisExcel}IsFreezeNormal")
+                                                    : _localization.ReturnMsg($"{_thisExcel}IsReviewFrozen"),
                                }).ToDataTableAsync();
         }
     }

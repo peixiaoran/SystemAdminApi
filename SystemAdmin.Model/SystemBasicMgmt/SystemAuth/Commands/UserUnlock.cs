@@ -1,12 +1,12 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Commands
 {
     /// <summary>
-    /// 员工解锁修改类
+    /// 用户解锁修改类
     /// </summary>
     public class UserUnlock
     {
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo = string.Empty;
 

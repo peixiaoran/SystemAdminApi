@@ -1,22 +1,22 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
 {
     /// <summary>
-    /// 导出员工信息Excel Dto
+    /// 导出用户信息Excel Dto
     /// </summary>
     public class UserInfoExcelDto
     {
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（中文）
+        /// 用户姓名（中文）
         /// </summary>
         public string UserNameCn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（英文）
+        /// 用户姓名（英文）
         /// </summary>
         public string UserNameEn { get; set; } = string.Empty;
 

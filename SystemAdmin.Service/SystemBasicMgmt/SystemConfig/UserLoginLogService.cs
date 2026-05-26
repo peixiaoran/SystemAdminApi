@@ -17,7 +17,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemConfig
         }
 
         /// <summary>
-        /// 查询员工登录日志分页
+        /// 查询用户登录日志分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>

@@ -47,7 +47,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工分页
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -65,7 +65,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询员工绑定表单树
+        /// 查询用户绑定表单树
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
@@ -84,7 +84,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 更新员工表单绑定
+        /// 更新用户表单绑定
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>

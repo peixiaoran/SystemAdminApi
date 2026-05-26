@@ -1,12 +1,12 @@
 ﻿namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Commands
 {
     /// <summary>
-    /// 员工新增/修改类
+    /// 用户新增/修改类
     /// </summary>
     public class UserInfoUpsert
     {
         /// <summary>
-        /// 员工Id
+        /// 用户Id
         /// </summary>
         public string UserId { get; set; } = string.Empty;
 
@@ -21,22 +21,22 @@
         public string PositionId { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工工号
+        /// 用户工号
         /// </summary>
         public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（中文）
+        /// 用户姓名（中文）
         /// </summary>
         public string UserNameCn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工姓名（英文）
+        /// 用户姓名（英文）
         /// </summary>
         public string UserNameEn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 员工角色Id
+        /// 用户角色Id
         /// </summary>
         public string RoleId { get; set; } = string.Empty;
 
