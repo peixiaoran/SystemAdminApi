@@ -29,7 +29,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                             .Where(dic => dic.DicType == "LeaveType")
                             .Select(dic => new LeaveTypeDropDto()
                             {
-                                LeaveTypeCode = dic.DicCode,
+                                LeaveType = dic.DicCode,
                                 LeaveTypeName = _lang.Locale == "zh-CN"
                                                 ? dic.DicNameCn
                                                 : dic.DicNameEn,
@@ -80,6 +80,8 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                             .Select((form, leave, user, dept, dic) => new LeaveFormDto()
                             {
                                 FormTypeId = form.FormTypeId,
+                                RuleId = form.RuleId,
+                                CurrentStepId = form.CurrentStepId,
                                 FormStatus = form.FormStatus,
                                 FormStatusName = _lang.Locale == "zh-CN"
                                                  ? dic.DicNameCn
@@ -93,7 +95,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                 ApplicantDeptName = _lang.Locale == "zh-CN"
                                                  ? dept.DepartmentNameCn
                                                  : dept.DepartmentNameEn,
-                                LeaveTypeCode = leave.LeaveTypeCode,
+                                LeaveType = leave.LeaveType,
                                 LeaveReason = leave.LeaveReason,
                                 LeaveStartTime = leave.LeaveStartTime,
                                 LeaveEndTime = leave.LeaveEndTime,

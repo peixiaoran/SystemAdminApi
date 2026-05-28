@@ -1,9 +1,11 @@
-﻿namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Queries
+﻿using SqlSugar;
+
+namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Queries
 {
     /// <summary>
-    /// 表单类别实体请求参数
+    /// 查询表单栏位分页请求参数
     /// </summary>
-    public class GetFormTypeEntity
+    public class GetFormTypeFieldPage : PageModel
     {
         /// <summary>
         /// 表单类别Id

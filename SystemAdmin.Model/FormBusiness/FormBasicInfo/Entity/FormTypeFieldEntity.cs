@@ -4,6 +4,7 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity
     /// <summary>
     /// 表单类型栏位实体
     /// </summary>
+    [SugarTable("[Form].[FormTypeField]")]
     public class FormTypeFieldEntity
     {
         /// <summary>
@@ -31,6 +32,11 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity
         /// 栏位名称（英文）
         /// </summary>
         public string FieldNameEn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int SortOrder { get; set; }
 
         /// <summary>
         /// 创建人

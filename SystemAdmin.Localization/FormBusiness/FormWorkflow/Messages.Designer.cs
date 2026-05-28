@@ -61,6 +61,24 @@ namespace SystemAdmin.Localization.FormBusiness.FormWorkflow {
         }
         
         /// <summary>
+        ///   查找类似 步骤栏位权限更新失败 的本地化字符串。
+        /// </summary>
+        public static string StepFieldPerUpdateFailed {
+            get {
+                return ResourceManager.GetString("StepFieldPerUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 步骤栏位权限更新成功 的本地化字符串。
+        /// </summary>
+        public static string StepFieldPerUpdateSuccess {
+            get {
+                return ResourceManager.GetString("StepFieldPerUpdateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 规则删除失败 的本地化字符串。
         /// </summary>
         public static string WorkflowRuleDeleteFailed {

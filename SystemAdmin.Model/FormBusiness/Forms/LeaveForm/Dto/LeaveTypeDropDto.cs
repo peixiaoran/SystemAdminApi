@@ -8,7 +8,7 @@
         /// <summary>
         /// 假别编码
         /// </summary>
-        public string LeaveTypeCode { get; set; } = string.Empty;
+        public string LeaveType { get; set; } = string.Empty;
 
         /// <summary>
         /// 假别名称

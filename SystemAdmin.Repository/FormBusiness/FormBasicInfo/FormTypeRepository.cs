@@ -20,6 +20,24 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         }
 
         /// <summary>
+        /// 查询表单组别下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<FormGroupDropDto>> GetFormGroupDrop()
+        {
+            return await _db.Queryable<FormGroupEntity>()
+                            .With(SqlWith.NoLock)
+                            .OrderBy(formgroup => formgroup.SortOrder)
+                            .Select(formgroup => new FormGroupDropDto
+                            {
+                                FormGroupId = formgroup.FormGroupId,
+                                FormGroupName = _lang.Locale == "zh-CN"
+                                                ? formgroup.FormGroupNameCn
+                                                : formgroup.FormGroupNameEn
+                            }).ToListAsync();
+        }
+
+        /// <summary>
         /// 新增表单类别
         /// </summary>
         /// <param name="entity"></param>
@@ -37,7 +55,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         public async Task<int> DeleteFormTypeInfo(long formTypeId)
         {
             return await _db.Deleteable<FormTypeEntity>()
-                            .Where(formType => formType.FormTypeId == formTypeId)
+                            .Where(formtype => formtype.FormTypeId == formTypeId)
                             .ExecuteCommandAsync();
         }
 
@@ -61,12 +79,12 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         public async Task<int> UpdateFormTypeInfo(FormTypeEntity entity)
         {
             return await _db.Updateable(entity)
-                            .IgnoreColumns(formType => new
+                            .IgnoreColumns(formtype => new
                             {
-                                formType.FormTypeId,
-                                formType.CreatedBy,
-                                formType.CreatedDate,
-                            }).Where(formType => formType.FormTypeId == entity.FormTypeId)
+                                formtype.FormTypeId,
+                                formtype.CreatedBy,
+                                formtype.CreatedDate,
+                            }).Where(formtype => formtype.FormTypeId == entity.FormTypeId)
                             .ExecuteCommandAsync();
         }
 
@@ -79,7 +97,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         {
             var entity = await _db.Queryable<FormTypeEntity>()
                                   .With(SqlWith.NoLock)
-                                  .Where(formType => formType.FormTypeId == formTypeId)
+                                  .Where(formtype => formtype.FormTypeId == formTypeId)
                                   .FirstAsync();
             return entity.Adapt<FormTypeDto>();
         }
@@ -121,28 +139,11 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
                 Prefix = formtype.Prefix,
                 ReviewPath = formtype.ReviewPath,
                 ViewPath = formtype.ViewPath,
+                Guidance = formtype.Guidance,
                 DescriptionCn = formtype.DescriptionCn,
                 DescriptionEn = formtype.DescriptionEn,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormTypeDto>.Ok(page, totalCount, "");
-        }
-
-        /// <summary>
-        /// 查询表单组别下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<FormGroupDropDto>> GetFormGroupDrop()
-        {
-            return await _db.Queryable<FormGroupEntity>()
-                            .With(SqlWith.NoLock)
-                            .OrderBy(formgroup => formgroup.SortOrder)
-                            .Select(formgroup => new FormGroupDropDto
-                            {
-                                FormGroupId = formgroup.FormGroupId,
-                                FormGroupName = _lang.Locale == "zh-CN"
-                                                ? formgroup.FormGroupNameCn
-                                                : formgroup.FormGroupNameEn
-                            }).ToListAsync();
         }
     }
 }

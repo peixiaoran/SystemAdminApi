@@ -15,12 +15,6 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto
         public long FieldId { get; set; }
 
         /// <summary>
-        /// 表单类型Id
-        /// </summary>
-        [JsonConverter(typeof(LongToStringConverter))]
-        public long FormTypeId { get; set; }
-
-        /// <summary>
         /// 栏位Key
         /// </summary>
         public string FieldKey { get; set; } = string.Empty;
@@ -34,5 +28,10 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto
         /// 栏位名称（英文）
         /// </summary>
         public string FieldNameEn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int SortOrder { get; set; }
     }
 }

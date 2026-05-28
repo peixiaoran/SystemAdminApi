@@ -171,6 +171,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .ToListAsync();
 
             long ruleId = 0;
+
             foreach (var rule in ruleList)
             {
                 bool positionMatch = rule.PositionId == appPositionId;
@@ -328,35 +329,59 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             return list.Adapt<List<FormReviewRecordDto>>();
         }
 
+        /// <summary>
+        /// 查询步骤栏位权限列表
+        /// </summary>
+        /// <param name="formTypeId"></param>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formTypeId, long stepId)
+        {
+            var list = await _db.Queryable<FormTypeFieldEntity>()
+                                .With(SqlWith.NoLock)
+                                .LeftJoin<StepFieldPermissionEntity>((formfield, fieldper) => formfield.FieldId == fieldper.FieldId && fieldper.StepId == stepId)
+                                .Where((formfield, fieldper) => formfield.FormTypeId == formTypeId)
+                                .Select((formfield, fieldper) => new StepFieldPermissionDto()
+                                {
+                                    FieldKey = formfield.FieldKey,
+                                    FieldName = _lang.Locale == "zh-CN"
+                                                ? formfield.FieldNameCn
+                                                : formfield.FieldNameEn,
+                                    IsVisible = fieldper.IsVisible,
+                                    IsEditable = fieldper.IsEditable,
+                                }).ToListAsync();
+            return list.Adapt<List<StepFieldPermissionDto>>();
+        }
+
 
         #region 请假单
+
         /// <summary>
-        /// 请假天数小于2天
+        /// 请假天数小于3天
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<bool> LessOver2(long formId)
+        public async Task<bool> LessOver3(long formId)
         {
             var leave = await _db.Queryable<LeaveFormEntity>()
                                  .With(SqlWith.NoLock)
                                  .FirstAsync(leave => leave.FormId == formId);
-
-            return leave != null && leave.LeaveDays <= 2;
+            return leave != null && leave.LeaveDays <= 3;
         }
 
         /// <summary>
-        /// 请假天数大于2天
+        /// 请假天数大于3天
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<bool> MoreOver2(long formId)
+        public async Task<bool> MoreOver3(long formId)
         {
             var leave = await _db.Queryable<LeaveFormEntity>()
                                  .With(SqlWith.NoLock)
                                  .FirstAsync(leave => leave.FormId == formId);
-
-            return leave != null && leave.LeaveDays > 2;
+            return leave != null && leave.LeaveDays > 3;
         }
+
         #endregion
     }
 }

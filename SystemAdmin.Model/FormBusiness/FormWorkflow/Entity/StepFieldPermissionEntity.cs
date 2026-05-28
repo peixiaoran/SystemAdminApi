@@ -31,7 +31,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         /// <summary>
         /// 创建人
         /// </summary>
-        public long CreatedBy { get; set; }
+        public long? CreatedBy { get; set; }
 
         /// <summary>
         /// 创建日期

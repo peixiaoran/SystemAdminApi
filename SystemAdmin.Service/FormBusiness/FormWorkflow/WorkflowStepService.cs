@@ -1,14 +1,14 @@
 ﻿using Microsoft.Extensions.Logging;
 using SqlSugar;
+using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Commands;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Dto;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Queries;
-using SystemAdmin.Repository.FormBusiness.FormWorkflow;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
-using SystemAdmin.Common.Enums.FormBusiness;
+using SystemAdmin.Repository.FormBusiness.FormWorkflow;
 
 namespace SystemAdmin.Service.FormBusiness.FormWorkflow
 {
@@ -20,6 +20,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
         private readonly WorkflowStepRepository _workflowStepRepo;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormWorkflow.WorkflowStep";
+        private readonly string _stepFieldPer = "FormBusiness.FormWorkflow.StepFieldPer";
 
         public WorkflowStepService(CurrentUser loginuser, ILogger<WorkflowStepService> logger, SqlSugarScope db, WorkflowStepRepository workflowStepRepo, LocalizationService localization)
         {
@@ -470,6 +471,61 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
             {
                 _logger.LogError(ex, ex.Message);
                 return Result<WorkflowStepDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 更新步骤栏位权限
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> UpdateStepFieldPermission(List<StepFieldPermissionUpsert> list)
+        {
+            try
+            {
+                var insertList = list.Select(fieldper => new StepFieldPermissionEntity
+                {
+                    StepId = long.Parse(fieldper.StepId),
+                    FieldId = long.Parse(fieldper.FieldId),
+                    IsVisible = fieldper.IsVisible,
+                    IsEditable = fieldper.IsEditable,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now,
+                    ModifiedBy = _loginuser.UserId,
+                    ModifiedDate = DateTime.Now
+                }).ToList();
+
+                var delCount = await _workflowStepRepo.DeleteStepFieldPermission(long.Parse(list.First().StepId));
+                var insertCount = await _workflowStepRepo.InsertStepFieldPermission(insertList);
+
+                return delCount >= 1 || insertCount >= 1
+                        ? Result<int>.Ok(insertCount, _localization.ReturnMsg($"{_stepFieldPer}UpdateSuccess"))
+                        : Result<int>.Failure(500, _localization.ReturnMsg($"{_stepFieldPer}UpdateFailed"));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查询步骤栏位权限列表
+        /// </summary>
+        /// <param name="formTypeId"></param>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<Result<List<StepFieldPermissionDto>>> GetStepFieldPermissionList(string formTypeId, string stepId)
+        {
+            try
+            {
+                var list = await _workflowStepRepo.GetStepFieldPermissionList(long.Parse(formTypeId), long.Parse(stepId));
+                return Result<List<StepFieldPermissionDto>>.Ok(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<StepFieldPermissionDto>>.Failure(500, ex.Message);
             }
         }
     }

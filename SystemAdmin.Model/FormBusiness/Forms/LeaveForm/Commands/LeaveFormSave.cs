@@ -13,7 +13,7 @@
         /// <summary>
         /// 假别
         /// </summary>
-        public string LeaveTypeCode { get; set; } = string.Empty;
+        public string LeaveType { get; set; } = string.Empty;
 
         /// <summary>
         /// 请假事由

@@ -92,8 +92,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                             {
                                 ReviewModeCode = dic.DicCode,
                                 ReviewModeName = _lang.Locale == "zh-CN"
-                                                  ? dic.DicNameCn
-                                                  : dic.DicNameEn,
+                                                 ? dic.DicNameCn
+                                                 : dic.DicNameEn,
                             }).ToListAsync();
         }
 
@@ -453,6 +453,53 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                   .Where(stepcustom => stepcustom.StepId == stepId)
                                   .FirstAsync();
             return entity.Adapt<WorkflowStepCustomDto>();
+        }
+
+        /// <summary>
+        /// 删除步骤栏位权限
+        /// </summary>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteStepFieldPermission(long stepId)
+        {
+            return await _db.Deleteable<StepFieldPermissionEntity>()
+                            .Where(fieldper => fieldper.StepId == stepId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 新增步骤栏位权限
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public async Task<int> InsertStepFieldPermission(List<StepFieldPermissionEntity> list)
+        {
+            return await _db.Insertable(list).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 查询步骤栏位权限列表
+        /// </summary>
+        /// <param name="formTypeId"></param>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formTypeId, long stepId)
+        {
+            var list = await _db.Queryable<FormTypeFieldEntity>()
+                                .With(SqlWith.NoLock)
+                                .LeftJoin<StepFieldPermissionEntity>((formfield, fieldper) => formfield.FieldId == fieldper.FieldId && fieldper.StepId == stepId)
+                                .Where((formfield, fieldper) => formfield.FormTypeId == formTypeId)
+                                .Select((formfield, fieldper) => new StepFieldPermissionDto()
+                                {
+                                    StepId = stepId,
+                                    FieldId = formfield.FieldId,
+                                    FieldName = _lang.Locale == "zh-CN"
+                                                ? formfield.FieldNameCn
+                                                : formfield.FieldNameEn,
+                                    IsVisible = fieldper.IsVisible,
+                                    IsEditable = fieldper.IsEditable,
+                                }).ToListAsync();
+            return list.Adapt<List<StepFieldPermissionDto>>();
         }
     }
 }

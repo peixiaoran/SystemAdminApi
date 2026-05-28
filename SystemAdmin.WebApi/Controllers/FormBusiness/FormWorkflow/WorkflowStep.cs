@@ -123,5 +123,21 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormWorkflow
         {
             return await _workflowStepService.GetWorkflowStepEntity(stepId);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单流程配置")]
+        [EndpointSummary("[流程步骤详情] 更新步骤栏位权限")]
+        public async Task<Result<int>> UpdateStepFieldPermission([FromBody] List<StepFieldPermissionUpsert> list)
+        {
+            return await _workflowStepService.UpdateStepFieldPermission(list);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单流程配置")]
+        [EndpointSummary("[流程步骤详情] 查询步骤栏位权限列表")]
+        public async Task<Result<List<StepFieldPermissionDto>>> GetStepFieldPermissionList([FromForm] string formTypeId, [FromForm] string stepId)
+        {
+            return await _workflowStepService.GetStepFieldPermissionList(formTypeId, stepId);
+        }
     }
 }

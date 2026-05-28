@@ -64,7 +64,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     var leaveForm = new LeaveFormEntity()
                     {
                         FormId = long.Parse(formId),
-                        LeaveTypeCode = "",
+                        LeaveType = "",
                         LeaveReason = "",
                         LeaveStartTime = null,
                         LeaveEndTime = null,
@@ -81,6 +81,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     leaveFormDto.RejectStepDrop = await _formflow.GetRejectStepDrop(long.Parse(formId));
                     leaveFormDto.AttachmentList = await _formmanger.GetAttachmentList(long.Parse(formId));
                     leaveFormDto.ReviewRecordList = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                    leaveFormDto.StepFieldPermissionList = await _formmanger.GetStepFieldPermissionList(long.Parse(formTypeId), leaveFormDto.CurrentStepId);
                     return Result<LeaveFormDto>.Ok(leaveFormDto);
                 }
             }
@@ -104,7 +105,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var entity = new LeaveFormEntity()
                 {
                     FormId = long.Parse(save.FormId),
-                    LeaveTypeCode = save.LeaveTypeCode,
+                    LeaveType = save.LeaveType,
                     LeaveReason = save.LeaveReason,
                     LeaveStartTime = save.LeaveStartTime,
                     LeaveEndTime = save.LeaveEndTime,
@@ -149,6 +150,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 form.RejectStepDrop = await _formflow.GetRejectStepDrop(long.Parse(formId));
                 form.AttachmentList = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.ReviewRecordList = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                form.StepFieldPermissionList = await _formmanger.GetStepFieldPermissionList(form.FormTypeId, form.CurrentStepId);
                 return Result<LeaveFormDto>.Ok(form);
             }
             catch (Exception ex)

@@ -183,4 +183,10 @@
   <data name="WorkflowStepExist" xml:space="preserve">
     <value>There is already a rule configured for this step. Please delete the corresponding rule step first</value>
   </data>
+  <data name="StepFieldPerUpdateFailed" xml:space="preserve">
+    <value>Failed to update step field permissions</value>
+  </data>
+  <data name="StepFieldPerUpdateSuccess" xml:space="preserve">
+    <value>Step field permissions have been successfully updated</value>
+  </data>
 </root>

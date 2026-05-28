@@ -1,7 +1,4 @@
-﻿using System.Text.Json.Serialization;
-using SystemAdmin.Model.ModelHelper.ModelConverter;
-
-namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
+﻿namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto
 {
     /// <summary>
     /// 表单步骤栏位权限Dto
@@ -9,16 +6,9 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
     public class StepFieldPermissionDto
     {
         /// <summary>
-        /// 步骤Id
-        /// </summary>
-        [JsonConverter(typeof(LongToStringConverter))]
-        public long StepId { get; set; }
-
-        /// <summary>
         /// 栏位Id
         /// </summary>
-        [JsonConverter(typeof(LongToStringConverter))]
-        public long FieldId { get; set; }
+        public string FieldKey { get; set; } = string.Empty;
 
         /// <summary>
         /// 栏位名称

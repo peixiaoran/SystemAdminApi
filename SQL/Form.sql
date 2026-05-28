@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 26/05/2026 17:00:19
+ Date: 28/05/2026 14:10:11
 */
 
 
@@ -99,89 +99,6 @@ GO
 INSERT INTO [Form].[FormAttachment] ([AttachmentId], [FormId], [AttachmentName], [AttachmentPath], [AttachmentSize], [CreatedBy], [CreatedDate]) VALUES (N'2051554379810607104', N'2051554334327574528', N'FOUpdate20260311114210.xls', N'/20260505/20260505144734837_eade959a.xls', N'110', N'1903486709602062336', N'2026-05-05 14:47:34.843')
 GO
 
-
--- ----------------------------
--- Table structure for FormFieId
--- ----------------------------
-IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[FormFieId]') AND type IN ('U'))
-	DROP TABLE [Form].[FormFieId]
-GO
-
-CREATE TABLE [Form].[FormFieId] (
-  [FormTypeId] bigint  NOT NULL,
-  [FieldId] bigint  NOT NULL,
-  [FieldNameCn] nvarchar(20) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
-  [FieldNameEn] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
-  [CreatedBy] bigint  NOT NULL,
-  [CreatedDate] datetime2(3)  NOT NULL,
-  [ModifiedBy] bigint  NULL,
-  [ModifiedDate] datetime2(3)  NULL
-)
-GO
-
-ALTER TABLE [Form].[FormFieId] SET (LOCK_ESCALATION = TABLE)
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'表单类别Id',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'FormTypeId'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'栏位Id',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'FieldId'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'栏位名称（中文）',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'FieldNameCn'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'栏位名称（英文）',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'FieldNameEn'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'创建人',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'CreatedBy'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'创建时间',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'CreatedDate'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'修改人',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'ModifiedBy'
-GO
-
-EXEC sp_addextendedproperty
-'MS_Description', N'修改时间',
-'SCHEMA', N'Form',
-'TABLE', N'FormFieId',
-'COLUMN', N'ModifiedDate'
-GO
-
-
--- ----------------------------
--- Records of FormFieId
--- ----------------------------
 
 -- ----------------------------
 -- Table structure for FormGroup
@@ -928,9 +845,9 @@ CREATE TABLE [Form].[FormSequence] (
   [Ym] char(6) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [Total] int DEFAULT 0 NOT NULL,
   [CreatedBy] bigint  NOT NULL,
-  [CreatedDate] datetime DEFAULT getdate() NOT NULL,
+  [CreatedDate] datetime2(3)  NOT NULL,
   [ModifiedBy] bigint  NULL,
-  [ModifiedDate] datetime DEFAULT NULL NULL
+  [ModifiedDate] datetime2(3)  NULL
 )
 GO
 
@@ -1019,9 +936,9 @@ CREATE TABLE [Form].[FormType] (
   [DescriptionCn] nvarchar(300) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [DescriptionEn] nvarchar(500) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [CreatedBy] bigint  NOT NULL,
-  [CreatedDate] datetime DEFAULT getdate() NOT NULL,
+  [CreatedDate] datetime2(3)  NOT NULL,
   [ModifiedBy] bigint  NULL,
-  [ModifiedDate] datetime  NULL
+  [ModifiedDate] datetime2(3)  NULL
 )
 GO
 
@@ -1137,6 +1054,123 @@ GO
 -- Records of FormType
 -- ----------------------------
 INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'1987215338470772736', N'请假单', N'Leave Request Form', N'LVR', N'formbusiness/forms/leaveform/leaveform_r', N'formbusiness/forms/leaveform/leaveform_r', N'1', N'请假单用于员工因个人事由、病假、事假、年假等原因需要离开工作岗位时，向所属部门及管理层提出请假申请、审批与备案的业务单据。该单据记录请假类型、请假时间、时长、事由以及审批流程，用于确保人员安排合理、流程合规与人事数据准确。', N'A Leave Request Form is used when an employee needs to be absent from work due to personal reasons, sickness, annual leave, or other approved leave types. The form is submitted to the employee’s department and management for approval and record-keeping. It captures the leave type, leave period, duration, reason, and approval workflow, ensuring proper staffing, compliance, and accurate HR records.', N'1903486709602062336', N'2025-11-09 01:54:49.000', N'1903486709602062336', N'2025-11-09 02:16:46.000')
+GO
+
+
+-- ----------------------------
+-- Table structure for FormTypeField
+-- ----------------------------
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[FormTypeField]') AND type IN ('U'))
+	DROP TABLE [Form].[FormTypeField]
+GO
+
+CREATE TABLE [Form].[FormTypeField] (
+  [FieldId] bigint  NOT NULL,
+  [FormTypeId] bigint  NOT NULL,
+  [FieldKey] nvarchar(20) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
+  [FieldNameCn] nvarchar(15) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
+  [FieldNameEn] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
+  [SortOrder] int  NULL,
+  [CreatedBy] bigint  NULL,
+  [CreatedDate] datetime2(3)  NULL,
+  [ModifiedBy] bigint  NULL,
+  [ModifiedDate] datetime2(3)  NULL
+)
+GO
+
+ALTER TABLE [Form].[FormTypeField] SET (LOCK_ESCALATION = TABLE)
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'栏位Id',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'FieldId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'表单类型Id',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'FormTypeId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'栏位Key',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'FieldKey'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'栏位名称（中文）',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'FieldNameCn'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'栏位名称（英文）',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'FieldNameEn'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'排序',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'SortOrder'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建人',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'CreatedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建时间',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'CreatedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改人',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'ModifiedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改时间',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField',
+'COLUMN', N'ModifiedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'表单步骤栏位权限表',
+'SCHEMA', N'Form',
+'TABLE', N'FormTypeField'
+GO
+
+
+-- ----------------------------
+-- Records of FormTypeField
+-- ----------------------------
+INSERT INTO [Form].[FormTypeField] ([FieldId], [FormTypeId], [FieldKey], [FieldNameCn], [FieldNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2059813328053735424', N'1987217256446300160', N'FormNo', N'表单编号', N'Form No', N'1', N'1903486709602062336', N'2026-05-28 09:45:41.547', N'1903486709602062336', N'2026-05-28 09:46:19.583')
+GO
+
+INSERT INTO [Form].[FormTypeField] ([FieldId], [FormTypeId], [FieldKey], [FieldNameCn], [FieldNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2059839317173473280', N'1987217256446300160', N'ApplicantDeptNo', N'申请人部门编码', N'Applicant DeptCode', N'2', N'1903486709602062336', N'2026-05-28 11:28:57.837', NULL, NULL)
+GO
+
+INSERT INTO [Form].[FormTypeField] ([FieldId], [FormTypeId], [FieldKey], [FieldNameCn], [FieldNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2059839522363019264', N'1987217256446300160', N'ApplicantUserNo', N'申请人工号', N'Applicant UserNo', N'3', N'1903486709602062336', N'2026-05-28 11:29:46.757', NULL, NULL)
+GO
+
+INSERT INTO [Form].[FormTypeField] ([FieldId], [FormTypeId], [FieldKey], [FieldNameCn], [FieldNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2059839903075799040', N'1987217256446300160', N'ApplicantUserName', N'申请人姓名', N'Applicant UserName', N'4', N'1903486709602062336', N'2026-05-28 11:31:17.527', NULL, NULL)
 GO
 
 
@@ -1264,31 +1298,16 @@ GO
 INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051655239114821632', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-02 00:00:00.0000000', N'2.00', N'1', N'1903486709602062340', N'2026-05-05 21:28:21.593', N'1903486709602062340', N'2026-05-05 21:28:29.173')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051986188901945344', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'1', N'1903486709602062340', N'2026-05-06 19:23:26.190', N'1903486709602062340', N'2026-05-06 19:23:32.467')
-GO
-
 INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051987743411671040', N'Annual', N'有事请假一天。', N'2026-05-01 00:00:00.0000000', N'2026-05-08 00:00:00.0000000', N'8.00', N'E342306', N'1903486709602062336', N'2026-05-06 19:29:36.800', N'1903486709602062336', N'2026-05-18 18:35:29.573')
 GO
 
 INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051990037100367872', N'Annual', N'11', N'2026-05-07 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'9.00', N'1', N'1903486709602062336', N'2026-05-06 19:38:43.640', N'1903486709602062336', N'2026-05-06 19:38:50.657')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052383139925463040', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'15.00', N'1', N'1903486709602062336', N'2026-05-07 21:40:46.703', N'1903486709602062336', N'2026-05-07 21:49:06.707')
-GO
-
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052395914135474176', N'Annual', N'1', N'2026-05-07 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'3.00', N'1', N'1903486709602062336', N'2026-05-07 22:31:32.263', N'1903486709602062336', N'2026-05-07 22:31:42.257')
-GO
-
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052396599186952192', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-08 00:00:00.0000000', N'8.00', N'1', N'1903486709602062336', N'2026-05-07 22:34:15.593', N'1903486709602062336', N'2026-05-07 22:34:23.577')
-GO
-
 INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052396992105156608', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'15.00', N'1', N'1903486709602062336', N'2026-05-07 22:35:49.270', N'1903486709602062336', N'2026-05-07 22:35:56.557')
 GO
 
 INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052397458843111424', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'1', N'1903486709602062336', N'2026-05-07 22:37:40.547', N'1903486709602062336', N'2026-05-07 22:37:53.140')
-GO
-
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2053008449054314496', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'22', N'1903486709602062340', N'2026-05-09 15:05:31.997', N'1903486709602062336', N'2026-05-07 22:37:53.140')
 GO
 
 
@@ -1360,6 +1379,7 @@ IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[S
 GO
 
 CREATE TABLE [Form].[StepFieldPermission] (
+  [StepId] bigint  NOT NULL,
   [FieldId] bigint  NOT NULL,
   [IsVisible] int  NOT NULL,
   [IsEditable] int  NOT NULL,
@@ -1375,6 +1395,13 @@ GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'步骤Id',
+'SCHEMA', N'Form',
+'TABLE', N'StepFieldPermission',
+'COLUMN', N'StepId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'栏位Id',
 'SCHEMA', N'Form',
 'TABLE', N'StepFieldPermission',
 'COLUMN', N'FieldId'
@@ -1432,6 +1459,12 @@ GO
 -- ----------------------------
 -- Records of StepFieldPermission
 -- ----------------------------
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsEditable], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2032353104544010240', N'2059813328053735424', N'1', N'0', N'1903486709602062336', N'2026-05-28 11:43:20.002', N'1903486709602062336', N'2026-05-28 11:43:20.002')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsEditable], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2032353104544010240', N'2059839317173473280', N'1', N'0', N'1903486709602062336', N'2026-05-28 11:43:20.002', N'1903486709602062336', N'2026-05-28 11:43:20.002')
+GO
+
 
 -- ----------------------------
 -- Table structure for WorkflowRule
@@ -2200,15 +2233,6 @@ GO
 
 
 -- ----------------------------
--- Primary Key structure for table FormFieId
--- ----------------------------
-ALTER TABLE [Form].[FormFieId] ADD CONSTRAINT [PK__FormStep__3177BBC35E0297F9] PRIMARY KEY CLUSTERED ([FormTypeId])
-WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
-ON [PRIMARY]
-GO
-
-
--- ----------------------------
 -- Primary Key structure for table FormGroup
 -- ----------------------------
 ALTER TABLE [Form].[FormGroup] ADD CONSTRAINT [PK__FormClas__0201AC43C1A619E2] PRIMARY KEY CLUSTERED ([FormGroupId])
@@ -2230,6 +2254,15 @@ GO
 -- Primary Key structure for table FormType
 -- ----------------------------
 ALTER TABLE [Form].[FormType] ADD CONSTRAINT [PK__FormType__902E30B3CC4BDD80] PRIMARY KEY CLUSTERED ([FormTypeId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table FormTypeField
+-- ----------------------------
+ALTER TABLE [Form].[FormTypeField] ADD CONSTRAINT [PK__FormFiel__C8B6FF07B40B64B3] PRIMARY KEY CLUSTERED ([FieldId])
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
 ON [PRIMARY]
 GO

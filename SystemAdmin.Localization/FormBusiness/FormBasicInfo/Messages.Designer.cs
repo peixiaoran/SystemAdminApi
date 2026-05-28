@@ -187,6 +187,24 @@ namespace SystemAdmin.Localization.FormBusiness.FormBasicInfo {
         }
         
         /// <summary>
+        ///   查找类似 删除表单栏位失败 的本地化字符串。
+        /// </summary>
+        internal static string FormTypeFieldDeleteFailed {
+            get {
+                return ResourceManager.GetString("FormTypeFieldDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除表单栏位成功 的本地化字符串。
+        /// </summary>
+        internal static string FormTypeFieldDeleteSuccess {
+            get {
+                return ResourceManager.GetString("FormTypeFieldDeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 新增表单栏位失败 的本地化字符串。
         /// </summary>
         internal static string FormTypeFieldInsertFailed {
@@ -201,6 +219,24 @@ namespace SystemAdmin.Localization.FormBusiness.FormBasicInfo {
         internal static string FormTypeFieldInsertSuccess {
             get {
                 return ResourceManager.GetString("FormTypeFieldInsertSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 修改表单栏位失败 的本地化字符串。
+        /// </summary>
+        internal static string FormTypeFieldUpdateFailed {
+            get {
+                return ResourceManager.GetString("FormTypeFieldUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 修改表单栏位成功 的本地化字符串。
+        /// </summary>
+        internal static string FormTypeFieldUpdateSuccess {
+            get {
+                return ResourceManager.GetString("FormTypeFieldUpdateSuccess", resourceCulture);
             }
         }
         

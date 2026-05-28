@@ -29,5 +29,10 @@
         /// 栏位名称（英文）
         /// </summary>
         public string FieldNameEn { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int SortOrder { get; set; }
     }
 }

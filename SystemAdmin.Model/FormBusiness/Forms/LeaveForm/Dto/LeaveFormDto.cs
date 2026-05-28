@@ -23,6 +23,18 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         public long FormTypeId { get; set; }
 
         /// <summary>
+        /// 所属规则Id
+        /// </summary>
+        [JsonConverter(typeof(LongToStringConverter))]
+        public long RuleId { get; set; }
+
+        /// <summary>
+        /// 当前步骤Id
+        /// </summary>
+        [JsonConverter(typeof(LongToStringConverter))]
+        public long CurrentStepId { get; set; }
+
+        /// <summary>
         /// 请假单号
         /// </summary>
         public string FormNo { get; set; } = string.Empty;
@@ -55,7 +67,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         /// <summary>
         /// 假别编码
         /// </summary>
-        public string LeaveTypeCode { get; set; } = string.Empty;
+        public string LeaveType { get; set; } = string.Empty;
 
         /// <summary>
         /// 请假事由
@@ -93,8 +105,13 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         public List<FormAttachmentDto> AttachmentList { get; set; } = new List<FormAttachmentDto>();
 
         /// <summary>
-        /// 审批记录表
+        /// 审批记录
         /// </summary>
         public List<FormReviewRecordDto> ReviewRecordList { get; set; } = new List<FormReviewRecordDto>();
+
+        /// <summary>
+        /// 栏位权限
+        /// </summary>
+        public List<StepFieldPermissionDto> StepFieldPermissionList { get; set; } = new List<StepFieldPermissionDto>();
     }
 }

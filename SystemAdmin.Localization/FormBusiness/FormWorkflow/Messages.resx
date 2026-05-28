@@ -183,4 +183,10 @@
   <data name="WorkflowStepExist" xml:space="preserve">
     <value>步骤已有对应规则配置，请先删除对应的规则步骤</value>
   </data>
+  <data name="StepFieldPerUpdateFailed" xml:space="preserve">
+    <value>步骤栏位权限更新失败</value>
+  </data>
+  <data name="StepFieldPerUpdateSuccess" xml:space="preserve">
+    <value>步骤栏位权限更新成功</value>
+  </data>
 </root>
