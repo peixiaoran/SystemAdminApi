@@ -28,6 +28,24 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
         }
 
         /// <summary>
+        /// 查询表单类别下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<FormGroupDropDto>>> GetFormGroupDrop()
+        {
+            try
+            {
+                var drop = await _formTypeRepo.GetFormGroupDrop();
+                return Result<List<FormGroupDropDto>>.Ok(drop, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<FormGroupDropDto>>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// 新增表单类别
         /// </summary>
         /// <param name="upsert"></param>
@@ -49,7 +67,7 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
                     DescriptionCn = upsert.DescriptionCn,
                     DescriptionEn = upsert.DescriptionEn,
                     CreatedBy = _loginuser.UserId,
-                    CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    CreatedDate = DateTime.Now,
                 };
 
                 await _db.BeginTranAsync();
@@ -118,7 +136,7 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
                     DescriptionCn = upsert.DescriptionCn,
                     DescriptionEn = upsert.DescriptionEn,
                     ModifiedBy = _loginuser.UserId,
-                    ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
+                    ModifiedDate = DateTime.Now,
                 };
 
                 await _db.BeginTranAsync();
@@ -171,24 +189,6 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
             {
                 _logger.LogError(ex, ex.Message);
                 return ResultPaged<FormTypeDto>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 查询表单类别下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Result<List<FormGroupDropDto>>> GetFormGroupDrop()
-        {
-            try
-            {
-                var drop = await _formTypeRepo.GetFormGroupDrop();
-                return Result<List<FormGroupDropDto>>.Ok(drop, "");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<List<FormGroupDropDto>>.Failure(500, ex.Message);
             }
         }
     }

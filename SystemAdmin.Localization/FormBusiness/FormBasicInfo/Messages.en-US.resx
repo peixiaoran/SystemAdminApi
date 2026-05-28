@@ -159,6 +159,12 @@
   <data name="FormTypeDeleteSuccess" xml:space="preserve">
     <value>Form type deleted successfully</value>
   </data>
+  <data name="FormTypeFieldInsertFailed" xml:space="preserve">
+    <value>Failed to add form field</value>
+  </data>
+  <data name="FormTypeFieldInsertSuccess" xml:space="preserve">
+    <value>Added form field successfully</value>
+  </data>
   <data name="FormTypeInsertFailed" xml:space="preserve">
     <value>Failed to create form type</value>
   </data>

@@ -3,20 +3,20 @@
 namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
 {
     /// <summary>
-    /// 表单栏位实体
+    /// 表单栏位权限实体
     /// </summary>
-    [SugarTable("[Form].[FormStepFieId]")]
-    public class FormFieIdEntity
+    [SugarTable("[Form].[StepFieldPermission]")]
+    public class StepFieldPermissionEntity
     {
         /// <summary>
-        /// 表单类别Id
+        /// 步骤Id
         /// </summary>
-        public long FormTypeId { get; set; }
+        public long StepId { get; set; }
 
         /// <summary>
         /// 栏位Id
         /// </summary>
-        public string FieldId { get; set; } = string.Empty;
+        public long FieldId { get; set; }
 
         /// <summary>
         /// 是否显示

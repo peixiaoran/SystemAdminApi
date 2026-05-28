@@ -6,29 +6,19 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
     /// <summary>
     /// 表单步骤栏位权限Dto
     /// </summary>
-    public class FormFieIdDto
+    public class StepFieldPermissionDto
     {
         /// <summary>
-        /// 表单类别Id
+        /// 步骤Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long FormTypeId { get; set; }
+        public long StepId { get; set; }
 
         /// <summary>
         /// 栏位Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
         public long FieldId { get; set; }
-
-        /// <summary>
-        /// 栏位名称（中文）
-        /// </summary>
-        public string FieldNameCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 栏位名称（英文）
-        /// </summary>
-        public string FieldNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 是否显示

@@ -18,10 +18,5 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto
         /// 表单组别名称
         /// </summary>
         public string FormGroupName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 是否禁用
-        /// </summary>
-        public bool Disabled { get; set; }
     }
 }

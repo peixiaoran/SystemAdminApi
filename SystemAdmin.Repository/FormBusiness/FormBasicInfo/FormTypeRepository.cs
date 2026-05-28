@@ -78,9 +78,9 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         public async Task<FormTypeDto> GetFormTypeEntity(long formTypeId)
         {
             var entity = await _db.Queryable<FormTypeEntity>()
-                                          .With(SqlWith.NoLock)
-                                          .Where(formType => formType.FormTypeId == formTypeId)
-                                          .FirstAsync();
+                                  .With(SqlWith.NoLock)
+                                  .Where(formType => formType.FormTypeId == formTypeId)
+                                  .FirstAsync();
             return entity.Adapt<FormTypeDto>();
         }
 
@@ -103,9 +103,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
             // 表单类别名称
             if (!string.IsNullOrEmpty(getPage.FormTypeName))
             {
-                query = query.Where(formtype =>
-                    formtype.FormTypeNameCn.Contains(getPage.FormTypeName) ||
-                    formtype.FormTypeNameEn.Contains(getPage.FormTypeName));
+                query = query.Where(formtype => formtype.FormTypeNameCn.Contains(getPage.FormTypeName) || formtype.FormTypeNameEn.Contains(getPage.FormTypeName));
             }
 
             // 排序

@@ -159,6 +159,12 @@
   <data name="FormTypeDeleteSuccess" xml:space="preserve">
     <value>删除表单类别成功</value>
   </data>
+  <data name="FormTypeFieldInsertFailed" xml:space="preserve">
+    <value>新增表单栏位失败</value>
+  </data>
+  <data name="FormTypeFieldInsertSuccess" xml:space="preserve">
+    <value>新增表单栏位成功</value>
+  </data>
   <data name="FormTypeInsertFailed" xml:space="preserve">
     <value>新增表单类别失败</value>
   </data>

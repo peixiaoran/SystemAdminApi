@@ -187,6 +187,24 @@ namespace SystemAdmin.Localization.FormBusiness.FormBasicInfo {
         }
         
         /// <summary>
+        ///   查找类似 新增表单栏位失败 的本地化字符串。
+        /// </summary>
+        internal static string FormTypeFieldInsertFailed {
+            get {
+                return ResourceManager.GetString("FormTypeFieldInsertFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 新增表单栏位成功 的本地化字符串。
+        /// </summary>
+        internal static string FormTypeFieldInsertSuccess {
+            get {
+                return ResourceManager.GetString("FormTypeFieldInsertSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 新增表单类别失败 的本地化字符串。
         /// </summary>
         internal static string FormTypeInsertFailed {
