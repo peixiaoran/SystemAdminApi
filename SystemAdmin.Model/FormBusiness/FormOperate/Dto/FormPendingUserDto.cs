@@ -3,7 +3,7 @@
     /// <summary>
     /// 待审批列表Dto
     /// </summary>
-    public class FormPendingReviewDto
+    public class FormPendingUserDto
     {
         /// <summary>
         /// 当前步骤名称

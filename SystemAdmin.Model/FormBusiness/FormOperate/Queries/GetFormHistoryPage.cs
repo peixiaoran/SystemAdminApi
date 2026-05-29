@@ -2,10 +2,7 @@
 
 namespace SystemAdmin.Model.FormBusiness.FormOperate.Queries
 {
-    /// <summary>
-    /// 查询待审批请求参数
-    /// </summary>
-    public class GetPendingSubAppPage : PageModel
+    public class GetFormHistoryPage : PageModel
     {
         /// <summary>
         /// 表单组别Id

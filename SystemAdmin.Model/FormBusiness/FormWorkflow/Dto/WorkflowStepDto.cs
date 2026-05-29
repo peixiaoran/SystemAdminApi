@@ -69,21 +69,21 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// <summary>
         /// 审批步骤组织架构来源实体
         /// </summary>
-        public WorkflowStepOrgDto workflowStepOrgDto { get; set; } = new WorkflowStepOrgDto();
+        public WorkflowStepOrgDto workflowStepOrg { get; set; } = new WorkflowStepOrgDto();
 
         /// <summary>
         /// 审批步骤组织架构来源实体
         /// </summary>
-        public WorkflowStepDeptUserDto workflowStepDeptUserDto { get; set; } = new WorkflowStepDeptUserDto();
+        public WorkflowStepDeptUserDto workflowStepDeptUser { get; set; } = new WorkflowStepDeptUserDto();
 
         /// <summary>
         /// 审批步骤指定用户来源实体
         /// </summary>
-        public WorkflowStepUserDto workflowStepUserDto { get; set; } = new WorkflowStepUserDto();
+        public WorkflowStepUserDto workflowStepUser { get; set; } = new WorkflowStepUserDto();
 
         /// <summary>
         /// 审批步骤自定义来源实体
         /// </summary>
-        public WorkflowStepCustomDto workflowStepCustomDto { get; set; } = new WorkflowStepCustomDto();
+        public WorkflowStepCustomDto workflowStepCustom { get; set; } = new WorkflowStepCustomDto();
     }
 }

@@ -8,25 +8,23 @@ using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Service.FormBusiness.FormOperate
 {
-    public class PendingReviewService
+    public class FormPendingService
     {
         private readonly CurrentUser _loginuser;
-        private readonly ILogger<PendingReviewService> _logger;
+        private readonly ILogger<FormPendingService> _logger;
         private readonly SqlSugarScope _db;
         private readonly FormPermissionChecker _formChecker;
-        private readonly PendingReviewRepository _pendingReviewRepo;
-        private readonly FormReviewFlow _reviewFlow;
+        private readonly FormPendingRepository _formPendingRepo;
         private readonly LocalizationService _localization;
-        private readonly string _this = "FormBusiness.FormOperate.PendingSubApp";
+        private readonly string _this = "FormBusiness.FormOperate.FormPending";
 
-        public PendingReviewService(CurrentUser loginuser, ILogger<PendingReviewService> logger, SqlSugarScope db, FormPermissionChecker formChecker, PendingReviewRepository pendingReviewRepo, FormReviewFlow reviewFlow, LocalizationService localization)
+        public FormPendingService(CurrentUser loginuser, ILogger<FormPendingService> logger, SqlSugarScope db, FormPermissionChecker formChecker, FormPendingRepository formPendingRepo, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _formChecker = formChecker;
-            _pendingReviewRepo = pendingReviewRepo;
-            _reviewFlow = reviewFlow;
+            _formPendingRepo = formPendingRepo;
             _localization = localization;
         }
 
@@ -38,7 +36,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var drop = await _pendingReviewRepo.GetFormGroupDrop();
+                var drop = await _formPendingRepo.GetFormGroupDrop();
                 return Result<List<FormGroupDropDto>>.Ok(drop);
             }
             catch (Exception ex)
@@ -56,7 +54,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var drop = await _pendingReviewRepo.GetFormTypeDrop(long.Parse(formGroupId));
+                var drop = await _formPendingRepo.GetFormTypeDrop(long.Parse(formGroupId));
                 return Result<List<FormTypeDropDto>>.Ok(drop);
             }
             catch (Exception ex)
@@ -74,7 +72,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var drop = await _pendingReviewRepo.GetFormStatusDrop();
+                var drop = await _formPendingRepo.GetFormStatusDrop();
                 return Result<List<FormStatusDropDto>>.Ok(drop);
             }
             catch (Exception ex)
@@ -88,16 +86,16 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// 查询待送审分页
         /// </summary>
         /// <returns></returns>
-        public async Task<ResultPaged<PendingReviewDto>> GetPendingSubmissionPage(GetPendingSubAppPage getpage)
+        public async Task<ResultPaged<FormPendingDto>> GetPendingSubmitPage(GetFormPendingPage getpage)
         {
             try
             {
-                return await _pendingReviewRepo.GetPendingSubmissionPage(getpage, _loginuser.UserId);
+                return await _formPendingRepo.GetPendingSubmitPage(getpage, _loginuser.UserId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return ResultPaged<PendingReviewDto>.Failure(500, ex.Message);
+                return ResultPaged<FormPendingDto>.Failure(500, ex.Message);
             }
         }
 
@@ -105,16 +103,16 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// 查询待审批分页
         /// </summary>
         /// <returns></returns>
-        public async Task<ResultPaged<PendingReviewDto>> GetPendingReviewPage(GetPendingSubAppPage getpage)
+        public async Task<ResultPaged<FormPendingDto>> GetPendingReviewPage(GetFormPendingPage getpage)
         {
             try
             {
-                return await _pendingReviewRepo.GetPendingReviewPage(getpage, _loginuser.UserId);
+                return await _formPendingRepo.GetPendingReviewPage(getpage, _loginuser.UserId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return ResultPaged<PendingReviewDto>.Failure(500, ex.Message);
+                return ResultPaged<FormPendingDto>.Failure(500, ex.Message);
             }
         }
 
@@ -123,17 +121,17 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<Result<List<FormPendingReviewDto>>> GetFormPendingReview(string formId)
+        public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUser(string formId)
         {
             try
             {
-                var list = await _pendingReviewRepo.GetFormPendingReviewUser(long.Parse(formId));
-                return Result<List<FormPendingReviewDto>>.Ok(list);
+                var list = await _formPendingRepo.GetFormPendingUser(long.Parse(formId));
+                return Result<List<FormPendingUserDto>>.Ok(list);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<List<FormPendingReviewDto>>.Failure(500, ex.Message);
+                return Result<List<FormPendingUserDto>>.Failure(500, ex.Message);
             }
         }
 
@@ -151,7 +149,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 {
                     return Result<int>.Ok(500, _localization.ReturnMsg($"{_this}NotCanVoided"));
                 }
-                var count = await _pendingReviewRepo.VoidedForm(long.Parse(formId), _loginuser.UserId);
+                var count = await _formPendingRepo.VoidedForm(long.Parse(formId), _loginuser.UserId);
                 await _db.CommitTranAsync();
 
                 return count >= 1

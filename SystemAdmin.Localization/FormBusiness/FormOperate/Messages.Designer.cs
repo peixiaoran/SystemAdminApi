@@ -63,27 +63,27 @@ namespace SystemAdmin.Localization.FormBusiness.FormOperate {
         /// <summary>
         ///   查找类似 表单不是待送审阶段，不可作废 的本地化字符串。
         /// </summary>
-        internal static string PendingSubAppNotVoided {
+        internal static string FormPendingNotVoided {
             get {
-                return ResourceManager.GetString("PendingSubAppNotVoided", resourceCulture);
+                return ResourceManager.GetString("FormPendingNotVoided", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 作废失败 的本地化字符串。
         /// </summary>
-        internal static string PendingSubAppVoidedFailed {
+        internal static string FormPendingVoidedFailed {
             get {
-                return ResourceManager.GetString("PendingSubAppVoidedFailed", resourceCulture);
+                return ResourceManager.GetString("FormPendingVoidedFailed", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 作废成功 的本地化字符串。
         /// </summary>
-        internal static string PendingSubAppVoidedSuccess {
+        internal static string FormPendingVoidedSuccess {
             get {
-                return ResourceManager.GetString("PendingSubAppVoidedSuccess", resourceCulture);
+                return ResourceManager.GetString("FormPendingVoidedSuccess", resourceCulture);
             }
         }
     }

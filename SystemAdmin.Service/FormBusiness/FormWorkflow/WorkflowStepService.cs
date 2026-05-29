@@ -460,10 +460,10 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
             {
                 var entity = await _workflowStepRepo.GetWorkflowStepEntity(long.Parse(stepId));
 
-                entity.workflowStepOrgDto = await _workflowStepRepo.GetWorkflowStepOrgEntity(long.Parse(stepId));
-                entity.workflowStepDeptUserDto = await _workflowStepRepo.GetWorkflowStepDeptUserEntity(long.Parse(stepId));
-                entity.workflowStepUserDto = await _workflowStepRepo.GetWorkflowStepUserEntity(long.Parse(stepId));
-                entity.workflowStepCustomDto = await _workflowStepRepo.GetWorkflowStepCustomEntity(long.Parse(stepId));
+                entity.workflowStepOrg = await _workflowStepRepo.GetWorkflowStepOrgEntity(long.Parse(stepId));
+                entity.workflowStepDeptUser = await _workflowStepRepo.GetWorkflowStepDeptUserEntity(long.Parse(stepId));
+                entity.workflowStepUser = await _workflowStepRepo.GetWorkflowStepUserEntity(long.Parse(stepId));
+                entity.workflowStepCustom = await _workflowStepRepo.GetWorkflowStepCustomEntity(long.Parse(stepId));
 
                 return Result<WorkflowStepDto>.Ok(entity);
             }

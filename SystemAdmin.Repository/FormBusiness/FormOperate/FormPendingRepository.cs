@@ -14,12 +14,12 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
 {
-    public class PendingReviewRepository
+    public class FormPendingRepository
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
 
-        public PendingReviewRepository(SqlSugarScope db, Language lang)
+        public FormPendingRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
             _lang = lang;
@@ -86,7 +86,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<PendingReviewDto>> GetPendingSubmissionPage(GetPendingSubAppPage getPage, long loginUserId)
+        public async Task<ResultPaged<FormPendingDto>> GetPendingSubmitPage(GetFormPendingPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<PendingReviewEntity>()
@@ -98,7 +98,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .LeftJoin<DepartmentInfoEntity>((pending, instance, dic, formtype, applyuser, applyuserdept) => applyuser.DepartmentId == applyuserdept.DepartmentId)
                            .LeftJoin<UserAgentEntity>((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => applyuser.UserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
                            .Where((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.ApplicantUserId == loginUserId || useragent.AgentUserId == loginUserId);
-
 
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
@@ -114,9 +113,9 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             }
 
             // 排序
-            query = query.OrderBy((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new { instance.CreatedDate });
+            query = query.OrderBy((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
 
-            var page = await query.Select((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new PendingReviewDto
+            var page = await query.Select((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new FormPendingDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -138,7 +137,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ViewPath = formtype.ViewPath,
                 isVoided = (instance.ApplicantUserId == loginUserId && instance.FormStatus != FormStatus.Voided.ToEnumString()) ? 1 : 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
-            return ResultPaged<PendingReviewDto>.Ok(page, totalCount, "");
+            return ResultPaged<FormPendingDto>.Ok(page, totalCount, "");
         }
 
         /// <summary>
@@ -146,7 +145,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<PendingReviewDto>> GetPendingReviewPage(GetPendingSubAppPage getPage, long loginUserId)
+        public async Task<ResultPaged<FormPendingDto>> GetPendingReviewPage(GetFormPendingPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<PendingReviewEntity>()
@@ -157,7 +156,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .InnerJoin<UserInfoEntity>((pending, instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
                            .InnerJoin<DepartmentInfoEntity>((pending, instance, dic, formtype, applyuser, applyuserdept) => applyuser.DepartmentId == applyuserdept.DepartmentId)
                            .LeftJoin<UserAgentEntity>((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
-                           .Where((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => (pending.ReviewUserId == loginUserId || useragent.AgentUserId == loginUserId));
+                           .Where((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => pending.ReviewUserId == loginUserId || useragent.AgentUserId == loginUserId);
 
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
@@ -175,9 +174,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             // 排序
             query = query.OrderBy((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new { instance.CreatedDate });
 
-            string ss = query.ToSqlString();
-
-            var page = await query.Select((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new PendingReviewDto
+            var page = await query.Select((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new FormPendingDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -199,7 +196,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ViewPath = formtype.ViewPath,
                 isVoided = 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
-            return ResultPaged<PendingReviewDto>.Ok(page, totalCount, "");
+            return ResultPaged<FormPendingDto>.Ok(page, totalCount, "");
         }
 
         /// <summary>
@@ -207,7 +204,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<List<FormPendingReviewDto>> GetFormPendingReviewUser(long formId)
+        public async Task<List<FormPendingUserDto>> GetFormPendingUser(long formId)
         {
             return await _db.Queryable<PendingReviewEntity>()
                             .With(SqlWith.NoLock)
@@ -217,7 +214,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                             .LeftJoin<UserAgentEntity>((pending, step, dic, user, useragent) => user.UserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
                             .LeftJoin<UserInfoEntity>((pending, step, dic, user, useragent, agentuser) => useragent.AgentUserId == agentuser.UserId)
                             .Where((pending, step, dic, user, useragent, agentuser) => pending.FormId == formId)
-                            .Select((pending, step, dic, user, useragent, agentuser) => new FormPendingReviewDto
+                            .Select((pending, step, dic, user, useragent, agentuser) => new FormPendingUserDto
                             {
                                 StepName = _lang.Locale == "zh-CN"
                                            ? step.StepNameCn

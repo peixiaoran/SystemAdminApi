@@ -6,7 +6,7 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
     /// <summary>
     /// 待送审 & 审批表单Dto
     /// </summary>
-    public class PendingReviewDto
+    public class FormPendingDto
     {
         /// <summary>
         /// 表单Id

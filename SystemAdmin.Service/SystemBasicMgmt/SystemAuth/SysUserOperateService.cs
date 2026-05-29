@@ -50,9 +50,9 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         /// 用户登录
         /// </summary>
         /// <param name="httpResponse"></param>
-        /// <param name="sysLogin"></param>
+        /// <param name="login"></param>
         /// <returns></returns>
-        public async Task<Result<SysUserLoginReturnDto>> UserLogin(HttpResponse httpResponse, UserLogin sysLogin)
+        public async Task<Result<SysUserLoginReturnDto>> UserLogin(HttpResponse httpResponse, UserLogin login)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 var nowTime = DateTime.Now;
 
                 // 查询用户
-                var user = await _sysUserOperateRepo.LoginGetUserInfo(sysLogin);
+                var user = await _sysUserOperateRepo.GetUserInfo(login);
 
                 if (user == null)
                 {
@@ -86,7 +86,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 }
 
                 // 校验密码
-                var inputHash = HashPasswordWithArgon2id(sysLogin.PassWord,Convert.FromBase64String(user.PwdSalt));
+                var inputHash = HashPasswordWithArgon2id(login.PassWord,Convert.FromBase64String(user.PwdSalt));
 
                 if (inputHash != user.PassWord)
                 {
@@ -263,41 +263,41 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         /// <summary>
         /// 账号解锁
         /// </summary>
-        /// <param name="userUnlock"></param>
+        /// <param name="unlock"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UserUnLock(UserUnlock userUnlock)
+        public async Task<Result<int>> UserUnLock(UserUnlock unlock)
         {
             try
             {
                 var cacheCode = await _cache.GetOrCreateAsync(
-                      userUnlock.UserNo,
+                      unlock.UserNo,
                       ct => new ValueTask<string>("")
                 );
-                if (string.IsNullOrEmpty(userUnlock.VerificationCode))
+                if (string.IsNullOrEmpty(unlock.VerificationCode))
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}VcCodeExpired"));
                 }
 
-                if (!string.Equals(cacheCode, userUnlock.VerificationCode))
+                if (!string.Equals(cacheCode, unlock.VerificationCode))
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}VcCodeError"));
                 }
 
-                var user = await _sysUserOperateRepo.GetUserInfo(userUnlock.UserNo);
+                var user = await _sysUserOperateRepo.GetUserInfo(unlock.UserNo);
                 if (user == null)
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}UserNotFound"));
                 }
 
                 // 验证密码格式
-                if (!ValidatePassword(userUnlock.PassWord))
+                if (!ValidatePassword(unlock.PassWord))
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}ValidationPassWrodError"));
                 }
 
                 // 密码不能与老密码相同
                 await _db.BeginTranAsync();
-                var oldHash = HashPasswordWithArgon2id(userUnlock.PassWord, Convert.FromBase64String(user.PwdSalt));
+                var oldHash = HashPasswordWithArgon2id(unlock.PassWord, Convert.FromBase64String(user.PwdSalt));
                 if (oldHash == user.PassWord)
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}NotEqualOldPassWord"));
@@ -307,13 +307,13 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     // 加密密码
                     byte[] salt = GenerateSalt();
                     string saltString = Convert.ToBase64String(salt);
-                    string passwordHash = HashPasswordWithArgon2id(userUnlock.PassWord, salt);
+                    string passwordHash = HashPasswordWithArgon2id(unlock.PassWord, salt);
 
                     int unlockFreezeCount = await _sysUserOperateRepo.UnlockUserFreeze(user.UserId, passwordHash, saltString, DateTime.Now.AddDays(user.ExpirationDays));
                     await _sysUserOperateRepo.DeleleUserLockLog(user.UserId);
                     await _db.CommitTranAsync();
 
-                    await _cache.RemoveAsync(userUnlock.UserNo); // 验证通过，清除缓存
+                    await _cache.RemoveAsync(unlock.UserNo); // 验证通过，清除缓存
 
                     return unlockFreezeCount >= 1
                             ? Result<int>.Ok(unlockFreezeCount, _localization.ReturnMsg($"{_this}UnlockSuccess"))
@@ -378,14 +378,14 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         /// <summary>
         /// 密码过期重置
         /// </summary>
-        /// <param name="upsert"></param>
+        /// <param name="expiration"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UserPwdExpiration(PwdExpiration upsert)
+        public async Task<Result<int>> UserPwdExpiration(PwdExpiration expiration)
         {
             try
             {
                 // 查询用户信息
-                var user = await _sysUserOperateRepo.GetUserInfo(upsert.UserNo);
+                var user = await _sysUserOperateRepo.GetUserInfo(expiration.UserNo);
 
                 // 判断用户是否在职
                 if (user == null)
@@ -396,31 +396,31 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 // 获取缓存中的验证码（注意不是创建）
                 // 查询存入缓存中的验证码
                 var cachedCode = await _cache.GetOrCreateAsync(
-                    upsert.UserNo,
+                    expiration.UserNo,
                     ct => new ValueTask<string>("")
                 );
 
                 // 如果缓存中没有验证码，说明验证码已过期或未发送
-                if (string.IsNullOrEmpty(upsert.VerificationCode))
+                if (string.IsNullOrEmpty(expiration.VerificationCode))
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}VcCodeExpired"));
                 }
 
                 // 验证验证码是否匹配
-                if (!string.Equals(cachedCode, upsert.VerificationCode))
+                if (!string.Equals(cachedCode, expiration.VerificationCode))
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}VcCodeError"));
                 }
 
                 // 验证密码格式
-                if (!ValidatePassword(upsert.PassWord))
+                if (!ValidatePassword(expiration.PassWord))
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}ValidationPassWrodError"));
                 }
 
                 // 密码不能与老密码相同
                 await _db.BeginTranAsync();
-                var oldHash = HashPasswordWithArgon2id(upsert.PassWord, Convert.FromBase64String(user.PwdSalt));
+                var oldHash = HashPasswordWithArgon2id(expiration.PassWord, Convert.FromBase64String(user.PwdSalt));
                 if (oldHash == user.PassWord)
                 {
                     await _db.RollbackTranAsync();
@@ -431,7 +431,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     // 加密密码
                     byte[] salt = GenerateSalt();
                     string saltString = Convert.ToBase64String(salt);
-                    string passwordHash = HashPasswordWithArgon2id(upsert.PassWord, salt);
+                    string passwordHash = HashPasswordWithArgon2id(expiration.PassWord, salt);
 
                     // 更新用户密码
                     int count = await _sysUserOperateRepo.PwdExpirationUpdate(user.UserId, passwordHash, saltString, DateTime.Now.AddDays(user.ExpirationDays));
@@ -440,7 +440,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     await _db.CommitTranAsync();
 
                     // 清除验证码缓存
-                    await _cache.RemoveAsync(upsert.UserNo);
+                    await _cache.RemoveAsync(expiration.UserNo);
 
                     return count >= 1
                             ? Result<int>.Ok(count, _localization.ReturnMsg($"{_this}UpdatePassWrodSuccess"))

@@ -489,6 +489,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                 .With(SqlWith.NoLock)
                                 .LeftJoin<StepFieldPermissionEntity>((formfield, fieldper) => formfield.FieldId == fieldper.FieldId && fieldper.StepId == stepId)
                                 .Where((formfield, fieldper) => formfield.FormTypeId == formTypeId)
+                                .OrderBy((formfield, fieldper) => formfield.SortOrder)
                                 .Select((formfield, fieldper) => new StepFieldPermissionDto()
                                 {
                                     StepId = stepId,

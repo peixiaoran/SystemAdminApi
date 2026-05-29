@@ -22,9 +22,9 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         [Tags("系统基础管理-Auth接口")]
         [EndpointSummary("[身份验证] 用户登录")]
         [AllowAnonymous]
-        public async Task<Result<SysUserLoginReturnDto>> UserLogin([FromBody] UserLogin sysLogin)
+        public async Task<Result<SysUserLoginReturnDto>> UserLogin([FromBody] UserLogin login)
         {
-            return await _sysUserOperateService.UserLogin(Response, sysLogin);
+            return await _sysUserOperateService.UserLogin(Response, login);
         }
 
         [HttpPost]
@@ -40,9 +40,9 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         [Tags("系统基础管理-Auth接口")]
         [EndpointSummary("[身份验证] 账号解锁")]
         [AllowAnonymous]
-        public async Task<Result<int>> UserUnlock([FromBody] UserUnlock userUnlock)
+        public async Task<Result<int>> UserUnlock([FromBody] UserUnlock unlock)
         {
-            return await _sysUserOperateService.UserUnLock(userUnlock);
+            return await _sysUserOperateService.UserUnLock(unlock);
         }
 
         [HttpPost]
@@ -58,9 +58,9 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         [Tags("系统基础管理-Auth接口")]
         [EndpointSummary("[身份验证] 密码过期重置")]
         [AllowAnonymous]
-        public async Task<Result<int>> UserPwdExpiration([FromBody] PwdExpiration upsert)
+        public async Task<Result<int>> UserPwdExpiration([FromBody] PwdExpiration expiration)
         {
-            return await _sysUserOperateService.UserPwdExpiration(upsert);
+            return await _sysUserOperateService.UserPwdExpiration(expiration);
         }
 
         [HttpPost]

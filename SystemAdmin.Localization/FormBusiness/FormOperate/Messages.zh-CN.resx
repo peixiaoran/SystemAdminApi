@@ -117,13 +117,13 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="PendingSubAppNotVoided" xml:space="preserve">
+  <data name="FormPendingNotVoided" xml:space="preserve">
     <value>表单不是待送审阶段，不可作废</value>
   </data>
-  <data name="PendingSubAppVoidedFailed" xml:space="preserve">
+  <data name="FormPendingVoidedFailed" xml:space="preserve">
     <value>作废失败</value>
   </data>
-  <data name="PendingSubAppVoidedSuccess" xml:space="preserve">
+  <data name="FormPendingVoidedSuccess" xml:space="preserve">
     <value>作废成功</value>
   </data>
 </root>

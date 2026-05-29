@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 28/05/2026 14:10:11
+ Date: 29/05/2026 11:46:38
 */
 
 
@@ -932,6 +932,7 @@ CREATE TABLE [Form].[FormType] (
   [Prefix] nvarchar(5) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [ReviewPath] nvarchar(50) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [ViewPath] nvarchar(50) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
+  [Guidance] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [SortOrder] int  NOT NULL,
   [DescriptionCn] nvarchar(300) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [DescriptionEn] nvarchar(500) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
@@ -995,6 +996,13 @@ EXEC sp_addextendedproperty
 GO
 
 EXEC sp_addextendedproperty
+'MS_Description', N'导向',
+'SCHEMA', N'Form',
+'TABLE', N'FormType',
+'COLUMN', N'Guidance'
+GO
+
+EXEC sp_addextendedproperty
 'MS_Description', N'排序',
 'SCHEMA', N'Form',
 'TABLE', N'FormType',
@@ -1053,7 +1061,7 @@ GO
 -- ----------------------------
 -- Records of FormType
 -- ----------------------------
-INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'1987215338470772736', N'请假单', N'Leave Request Form', N'LVR', N'formbusiness/forms/leaveform/leaveform_r', N'formbusiness/forms/leaveform/leaveform_r', N'1', N'请假单用于员工因个人事由、病假、事假、年假等原因需要离开工作岗位时，向所属部门及管理层提出请假申请、审批与备案的业务单据。该单据记录请假类型、请假时间、时长、事由以及审批流程，用于确保人员安排合理、流程合规与人事数据准确。', N'A Leave Request Form is used when an employee needs to be absent from work due to personal reasons, sickness, annual leave, or other approved leave types. The form is submitted to the employee’s department and management for approval and record-keeping. It captures the leave type, leave period, duration, reason, and approval workflow, ensuring proper staffing, compliance, and accurate HR records.', N'1903486709602062336', N'2025-11-09 01:54:49.000', N'1903486709602062336', N'2025-11-09 02:16:46.000')
+INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [Guidance], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'1987215338470772736', N'请假单', N'Leave Request Form', N'LVR', N'formbusiness/forms/leaveform/leaveform_r', N'formbusiness/forms/leaveform/leaveform_r', N'LeaveFormFinalProcess', N'1', N'请假单用于员工因个人事由、病假、事假、年假等原因需要离开工作岗位时，向所属部门及管理层提出请假申请、审批与备案的业务单据。该单据记录请假类型、请假时间、时长、事由以及审批流程，用于确保人员安排合理、流程合规与人事数据准确。', N'A Leave Request Form is used when an employee needs to be absent from work due to personal reasons, sickness, annual leave, or other approved leave types. The form is submitted to the employee’s department and management for approval and record-keeping. It captures the leave type, leave period, duration, reason, and approval workflow, ensuring proper staffing, compliance, and accurate HR records.', N'1903486709602062336', N'2025-11-09 01:54:49.000', N'1903486709602062336', N'2025-11-09 02:16:46.000')
 GO
 
 
@@ -1183,7 +1191,7 @@ GO
 
 CREATE TABLE [Form].[LeaveForm] (
   [FormId] bigint  NOT NULL,
-  [LeaveTypeCode] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
+  [LeaveType] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [LeaveReason] nvarchar(150) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [LeaveStartTime] datetime2(7)  NULL,
   [LeaveEndTime] datetime2(7)  NULL,
@@ -1210,7 +1218,7 @@ EXEC sp_addextendedproperty
 'MS_Description', N'请假假别编码',
 'SCHEMA', N'Form',
 'TABLE', N'LeaveForm',
-'COLUMN', N'LeaveTypeCode'
+'COLUMN', N'LeaveType'
 GO
 
 EXEC sp_addextendedproperty
@@ -1286,28 +1294,28 @@ GO
 -- ----------------------------
 -- Records of LeaveForm
 -- ----------------------------
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051551790285066240', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-08 00:00:00.0000000', N'8.00', N'11', N'1903486709602062336', N'2026-05-05 14:37:17.453', N'1903486709602062336', N'2026-05-05 14:37:25.427')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051551790285066240', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-08 00:00:00.0000000', N'8.00', N'11', N'1903486709602062336', N'2026-05-05 14:37:17.453', N'1903486709602062336', N'2026-05-05 14:37:25.427')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051554334327574528', N'Sick', N'1', N'2026-05-09 00:00:00.0000000', N'2026-05-16 00:00:00.0000000', N'8.00', N'1', N'1903486709602062336', N'2026-05-05 14:47:24.000', N'1903486709602062336', N'2026-05-05 14:47:36.290')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051554334327574528', N'Sick', N'1', N'2026-05-09 00:00:00.0000000', N'2026-05-16 00:00:00.0000000', N'8.00', N'1', N'1903486709602062336', N'2026-05-05 14:47:24.000', N'1903486709602062336', N'2026-05-05 14:47:36.290')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051571275339534336', N'Annual', N'w', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'e', N'1903486709602062340', N'2026-05-05 15:54:43.053', N'1903486709602062340', N'2026-05-05 15:54:51.560')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051571275339534336', N'Annual', N'w', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'e', N'1903486709602062340', N'2026-05-05 15:54:43.053', N'1903486709602062340', N'2026-05-05 15:54:51.560')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051655239114821632', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-02 00:00:00.0000000', N'2.00', N'1', N'1903486709602062340', N'2026-05-05 21:28:21.593', N'1903486709602062340', N'2026-05-05 21:28:29.173')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051655239114821632', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-02 00:00:00.0000000', N'2.00', N'1', N'1903486709602062340', N'2026-05-05 21:28:21.593', N'1903486709602062340', N'2026-05-05 21:28:29.173')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051987743411671040', N'Annual', N'有事请假一天。', N'2026-05-01 00:00:00.0000000', N'2026-05-08 00:00:00.0000000', N'8.00', N'E342306', N'1903486709602062336', N'2026-05-06 19:29:36.800', N'1903486709602062336', N'2026-05-18 18:35:29.573')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051987743411671040', N'Annual', N'有事请假一天。', N'2026-05-01 00:00:00.0000000', N'2026-05-08 00:00:00.0000000', N'8.00', N'E342306', N'1903486709602062336', N'2026-05-06 19:29:36.800', N'1903486709602062336', N'2026-05-18 18:35:29.573')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051990037100367872', N'Annual', N'11', N'2026-05-07 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'9.00', N'1', N'1903486709602062336', N'2026-05-06 19:38:43.640', N'1903486709602062336', N'2026-05-06 19:38:50.657')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051990037100367872', N'Annual', N'11', N'2026-05-07 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'9.00', N'1', N'1903486709602062336', N'2026-05-06 19:38:43.640', N'1903486709602062336', N'2026-05-06 19:38:50.657')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052396992105156608', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'15.00', N'1', N'1903486709602062336', N'2026-05-07 22:35:49.270', N'1903486709602062336', N'2026-05-07 22:35:56.557')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052396992105156608', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-15 00:00:00.0000000', N'15.00', N'1', N'1903486709602062336', N'2026-05-07 22:35:49.270', N'1903486709602062336', N'2026-05-07 22:35:56.557')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveTypeCode], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052397458843111424', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'1', N'1903486709602062336', N'2026-05-07 22:37:40.547', N'1903486709602062336', N'2026-05-07 22:37:53.140')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [LeaveStartTime], [LeaveEndTime], [LeaveDays], [AgentUserNo], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2052397458843111424', N'Annual', N'1', N'2026-05-01 00:00:00.0000000', N'2026-05-09 00:00:00.0000000', N'9.00', N'1', N'1903486709602062336', N'2026-05-07 22:37:40.547', N'1903486709602062336', N'2026-05-07 22:37:53.140')
 GO
 
 
@@ -1578,25 +1586,25 @@ GO
 -- ----------------------------
 -- Records of WorkflowRule
 -- ----------------------------
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046850267772751872', N'组长 - 小于2天', N'Team Leader - Less than 2 days', N'1987217256446300160', N'1351602631784529920', N'LessOver2', N'1', N'1903486709602062336', N'2026-04-22 15:15:07.133', N'1903486709602062336', N'2026-05-04 14:19:51.580')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046850267772751872', N'组长 - 小于3天', N'Team Leader - Less than 3 days', N'1987217256446300160', N'1351602631784529920', N'LessOver3', N'1', N'1903486709602062336', N'2026-04-22 15:15:07.133', N'1903486709602062336', N'2026-05-04 14:19:51.580')
 GO
 
 INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046860073602519040', N'其他', N'Other', N'1987217256446300160', N'0', N'', N'50', N'1903486709602062336', N'2026-04-22 15:54:05.027', N'1903486709602062336', N'2026-05-04 19:28:16.463')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051185303204532224', N'组长 - 大于2天', N'Team Leader - More than 2 days', N'1987217256446300160', N'1351602631784529920', N'MoreOver2', N'2', N'1903486709602062336', N'2026-05-04 14:21:00.120', NULL, NULL)
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051185303204532224', N'组长 - 大于3天', N'Team Leader - More than 3 days', N'1987217256446300160', N'1351602631784529920', N'MoreOver3', N'2', N'1903486709602062336', N'2026-05-04 14:21:00.120', NULL, NULL)
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186271467999232', N'科长 - 小于2天', N'Section Chief - Less than 2 days', N'1987217256446300160', N'1351600746193223680', N'LessOver2', N'3', N'1903486709602062336', N'2026-05-04 14:24:50.973', N'1903486709602062336', N'2026-05-04 14:32:53.470')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186271467999232', N'科长 - 小于3天', N'Section Chief - Less than 3 days', N'1987217256446300160', N'1351600746193223680', N'LessOver3', N'3', N'1903486709602062336', N'2026-05-04 14:24:50.973', N'1903486709602062336', N'2026-05-04 14:32:53.470')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186400535121920', N'科长 - 大于2天', N'Section Chief - More than 2 days', N'1987217256446300160', N'1351600746193223680', N'MoreOver2', N'4', N'1903486709602062336', N'2026-05-04 14:25:21.747', N'1903486709602062336', N'2026-05-04 19:17:29.790')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186400535121920', N'科长 - 大于3天', N'Section Chief - More than 3 days', N'1987217256446300160', N'1351600746193223680', N'MoreOver3', N'4', N'1903486709602062336', N'2026-05-04 14:25:21.747', N'1903486709602062336', N'2026-05-04 19:17:29.790')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051259795381555200', N'副理 - 小于2天', N'Assistant Manager - Less than 2 days', N'1987217256446300160', N'1351592278136717312', N'LessOver2', N'5', N'1903486709602062336', N'2026-05-04 19:17:00.440', N'1903486709602062336', N'2026-05-04 19:17:17.373')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051259795381555200', N'副理 - 小于3天', N'Assistant Manager - Less than 3 days', N'1987217256446300160', N'1351592278136717312', N'LessOver3', N'5', N'1903486709602062336', N'2026-05-04 19:17:00.440', N'1903486709602062336', N'2026-05-04 19:17:17.373')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051260041411039232', N'副理 -大于2天', N'Assistant Manager - More than 2 days', N'1987217256446300160', N'1351592278136717312', N'MoreOver2', N'6', N'1903486709602062336', N'2026-05-04 19:17:59.100', NULL, NULL)
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051260041411039232', N'副理 - 大于3天', N'Assistant Manager - More than 3 days', N'1987217256446300160', N'1351592278136717312', N'MoreOver3', N'6', N'1903486709602062336', N'2026-05-04 19:17:59.100', NULL, NULL)
 GO
 
 
