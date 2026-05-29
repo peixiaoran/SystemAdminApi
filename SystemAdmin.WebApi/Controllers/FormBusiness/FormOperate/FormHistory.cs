@@ -45,7 +45,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[表单历史记录] 查询申请记录分页")]
-        public async Task<ResultPaged<FormHistoryDto>> GetPendingSubmitPage([FromBody] GetFormHistoryPage getpage)
+        public async Task<ResultPaged<FormHistoryDto>> GetApplyHistoryPage([FromBody] GetFormHistoryPage getpage)
         {
             return await _formHistoryService.GetApplyHistoryPage(getpage);
         }
