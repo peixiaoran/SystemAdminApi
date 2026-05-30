@@ -348,7 +348,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                 ? formfield.FieldNameCn
                                                 : formfield.FieldNameEn,
                                     IsVisible = fieldper.IsVisible,
-                                    IsEditable = fieldper.IsEditable,
+                                    IsDisabled = fieldper.IsDisabled,
                                 }).ToListAsync();
             return list.Adapt<List<StepFieldPermissionDto>>();
         }

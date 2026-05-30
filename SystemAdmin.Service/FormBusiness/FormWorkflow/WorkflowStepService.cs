@@ -308,8 +308,9 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     int delDeptUserCount = await _workflowStepRepo.DeleteWorkflowStepDeptUser(long.Parse(stepId));
                     int delUserCount = await _workflowStepRepo.DeleteWorkflowStepUser(long.Parse(stepId));
                     int delCustomCount = await _workflowStepRepo.DeleteWorkflowStepCustom(long.Parse(stepId));
+                    int delFieldPermissionCount = await _workflowStepRepo.DeleteStepFieldPermission(long.Parse(stepId));
 
-                    return delStepCount >= 1 && (delOrgCount >= 1 || delDeptUserCount >= 1 || delUserCount >= 1 || delCustomCount >= 1)
+                    return delStepCount >= 1 && (delOrgCount >= 1 || delDeptUserCount >= 1 || delUserCount >= 1 || delCustomCount >= 1 || delFieldPermissionCount >= 1)
                             ? Result<int>.Ok(delStepCount, _localization.ReturnMsg($"{_this}DeleteSuccess"))
                             : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}DeleteFailed"));
                 }
@@ -488,7 +489,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     StepId = long.Parse(fieldper.StepId),
                     FieldId = long.Parse(fieldper.FieldId),
                     IsVisible = fieldper.IsVisible,
-                    IsEditable = fieldper.IsEditable,
+                    IsDisabled = fieldper.IsDisabled,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now,
                     ModifiedBy = _loginuser.UserId,

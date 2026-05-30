@@ -33,6 +33,6 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// <summary>
         /// 是否可编辑
         /// </summary>
-        public int IsEditable { get; set; }
+        public int IsDisabled { get; set; }
     }
 }

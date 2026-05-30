@@ -61,9 +61,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[待审表单列表] 查询表单待审批人")]
-        public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUser([FromForm] string formId)
+        public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUsers([FromForm] string formId)
         {
-            return await _formPendingService.GetFormPendingUser(formId);
+            return await _formPendingService.GetFormPendingUsers(formId);
         }
 
         [HttpPost]
