@@ -341,6 +341,18 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
+        /// 删除步骤字段权限
+        /// </summary>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteStepFieldPermission(long stepId)
+        {
+            return await _db.Deleteable<StepFieldPermissionEntity>()
+                            .Where(fielper => fielper.StepId == stepId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
         /// 修改步骤
         /// </summary>
         /// <param name="entity"></param>
@@ -373,6 +385,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                 .Select((stepinfo, dic) => new WorkflowStepListDto()
                                 {
                                     StepId = stepinfo.StepId,
+                                    FormTypeId = long.Parse(formTypeId),
                                     StepNameCn = stepinfo.StepNameCn,
                                     StepNameEn = stepinfo.StepNameEn,
                                     Assignment = dic.DicCode,
@@ -456,18 +469,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 删除步骤栏位权限
-        /// </summary>
-        /// <param name="stepId"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteStepFieldPermission(long stepId)
-        {
-            return await _db.Deleteable<StepFieldPermissionEntity>()
-                            .Where(fieldper => fieldper.StepId == stepId)
-                            .ExecuteCommandAsync();
-        }
-
-        /// <summary>
         /// 新增步骤栏位权限
         /// </summary>
         /// <param name="list"></param>
@@ -498,7 +499,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                                 ? formfield.FieldNameCn
                                                 : formfield.FieldNameEn,
                                     IsVisible = fieldper.IsVisible,
-                                    IsEditable = fieldper.IsEditable,
+                                    IsDisabled = fieldper.IsDisabled,
                                 }).ToListAsync();
             return list.Adapt<List<StepFieldPermissionDto>>();
         }

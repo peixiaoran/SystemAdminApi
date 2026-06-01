@@ -121,11 +121,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUser(string formId)
+        public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUsers(string formId)
         {
             try
             {
-                var list = await _formPendingRepo.GetFormPendingUser(long.Parse(formId));
+                var list = await _formPendingRepo.GetFormPendingUsers(long.Parse(formId));
                 return Result<List<FormPendingUserDto>>.Ok(list);
             }
             catch (Exception ex)

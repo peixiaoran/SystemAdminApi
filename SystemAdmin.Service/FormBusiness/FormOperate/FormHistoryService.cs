@@ -1,10 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
-using SqlSugar;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
 using SystemAdmin.Repository.FormBusiness.FormOperate;
-using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Service.FormBusiness.FormOperate
 {
@@ -12,22 +10,13 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
     {
         private readonly CurrentUser _loginuser;
         private readonly ILogger<FormPendingService> _logger;
-        private readonly SqlSugarScope _db;
-        private readonly FormPermissionChecker _formChecker;
         private readonly FormHistoryRepository _formHistoryService;
-        private readonly FormReviewFlow _reviewFlow;
-        private readonly LocalizationService _localization;
-        private readonly string _this = "FormBusiness.FormOperate.FormHistory";
 
-        public FormHistoryService(CurrentUser loginuser, ILogger<FormPendingService> logger, SqlSugarScope db, FormPermissionChecker formChecker, FormHistoryRepository formHistoryService, FormReviewFlow reviewFlow, LocalizationService localization)
+        public FormHistoryService(CurrentUser loginuser, ILogger<FormPendingService> logger, FormHistoryRepository formHistoryService)
         {
             _loginuser = loginuser;
             _logger = logger;
-            _db = db;
-            _formChecker = formChecker;
             _formHistoryService = formHistoryService;
-            _reviewFlow = reviewFlow;
-            _localization = localization;
         }
 
         /// <summary>

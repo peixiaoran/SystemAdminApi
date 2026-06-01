@@ -88,7 +88,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
             return await _db.Updateable(entity)
                             .IgnoreColumns(role => new
                             {
-                                role.RoleCode,
                                 role.CreatedBy,
                                 role.CreatedDate,
                             }).Where(role => role.RoleId == entity.RoleId)

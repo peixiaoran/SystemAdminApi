@@ -204,7 +204,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<List<FormPendingUserDto>> GetFormPendingUser(long formId)
+        public async Task<List<FormPendingUserDto>> GetFormPendingUsers(long formId)
         {
             return await _db.Queryable<PendingReviewEntity>()
                             .With(SqlWith.NoLock)

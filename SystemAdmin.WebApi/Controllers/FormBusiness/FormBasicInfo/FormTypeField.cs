@@ -62,9 +62,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormBasicInfo
         [HttpPost]
         [Tags("表单业务管理-表单基础信息")]
         [EndpointSummary("[表单栏位] 查询表单栏位实体")]
-        public async Task<Result<FormTypeFieldDto>> GetFormTypeEntity([FromForm] string fromTypeId)
+        public async Task<Result<FormTypeFieldDto>> GetFormTypeFieldEntity([FromForm] string fieldId)
         {
-            return await _formTypeFieldService.GetFormTypeFieldEntity(fromTypeId);
+            return await _formTypeFieldService.GetFormTypeFieldEntity(fieldId);
         }
 
         [HttpPost]
