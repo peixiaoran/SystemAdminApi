@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Options;
 using SqlSugar;
 using System.Data;
+using System.Net;
 using System.Reflection;
 using SystemAdmin.Common.EmailTemplates;
 using SystemAdmin.Common.Enums.FormBusiness;
@@ -1827,7 +1828,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var rawName = lang == "zh-CN" 
                               ? user.UserNameCn
                               : user.UserNameEn;
-                var name = System.Net.WebUtility.HtmlEncode(rawName ?? string.Empty);
+                var name = WebUtility.HtmlEncode(rawName ?? string.Empty);
 
                 var titleKey = user.Gender switch
                 {
@@ -1862,24 +1863,24 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, tokens[user.UserId]);
 
                 var body = template
-                    .Replace("{{Title}}", System.Net.WebUtility.HtmlEncode(headerTitle))
+                    .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
                     .Replace("{{Greeting}}", greeting)
-                    .Replace("{{LabelFormNo}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
-                    .Replace("{{LabelFormType}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
-                    .Replace("{{LabelApplicant}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
-                    .Replace("{{LabelResult}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
-                    .Replace("{{LabelComment}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
-                    .Replace("{{LabelStep}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
-                    .Replace("{{ResultText}}", System.Net.WebUtility.HtmlEncode(resultText))
-                    .Replace("{{BtnReview}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
-                    .Replace("{{BtnSignIn}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
-                    .Replace("{{ExpireHint}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeExpireHint", lang)))
-                    .Replace("{{FooterText}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFooter", lang)))
-                    .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
-                    .Replace("{{FormTypeName}}", System.Net.WebUtility.HtmlEncode(formTypeName ?? string.Empty))
-                    .Replace("{{ApplicantUser}}", System.Net.WebUtility.HtmlEncode(applicantUser ?? string.Empty))
-                    .Replace("{{Comment}}", System.Net.WebUtility.HtmlEncode(formNotice.Comment ?? string.Empty))
-                    .Replace("{{CurrentStepName}}", System.Net.WebUtility.HtmlEncode(currentStepName ?? string.Empty))
+                    .Replace("{{LabelFormNo}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
+                    .Replace("{{LabelFormType}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
+                    .Replace("{{LabelApplicant}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
+                    .Replace("{{LabelResult}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
+                    .Replace("{{LabelComment}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
+                    .Replace("{{LabelStep}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
+                    .Replace("{{ResultText}}", WebUtility.HtmlEncode(resultText))
+                    .Replace("{{BtnReview}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
+                    .Replace("{{BtnSignIn}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
+                    .Replace("{{ExpireHint}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeExpireHint", lang)))
+                    .Replace("{{FooterText}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFooter", lang)))
+                    .Replace("{{FormNo}}", WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
+                    .Replace("{{FormTypeName}}", WebUtility.HtmlEncode(formTypeName ?? string.Empty))
+                    .Replace("{{ApplicantUser}}", WebUtility.HtmlEncode(applicantUser ?? string.Empty))
+                    .Replace("{{Comment}}", WebUtility.HtmlEncode(formNotice.Comment ?? string.Empty))
+                    .Replace("{{CurrentStepName}}", WebUtility.HtmlEncode(currentStepName ?? string.Empty))
                     .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
                     .Replace("{{ReviewUrl}}", reviewUrl);
 
@@ -1904,22 +1905,22 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var formNotice = await _db.Queryable<FormInstanceEntity>()
                                       .With(SqlWith.NoLock)
                                       .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
-                                      .InnerJoin<UserInfoEntity>((instance, formtype, userInfo) => instance.ApplicantUserId == userInfo.UserId)
+                                      .InnerJoin<UserInfoEntity>((instance, formtype, user) => instance.ApplicantUserId == user.UserId)
                                       .Where((instance, formtype, userInfo) => instance.FormId == formId)
-                                      .Select((instance, formtype, userInfo) => new FormNoticeApprovedDto
+                                      .Select((instance, formtype, user) => new FormNoticeApprovedDto
                                       {
                                           FormId = instance.FormId,
                                           FormNo = instance.FormNo,
                                           FormTypeNameCn = formtype.FormTypeNameCn,
                                           FormTypeNameEn = formtype.FormTypeNameEn,
                                           ReviewPath = formtype.ReviewPath,
-                                          ApplicantUserId = userInfo.UserId,
-                                          ApplicantUserNameCn = userInfo.UserNameCn,
-                                          ApplicantUserNameEn = userInfo.UserNameEn,
-                                          ApplicantGender = userInfo.Gender,
-                                          ApplicantEmail = userInfo.Email,
-                                          ApplicantIsRealtimeNotification = userInfo.IsRealtimeNotification,
-                                          ApplicantNoticeLanguage = userInfo.NoticeLanguage,
+                                          ApplicantUserId = user.UserId,
+                                          ApplicantUserNameCn = user.UserNameCn,
+                                          ApplicantUserNameEn = user.UserNameEn,
+                                          ApplicantGender = user.Gender,
+                                          ApplicantEmail = user.Email,
+                                          ApplicantIsRealtimeNotification = user.IsRealtimeNotification,
+                                          ApplicantNoticeLanguage = user.NoticeLanguage,
                                       }).FirstAsync();
 
             // 2. 代理人
@@ -1984,7 +1985,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             // ===== Greeting 内联构造 =====
             var rawName = lang == "zh-CN" ? recipient.UserNameCn : recipient.UserNameEn;
-            var name = System.Net.WebUtility.HtmlEncode(rawName ?? string.Empty);
+            var name = WebUtility.HtmlEncode(rawName ?? string.Empty);
 
             var titleKey = recipient.Gender switch
             {
@@ -2006,21 +2007,21 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, token);
 
             var body = template
-                .Replace("{{Title}}", System.Net.WebUtility.HtmlEncode(headerTitle))
+                .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
                 .Replace("{{Greeting}}", greeting)
-                .Replace("{{LabelFormNo}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
-                .Replace("{{LabelFormType}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
-                .Replace("{{LabelApplicant}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
-                .Replace("{{LabelResult}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
-                .Replace("{{LabelComment}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
-                .Replace("{{LabelStep}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
-                .Replace("{{ResultText}}", System.Net.WebUtility.HtmlEncode(resultText))
-                .Replace("{{BtnReview}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
-                .Replace("{{BtnSignIn}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
-                .Replace("{{ExpireHint}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeExpireHint", lang)))
-                .Replace("{{FooterText}}", System.Net.WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFooter", lang)))
-                .Replace("{{FormNo}}", System.Net.WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
-                .Replace("{{FormTypeName}}", System.Net.WebUtility.HtmlEncode(formTypeName ?? string.Empty))
+                .Replace("{{LabelFormNo}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
+                .Replace("{{LabelFormType}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
+                .Replace("{{LabelApplicant}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
+                .Replace("{{LabelResult}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
+                .Replace("{{LabelComment}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
+                .Replace("{{LabelStep}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
+                .Replace("{{ResultText}}", WebUtility.HtmlEncode(resultText))
+                .Replace("{{BtnReview}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
+                .Replace("{{BtnSignIn}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
+                .Replace("{{ExpireHint}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeExpireHint", lang)))
+                .Replace("{{FooterText}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFooter", lang)))
+                .Replace("{{FormNo}}", WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
+                .Replace("{{FormTypeName}}", WebUtility.HtmlEncode(formTypeName ?? string.Empty))
                 .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
                 .Replace("{{ReviewUrl}}", reviewUrl);
 
