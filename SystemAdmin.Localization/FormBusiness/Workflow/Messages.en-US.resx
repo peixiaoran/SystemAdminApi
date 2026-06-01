@@ -135,6 +135,9 @@
   <data name="EmailNoticeFooter" xml:space="preserve">
     <value>Automated message, please do not reply</value>
   </data>
+  <data name="EmailNoticeFormInfo" xml:space="preserve">
+    <value>Form Information</value>
+  </data>
   <data name="EmailNoticeGreetingDefault" xml:space="preserve">
     <value>Hello {0}</value>
   </data>

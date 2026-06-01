@@ -135,6 +135,9 @@
   <data name="EmailNoticeFooter" xml:space="preserve">
     <value>系统自动发送，请勿回复</value>
   </data>
+  <data name="EmailNoticeFormInfo" xml:space="preserve">
+    <value>表单信息</value>
+  </data>
   <data name="EmailNoticeGreetingDefault" xml:space="preserve">
     <value>您好 {0}</value>
   </data>

@@ -25,17 +25,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
     {
         private readonly CurrentUser _loginuser;
         private readonly SqlSugarScope _db;
-        private readonly MailKitEmailSender _mailKitEmail;
+        private readonly MailKitEmailSender _email;
         private readonly AppUrlOptions _formNotice;
         private readonly LocalizationService _localization;
         private readonly Language _lang;
         private readonly string _this = "FormBusiness.Workflow";
 
-        public FormReviewAction(CurrentUser loginuser, SqlSugarScope db, MailKitEmailSender mailKitEmail, IOptions<AppUrlOptions> formNotice, LocalizationService localization, Language lang)
+        public FormReviewAction(CurrentUser loginuser, SqlSugarScope db, MailKitEmailSender email, IOptions<AppUrlOptions> formNotice, LocalizationService localization, Language lang)
         {
             _loginuser = loginuser;
             _db = db;
-            _mailKitEmail = mailKitEmail;
+            _email = email;
             _formNotice = formNotice.Value;
             _localization = localization;
             _lang = lang;
@@ -1865,6 +1865,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var body = template
                     .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
                     .Replace("{{Greeting}}", greeting)
+                    .Replace("{{FormInfo}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFormInfo", lang)))
                     .Replace("{{LabelFormNo}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
                     .Replace("{{LabelFormType}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
                     .Replace("{{LabelApplicant}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
@@ -1884,7 +1885,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
                     .Replace("{{ReviewUrl}}", reviewUrl);
 
-                await _mailKitEmail.SendAsync(new EmailMessage
+                await _email.SendAsync(new EmailMessage
                 {
                     To = new List<string> { user.Email },
                     Subject = $"{subjectPrefix} {formNotice.FormNo} - {formTypeName}",
@@ -2009,12 +2010,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var body = template
                 .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
                 .Replace("{{Greeting}}", greeting)
+                .Replace("{{LabelStep}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
+                .Replace("{{FormInfo}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeFormInfo", lang)))
                 .Replace("{{LabelFormNo}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormNo", lang)))
                 .Replace("{{LabelFormType}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelFormType", lang)))
                 .Replace("{{LabelApplicant}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelApplicant", lang)))
                 .Replace("{{LabelResult}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelResult", lang)))
                 .Replace("{{LabelComment}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelComment", lang)))
-                .Replace("{{LabelStep}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeLabelStep", lang)))
                 .Replace("{{ResultText}}", WebUtility.HtmlEncode(resultText))
                 .Replace("{{BtnReview}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnReview", lang)))
                 .Replace("{{BtnSignIn}}", WebUtility.HtmlEncode(_localization.ReturnMsg($"{_this}.EmailNoticeBtnSignIn", lang)))
@@ -2025,7 +2027,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
                 .Replace("{{ReviewUrl}}", reviewUrl);
 
-            await _mailKitEmail.SendAsync(new EmailMessage
+            await _email.SendAsync(new EmailMessage
             {
                 To = new List<string> { recipient.Email },
                 Subject = $"{subjectPrefix} {formNotice.FormNo} - {formTypeName}",

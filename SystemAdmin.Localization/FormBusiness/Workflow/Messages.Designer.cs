@@ -115,6 +115,15 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
+        ///   查找类似 表单信息 的本地化字符串。
+        /// </summary>
+        internal static string EmailNoticeFormInfo {
+            get {
+                return ResourceManager.GetString("EmailNoticeFormInfo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 您好 {0} 的本地化字符串。
         /// </summary>
         internal static string EmailNoticeGreetingDefault {
