@@ -151,7 +151,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
 
-        #region 查询步骤审批人员
+        #region 查询各指派类型审批人员
 
         /// <summary>
         /// 查询起始步骤审批人员
@@ -220,14 +220,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询按照组织架构审批人员
+        /// 查询审批人身份 - 按组织架构
         /// </summary>
-        /// <param name="applicantParentDept"></param>
+        /// <param name="applyParentDept"></param>
         /// <param name="deptLeaveId"></param>
         /// <param name="positionId"></param>
         /// <param name="reviewMode"></param>
         /// <returns></returns>
-        public async Task<List<UserReview>> GetOrgReviewUser(List<DepartmentInfoEntity> applicantParentDept, long deptLeaveId, long positionId, string reviewMode)
+        public async Task<List<UserReview>> GetOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, long deptLeaveId, long positionId, string reviewMode)
         {
             bool isChinese = _lang.Locale == "zh-CN";
             string userNameCol = isChinese ? "users.UserNameCn" : "users.UserNameEn";
@@ -238,12 +238,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .With(SqlWith.NoLock)
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == deptLeaveId)
                                      .FirstAsync();
-            var posInfo = await _db.Queryable<PositionInfoEntity>()
-                                   .With(SqlWith.NoLock)
-                                   .Where(position => position.PositionId == positionId)
-                                   .FirstAsync();
+            var position = await _db.Queryable<PositionInfoEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .Where(position => position.PositionId == positionId)
+                                    .FirstAsync();
 
-            var parentDeptIds = applicantParentDept.Select(dept => dept.DepartmentId).ToList();
+            var parentDeptIds = applyParentDept.Select(dept => dept.DepartmentId).ToList();
             string parentDeptIdsStr = string.Join(",", parentDeptIds);
 
             bool isSingle = reviewMode == ReviewMode.Review.ToEnumString();
@@ -366,7 +366,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 {
                     new SugarParameter("@Now", now),
                     new SugarParameter("@DeptLevelSort", deptlevel.SortOrder),
-                    new SugarParameter("@PositionSort", posInfo.SortOrder),
+                    new SugarParameter("@PositionSort", position.SortOrder),
 
                     new SugarParameter("@Actual", actual),
                     new SugarParameter("@Agent", agent),
@@ -386,7 +386,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 第二次：自动指派，先递减职级，同职级下再递减部门职级
                 // 每次减 1，最小值为 1，找到即跳出
                 // ────────────────────────────────────────────────
-                int currentPositionSort = posInfo.SortOrder - 1;
+                int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
                 while (currentPositionSort >= 1)
@@ -532,7 +532,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询按照指定部门指定职级审批人员
+        /// 查询审批人身份 - 按指定部门职级
         /// </summary>
         /// <param name="departmentId"></param>
         /// <param name="positionId"></param>
@@ -545,17 +545,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string agentNameCol = isChinese ? "agentusers.UserNameCn" : "agentusers.UserNameEn";
             string dicNameCol = isChinese ? "dic.DicNameCn" : "dic.DicNameEn";
 
-            var posInfo = await _db.Queryable<PositionInfoEntity>()
+            var position = await _db.Queryable<PositionInfoEntity>()
                                    .With(SqlWith.NoLock)
                                    .Where(position => position.PositionId == positionId)
                                    .FirstAsync();
-            var deptInfo = await _db.Queryable<DepartmentInfoEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(dept => dept.DepartmentId == departmentId)
-                                    .FirstAsync();
+            var dept = await _db.Queryable<DepartmentInfoEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(dept => dept.DepartmentId == departmentId)
+                                .FirstAsync();
             var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
                                      .With(SqlWith.NoLock)
-                                     .Where(deptlevel => deptlevel.DepartmentLevelId == deptInfo.DepartmentLevelId)
+                                     .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
                                      .FirstAsync();
 
             bool isSingle = reviewMode == ReviewMode.Review.ToEnumString();
@@ -679,7 +679,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 {
                     new SugarParameter("@Now", now),
                     new SugarParameter("@DepartmentId", departmentId),
-                    new SugarParameter("@PositionSort", posInfo.SortOrder),
+                    new SugarParameter("@PositionSort", position.SortOrder),
 
                     new SugarParameter("@Actual", actual),
                     new SugarParameter("@Agent", agent),
@@ -700,7 +700,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 自动指派：精确匹配找不到时，先递减职级再递减部门职级
                 // 每次减 1，最小值为 1，找到候选人即跳出
                 // ────────────────────────────────────────────────
-                int currentPositionSort = posInfo.SortOrder - 1;
+                int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
                 while (currentPositionSort >= 1)
@@ -852,7 +852,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询按照指定人审批人员
+        /// 查询审批人身份 - 按指定人
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="reviewMode"></param>
@@ -864,24 +864,24 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string agentNameCol = isChinese ? "agentusers.UserNameCn" : "agentusers.UserNameEn";
             string dicNameCol = isChinese ? "dic.DicNameCn" : "dic.DicNameEn";
 
-            var userInfo = await _db.Queryable<UserInfoEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(user => user.UserId == userId)
-                                    .FirstAsync();
+            var user = await _db.Queryable<UserInfoEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(user => user.UserId == userId)
+                                .FirstAsync();
 
             var posInfo = await _db.Queryable<PositionInfoEntity>()
                                    .With(SqlWith.NoLock)
-                                   .Where(position => position.PositionId == userInfo.PositionId)
+                                   .Where(position => position.PositionId == user.PositionId)
                                    .FirstAsync();
 
-            var deptInfo = await _db.Queryable<DepartmentInfoEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(dept => dept.DepartmentId == userInfo.DepartmentId)
-                                    .FirstAsync();
+            var dept = await _db.Queryable<DepartmentInfoEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(dept => dept.DepartmentId == user.DepartmentId)
+                                .FirstAsync();
 
             var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
                                      .With(SqlWith.NoLock)
-                                     .Where(deptlevel => deptlevel.DepartmentLevelId == deptInfo.DepartmentLevelId)
+                                     .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
                                      .FirstAsync();
 
             bool isSingle = reviewMode == ReviewMode.Review.ToEnumString();
@@ -1139,7 +1139,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         new[]
                         {
                             new SugarParameter("@Now", now),
-                            new SugarParameter("@DepartmentId", userInfo.DepartmentId),
+                            new SugarParameter("@DepartmentId", user.DepartmentId),
                             new SugarParameter("@CurrentPositionSort", currentPositionSort),
                             new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
 
@@ -1202,8 +1202,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             // 4. 预先把核准记录抽出来
             var approveRecords = allRecords
-                .Where(record => record.ReviewResult == ReviewResult.Approve.ToEnumString())
-                .ToList();
+                                 .Where(record => record.ReviewResult == ReviewResult.Approve.ToEnumString())
+                                 .ToList();
 
             // 5. 逐步骤填充状态
             foreach (var flow in reviewFlow)
