@@ -3,7 +3,7 @@
     /// <summary>
     /// 申请人表单详情
     /// </summary>
-    public class ApplicantFormDetail
+    public class ApplyFormDetail
     {
         /// <summary>
         /// 表单Id
@@ -28,12 +28,12 @@
         /// <summary>
         /// 申请人Id
         /// </summary>
-        public long ApplicantUserId { get; set; }
+        public long UserId { get; set; }
 
         /// <summary>
         /// 申请人部门Id
         /// </summary>
-        public long ApplicantDeptId { get; set; }
+        public long DeptId { get; set; }
 
         /// <summary>
         /// 申请人部门等级

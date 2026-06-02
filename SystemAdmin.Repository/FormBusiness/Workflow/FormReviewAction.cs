@@ -333,25 +333,25 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .InnerJoin<DepartmentLevelEntity>((instance, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
                                       .InnerJoin<PositionInfoEntity>((instance, user, dept, deptlevel, position) => user.PositionId == position.PositionId)
                                       .Where((instance, user, dept, deptlevel, position) => instance.FormId == formId)
-                                      .Select((instance, user, dept, deptlevel, position) => new ApplicantFormDetail
+                                      .Select((instance, user, dept, deptlevel, position) => new ApplyFormDetail
                                       {
                                           FormId = instance.FormId,
                                           RuleId = instance.RuleId,
-                                          ApplicantUserId = user.UserId,
-                                          ApplicantDeptId = dept.DepartmentId,
+                                          UserId = user.UserId,
+                                          DeptId = dept.DepartmentId,
                                           DeptLevelSort = deptlevel.SortOrder,
                                           PositionSort = position.SortOrder,
                                       }).FirstAsync();
 
             var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
                                          .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, formDetail.ApplicantDeptId);
+                                         .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
 
             List<UserAppointment> result;
 
             if (stepInfo.IsStartStep == 1)
             {
-                result = await GetStartReviewUsers(formDetail.ApplicantUserId);
+                result = await GetStartReviewUsers(formDetail.UserId);
             }
             else if (stepInfo.Assignment == Assignment.Org.ToEnumString())
             {
@@ -952,25 +952,25 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .InnerJoin<DepartmentLevelEntity>((instance, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
                                       .InnerJoin<PositionInfoEntity>((instance, user, dept, deptlevel, position) => user.PositionId == position.PositionId)
                                       .Where((instance, user, dept, deptlevel, position) => instance.FormId == formId)
-                                      .Select((instance, user, dept, deptlevel, position) => new ApplicantFormDetail
+                                      .Select((instance, user, dept, deptlevel, position) => new ApplyFormDetail
                                       {
                                           FormId = instance.FormId,
                                           RuleId = instance.RuleId,
-                                          ApplicantUserId = user.UserId,
-                                          ApplicantDeptId = dept.DepartmentId,
+                                          UserId = user.UserId,
+                                          DeptId = dept.DepartmentId,
                                           DeptLevelSort = deptlevel.SortOrder,
                                           PositionSort = position.SortOrder,
                                       }).FirstAsync();
 
             var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
                                          .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, formDetail.ApplicantDeptId);
+                                         .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
 
             List<UserAppointment> result;
 
             if (stepInfo.IsStartStep == 1)
             {
-                result = await GetActualConStartReviewUsers(formDetail.ApplicantUserId);
+                result = await GetActualConStartReviewUsers(formDetail.UserId);
             }
             else if (stepInfo.Assignment == Assignment.Org.ToEnumString())
             {
@@ -1794,14 +1794,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                 .ToList();
 
             // 4. 收件人（含 NoticeLanguage）
-            var userInfoList = await _db.Queryable<UserInfoEntity>()
-                                        .With(SqlWith.NoLock)
-                                        .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
-                                        .ToListAsync();
+            var userList = await _db.Queryable<UserInfoEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1)
+                                    .ToListAsync();
 
             // 5. 生成 token + 批量新增
             var expirationTime = now.AddDays(15);
-            var tokens = userInfoList.ToDictionary(user => user.UserId, _ => GenerateSecureToken());
+            var tokens = userList.ToDictionary(user => user.UserId, _ => GenerateSecureToken());
 
             var tokenEntities = tokens.Select(kv => new FormNotificationTokenEntity
             {
@@ -1820,7 +1820,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 : EmailTemplateLoader.GetRejectNotice();
 
             // 7. 逐人发送（按 NoticeLanguage 渲染）
-            foreach (var user in userInfoList)
+            foreach (var user in userList)
             {
                 var lang = user.NoticeLanguage;
 
@@ -1860,7 +1860,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var applicantUser = lang == "zh-CN" ? formNotice.ApplicantUserCn : formNotice.ApplicantUserEn;
                 var currentStepName = lang == "zh-CN" ? formNotice.CurrentStepNameCn : formNotice.CurrentStepNameEn;
 
-                var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, tokens[user.UserId]);
+                var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, user.NoticeLanguage, tokens[user.UserId]);
 
                 var body = template
                     .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
@@ -1915,32 +1915,30 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           FormTypeNameCn = formtype.FormTypeNameCn,
                                           FormTypeNameEn = formtype.FormTypeNameEn,
                                           ReviewPath = formtype.ReviewPath,
-                                          ApplicantUserId = user.UserId,
-                                          ApplicantUserNameCn = user.UserNameCn,
-                                          ApplicantUserNameEn = user.UserNameEn,
-                                          ApplicantGender = user.Gender,
-                                          ApplicantEmail = user.Email,
-                                          ApplicantIsRealtimeNotification = user.IsRealtimeNotification,
-                                          ApplicantNoticeLanguage = user.NoticeLanguage,
+                                          UserId = user.UserId,
+                                          UserNameCn = user.UserNameCn,
+                                          UserNameEn = user.UserNameEn,
+                                          Gender = user.Gender,
+                                          Email = user.Email,
+                                          IsRealtimeNotification = user.IsRealtimeNotification,
+                                          NoticeLanguage = user.NoticeLanguage,
                                       }).FirstAsync();
 
             // 2. 代理人
             var agentUserId = await _db.Queryable<UserAgentEntity>()
                                        .With(SqlWith.NoLock)
-                                       .Where(useragent => useragent.SubstituteUserId == formNotice.ApplicantUserId && useragent.StartTime <= now && useragent.EndTime >= now)
-                                       .Select(useragent => (long?)useragent.AgentUserId)
+                                       .Where(useragent => useragent.SubstituteUserId == formNotice.UserId && useragent.StartTime <= now && useragent.EndTime >= now)
+                                       .Select(useragent => useragent.AgentUserId)
                                        .FirstAsync();
 
             // 3. 选定收件人
             UserInfoEntity? recipient;
 
-            if (agentUserId.HasValue)
+            if (agentUserId > 0)
             {
                 recipient = await _db.Queryable<UserInfoEntity>()
                                      .With(SqlWith.NoLock)
-                                     .Where(user => user.UserId == agentUserId.Value
-                                                    && user.IsRealtimeNotification == 1
-                                                    && !string.IsNullOrEmpty(user.Email))
+                                     .Where(user => user.UserId == agentUserId && user.IsRealtimeNotification == 1)
                                      .FirstAsync();
 
                 if (recipient == null)
@@ -1950,19 +1948,19 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
             else
             {
-                if (formNotice.ApplicantIsRealtimeNotification != 1 || string.IsNullOrWhiteSpace(formNotice.ApplicantEmail))
+                if (formNotice.IsRealtimeNotification != 1 || string.IsNullOrWhiteSpace(formNotice.Email))
                 {
                     return;
                 }
 
                 recipient = new UserInfoEntity
                 {
-                    UserId = formNotice.ApplicantUserId,
-                    UserNameCn = formNotice.ApplicantUserNameCn,
-                    UserNameEn = formNotice.ApplicantUserNameEn,
-                    Gender = formNotice.ApplicantGender,
-                    Email = formNotice.ApplicantEmail,
-                    NoticeLanguage = formNotice.ApplicantNoticeLanguage,
+                    UserId = formNotice.UserId,
+                    UserNameCn = formNotice.UserNameCn,
+                    UserNameEn = formNotice.UserNameEn,
+                    Gender = formNotice.Gender,
+                    Email = formNotice.Email,
+                    NoticeLanguage = formNotice.NoticeLanguage,
                 };
             }
 
@@ -2005,7 +2003,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var resultText = _localization.ReturnMsg($"{_this}.EmailNoticeResultApproved", lang);
 
             var formTypeName = lang == "zh-CN" ? formNotice.FormTypeNameCn : formNotice.FormTypeNameEn;
-            var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, token);
+            var reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, recipient.NoticeLanguage, token);
 
             var body = template
                 .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
@@ -2036,6 +2034,39 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         #endregion
+
+        #region 表单审批完成后的最终处理
+
+        /// <summary>
+        /// 表单审批完成执行
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<bool> FinalProcessing(long formId)
+        {
+            var entity = await _db.Queryable<FormInstanceEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .LeftJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                                  .Select((instance, formtype) => formtype)
+                                  .FirstAsync();
+
+            var method = GetType().GetMethod(entity.Guidance, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            if (method?.Invoke(this, new object[] { formId }) is Task<bool> task)
+                return await task;
+
+            return false;
+        }
+
+        /// <summary>
+        /// 请假单
+        /// </summary>
+        /// <returns></returns>
+        public async Task<bool> LeaveFormFinalProcess()
+        {
+            return true;
+        }
+
+        #endregion 
 
         #region 工具
 
@@ -2085,7 +2116,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         );
 
         /// <summary>
-        /// 产生密码学安全、URL-safe 的随机 Token（约 43 字元）
+        /// 产生Token
         /// </summary>
         private static string GenerateSecureToken()
         {
@@ -2104,46 +2135,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         /// <param name="baseDomain"></param>
         /// <param name="reviewPath"></param>
+        /// <param name="noticeLanguage"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        private static string BuildReviewUrl(string baseDomain, string reviewPath, string token)
+        private static string BuildReviewUrl(string baseDomain, string reviewPath,string noticeLanguage, string token)
         {
-            var separator = reviewPath?.Contains('?') == true ? "&" : "?";
-            return $"{baseDomain}{reviewPath}{separator}token={Uri.EscapeDataString(token)}";
-        }
-
-        #endregion
-
-
-        #region 表单审批完成后的最终处理
-
-        /// <summary>
-        /// 表单审批完成执行
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<bool> FinalProcessing(long formId)
-        {
-            var entity = await _db.Queryable<FormInstanceEntity>()
-                                  .With(SqlWith.NoLock)
-                                  .LeftJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
-                                  .Select((instance, formtype) => formtype)
-                                  .FirstAsync();
-
-            var method = GetType().GetMethod(entity.Guidance, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (method?.Invoke(this, new object[] { formId }) is Task<bool> task)
-                return await task;
-
-            return false;
-        }
-
-        /// <summary>
-        /// 请假单
-        /// </summary>
-        /// <returns></returns>
-        public async Task<bool> LeaveFormFinalProcess()
-        {
-            return true;
+            return $"{baseDomain}{reviewPath}?lang={noticeLanguage}&token={Uri.EscapeDataString(token)}";
         }
 
         #endregion

@@ -44,14 +44,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .InnerJoin<DepartmentLevelEntity>((instance, formtype, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
                                       .InnerJoin<PositionInfoEntity>((instance, formtype, user, dept, deptlevel, position) => user.PositionId == position.PositionId)
                                       .Where((instance, formtype, user, dept, deptlevel, position) => instance.FormId == formId)
-                                      .Select((instance, formtype, user, dept, deptlevel, position) => new ApplicantFormDetail
+                                      .Select((instance, formtype, user, dept, deptlevel, position) => new ApplyFormDetail
                                       {
                                           FormId = instance.FormId,
                                           FormTypeId = instance.FormTypeId,
                                           RuleId = instance.RuleId,
                                           CurrentStepId = instance.CurrentStepId,
-                                          ApplicantUserId = user.UserId,
-                                          ApplicantDeptId = dept.DepartmentId,
+                                          UserId = user.UserId,
+                                          DeptId = dept.DepartmentId,
                                           DeptLevelSort = deptlevel.SortOrder,
                                           PositionSort = position.SortOrder
                                       }).FirstAsync();
@@ -59,7 +59,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 申请人上级部门列表（包含申请人所在部门）
             var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
                                          .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, formDetail.ApplicantDeptId);
+                                         .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
             // 所属规则的初始步骤
             var ruleStep = await _db.Queryable<WorkflowRuleStepEntity>()
                                     .With(SqlWith.NoLock)
@@ -90,7 +90,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 if (stepInfo.IsStartStep == 1)
                 {
-                    userReview = await GetStartReviewUser(formDetail.ApplicantUserId);
+                    userReview = await GetStartReviewUser(formDetail.UserId);
                 }
                 else if (stepInfo.Assignment == Assignment.Org.ToEnumString())
                 {
@@ -145,7 +145,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
 
             // 获取审批结果
-            formReview.stepReviewFlowList = await GetUserReviewResult(formId, formDetail.RuleId, formDetail.CurrentStepId, stepReviewList);
+            formReview.stepReviewList = await GetUserReviewResult(formId, formDetail.RuleId, formDetail.CurrentStepId, stepReviewList);
             formReview.RejectCount = await GetRejectCount(formId);
             return formReview;
         }
@@ -1307,14 +1307,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           .InnerJoin<DepartmentLevelEntity>((instance, formtype, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
                                           .InnerJoin<PositionInfoEntity>((instance, formtype, user, dept, deptlevel, position) => user.PositionId == position.PositionId)
                                           .Where((instance, formtype, user, dept, deptlevel, position) => instance.FormId == formId)
-                                          .Select((instance, formtype, user, dept, deptlevel, position) => new ApplicantFormDetail
+                                          .Select((instance, formtype, user, dept, deptlevel, position) => new ApplyFormDetail
                                           {
                                               FormId = instance.FormId,
                                               FormTypeId = instance.FormTypeId,
                                               RuleId = instance.RuleId,
                                               CurrentStepId = instance.CurrentStepId,
-                                              ApplicantUserId = user.UserId,
-                                              ApplicantDeptId = dept.DepartmentId,
+                                              UserId = user.UserId,
+                                              DeptId = dept.DepartmentId,
                                               DeptLevelSort = deptlevel.SortOrder,
                                               PositionSort = position.SortOrder
                                           }).FirstAsync();
@@ -1322,7 +1322,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 申请人上级部门列表（包含申请人所在部门）
                 var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
                                              .With(SqlWith.NoLock)
-                                             .ToParentListAsync(dept => dept.ParentId, formDetail.ApplicantDeptId);
+                                             .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
                 // 所属规则的初始步骤
                 var ruleStep = await _db.Queryable<WorkflowRuleStepEntity>()
                                         .With(SqlWith.NoLock)
@@ -1353,7 +1353,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                     if (stepInfo.IsStartStep == 1)
                     {
-                        userReview = await GetStartReviewUser(formDetail.ApplicantUserId);
+                        userReview = await GetStartReviewUser(formDetail.UserId);
                     }
                     else if (stepInfo.Assignment == Assignment.Org.ToEnumString())
                     {

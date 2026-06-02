@@ -30,36 +30,36 @@
         /// <summary>
         /// 申请人 UserId
         /// </summary>
-        public long ApplicantUserId { get; set; }
+        public long UserId { get; set; }
 
         /// <summary>
-        /// 申请人中文名
+        /// 申请人姓名（中文）
         /// </summary>
-        public string ApplicantUserNameCn { get; set; } = string.Empty;
+        public string UserNameCn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 申请人英文名
+        /// 申请人姓名（英文）
         /// </summary>
-        public string ApplicantUserNameEn { get; set; } = string.Empty;
+        public string UserNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人性别
         /// </summary>
-        public int ApplicantGender { get; set; }
+        public int Gender { get; set; }
 
         /// <summary>
         /// 申请人邮箱
         /// </summary>
-        public string ApplicantEmail { get; set; } = string.Empty;
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人通知语言
         /// </summary>
-        public string ApplicantNoticeLanguage { get; set; } = string.Empty;
+        public string NoticeLanguage { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人是否订阅实时通知（1=是，0=否）
         /// </summary>
-        public int ApplicantIsRealtimeNotification { get; set; }
+        public int IsRealtimeNotification { get; set; }
     }
 }

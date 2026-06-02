@@ -20,8 +20,8 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         public int RejectCount { get; set; }
 
         /// <summary>
-        /// 步骤审批人员列表
+        /// 步骤审批列表
         /// </summary>
-        public List<StepReview> stepReviewFlowList { get; set; } = new List<StepReview>();
+        public List<StepReview> stepReviewList { get; set; } = new List<StepReview>();
     }
 }
