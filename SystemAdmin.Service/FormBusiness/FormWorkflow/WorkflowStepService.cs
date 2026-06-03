@@ -264,7 +264,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                         var customEntity = new WorkflowStepCustomEntity()
                         {
                             StepId = stepId,
-                            HandlerKey = upsert.stepCustomUpsert.HandlerKey,
+                            Guidance = upsert.stepCustomUpsert.Guidance,
                             LogicalExplanation = upsert.stepCustomUpsert.LogicalExplanation,
                             CreatedBy = _loginuser.UserId,
                             CreatedDate = DateTime.Now
@@ -411,7 +411,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     var stepCustomEntity = new WorkflowStepCustomEntity()
                     {
                         StepId = long.Parse(upsert.StepId),
-                        HandlerKey = upsert.stepCustomUpsert.HandlerKey,
+                        Guidance = upsert.stepCustomUpsert.Guidance,
                         LogicalExplanation = upsert.stepCustomUpsert.LogicalExplanation,
                         CreatedBy = _loginuser.UserId,
                         CreatedDate = DateTime.Now

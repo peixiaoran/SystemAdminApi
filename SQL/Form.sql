@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 02/06/2026 16:16:48
+ Date: 02/06/2026 16:57:20
 */
 
 
@@ -2535,7 +2535,7 @@ GO
 
 CREATE TABLE [Form].[WorkflowStepCustom] (
   [StepId] bigint  NOT NULL,
-  [HandlerKey] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
+  [Guidance] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [LogicalExplanation] nvarchar(150) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [CreatedBy] bigint  NOT NULL,
   [CreatedDate] datetime2(3)  NOT NULL
@@ -2553,10 +2553,10 @@ EXEC sp_addextendedproperty
 GO
 
 EXEC sp_addextendedproperty
-'MS_Description', N'代码标记',
+'MS_Description', N'导向',
 'SCHEMA', N'Form',
 'TABLE', N'WorkflowStepCustom',
-'COLUMN', N'HandlerKey'
+'COLUMN', N'Guidance'
 GO
 
 EXEC sp_addextendedproperty

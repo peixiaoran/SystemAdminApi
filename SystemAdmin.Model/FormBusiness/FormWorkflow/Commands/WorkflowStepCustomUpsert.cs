@@ -8,7 +8,7 @@
         /// <summary>
         /// 代码标记
         /// </summary>
-        public string HandlerKey { get; set; } = string.Empty;
+        public string Guidance { get; set; } = string.Empty;
 
         /// <summary>
         /// 逻辑说明

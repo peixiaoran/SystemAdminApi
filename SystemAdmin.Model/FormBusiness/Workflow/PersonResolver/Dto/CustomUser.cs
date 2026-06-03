@@ -13,12 +13,12 @@
         /// <summary>
         /// 部门Id
         /// </summary>
-        public long DeptId { get; set; }
+        public long DepartmentId { get; set; }
 
         /// <summary>
         /// 部门等级Id
         /// </summary>
-        public long DeptLevelId { get; set; }
+        public long DepartmentLevelId { get; set; }
 
         /// <summary>
         /// 职级Id

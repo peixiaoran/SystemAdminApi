@@ -175,10 +175,10 @@
     <value>Rejected Notification</value>
   </data>
   <data name="EmailNoticeResultApproved" xml:space="preserve">
-    <value>Approved</value>
+    <value>Approve</value>
   </data>
   <data name="EmailNoticeResultRejected" xml:space="preserve">
-    <value>Rejected</value>
+    <value>Reject</value>
   </data>
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>Approved</value>
