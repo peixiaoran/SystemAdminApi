@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 02/06/2026 16:57:20
+ Date: 05/06/2026 17:00:43
 */
 
 
@@ -697,6 +697,12 @@ GO
 INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2060769067605823488', N'1903486709602062341', N'R7jQMRyeYAXbMQkNvlBh5sj6P7_V-6QBKaXykgwVFpI', N'2026-06-16 15:30:05.497', N'2026-06-01 15:30:05.497')
 GO
 
+INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2051987743411671040', N'1903486709602062340', N'3b0xW5AA1ECrnWuD5XPo0qm80w0SJ29_e09ckHDEPw4', N'2026-06-20 16:44:46.613', N'2026-06-05 16:44:46.613')
+GO
+
+INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2051987743411671040', N'1903486709602062341', N'saV6St1VgRqSEcWlkY3m3uTjbZF4mISQEm7Gnx0ftjE', N'2026-06-20 16:59:16.023', N'2026-06-05 16:59:16.023')
+GO
+
 INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2060769067605823488', N'2050597318784323584', N'whoNbfEuKNpLghkhiv5-ISh6N7F0mekWGE6CdLuZ6Qs', N'2026-06-16 14:51:20.503', N'2026-06-01 14:51:20.503')
 GO
 
@@ -1016,6 +1022,15 @@ INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [Reje
 GO
 
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2060769067605823488', N'2009890853346217984', N'Approve', NULL, N'修正描述了', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-01 15:03:33.777')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2032353104544010240', N'Reject', N'2009897830268932096', N'124', N'Manual', N'Actual', N'1903486709602062341', N'1903486709602062341', N'2026-06-05 16:44:45.780')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2009897830268932096', N'Approve', NULL, N'124321', N'Manual', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-05 16:59:15.710')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2051987743411671040', N'2009898117243211776', N'Approve', NULL, N'', N'Automatic', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-05 16:59:15.953')
 GO
 
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime]) VALUES (N'2060769067605823488', N'2009897830268932096', N'Approve', NULL, N'同意', N'Manual', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-01 15:12:54.490')
@@ -2510,7 +2525,7 @@ GO
 INSERT INTO [Form].[WorkflowStep] ([StepId], [FormGroupId], [FormTypeId], [StepNameCn], [StepNameEn], [IsStartStep], [Assignment], [ReviewMode], [IsReminderEnabled], [ReminderIntervalMinutes], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'1987215338470772736', N'1987217256446300160', N'科 - 科长', N'Sec - Section Chief', N'0', N'Org', N'Review', N'1', N'1', N'3', N'1903486709602062336', N'2026-01-10 15:59:19.000', NULL, NULL)
 GO
 
-INSERT INTO [Form].[WorkflowStep] ([StepId], [FormGroupId], [FormTypeId], [StepNameCn], [StepNameEn], [IsStartStep], [Assignment], [ReviewMode], [IsReminderEnabled], [ReminderIntervalMinutes], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009898117243211776', N'1987215338470772736', N'1987217256446300160', N'部 - 经理', N'Dept - Manager', N'0', N'Org', N'Review', N'1', N'1', N'4', N'1903486709602062336', N'2026-01-10 16:00:27.000', N'1903486709602062336', N'2026-05-05 13:38:24.357')
+INSERT INTO [Form].[WorkflowStep] ([StepId], [FormGroupId], [FormTypeId], [StepNameCn], [StepNameEn], [IsStartStep], [Assignment], [ReviewMode], [IsReminderEnabled], [ReminderIntervalMinutes], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009898117243211776', N'1987215338470772736', N'1987217256446300160', N'部 - 经理', N'Dept - Manager', N'0', N'Custom', N'Review', N'1', N'1', N'4', N'1903486709602062336', N'2026-01-10 16:00:27.000', N'1903486709602062336', N'2026-05-05 13:38:24.357')
 GO
 
 INSERT INTO [Form].[WorkflowStep] ([StepId], [FormGroupId], [FormTypeId], [StepNameCn], [StepNameEn], [IsStartStep], [Assignment], [ReviewMode], [IsReminderEnabled], [ReminderIntervalMinutes], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2029389483455156224', N'1987215338470772736', N'1987217256446300160', N'部 - 资深经理', N'Dept - Senior Manager', N'0', N'Org', N'Review', N'1', N'1', N'5', N'1903486709602062336', N'2026-03-05 10:52:11.747', N'1903486709602062336', N'2026-03-24 19:13:21.687')
@@ -2590,6 +2605,9 @@ GO
 -- ----------------------------
 -- Records of WorkflowStepCustom
 -- ----------------------------
+INSERT INTO [Form].[WorkflowStepCustom] ([StepId], [Guidance], [LogicalExplanation], [CreatedBy], [CreatedDate]) VALUES (N'2009898117243211776', N'Ran', N'1', N'1', N'2026-06-05 15:34:05.000')
+GO
+
 
 -- ----------------------------
 -- Table structure for WorkflowStepDeptUser

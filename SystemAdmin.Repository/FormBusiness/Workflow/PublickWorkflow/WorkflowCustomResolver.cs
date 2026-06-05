@@ -3,7 +3,7 @@ using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Workflow.PersonResolver.Dto;
 
-public class PersonResolver
+public class WorkflowCustomResolver
 {
     private readonly CurrentUser _loginuser;
     private readonly SqlSugarScope _db;
@@ -12,7 +12,7 @@ public class PersonResolver
     // guidance(方法名) -> 实际方法
     private readonly Dictionary<string, Func<long, Task<CustomUser>>> _registry;
 
-    public PersonResolver(CurrentUser loginuser, SqlSugarScope db, Language lang)
+    public WorkflowCustomResolver(CurrentUser loginuser, SqlSugarScope db, Language lang)
     {
         _loginuser = loginuser;
         _db = db;
@@ -39,7 +39,12 @@ public class PersonResolver
     #region 请假单
     public async Task<CustomUser> Ran(long formId)
     {
-        return new CustomUser();
+        CustomUser customUser = new CustomUser();
+        customUser.UserId = 1903486709602062340;
+        customUser.DepartmentId = 1950000000000000047;
+        customUser.DepartmentLevelId = 1949168956883472384;
+        customUser.PositionId = 1351600746193223680;
+        return customUser;
     }
     #endregion
 }

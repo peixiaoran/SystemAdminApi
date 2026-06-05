@@ -1,6 +1,5 @@
 ﻿using Mapster;
 using SqlSugar;
-using System.Reflection;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
@@ -8,7 +7,6 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormAudit.Entity;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
@@ -26,19 +24,19 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private readonly CurrentUser _loginuser;
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
+        private readonly WorkflowRuleConditions _workflowRuleConditions;
 
-        public FormManager(CurrentUser loginuser, SqlSugarScope db, Language lang)
+        public FormManager(CurrentUser loginuser, SqlSugarScope db, Language lang, WorkflowRuleConditions workflowRuleConditions)
         {
             _loginuser = loginuser;
             _db = db;
             _lang = lang;
+            _workflowRuleConditions = workflowRuleConditions;
         }
 
         /// <summary>
         /// 查询表单通知Token信息
         /// </summary>
-        /// <param name="tokenValue"></param>
-        /// <returns></returns>
         public async Task<FormNotificationUserDto> GetFormNotificationTokenWithUser(string tokenValue)
         {
             return await _db.Queryable<FormNotificationTokenEntity>()
@@ -49,24 +47,23 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             {
                                 user = user,
                                 FormId = token.FormId
-                            }).FirstAsync();
+                            })
+                            .FirstAsync();
         }
 
         /// <summary>
         /// 初始化表单
         /// </summary>
-        /// <param name="formTypeId"></param>
         public async Task<string> InitializeFormInstance(long formTypeId)
         {
             var now = DateTime.Now;
             var ym = now.ToString("yyyyMM");
             var formId = SnowFlakeSingle.Instance.NextId();
 
-            // 并行查询：表单前缀 + 起始步骤（互不依赖）
             var prefixTask = _db.Queryable<FormTypeEntity>()
                                 .With(SqlWith.NoLock)
-                                .Where(ft => ft.FormTypeId == formTypeId)
-                                .Select(ft => ft.Prefix)
+                                .Where(formtype => formtype.FormTypeId == formTypeId)
+                                .Select(formtype => formtype.Prefix)
                                 .FirstAsync();
 
             var startStepIdTask = _db.Queryable<WorkflowStepEntity>()
@@ -76,29 +73,30 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .FirstAsync();
 
             await Task.WhenAll(prefixTask, startStepIdTask);
+
             var prefix = await prefixTask;
             var startStepId = await startStepIdTask;
 
             string formNo = string.Empty;
 
-            // 事务内完成：取号 + 插入表单实例 + 插入待审记录
             await _db.Ado.UseTranAsync(async () =>
             {
-                // 应用锁：必须在事务内，LockOwner='Transaction' 才有效
                 var lockKey = $"FormNo_{formTypeId}_{ym}";
+
                 await _db.Ado.ExecuteCommandAsync(
                     "EXEC sp_getapplock @Resource = @lockKey, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000",
                     new { lockKey });
 
-                // 取号（不加 NoLock，避免脏读导致重复号）
                 var sequence = await _db.Queryable<FormSequenceEntity>()
-                                        .Where(s => s.FormTypeId == formTypeId && s.Ym == ym)
+                                        .Where(sequence => sequence.FormTypeId == formTypeId && sequence.Ym == ym)
                                         .FirstAsync();
 
                 int nextNo;
+
                 if (sequence == null)
                 {
                     nextNo = 1;
+
                     await _db.Insertable(new FormSequenceEntity
                     {
                         FormTypeId = formTypeId,
@@ -111,6 +109,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 else
                 {
                     nextNo = sequence.Total + 1;
+
                     await _db.Updateable<FormSequenceEntity>()
                              .SetColumns(s => new FormSequenceEntity
                              {
@@ -124,7 +123,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 formNo = $"{prefix}-{ym}{nextNo:D4}";
 
-                // 插入表单实例
                 await _db.Insertable(new FormInstanceEntity
                 {
                     FormId = formId,
@@ -138,7 +136,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     CreatedDate = now
                 }).ExecuteCommandAsync();
 
-                // 插入待审记录
                 await _db.Insertable(new PendingReviewEntity
                 {
                     FormId = formId,
@@ -154,10 +151,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 匹配工作流规则
         /// </summary>
-        /// <param name="formTypeId"></param>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<int> MatchWorkflowRuleAsync(long formTypeId, long formId)
+        public async Task<long> MatchWorkflowRuleAsync(long formTypeId, long formId)
         {
             var appPositionId = await _db.Queryable<UserInfoEntity>()
                                          .With(SqlWith.NoLock)
@@ -176,50 +170,42 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 bool positionMatch = rule.PositionId == appPositionId;
 
-                // 内联 Guidance 检查逻辑
-                bool guidanceMatch = false;
-                if (!string.IsNullOrEmpty(rule.Guidance))
-                {
-                    try
-                    {
-                        var method = GetType().GetMethod(rule.Guidance, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-                        if (method?.Invoke(this, new object[] { formId }) is Task<bool> task)
-                            guidanceMatch = await task;
-                    }
-                    catch { /* 反射调用失败视为不匹配 */ }
-                }
+                bool guidanceMatch = await _workflowRuleConditions.Resolve(rule.Guidance, formId);
 
-                // 优先级1：Position匹配且(Guidance为空或匹配)
-                if (positionMatch && (string.IsNullOrEmpty(rule.Guidance) || guidanceMatch))
+                // 优先级1：职位匹配，并且条件为空或条件匹配
+                if (positionMatch && guidanceMatch)
                 {
                     ruleId = rule.RuleId;
-                    continue;
+                    break;
                 }
 
-                // 优先级2：仅Guidance匹配
-                if (ruleId == 0 && !positionMatch && guidanceMatch)
+                // 优先级2：职位不限制，只判断条件
+                if (ruleId == 0 && rule.PositionId == 0 && guidanceMatch)
                 {
                     ruleId = rule.RuleId;
                 }
 
-                // 优先级3：Position和Guidance都为空
-                if (ruleId == 0 && rule.PositionId == 0 && string.IsNullOrEmpty(rule.Guidance))
+                // 优先级3：职位和条件都不限制，默认规则
+                if (ruleId == 0 && rule.PositionId == 0 && string.IsNullOrWhiteSpace(rule.Guidance))
                 {
                     ruleId = rule.RuleId;
                 }
             }
-            return await _db.Updateable<FormInstanceEntity>()
-                            .SetColumns(instance => new FormInstanceEntity
-                            {
-                                RuleId = ruleId
-                            }).Where(instance => instance.FormId == formId)
-                            .ExecuteCommandAsync();
+
+            await _db.Updateable<FormInstanceEntity>()
+                     .SetColumns(instance => new FormInstanceEntity
+                     {
+                         RuleId = ruleId
+                     })
+                     .Where(instance => instance.FormId == formId)
+                     .ExecuteCommandAsync();
+
+            return ruleId;
         }
 
         /// <summary>
         /// 保存表单实例
         /// </summary>
-        /// <returns></returns>
         public async Task<int> SaveFormInstance(long formId)
         {
             var formTypeId = await _db.Queryable<FormInstanceEntity>()
@@ -228,38 +214,34 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .Select(instance => instance.FormTypeId)
                                       .FirstAsync();
 
-            // 匹配工作流规则
-            var ruleId = await MatchWorkflowRuleAsync(formTypeId, formId);
+            await MatchWorkflowRuleAsync(formTypeId, formId);
 
-            // 更新表单实例
             return await _db.Updateable<FormInstanceEntity>()
                             .SetColumns(f => new FormInstanceEntity
                             {
                                 ModifiedBy = _loginuser.UserId,
                                 ModifiedDate = DateTime.Now
-                            }).Where(instance => instance.FormId == formId)
+                            })
+                            .Where(instance => instance.FormId == formId)
                             .ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 查询附件列表
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<List<FormAttachmentDto>> GetAttachmentList(long formId)
         {
             var list = await _db.Queryable<FormAttachmentEntity>()
                                 .With(SqlWith.NoLock)
                                 .Where(formfile => formfile.FormId == formId)
                                 .ToListAsync();
+
             return list.Adapt<List<FormAttachmentDto>>();
         }
 
         /// <summary>
         /// 新增附件
         /// </summary>
-        /// <param name="entity"></param>
-        /// <returns></returns>
         public async Task<int> InsertAttachment(FormAttachmentEntity entity)
         {
             return await _db.Insertable(entity).ExecuteCommandAsync();
@@ -268,8 +250,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 删除附件
         /// </summary>
-        /// <param name="attachmentId"></param>
-        /// <returns></returns>
         public async Task<int> DeleteAttachment(long attachmentId)
         {
             return await _db.Deleteable<FormAttachmentEntity>()
@@ -280,68 +260,65 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询审批记录列表
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<List<FormReviewRecordDto>> GetReviewRecordList(long formId)
         {
             var list = await _db.Queryable<FormReviewRecordEntity>()
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<WorkflowStepEntity>((record, step) => record.StepId == step.StepId)
-                                .InnerJoin<DictionaryInfoEntity>((record, step, reviewresult) => reviewresult.DicType == "ReviewResult" && record.ReviewResult == reviewresult.DicCode)
-                                .LeftJoin<WorkflowStepEntity>((record, step, reviewresult, rejectstep) => record.RejectStepId == rejectstep.StepId)
-                                .InnerJoin<DictionaryInfoEntity>((record, step, reviewresult, rejectstep, reivewtype) => reivewtype.DicType == "ReviewType" && record.ReviewType == reivewtype.DicCode)
-                                .InnerJoin<DictionaryInfoEntity>((record, step, reviewresult, rejectstep, reivewtype, appointmenttype) => appointmenttype.DicType == "AppointmentType" && record.AppointmentType == appointmenttype.DicCode)
-                                .InnerJoin<UserInfoEntity>((record, step, reviewresult, rejectstep, reivewtype, appointmenttype, originaluser) => record.OriginalUserId == originaluser.UserId)
-                                .InnerJoin<UserInfoEntity>((record, step, reviewresult, rejectstep, reivewtype, appointmenttype, originaluser, operationUser) => record.OperationUserId == operationUser.UserId)
-                                .Where((record, step, reviewresult, rejectstep, reivewtype, appointmenttype, originaluser, operationuser) => record.FormId == formId)
-                                .OrderBy((record, step, reviewresult, rejectstep, reivewtype, appointmenttype, originaluser, operationuser) => record.ReviewDateTime)
-                                .Select((record, step, reviewresult, rejectstep, reivewtype, appointmenttype, originaluser, operationuser) => new FormReviewRecordDto
-                                {
-                                    FormId = record.FormId,
-                                    StepId = record.StepId,
-                                    StepName = _lang.Locale == "zh-CN"
-                                               ? step.StepNameCn
-                                               : step.StepNameEn,
-                                    ReviewResult = record.ReviewResult,
-                                    ReviewResultName = _lang.Locale == "zh-CN"
-                                               ? reviewresult.DicNameCn
-                                               : reviewresult.DicNameEn,
-                                    RejectStepName = _lang.Locale == "zh-CN"
-                                               ? rejectstep.StepNameCn
-                                               : rejectstep.StepNameEn,
-                                    Comment = record.Comment,
-                                    ReviewType = record.ReviewType,
-                                    ReviewTypeName = _lang.Locale == "zh-CN"
-                                               ? reivewtype.DicNameCn
-                                               : reivewtype.DicNameEn,
-                                    AppointmentType = record.AppointmentType,
-                                    AppointmentTypeName = _lang.Locale == "zh-CN"
-                                               ? appointmenttype.DicNameCn
-                                               : appointmenttype.DicNameEn,
-                                    OriginalUserName = _lang.Locale == "zh-CN"
-                                               ? originaluser.UserNameCn
-                                               : originaluser.UserNameEn,
-                                    OperationUserName = _lang.Locale == "zh-CN"
-                                               ? operationuser.UserNameCn
-                                               : operationuser.UserNameEn,
-                                    ReviewDateTime = record.ReviewDateTime,
-                                }).ToListAsync();
+                                .InnerJoin<DictionaryInfoEntity>((record, step, reviewresult) =>
+                                    reviewresult.DicType == "ReviewResult" &&
+                                    record.ReviewResult == reviewresult.DicCode)
+                                .LeftJoin<WorkflowStepEntity>((record, step, reviewresult, rejectstep) =>
+                                    record.RejectStepId == rejectstep.StepId)
+                                .InnerJoin<DictionaryInfoEntity>((record, step, reviewresult, rejectstep, reviewtype) =>
+                                    reviewtype.DicType == "ReviewType" &&
+                                    record.ReviewType == reviewtype.DicCode)
+                                .InnerJoin<DictionaryInfoEntity>((record, step, reviewresult, rejectstep, reviewtype, appointmenttype) =>
+                                    appointmenttype.DicType == "AppointmentType" &&
+                                    record.AppointmentType == appointmenttype.DicCode)
+                                .InnerJoin<UserInfoEntity>((record, step, reviewresult, rejectstep, reviewtype, appointmenttype, originaluser) =>
+                                    record.OriginalUserId == originaluser.UserId)
+                                .InnerJoin<UserInfoEntity>((record, step, reviewresult, rejectstep, reviewtype, appointmenttype, originaluser, operationuser) =>
+                                    record.OperationUserId == operationuser.UserId)
+                                .Where((record, step, reviewresult, rejectstep, reviewtype, appointmenttype, originaluser, operationuser) =>
+                                    record.FormId == formId)
+                                .OrderBy((record, step, reviewresult, rejectstep, reviewtype, appointmenttype, originaluser, operationuser) =>
+                                    record.ReviewDateTime)
+                                .Select((record, step, reviewresult, rejectstep, reviewtype, appointmenttype, originaluser, operationuser) =>
+                                    new FormReviewRecordDto
+                                    {
+                                        FormId = record.FormId,
+                                        StepId = record.StepId,
+                                        StepName = _lang.Locale == "zh-CN" ? step.StepNameCn : step.StepNameEn,
+                                        ReviewResult = record.ReviewResult,
+                                        ReviewResultName = _lang.Locale == "zh-CN" ? reviewresult.DicNameCn : reviewresult.DicNameEn,
+                                        RejectStepName = _lang.Locale == "zh-CN" ? rejectstep.StepNameCn : rejectstep.StepNameEn,
+                                        Comment = record.Comment,
+                                        ReviewType = record.ReviewType,
+                                        ReviewTypeName = _lang.Locale == "zh-CN" ? reviewtype.DicNameCn : reviewtype.DicNameEn,
+                                        AppointmentType = record.AppointmentType,
+                                        AppointmentTypeName = _lang.Locale == "zh-CN" ? appointmenttype.DicNameCn : appointmenttype.DicNameEn,
+                                        OriginalUserName = _lang.Locale == "zh-CN" ? originaluser.UserNameCn : originaluser.UserNameEn,
+                                        OperationUserName = _lang.Locale == "zh-CN" ? operationuser.UserNameCn : operationuser.UserNameEn,
+                                        ReviewDateTime = record.ReviewDateTime,
+                                    })
+                                .ToListAsync();
+
             return list.Adapt<List<FormReviewRecordDto>>();
         }
 
         /// <summary>
         /// 查询步骤栏位权限列表
         /// </summary>
-        /// <param name="formTypeId"></param>
-        /// <param name="stepId"></param>
-        /// <returns></returns>
         public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formTypeId, long stepId)
         {
             var list = await _db.Queryable<FormTypeFieldEntity>()
                                 .With(SqlWith.NoLock)
-                                .LeftJoin<StepFieldPermissionEntity>((formfield, fieldper) => formfield.FieldId == fieldper.FieldId && fieldper.StepId == stepId)
+                                .LeftJoin<StepFieldPermissionEntity>((formfield, fieldper) =>
+                                    formfield.FieldId == fieldper.FieldId &&
+                                    fieldper.StepId == stepId)
                                 .Where((formfield, fieldper) => formfield.FormTypeId == formTypeId)
-                                .Select((formfield, fieldper) => new StepFieldPermissionDto()
+                                .Select((formfield, fieldper) => new StepFieldPermissionDto
                                 {
                                     FieldKey = formfield.FieldKey,
                                     FieldName = _lang.Locale == "zh-CN"
@@ -349,39 +326,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                 : formfield.FieldNameEn,
                                     IsVisible = fieldper.IsVisible,
                                     IsDisabled = fieldper.IsDisabled,
-                                }).ToListAsync();
+                                })
+                                .ToListAsync();
+
             return list.Adapt<List<StepFieldPermissionDto>>();
         }
-
-
-        #region 请假单
-
-        /// <summary>
-        /// 请假天数小于3天
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<bool> LessOver3(long formId)
-        {
-            var leave = await _db.Queryable<LeaveFormEntity>()
-                                 .With(SqlWith.NoLock)
-                                 .FirstAsync(leave => leave.FormId == formId);
-            return leave != null && leave.LeaveDays <= 3;
-        }
-
-        /// <summary>
-        /// 请假天数大于3天
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<bool> MoreOver3(long formId)
-        {
-            var leave = await _db.Queryable<LeaveFormEntity>()
-                                 .With(SqlWith.NoLock)
-                                 .FirstAsync(leave => leave.FormId == formId);
-            return leave != null && leave.LeaveDays > 3;
-        }
-
-        #endregion
     }
 }
