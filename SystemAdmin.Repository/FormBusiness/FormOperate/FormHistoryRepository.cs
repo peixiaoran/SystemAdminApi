@@ -7,6 +7,7 @@ using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
@@ -152,8 +153,9 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applyuserdept) => applyuser.DepartmentId == applyuserdept.DepartmentId)
                            .Where((instance, dic, formtype, applyuser, applyuserdept) =>
                                SqlFunc.Subqueryable<FormReviewRecordEntity>()
-                                      .Where(record => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId))
-                                      .Any());
+                                      .InnerJoin<WorkflowStepEntity>((record, step) => record.StepId == step.StepId)
+                                      .Where((record, step) => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId) && step.IsStartStep != 1)
+                           .Any());
 
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)

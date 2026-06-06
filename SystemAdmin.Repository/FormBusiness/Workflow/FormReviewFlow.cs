@@ -1540,7 +1540,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 stepOrderMap.TryGetValue(flow.StepId, out int targetStepOrder);
 
                 // 找出会影响当前被判断步骤的最后一次驳回
-                // 影响判定:驳回目标步骤的排序 <= 被判断步骤的排序
                 var lastRejectAffectingThisStep = rejectRecords.FirstOrDefault(record =>
                 {
                     if (!record.RejectStepId.HasValue)
@@ -1548,10 +1547,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         return true;
                     }
 
-                    // 取得驳回目标步骤的排序号
                     stepOrderMap.TryGetValue(record.RejectStepId.Value, out int rejectTargetOrder);
 
-                    // 驳回目标排在被判断步骤的前面或等于被判断步骤，才会让被判断步骤需要重审
                     return rejectTargetOrder <= targetStepOrder;
                 });
 
@@ -1560,21 +1557,22 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 bool isCurrentStep = currentStepId == flow.StepId;
 
+                // 该步骤只要有人在有效时间后核准过，就认为该步骤已核准
+                bool stepHasApprove = approveRecords.Any(record =>
+                    record.StepId == flow.StepId &&
+                    (validAfter == null || record.ReviewDateTime > validAfter.Value));
+
                 foreach (var user in flow.stepReviewUser)
                 {
-                    bool hasApprove = approveRecords.Any(record =>
-                        record.StepId == flow.StepId && record.OriginalUserId == user.ReviewUserId &&
-                        (validAfter == null || record.ReviewDateTime > validAfter.Value));
-
                     if (!isCurrentStep)
                     {
-                        user.Result = hasApprove
+                        user.Result = stepHasApprove
                             ? FormReviewResult.Approve.ToEnumString()
                             : FormReviewResult.Unsigned.ToEnumString();
                     }
                     else
                     {
-                        user.Result = hasApprove
+                        user.Result = stepHasApprove
                             ? FormReviewResult.Approve.ToEnumString()
                             : FormReviewResult.UnderReview.ToEnumString();
                     }

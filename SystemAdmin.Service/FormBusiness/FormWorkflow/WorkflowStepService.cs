@@ -356,10 +356,10 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
 
                 await _db.BeginTranAsync();
                 updateStepCount = await _workflowStepRepo.UpdateWorkflowStep(stepEntity);
+                await _workflowStepRepo.DeleteWorkflowStepOrg(long.Parse(upsert.StepId));
                 await _workflowStepRepo.DeleteWorkflowStepDeptUser(long.Parse(upsert.StepId));
                 await _workflowStepRepo.DeleteWorkflowStepUser(long.Parse(upsert.StepId));
                 await _workflowStepRepo.DeleteWorkflowStepCustom(long.Parse(upsert.StepId));
-                await _workflowStepRepo.DeleteWorkflowStepOrg(long.Parse(upsert.StepId));
                 // 如果时开始步骤，则只修改步骤信息
                 if (upsert.IsStartStep == 1)
                 {

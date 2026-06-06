@@ -335,7 +335,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         /// <returns></returns>
         public async Task<int> DeleteWorkflowStepCustom(long stepId)
         {
-            return await _db.Deleteable<WorkflowStepOrgEntity>()
+            return await _db.Deleteable<WorkflowStepCustomEntity>()
                             .Where(stepcustom => stepcustom.StepId == stepId)
                             .ExecuteCommandAsync();
         }
