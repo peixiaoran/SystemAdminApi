@@ -399,10 +399,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
             else
             {
-                // ────────────────────────────────────────────────
-                // 第二次：自动指派，先递减职级，同职级下再递减部门职级
-                // 每次减 1，最小值为 1，找到即跳出
-                // ────────────────────────────────────────────────
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
@@ -712,6 +708,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
+                var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
+                                             .With(SqlWith.NoLock)
+                                             .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                var parentDeptIds = applicantDept.Select(dept => dept.DepartmentId).ToList();
+                string parentDeptIdsStr = string.Join(",", parentDeptIds);
+
                 while (currentPositionSort >= 1)
                 {
                     while (currentDeptLevelSort >= 1)
@@ -767,7 +769,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime        <= @Now
                                                                        AND agent.EndTime          >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId      = agentusers.UserId
-                            WHERE dept.DepartmentId  = @DepartmentId
+                            WHERE dept.DepartmentId IN ({parentDeptIdsStr})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -813,7 +815,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime           <= @Now
                                                                        AND agent.EndTime             >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId         = agentusers.UserId
-                            WHERE dept.DepartmentId  = @DepartmentId
+                            WHERE dept.DepartmentId  IN ({parentDeptIdsStr})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -825,7 +827,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         new[]
                         {
                             new SugarParameter("@Now", now),
-                            new SugarParameter("@DepartmentId", departmentId),
                             new SugarParameter("@CurrentPositionSort", currentPositionSort),
                             new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
 
@@ -1026,6 +1027,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
+                var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
+                                             .With(SqlWith.NoLock)
+                                             .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                var parentDeptIds = applicantDept.Select(dept => dept.DepartmentId).ToList();
+                string parentDeptIdsStr = string.Join(",", parentDeptIds);
+
                 while (currentPositionSort >= 1)
                 {
                     while (currentDeptLevelSort >= 1)
@@ -1081,7 +1088,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime       <= @Now
                                                                        AND agent.EndTime         >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId     = agentusers.UserId
-                            WHERE dept.DepartmentId  = @DepartmentId
+                            WHERE dept.DepartmentId  IN ({parentDeptIdsStr})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -1127,7 +1134,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime           <= @Now
                                                                        AND agent.EndTime             >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId         = agentusers.UserId
-                            WHERE dept.DepartmentId  = @DepartmentId
+                            WHERE dept.DepartmentId  IN ({parentDeptIdsStr})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -1139,7 +1146,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         new[]
                         {
                             new SugarParameter("@Now", now),
-                            new SugarParameter("@DepartmentId", user.DepartmentId),
                             new SugarParameter("@CurrentPositionSort", currentPositionSort),
                             new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
 
@@ -1346,6 +1352,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     int currentPositionSort = position.SortOrder - 1;
                     int currentDeptLevelSort = deptlevel.SortOrder;
 
+                    var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
+                                                 .With(SqlWith.NoLock)
+                                                 .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                    var parentDeptIds = applicantDept.Select(dept => dept.DepartmentId).ToList();
+
                     while (currentPositionSort >= 1)
                     {
                         while (currentDeptLevelSort >= 1)
@@ -1401,7 +1412,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                            AND agent.StartTime        <= @Now
                                                                            AND agent.EndTime          >= @Now
                                 LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId      = agentusers.UserId
-                                WHERE dept.DepartmentId  = @DepartmentId
+                                WHERE dept.DepartmentId  IN ({parentDeptIds})
                                   AND position.SortOrder  = @CurrentPositionSort
                                   AND deptlevel.SortOrder = @CurrentDeptLevelSort
                                   AND [user].IsReview    = 1
@@ -1447,7 +1458,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                            AND agent.StartTime           <= @Now
                                                                            AND agent.EndTime             >= @Now
                                 LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId         = agentusers.UserId
-                                WHERE dept.DepartmentId  = @DepartmentId
+                                WHERE dept.DepartmentId  IN ({parentDeptIds})
                                   AND position.SortOrder  = @CurrentPositionSort
                                   AND deptlevel.SortOrder = @CurrentDeptLevelSort
                                   AND [user].IsReview    = 1
@@ -1459,7 +1470,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             new[]
                                 {
                                 new SugarParameter("@Now", now),
-                                new SugarParameter("@DepartmentId", dept.DepartmentId),
                                 new SugarParameter("@CurrentPositionSort", currentPositionSort),
                                 new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
 
