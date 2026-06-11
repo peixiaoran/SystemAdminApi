@@ -78,7 +78,6 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     await _db.CommitTranAsync();
 
                     var leaveFormDto = await _leaveForm.GetLeaveForm(long.Parse(formId));
-                    leaveFormDto.RejectStepDrop = await _formflow.GetRejectStepDrop(long.Parse(formId));
                     leaveFormDto.AttachmentList = await _formmanger.GetAttachmentList(long.Parse(formId));
                     leaveFormDto.ReviewRecordList = await _formmanger.GetReviewRecordList(long.Parse(formId));
                     leaveFormDto.StepFieldPermissionList = await _formmanger.GetStepFieldPermissionList(long.Parse(formTypeId), leaveFormDto.CurrentStepId);
@@ -136,18 +135,17 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<Result<LeaveFormDto>> GetLeaveForm(string formId)
+        public async Task<Result<LeaveFormDto>> GetLeaveForm(string formId, string type)
         {
             try
             {
-                var isCan = await _formChecker.CanView(long.Parse(formId));
+                var isCan = await _formChecker.CanView(long.Parse(formId), type);
                 if (!isCan)
                 {
                     return Result<LeaveFormDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
                 }
 
                 var form = await _leaveForm.GetLeaveForm(long.Parse(formId));
-                form.RejectStepDrop = await _formflow.GetRejectStepDrop(long.Parse(formId));
                 form.AttachmentList = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.ReviewRecordList = await _formmanger.GetReviewRecordList(long.Parse(formId));
                 form.StepFieldPermissionList = await _formmanger.GetStepFieldPermissionList(form.FormTypeId, form.CurrentStepId);

@@ -223,29 +223,20 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
-        ///   查找类似 驳回通知 的本地化字符串。
-        /// </summary>
-        internal static string EmailNoticeRejectedTitle {
-            get {
-                return ResourceManager.GetString("EmailNoticeRejectedTitle", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 核准 的本地化字符串。
         /// </summary>
-        internal static string EmailNoticeResultApproved {
+        internal static string EmailNoticeResultApprove {
             get {
-                return ResourceManager.GetString("EmailNoticeResultApproved", resourceCulture);
+                return ResourceManager.GetString("EmailNoticeResultApprove", resourceCulture);
             }
         }
         
         /// <summary>
         ///   查找类似 驳回 的本地化字符串。
         /// </summary>
-        internal static string EmailNoticeResultRejected {
+        internal static string EmailNoticeResultReject {
             get {
-                return ResourceManager.GetString("EmailNoticeResultRejected", resourceCulture);
+                return ResourceManager.GetString("EmailNoticeResultReject", resourceCulture);
             }
         }
         
@@ -255,24 +246,6 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         internal static string EmailNoticeSubjectApproved {
             get {
                 return ResourceManager.GetString("EmailNoticeSubjectApproved", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 待审批 的本地化字符串。
-        /// </summary>
-        internal static string EmailNoticeSubjectPending {
-            get {
-                return ResourceManager.GetString("EmailNoticeSubjectPending", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 已驳回 的本地化字符串。
-        /// </summary>
-        internal static string EmailNoticeSubjectRejected {
-            get {
-                return ResourceManager.GetString("EmailNoticeSubjectRejected", resourceCulture);
             }
         }
     }

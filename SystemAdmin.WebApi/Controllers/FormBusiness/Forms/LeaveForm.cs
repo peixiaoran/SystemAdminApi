@@ -43,9 +43,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[请假单] 查询请假单明细")]
-        public async Task<Result<LeaveFormDto>> GetLeaveForm([FromForm] string formId)
+        public async Task<Result<LeaveFormDto>> GetLeaveForm([FromForm] string formId, [FromForm] string type)
         {
-            return await _leaveFormService.GetLeaveForm(formId);
+            return await _leaveFormService.GetLeaveForm(formId, type);
         }
     }
 }

@@ -48,16 +48,6 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto
         public string ViewPath { get; set; } = string.Empty;
 
         /// <summary>
-        /// 导向
-        /// </summary>
-        public string Guidance { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 排序
-        /// </summary>
-        public int SortOrder { get; set; }
-
-        /// <summary>
         /// 表单类别描述（中文）
         /// </summary>
         public string DescriptionCn { get; set; } = string.Empty;

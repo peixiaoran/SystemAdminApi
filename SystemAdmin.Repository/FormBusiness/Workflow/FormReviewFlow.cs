@@ -26,6 +26,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             _personResolver = personResolver;
         }
 
+        #region 查询表单审批流程
+
         /// <summary>
         /// 查询表单审批流程
         /// </summary>
@@ -164,6 +166,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             return formReview;
         }
 
+        #endregion
 
         #region 查询各指派类型审批人员
 

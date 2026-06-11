@@ -5,6 +5,7 @@ using Microsoft.Extensions.Options;
 using SqlSugar;
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Upsert;
@@ -169,6 +170,25 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, _localization.ReturnMsg($"{_form}DeleteAttachmentFailed"));
             }
+        }
+
+        /// <summary>
+        /// 查询驳回步骤下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<RejectStepDrop>>> GetRejectStepDrop(string formId)
+        {
+            try
+            {
+                var drop = await _formflow.GetRejectStepDrop(long.Parse(formId));
+                return Result<List<RejectStepDrop>>.Ok(drop);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<RejectStepDrop>>.Failure(500, ex.Message);
+            }
+            
         }
 
         /// <summary>

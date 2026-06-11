@@ -111,20 +111,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
-        /// 规则步骤是否重复配置
-        /// </summary>
-        /// <param name="ruleId"></param>
-        /// <param name="nextStepId"></param>
-        /// <returns></returns>
-        public async Task<bool> RuleStepIsRepeat(long ruleId, long nextStepId)
-        {
-            return await _db.Queryable<WorkflowRuleStepEntity>()
-                            .With(SqlWith.NoLock)
-                            .Where(rulestep => rulestep.RuleId == ruleId && rulestep.NextStepId == nextStepId)
-                            .AnyAsync();
-        }
-
-        /// <summary>
         /// 新增规则步骤
         /// </summary>
         /// <param name="entity"></param>
@@ -202,6 +188,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                     NextStepName = _lang.Locale == "zh-CN"
                                                       ? nextstep.StepNameCn
                                                       : nextstep.StepNameEn,
+                                    Guidance = rulestep.Guidance,
                                     SortOrder = rulestep.SortOrder,
                                 }).ToListAsync();
             return Result<List<WorkflowRuleStepDto>>.Ok(list);

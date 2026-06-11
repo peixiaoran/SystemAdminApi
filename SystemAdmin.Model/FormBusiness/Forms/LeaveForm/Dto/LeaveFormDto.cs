@@ -95,11 +95,6 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         public string AgentUserNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 可驳回下拉
-        /// </summary>
-        public List<RejectStepDrop> RejectStepDrop { get; set; } = new List<RejectStepDrop>();
-
-        /// <summary>
         /// 附件列表
         /// </summary>
         public List<FormAttachmentDto> AttachmentList { get; set; } = new List<FormAttachmentDto>();

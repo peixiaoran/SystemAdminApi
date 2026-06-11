@@ -18,6 +18,7 @@ using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
+using SystemAdmin.Repository.FormBusiness.Workflow.PublickWorkflow;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
@@ -30,9 +31,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private readonly LocalizationService _localization;
         private readonly Language _lang;
         private readonly WorkflowCustomResolver _personResolver;
+        private readonly WorkflowStepCompletion _stepcomletion;
         private readonly string _this = "FormBusiness.Workflow";
 
-        public FormReviewAction(CurrentUser loginuser, SqlSugarScope db, MailKitEmailSender email, IOptions<AppUrlOptions> formNotice, LocalizationService localization, Language lang, WorkflowCustomResolver personResolver)
+        public FormReviewAction(CurrentUser loginuser, SqlSugarScope db, MailKitEmailSender email, IOptions<AppUrlOptions> formNotice, LocalizationService localization, Language lang, WorkflowCustomResolver personResolver, WorkflowStepCompletion stepcomletion)
         {
             _loginuser = loginuser;
             _db = db;
@@ -41,6 +43,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             _localization = localization;
             _lang = lang;
             _personResolver = personResolver;
+            _stepcomletion = stepcomletion;
         }
 
         /// <summary>
@@ -61,13 +64,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
             else
             {
+                // 核准完成执行 Guidance
+                await ExecuteStepGuidance(formId);
+
                 var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
 
                 if (nextStep.NextStepId == 0)
                 {
                     // 没有下一步骤，核准完成邮件通知申请人
                     await ApproveForm(formId);
-                    await FinalProcessing(formId);
                     await NotifyApplicantApproved(formId);
                     return true;
                 }
@@ -268,12 +273,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     }
                 }
 
+                // 核准完成执行 Guidance
+                await ExecuteStepGuidance(formId);
+
                 // 核准完成，推进到下一步骤
                 var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
 
                 if (nextStep.NextStepId == 0)
                 {
                     await ApproveForm(formId);
+                    await NotifyApplicantApproved(formId);
                     return false;
                 }
 
@@ -1982,6 +1991,39 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             return (entity.StepInfo, entity.RuleId);
         }
 
+        /// <summary>
+        /// 查询步骤配置的 Guidance 并执行
+        /// </summary>
+        /// <param name="formId"></param>
+        private async Task ExecuteStepGuidance(long formId)
+        {
+            // 取表单当前的 RuleId 和 CurrentStepId
+            var formInfo = await _db.Queryable<FormInstanceEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .Where(form => form.FormId == formId)
+                                    .Select(form => new { form.RuleId, form.CurrentStepId })
+                                    .FirstAsync();
+
+            if (formInfo == null)
+            {
+                return;
+            }
+
+            // RuleId + StepId 组合查询规则步骤,找出 Guidance
+            string guidance = await _db.Queryable<WorkflowRuleStepEntity>()
+                                       .With(SqlWith.NoLock)
+                                       .Where(ruleStep => ruleStep.RuleId == formInfo.RuleId && ruleStep.CurrentStepId == formInfo.CurrentStepId)
+                                       .Select(ruleStep => ruleStep.Guidance)
+                                       .FirstAsync();
+
+            if (string.IsNullOrEmpty(guidance))
+            {
+                return;
+            }
+
+            await _stepcomletion.Resolve(guidance, formId);
+        }
+
         #endregion
 
         #region 表单驳回
@@ -2221,18 +2263,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 // ===== Greeting 结束 =====
 
-                // 本地化文案
-                var headerTitle = result == ReviewResult.Approve
-                    ? _localization.ReturnMsg($"{_this}.EmailNoticeApprovedTitle", lang)
-                    : _localization.ReturnMsg($"{_this}.EmailNoticeRejectedTitle", lang);
+                // 邮件标题
+                var headerTitle = _localization.ReturnMsg($"{_this}.EmailNoticePendingTitle", lang);
 
-                var subjectPrefix = result == ReviewResult.Approve
-                    ? _localization.ReturnMsg($"{_this}.EmailNoticeSubjectApproved", lang)
-                    : _localization.ReturnMsg($"{_this}.EmailNoticeSubjectRejected", lang);
+                // 邮件主题
+                var subjectPrefix = _localization.ReturnMsg($"{_this}.EmailNoticePendingTitle", lang);
 
                 var resultText = result == ReviewResult.Approve
-                    ? _localization.ReturnMsg($"{_this}.EmailNoticeResultApproved", lang)
-                    : _localization.ReturnMsg($"{_this}.EmailNoticeResultRejected", lang);
+                    ? _localization.ReturnMsg($"{_this}.EmailNoticeResultApprove", lang)
+                    : _localization.ReturnMsg($"{_this}.EmailNoticeResultReject", lang);
 
                 // 按语言挑选业务字段
                 var formTypeName = lang == "zh-CN" ? formNotice.FormTypeNameCn : formNotice.FormTypeNameEn;
@@ -2414,39 +2453,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #endregion
 
-        #region 表单审批完成后的最终处理
-
-        /// <summary>
-        /// 表单审批完成执行
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<bool> FinalProcessing(long formId)
-        {
-            var entity = await _db.Queryable<FormInstanceEntity>()
-                                  .With(SqlWith.NoLock)
-                                  .LeftJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
-                                  .Select((instance, formtype) => formtype)
-                                  .FirstAsync();
-
-            var method = GetType().GetMethod(entity.Guidance, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
-            if (method?.Invoke(this, new object[] { formId }) is Task<bool> task)
-                return await task;
-
-            return false;
-        }
-
-        /// <summary>
-        /// 请假单
-        /// </summary>
-        /// <returns></returns>
-        public async Task<bool> LeaveFormFinalProcess()
-        {
-            return true;
-        }
-
-        #endregion 
-
         #region 工具
 
         /// <summary>
@@ -2523,5 +2529,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         #endregion
+
     }
 }

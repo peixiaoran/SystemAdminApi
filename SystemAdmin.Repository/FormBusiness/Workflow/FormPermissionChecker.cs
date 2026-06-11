@@ -33,38 +33,50 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 验证是否有权查看
+        /// 验证是否有权查看/审批
         /// </summary>
         /// <param name="formId"></param>
+        /// <param name="permissionType"></param>
         /// <returns></returns>
-        public async Task<bool> CanView(long formId)
+        public async Task<bool> CanView(long formId, string permissionType)
         {
-            // 检查当前用户是否是申请人
-            bool isApplicant = await _db.Queryable<FormInstanceEntity>()
+            if (permissionType == "Review")
+            {
+                return await _db.Queryable<PendingReviewEntity>()
+                                .With(SqlWith.NoLock)
+                                .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == _loginuser.UserId || useragent.AgentUserId == _loginuser.UserId))
+                                .AnyAsync();
+            }
+            else if(permissionType == "View")
+            {
+                bool isApplicant = await _db.Queryable<FormInstanceEntity>()
                                         .With(SqlWith.NoLock)
                                         .Where(instance => instance.FormId == formId && instance.ApplicantUserId == _loginuser.UserId)
                                         .AnyAsync();
 
-            if (isApplicant)
-                return true;
+                if (isApplicant)
+                    return true;
 
-            // 检查当前用户是否在待审批列表中
-            bool isReviewer = await _db.Queryable<PendingReviewEntity>()
-                                       .With(SqlWith.NoLock)
-                                       .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
-                                       .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == _loginuser.UserId || useragent.AgentUserId == _loginuser.UserId))
-                                       .AnyAsync();
+                // 检查当前用户是否曾经参与过审批
+                bool hasReviewRecord = await _db.Queryable<FormReviewRecordEntity>()
+                                                .With(SqlWith.NoLock)
+                                                .Where(record => record.FormId == formId && (record.OperationUserId == _loginuser.UserId || record.OriginalUserId == _loginuser.UserId))
+                                                .AnyAsync();
 
-            if (isReviewer)
-                return true;
+                if (hasReviewRecord)
+                    return true;
 
-            // 检查当前用户是否曾经参与过审批
-            bool hasReviewRecord = await _db.Queryable<FormReviewRecordEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .Where(record => record.FormId == formId && (record.OperationUserId == _loginuser.UserId || record.OriginalUserId == _loginuser.UserId))
-                                            .AnyAsync();
+                // 检查当前用户是否在待审批列表中
+                bool isReviewer = await _db.Queryable<PendingReviewEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                           .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == _loginuser.UserId || useragent.AgentUserId == _loginuser.UserId))
+                                           .AnyAsync();
 
-            return hasReviewRecord;
+                return isReviewer;
+            }
+            return false;
         }
 
         /// <summary>

@@ -169,24 +169,15 @@
     <value>Current Step</value>
   </data>
   <data name="EmailNoticePendingTitle" xml:space="preserve">
-    <value>Pending Review</value>
+    <value>Pending Review Notification</value>
   </data>
-  <data name="EmailNoticeRejectedTitle" xml:space="preserve">
-    <value>Rejected Notification</value>
-  </data>
-  <data name="EmailNoticeResultApproved" xml:space="preserve">
+  <data name="EmailNoticeResultApprove" xml:space="preserve">
     <value>Approve</value>
   </data>
-  <data name="EmailNoticeResultRejected" xml:space="preserve">
+  <data name="EmailNoticeResultReject" xml:space="preserve">
     <value>Reject</value>
   </data>
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>Approved</value>
-  </data>
-  <data name="EmailNoticeSubjectPending" xml:space="preserve">
-    <value>Pending Review</value>
-  </data>
-  <data name="EmailNoticeSubjectRejected" xml:space="preserve">
-    <value>Rejected</value>
   </data>
 </root>

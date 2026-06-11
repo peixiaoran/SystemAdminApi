@@ -139,7 +139,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
                 Prefix = formtype.Prefix,
                 ReviewPath = formtype.ReviewPath,
                 ViewPath = formtype.ViewPath,
-                Guidance = formtype.Guidance,
                 DescriptionCn = formtype.DescriptionCn,
                 DescriptionEn = formtype.DescriptionEn,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);

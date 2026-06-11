@@ -8,6 +8,7 @@ using SystemAdmin.Service.FormBusiness.Forms;
 
 namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 {
+    [JwtAuthorize]
     [Route("api/FormBusiness/Forms/[controller]/[action]")]
     [ApiController]
     public class PublicForm : ControllerBase
@@ -41,6 +42,14 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         public async Task<Result<int>> DeleteAttachment([FromForm] string attachmentId, [FromForm] string attachmentPath)
         {
             return await _publicFormService.DeleteAttachment(attachmentId, attachmentPath);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[表单公共接口] 查询驳回步骤下拉")]
+        public async Task<Result<List<RejectStepDrop>>> GetRejectStepDrop([FromForm] string formId)
+        {
+            return await _publicFormService.GetRejectStepDrop(formId);
         }
 
         [HttpPost]

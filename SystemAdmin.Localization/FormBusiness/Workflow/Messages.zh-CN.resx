@@ -171,22 +171,13 @@
   <data name="EmailNoticePendingTitle" xml:space="preserve">
     <value>待审批通知</value>
   </data>
-  <data name="EmailNoticeRejectedTitle" xml:space="preserve">
-    <value>驳回通知</value>
-  </data>
-  <data name="EmailNoticeResultApproved" xml:space="preserve">
+  <data name="EmailNoticeResultApprove" xml:space="preserve">
     <value>核准</value>
   </data>
-  <data name="EmailNoticeResultRejected" xml:space="preserve">
+  <data name="EmailNoticeResultReject" xml:space="preserve">
     <value>驳回</value>
   </data>
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>核准完成</value>
-  </data>
-  <data name="EmailNoticeSubjectPending" xml:space="preserve">
-    <value>待审批</value>
-  </data>
-  <data name="EmailNoticeSubjectRejected" xml:space="preserve">
-    <value>已驳回</value>
   </data>
 </root>

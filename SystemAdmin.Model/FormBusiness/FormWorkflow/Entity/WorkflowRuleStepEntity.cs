@@ -24,6 +24,11 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         public long NextStepId { get; set; }
 
         /// <summary>
+        /// 导向
+        /// </summary>
+        public string Guidance { get; set; } = string.Empty;
+
+        /// <summary>
         /// 排序
         /// </summary>
         public int SortOrder { get; set; }
