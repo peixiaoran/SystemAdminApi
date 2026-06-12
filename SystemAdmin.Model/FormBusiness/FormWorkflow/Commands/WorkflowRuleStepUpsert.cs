@@ -23,7 +23,7 @@
         /// <summary>
         /// 导向
         /// </summary>
-        public string Guidance { get; set; } = string.Empty;
+        public string? Guidance { get; set; }
 
         /// <summary>
         /// 排序

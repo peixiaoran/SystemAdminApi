@@ -248,5 +248,23 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
                 return ResourceManager.GetString("EmailNoticeSubjectApproved", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   查找类似 用户 {0} 在 {1} 年的 {2} 假期余额不足，剩余 {3} 天，申请 {4} 天 的本地化字符串。
+        /// </summary>
+        internal static string InsufficientLeaveBalance {
+            get {
+                return ResourceManager.GetString("InsufficientLeaveBalance", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 用户 {0} 在 {1} 年的 {2} 假期记录不存在 的本地化字符串。
+        /// </summary>
+        internal static string LeaveAnnualNotFound {
+            get {
+                return ResourceManager.GetString("LeaveAnnualNotFound", resourceCulture);
+            }
+        }
     }
 }

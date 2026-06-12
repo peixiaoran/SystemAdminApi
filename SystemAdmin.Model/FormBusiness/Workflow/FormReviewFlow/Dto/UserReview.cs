@@ -23,12 +23,12 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         /// 审批人员Id - 代
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long AgentUserId { get; set; }
+        public long? AgentUserId { get; set; }
 
         /// <summary>
         /// 审批人员姓名 - 代
         /// </summary>
-        public string AgentUserName { get; set; } = string.Empty;
+        public string? AgentUserName { get; set; } = string.Empty;
 
         /// <summary>
         /// 审批身份

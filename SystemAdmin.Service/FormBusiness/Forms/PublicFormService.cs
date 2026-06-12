@@ -229,7 +229,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var result = await _formction.FromApprove(reviewForm);
                 await _db.CommitTranAsync();
 
-                return Result<bool>.Ok(result);
+                return result;
             }
             catch (Exception ex)
             {

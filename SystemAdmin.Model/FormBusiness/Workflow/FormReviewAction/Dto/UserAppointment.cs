@@ -18,7 +18,7 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
         /// 审批人员Id - 代或兼代
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long AgentUserId { get; set; }
+        public long? AgentUserId { get; set; }
 
         /// <summary>
         /// 审批身份类型

@@ -180,4 +180,10 @@
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>核准完成</value>
   </data>
+  <data name="InsufficientLeaveBalance" xml:space="preserve">
+    <value>用户 {0} 在 {1} 年的 {2} 假期余额不足，剩余 {3} 天，申请 {4} 天</value>
+  </data>
+  <data name="LeaveAnnualNotFound" xml:space="preserve">
+    <value>用户 {0} 在 {1} 年的 {2} 假期记录不存在</value>
+  </data>
 </root>

@@ -1,37 +1,34 @@
 ﻿using SqlSugar;
 
-namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
+namespace SystemAdmin.Model.HR.BasicInfo.Entity
 {
-    /// <summary>
-    /// 流程规则实体类
-    /// </summary>
-    [SugarTable("[Form].[WorkflowRuleStep]")]
-    public class WorkflowRuleStepEntity
+    [SugarTable("[Hr].[UserLeaveAnnual]")]
+    public class UserLeaveAnnualEntity
     {
         /// <summary>
-        /// 规则Id
+        /// 用户Id
         /// </summary>
-        public long RuleId { get; set; }
+        public long UserId { get; set; }
 
         /// <summary>
-        /// 当前步骤Id
+        /// 年度
         /// </summary>
-        public long? CurrentStepId { get; set; }
+        public int Year { get; set; }
 
         /// <summary>
-        /// 下一步骤Id
+        /// 假别
         /// </summary>
-        public long? NextStepId { get; set; }
+        public string LeaveType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 导向
+        /// 给予天数
         /// </summary>
-        public string? Guidance { get; set; }
+        public decimal RenderDays { get; set; }
 
         /// <summary>
-        /// 排序
+        /// 剩余天数
         /// </summary>
-        public int SortOrder { get; set; }
+        public decimal RemainingDays { get; set; }
 
         /// <summary>
         /// 创建人
@@ -39,7 +36,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         public long CreatedBy { get; set; }
 
         /// <summary>
-        /// 创建日期
+        /// 创建时间
         /// </summary>
         public DateTime CreatedDate { get; set; }
 
@@ -49,7 +46,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         public long? ModifiedBy { get; set; }
 
         /// <summary>
-        /// 修改日期
+        /// 修改时间
         /// </summary>
         public DateTime? ModifiedDate { get; set; }
     }

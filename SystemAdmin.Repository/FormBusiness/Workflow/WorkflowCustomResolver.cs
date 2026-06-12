@@ -1,0 +1,53 @@
+﻿using SqlSugar;
+using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
+using SystemAdmin.Model.FormBusiness.Workflow.PersonResolver.Dto;
+
+namespace SystemAdmin.Repository.FormBusiness.Workflow
+{
+    public class WorkflowCustomResolver
+    {
+        private readonly CurrentUser _loginuser;
+        private readonly SqlSugarScope _db;
+        private readonly Language _lang;
+
+        // guidance(方法名) -> 实际方法
+        private readonly Dictionary<string, Func<long, Task<CustomUser>>> _registry;
+
+        public WorkflowCustomResolver(CurrentUser loginuser, SqlSugarScope db, Language lang)
+        {
+            _loginuser = loginuser;
+            _db = db;
+            _lang = lang;
+
+            // 登记所有自定义取人方法，新增方法只需在这里加一行
+            _registry = new Dictionary<string, Func<long, Task<CustomUser>>>(StringComparer.OrdinalIgnoreCase)
+            {
+                [nameof(Ran)] = Ran,
+            };
+        }
+
+        /// <summary>
+        /// 按 guidance(配置的方法名) 分发到对应的自定义取人方法
+        /// </summary>
+        public async Task<CustomUser> Resolve(string guidance, long formId)
+        {
+            if (string.IsNullOrWhiteSpace(guidance) || !_registry.TryGetValue(guidance, out var handler))
+                throw new InvalidOperationException($"未配置的取人方法: {guidance}");
+
+            return await handler(formId);
+        }
+
+        #region 请假单
+        public async Task<CustomUser> Ran(long formId)
+        {
+            CustomUser customUser = new CustomUser();
+            customUser.UserId = 1903486709602062340;
+            customUser.DepartmentId = 1950000000000000047;
+            customUser.DepartmentLevelId = 1949168956883472384;
+            customUser.PositionId = 1351600746193223680;
+            return customUser;
+        }
+        #endregion
+    }
+}

@@ -22,7 +22,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         /// <summary>
         /// 逻辑说明
         /// </summary>
-        public string LogicalExplanation { get; set; } = string.Empty;
+        public string? LogicalExplanation { get; set; } = string.Empty;
 
         /// <summary>
         /// 创建人

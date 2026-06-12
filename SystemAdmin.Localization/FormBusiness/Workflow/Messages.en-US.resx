@@ -180,4 +180,10 @@
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>Approved</value>
   </data>
+  <data name="InsufficientLeaveBalance" xml:space="preserve">
+    <value>Leave balance for user {0} in {1} year of leave type {2} is insufficient. Remaining: {3} days, Requested: {4} days</value>
+  </data>
+  <data name="LeaveAnnualNotFound" xml:space="preserve">
+    <value>Leave record for user {0} in {1} year of leave type {2} does not exist</value>
+  </data>
 </root>

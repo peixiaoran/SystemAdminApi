@@ -2,7 +2,6 @@
 using SqlSugar;
 using System.Data;
 using System.Net;
-using System.Reflection;
 using SystemAdmin.Common.EmailTemplates;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
@@ -18,7 +17,6 @@ using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
-using SystemAdmin.Repository.FormBusiness.Workflow.PublickWorkflow;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
@@ -51,7 +49,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 表单核准
         /// </summary>
-        public async Task<bool> FromApprove(ApproveForm approveForm)
+        public async Task<Result<bool>> FromApprove(ApproveForm approveForm)
         {
             long formId = long.Parse(approveForm.FormId);
             var (stepInfo, ruleId) = await GetCurrentStepInfo(formId);
@@ -59,43 +57,47 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 手动核准
             bool hasPendingUser = await ProcessStepApproval(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
 
-            // 还有剩余待审批人
+            // 还有剩余待审批人，本步骤未结束
             if (hasPendingUser)
             {
-                return true;
+                return Result<bool>.Ok(true);
             }
-            else
+
+            // 步骤核准完成，执行 Guidance
+            var guidanceResult = await ExecuteStepGuidance(formId);
+            if (guidanceResult.Code != 200)
             {
-                // 核准完成执行 Guidance
-                await ExecuteStepGuidance(formId);
-
-                var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
-
-                if (nextStep.NextStepId == 0)
-                {
-                    // 没有下一步骤，核准完成邮件通知申请人
-                    await ApproveForm(formId);
-                    await NotifyApplicantApproved(formId);
-                    return true;
-                }
-                else
-                {
-                    // 推进步骤
-                    await AdvanceCurrentStep(formId, nextStep.NextStepId);
-
-                    // 自动核准
-                    bool needNotify = await AutoApproveIfSelfInNextSteps(formId);
-
-                    if (needNotify)
-                    {
-                        // 获取当前步骤信息，通知剩余待审批人
-                        var (currentStepInfo, _) = await GetCurrentStepInfo(formId);
-                        await NotifyPendingReviewers(formId, currentStepInfo.StepId, ReviewResult.Approve);
-                    }
-                }
+                return guidanceResult;
             }
 
-            return true;
+            var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
+
+            if (nextStep.NextStepId == 0)
+            {
+                // 没有下一步骤，核准完成邮件通知申请人
+                await ApproveForm(formId);
+                await NotifyApplicantApproved(formId);
+                return Result<bool>.Ok(true);
+            }
+
+            // 推进步骤
+            await AdvanceCurrentStep(formId, nextStep.NextStepId);
+
+            // 自动核准
+            var autoResult = await AutoApproveIfSelfInNextSteps(formId);
+            if (autoResult.Code != 200)
+            {
+                return guidanceResult;
+            }
+
+            // 需要通知该步骤的待签人
+            if (autoResult.Data)
+            {
+                var (currentStepInfo, _) = await GetCurrentStepInfo(formId);
+                await NotifyPendingReviewers(formId, currentStepInfo.StepId, ReviewResult.Approve);
+            }
+
+            return Result<bool>.Ok(true);
         }
 
         /// <summary>
@@ -105,7 +107,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="stepInfo"></param>
         /// <param name="reviewType"></param>
         /// <param name="comment"></param>
-        /// <returns></returns>
+        /// <returns>true = 当前步骤还有剩余待审批人</returns>
         private async Task<bool> ProcessStepApproval(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
         {
             string reviewMode = stepInfo.ReviewMode;
@@ -174,8 +176,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 自动核准
         /// </summary>
         /// <param name="formId"></param>
-        /// <returns></returns>
-        private async Task<bool> AutoApproveIfSelfInNextSteps(long formId)
+        /// <returns>成功时 Data：true = 需要通知当前步骤待签人；false = 流程已全部走完。失败 = Guidance 执行失败</returns>
+        private async Task<Result<bool>> AutoApproveIfSelfInNextSteps(long formId)
         {
             while (true)
             {
@@ -198,7 +200,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         // 没有下一步骤，核准完成邮件通知申请人
                         await ApproveForm(formId);
                         await NotifyApplicantApproved(formId);
-                        return false;
+                        return Result<bool>.Ok(false);
                     }
 
                     await AdvanceCurrentStep(formId, skippedNext.NextStepId);
@@ -213,79 +215,82 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                  .Select((pending, agent) => pending.ReviewUserId)
                                                  .FirstAsync();
 
-                // 不包含自己，停止自动推进
+                // 不包含自己，停止自动推进，需要通知当前步骤的待签人
                 if (selfPendingUserId == 0)
                 {
-                    return true; // 需要通知当前步骤的待签人
+                    return Result<bool>.Ok(true);
                 }
-                else
+
+                string reviewMode = stepInfo.ReviewMode;
+
+                if (reviewMode == ReviewMode.Review.ToEnumString())
                 {
-                    string reviewMode = stepInfo.ReviewMode;
-                    if (reviewMode == ReviewMode.Review.ToEnumString())
+                    var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
+
+                    await _db.Deleteable<PendingReviewEntity>()
+                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                             .ExecuteCommandAsync();
+
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+                }
+                else if (reviewMode == ReviewMode.OrReview.ToEnumString())
+                {
+                    var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
+
+                    var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>()
+                                                       .With(SqlWith.NoLock)
+                                                       .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId != selfPendingUserId)
+                                                       .Select(pending => pending.ReviewUserId)
+                                                       .ToListAsync();
+
+                    await _db.Deleteable<PendingReviewEntity>()
+                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                             .ExecuteCommandAsync();
+
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+
+                    foreach (long otherUserId in otherPendingUserIds)
                     {
-                        var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
-
-                        await _db.Deleteable<PendingReviewEntity>()
-                                 .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                                 .ExecuteCommandAsync();
-
-                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+                        var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
                     }
-                    else if (reviewMode == ReviewMode.OrReview.ToEnumString())
+                }
+                else if (reviewMode == ReviewMode.AndReview.ToEnumString())
+                {
+                    var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
+
+                    await _db.Deleteable<PendingReviewEntity>()
+                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId == selfPendingUserId)
+                             .ExecuteCommandAsync();
+
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+
+                    // 会审还有其他人未签，停止自动推进，需要通知剩余待签人
+                    bool othersPending = await _db.Queryable<PendingReviewEntity>()
+                                                  .With(SqlWith.NoLock)
+                                                  .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                                                  .AnyAsync();
+                    if (othersPending)
                     {
-                        var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
-
-                        var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>()
-                                                           .With(SqlWith.NoLock)
-                                                           .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId != selfPendingUserId)
-                                                           .Select(pending => pending.ReviewUserId)
-                                                           .ToListAsync();
-
-                        await _db.Deleteable<PendingReviewEntity>()
-                                 .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                                 .ExecuteCommandAsync();
-
-                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
-
-                        foreach (long otherUserId in otherPendingUserIds)
-                        {
-                            var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
-                            await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
-                        }
-                    }
-                    else if (reviewMode == ReviewMode.AndReview.ToEnumString())
-                    {
-                        var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
-
-                        await _db.Deleteable<PendingReviewEntity>()
-                                 .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId == selfPendingUserId)
-                                 .ExecuteCommandAsync();
-
-                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
-
-                        // 会审还有其他人未签，停止自动推进
-                        bool othersPending = await _db.Queryable<PendingReviewEntity>()
-                                                      .With(SqlWith.NoLock)
-                                                      .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                                                      .AnyAsync();
-                        if (othersPending)
-                        {
-                            return true; // 需要通知剩余待签人
-                        }
+                        return Result<bool>.Ok(true);
                     }
                 }
 
-                // 核准完成执行 Guidance
-                await ExecuteStepGuidance(formId);
+                // 当前步骤核准完成，执行 Guidance；失败则中断并透传错误
+                var guidanceResult = await ExecuteStepGuidance(formId);
+                if (guidanceResult.Code != 200)
+                {
+                    return guidanceResult;
+                }
 
-                // 核准完成，推进到下一步骤
+                // 推进到下一步骤
                 var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
 
                 if (nextStep.NextStepId == 0)
                 {
                     await ApproveForm(formId);
                     await NotifyApplicantApproved(formId);
-                    return false;
+                    return Result<bool>.Ok(false);
                 }
 
                 await AdvanceCurrentStep(formId, nextStep.NextStepId);
@@ -363,9 +368,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           PositionSort = position.SortOrder,
                                       }).FirstAsync();
 
-            var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                     .With(SqlWith.NoLock)
-                                     .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
+            var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
 
             List<UserAppointment> result;
 
@@ -379,7 +384,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                        .With(SqlWith.NoLock)
                                        .Where(steporg => steporg.StepId == stepInfo.StepId)
                                        .FirstAsync();
-                result = await GetOrgReviewUser(applyDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
+                result = await GetOrgReviewUser(applyParentDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
             }
             else if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
             {
@@ -431,23 +436,31 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             #region SQL
 
-            string sql = $@"SELECT TOP 1
-                                t.ReviewUserId,
-                                t.AgentUserId,
-                                t.AppointmentType
-                            FROM (
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                    CASE WHEN agent.AgentUserId IS NOT NULL THEN @Agent ELSE @Actual END AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserInfo [user]
-                                LEFT JOIN Basic.UserAgent agent     ON [user].UserId      = agent.SubstituteUserId
-                                                                   AND agent.StartTime  <= @Now
-                                                                   AND agent.EndTime    >= @Now
-                                LEFT JOIN Basic.UserInfo agentuser ON agent.AgentUserId = agentuser.UserId
-                                WHERE [user].UserId = @ApplicantUserId
-                            ) t";
+            string sql = $@"
+            SELECT TOP 1
+                t.ReviewUserId,
+                t.AgentUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                    CASE
+                        WHEN agent.AgentUserId IS NOT NULL THEN @Agent
+                        ELSE @Actual
+                    END AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                LEFT JOIN Basic.UserAgent agent
+                    ON [user].UserId = agent.SubstituteUserId
+                   AND agent.StartTime <= @Now
+                   AND agent.EndTime >= @Now
+                LEFT JOIN Basic.UserInfo agentuser
+                    ON agent.AgentUserId = agentuser.UserId
+                WHERE
+                    [user].UserId = @ApplicantUserId
+            ) t";
 
             var result = await _db.Ado.SqlQueryAsync<UserAppointment>(sql, new[]
             {
@@ -490,55 +503,86 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             #region SQL
 
             var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                SELECT {topN}
-                    t.ReviewUserId, t.AgentUserId, t.AppointmentType
-                FROM (
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                        CASE WHEN agent.AgentUserId IS NOT NULL THEN @Agent ELSE @Actual END AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserInfo [user]
-                    INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                    LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId           = agent.SubstituteUserId
-                                                              AND agent.StartTime       <= @Now AND agent.EndTime >= @Now
-                    LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId      = agentuser.UserId
-                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                      AND deptlevel.SortOrder = @DeptLevelSort AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                    UNION ALL
-
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                        CASE WHEN agent.AgentUserId IS NOT NULL THEN @ConcurrentAgent ELSE @Concurrent END AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserPartTime partime
-                    INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                    INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                    LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId               = agent.SubstituteUserId
-                                                              AND agent.StartTime           <= @Now AND agent.EndTime >= @Now
-                    LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId          = agentuser.UserId
-                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                      AND deptlevel.SortOrder = @DeptLevelSort AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                ) t
-                {exactOrderBy}",
-                new[]
-                {
-                    new SugarParameter("@Now", now),
-                    new SugarParameter("@DeptLevelSort", deptlevel.SortOrder),
-                    new SugarParameter("@PositionSort", position.SortOrder),
-                    new SugarParameter("@Actual", actual),
-                    new SugarParameter("@Agent", agent),
-                    new SugarParameter("@Concurrent", concurrent),
-                    new SugarParameter("@ConcurrentAgent",concurrentAgent),
-                });
+            SELECT {topN}
+                t.ReviewUserId,
+                t.AgentUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                    CASE
+                        WHEN agent.AgentUserId IS NOT NULL THEN @Agent
+                        ELSE @Actual
+                    END AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON [user].DepartmentId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON [user].PositionId = position.PositionId
+                LEFT JOIN Basic.UserAgent agent
+                    ON [user].UserId = agent.SubstituteUserId
+                   AND agent.StartTime <= @Now
+                   AND agent.EndTime >= @Now
+                LEFT JOIN Basic.UserInfo agentuser
+                    ON agent.AgentUserId = agentuser.UserId
+                WHERE
+                    dept.DepartmentId IN ({parentDeptIds})
+                  AND deptlevel.SortOrder = @DeptLevelSort
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+ 
+                UNION ALL
+ 
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                    CASE
+                        WHEN agent.AgentUserId IS NOT NULL THEN @ConcurrentAgent
+                        ELSE @Concurrent
+                    END AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserPartTime partime
+                INNER JOIN Basic.UserInfo [user]
+                    ON partime.UserId = [user].UserId
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON partime.PartTimeDeptId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON partime.PartTimePositionId = position.PositionId
+                LEFT JOIN Basic.UserAgent agent
+                    ON [user].UserId = agent.SubstituteUserId
+                   AND agent.StartTime <= @Now
+                   AND agent.EndTime >= @Now
+                LEFT JOIN Basic.UserInfo agentuser
+                    ON agent.AgentUserId = agentuser.UserId
+                WHERE
+                    dept.DepartmentId IN ({parentDeptIds})
+                  AND deptlevel.SortOrder = @DeptLevelSort
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+            ) t
+            {exactOrderBy}",
+            new[]
+            {
+                new SugarParameter("@Now", now),
+                new SugarParameter("@DeptLevelSort", deptlevel.SortOrder),
+                new SugarParameter("@PositionSort", position.SortOrder),
+                new SugarParameter("@Actual", actual),
+                new SugarParameter("@Agent", agent),
+                new SugarParameter("@Concurrent", concurrent),
+                new SugarParameter("@ConcurrentAgent", concurrentAgent),
+            });
 
             #endregion
 
@@ -558,55 +602,86 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         #region SQL
 
                         var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                            SELECT {topN}
-                                t.ReviewUserId, t.AgentUserId, t.AppointmentType
-                            FROM (
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                    CASE WHEN agent.AgentUserId IS NOT NULL THEN @AutoAgent ELSE @AutoActual END AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserInfo [user]
-                                INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId           = agent.SubstituteUserId
-                                                                          AND agent.StartTime       <= @Now AND agent.EndTime >= @Now
-                                LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId      = agentuser.UserId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                UNION ALL
-
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                    CASE WHEN agent.AgentUserId IS NOT NULL THEN @AutoConcurrentAgent ELSE @AutoConcurrent END AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserPartTime partime
-                                INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId               = agent.SubstituteUserId
-                                                                          AND agent.StartTime           <= @Now AND agent.EndTime >= @Now
-                                LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId          = agentuser.UserId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                            ) t
-                            {autoOrderBy}",
-                            new[]
-                            {
-                                new SugarParameter("@Now", now),
-                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                new SugarParameter("@AutoActual", autoActual),
-                                new SugarParameter("@AutoAgent", autoAgent),
-                                new SugarParameter("@AutoConcurrent", autoConcurrent),
-                                new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent),
-                            });
+                        SELECT {topN}
+                            t.ReviewUserId,
+                            t.AgentUserId,
+                            t.AppointmentType
+                        FROM (
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                                CASE
+                                    WHEN agent.AgentUserId IS NOT NULL THEN @AutoAgent
+                                    ELSE @AutoActual
+                                END AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserInfo [user]
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON [user].DepartmentId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON [user].PositionId = position.PositionId
+                            LEFT JOIN Basic.UserAgent agent
+                                ON [user].UserId = agent.SubstituteUserId
+                               AND agent.StartTime <= @Now
+                               AND agent.EndTime >= @Now
+                            LEFT JOIN Basic.UserInfo agentuser
+                                ON agent.AgentUserId = agentuser.UserId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+ 
+                            UNION ALL
+ 
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                                CASE
+                                    WHEN agent.AgentUserId IS NOT NULL THEN @AutoConcurrentAgent
+                                    ELSE @AutoConcurrent
+                                END AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserPartTime partime
+                            INNER JOIN Basic.UserInfo [user]
+                                ON partime.UserId = [user].UserId
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON partime.PartTimeDeptId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON partime.PartTimePositionId = position.PositionId
+                            LEFT JOIN Basic.UserAgent agent
+                                ON [user].UserId = agent.SubstituteUserId
+                               AND agent.StartTime <= @Now
+                               AND agent.EndTime >= @Now
+                            LEFT JOIN Basic.UserInfo agentuser
+                                ON agent.AgentUserId = agentuser.UserId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+                        ) t
+                        {autoOrderBy}",
+                        new[]
+                        {
+                            new SugarParameter("@Now", now),
+                            new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                            new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                            new SugarParameter("@AutoActual", autoActual),
+                            new SugarParameter("@AutoAgent", autoAgent),
+                            new SugarParameter("@AutoConcurrent", autoConcurrent),
+                            new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent),
+                        });
 
                         #endregion
 
@@ -660,53 +735,84 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             #region SQL
 
             var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                SELECT {topN}
-                    t.ReviewUserId, t.AgentUserId, t.AppointmentType
-                FROM (
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                        CASE WHEN agent.AgentUserId IS NOT NULL THEN @Agent ELSE @Actual END AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserInfo [user]
-                    INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                    LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId           = agent.SubstituteUserId
-                                                              AND agent.StartTime       <= @Now AND agent.EndTime >= @Now
-                    LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId      = agentuser.UserId
-                    WHERE dept.DepartmentId = @DepartmentId AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                    UNION ALL
-
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                        CASE WHEN agent.AgentUserId IS NOT NULL THEN @ConcurrentAgent ELSE @Concurrent END AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserPartTime partime
-                    INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                    INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                    LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId               = agent.SubstituteUserId
-                                                              AND agent.StartTime           <= @Now AND agent.EndTime >= @Now
-                    LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId          = agentuser.UserId
-                    WHERE dept.DepartmentId = @DepartmentId AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                ) t
-                {exactOrderBy}",
-                new[]
-                {
-                    new SugarParameter("@Now", now),
-                    new SugarParameter("@DepartmentId", departmentId),
-                    new SugarParameter("@PositionSort", position.SortOrder),
-                    new SugarParameter("@Actual", actual),
-                    new SugarParameter("@Agent", agent),
-                    new SugarParameter("@Concurrent", concurrent),
-                    new SugarParameter("@ConcurrentAgent", concurrentAgent),
-                });
+            SELECT {topN}
+                t.ReviewUserId,
+                t.AgentUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                    CASE
+                        WHEN agent.AgentUserId IS NOT NULL THEN @Agent
+                        ELSE @Actual
+                    END AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON [user].DepartmentId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON [user].PositionId = position.PositionId
+                LEFT JOIN Basic.UserAgent agent
+                    ON [user].UserId = agent.SubstituteUserId
+                   AND agent.StartTime <= @Now
+                   AND agent.EndTime >= @Now
+                LEFT JOIN Basic.UserInfo agentuser
+                    ON agent.AgentUserId = agentuser.UserId
+                WHERE
+                    dept.DepartmentId = @DepartmentId
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+ 
+                UNION ALL
+ 
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                    CASE
+                        WHEN agent.AgentUserId IS NOT NULL THEN @ConcurrentAgent
+                        ELSE @Concurrent
+                    END AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserPartTime partime
+                INNER JOIN Basic.UserInfo [user]
+                    ON partime.UserId = [user].UserId
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON partime.PartTimeDeptId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON partime.PartTimePositionId = position.PositionId
+                LEFT JOIN Basic.UserAgent agent
+                    ON [user].UserId = agent.SubstituteUserId
+                   AND agent.StartTime <= @Now
+                   AND agent.EndTime >= @Now
+                LEFT JOIN Basic.UserInfo agentuser
+                    ON agent.AgentUserId = agentuser.UserId
+                WHERE
+                    dept.DepartmentId = @DepartmentId
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+            ) t
+            {exactOrderBy}",
+            new[]
+            {
+                new SugarParameter("@Now", now),
+                new SugarParameter("@DepartmentId", departmentId),
+                new SugarParameter("@PositionSort", position.SortOrder),
+                new SugarParameter("@Actual", actual),
+                new SugarParameter("@Agent", agent),
+                new SugarParameter("@Concurrent", concurrent),
+                new SugarParameter("@ConcurrentAgent", concurrentAgent),
+            });
 
             #endregion
 
@@ -719,10 +825,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
-                var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                var parentDeptIds = string.Join(',', applyDept.Select(dept => dept.DepartmentId).ToList());
+                var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
+                                               .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
                 while (currentPositionSort >= 1)
                 {
@@ -731,55 +837,86 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         #region SQL
 
                         var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                            SELECT {topN}
-                                t.ReviewUserId, t.AgentUserId, t.AppointmentType
-                            FROM (
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                    CASE WHEN agent.AgentUserId IS NOT NULL THEN @AutoAgent ELSE @AutoActual END AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserInfo [user]
-                                INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId           = agent.SubstituteUserId
-                                                                          AND agent.StartTime       <= @Now AND agent.EndTime >= @Now
-                                LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId      = agentuser.UserId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                UNION ALL
-
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                    CASE WHEN agent.AgentUserId IS NOT NULL THEN @AutoConcurrentAgent ELSE @AutoConcurrent END AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserPartTime partime
-                                INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId               = agent.SubstituteUserId
-                                                                          AND agent.StartTime           <= @Now AND agent.EndTime >= @Now
-                                LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId          = agentuser.UserId
-                                WHERE dept.DepartmentId = IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                            ) t
-                            {autoOrderBy}",
-                            new[]
-                            {
-                                new SugarParameter("@Now", now),
-                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                new SugarParameter("@AutoActual", autoActual),
-                                new SugarParameter("@AutoAgent", autoAgent),
-                                new SugarParameter("@AutoConcurrent", autoConcurrent),
-                                new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent),
-                            });
+                        SELECT {topN}
+                            t.ReviewUserId,
+                            t.AgentUserId,
+                            t.AppointmentType
+                        FROM (
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                                CASE
+                                    WHEN agent.AgentUserId IS NOT NULL THEN @AutoAgent
+                                    ELSE @AutoActual
+                                END AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserInfo [user]
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON [user].DepartmentId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON [user].PositionId = position.PositionId
+                            LEFT JOIN Basic.UserAgent agent
+                                ON [user].UserId = agent.SubstituteUserId
+                               AND agent.StartTime <= @Now
+                               AND agent.EndTime >= @Now
+                            LEFT JOIN Basic.UserInfo agentuser
+                                ON agent.AgentUserId = agentuser.UserId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+ 
+                            UNION ALL
+ 
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                                CASE
+                                    WHEN agent.AgentUserId IS NOT NULL THEN @AutoConcurrentAgent
+                                    ELSE @AutoConcurrent
+                                END AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserPartTime partime
+                            INNER JOIN Basic.UserInfo [user]
+                                ON partime.UserId = [user].UserId
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON partime.PartTimeDeptId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON partime.PartTimePositionId = position.PositionId
+                            LEFT JOIN Basic.UserAgent agent
+                                ON [user].UserId = agent.SubstituteUserId
+                               AND agent.StartTime <= @Now
+                               AND agent.EndTime >= @Now
+                            LEFT JOIN Basic.UserInfo agentuser
+                                ON agent.AgentUserId = agentuser.UserId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+                        ) t
+                        {autoOrderBy}",
+                        new[]
+                        {
+                            new SugarParameter("@Now", now),
+                            new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                            new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                            new SugarParameter("@AutoActual", autoActual),
+                            new SugarParameter("@AutoAgent", autoAgent),
+                            new SugarParameter("@AutoConcurrent", autoConcurrent),
+                            new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent),
+                        });
 
                         #endregion
 
@@ -890,10 +1027,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
-                var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                var parentDeptIds = string.Join(',', applyDept.Select(dept => dept.DepartmentId).ToList());
+                var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
+                                               .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
                 while (currentPositionSort >= 1)
                 {
@@ -1018,46 +1155,69 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 #region SQL
 
                 var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                    SELECT {topN}
-                        t.ReviewUserId, t.AgentUserId, t.AppointmentType
-                    FROM (
-                        SELECT
-                            [user].UserId AS ReviewUserId,
-                            ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                            CASE WHEN agent.AgentUserId IS NOT NULL THEN @Agent ELSE @Actual END AS AppointmentType,
-                            [user].HireDate
-                        FROM Basic.UserInfo [user]
-                        LEFT JOIN Basic.UserAgent agent     ON [user].UserId       = agent.SubstituteUserId
-                                                           AND agent.StartTime  <= @Now AND agent.EndTime >= @Now
-                        LEFT JOIN Basic.UserInfo agentuser ON agent.AgentUserId  = agentuser.UserId
-                        WHERE [user].UserId = @UserId
-                          AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                        UNION ALL
-
-                        SELECT
-                            [user].UserId AS ReviewUserId,
-                            ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                            CASE WHEN agent.AgentUserId IS NOT NULL THEN @ConcurrentAgent ELSE @Concurrent END AS AppointmentType,
-                            [user].HireDate
-                        FROM Basic.UserPartTime partime
-                        INNER JOIN Basic.UserInfo  [user]     ON partime.UserId    = [user].UserId
-                        LEFT JOIN  Basic.UserAgent agent     ON [user].UserId      = agent.SubstituteUserId
-                                                           AND agent.StartTime  <= @Now AND agent.EndTime >= @Now
-                        LEFT JOIN  Basic.UserInfo agentuser ON agent.AgentUserId = agentuser.UserId
-                        WHERE partime.UserId = @UserId
-                          AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                    ) t
-                    {exactOrderBy}",
-                    new[]
-                    {
-                        new SugarParameter("@Now", now),
-                        new SugarParameter("@UserId", userId),
-                        new SugarParameter("@Actual", actual),
-                        new SugarParameter("@Agent", agent),
-                        new SugarParameter("@Concurrent", concurrent),
-                        new SugarParameter("@ConcurrentAgent", concurrentAgent),
-                    });
+                SELECT {topN}
+                    t.ReviewUserId,
+                    t.AgentUserId,
+                    t.AppointmentType
+                FROM (
+                    SELECT
+                        [user].UserId AS ReviewUserId,
+                        ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                        CASE
+                            WHEN agent.AgentUserId IS NOT NULL THEN @Agent
+                            ELSE @Actual
+                        END AS AppointmentType,
+                        [user].HireDate
+                    FROM
+                        Basic.UserInfo [user]
+                    LEFT JOIN Basic.UserAgent agent
+                        ON [user].UserId = agent.SubstituteUserId
+                       AND agent.StartTime <= @Now
+                       AND agent.EndTime >= @Now
+                    LEFT JOIN Basic.UserInfo agentuser
+                        ON agent.AgentUserId = agentuser.UserId
+                    WHERE
+                        [user].UserId = @UserId
+                      AND [user].IsReview = 1
+                      AND [user].IsEmployed = 1
+                      AND [user].IsFreeze = 0
+ 
+                    UNION ALL
+ 
+                    SELECT
+                        [user].UserId AS ReviewUserId,
+                        ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                        CASE
+                            WHEN agent.AgentUserId IS NOT NULL THEN @ConcurrentAgent
+                            ELSE @Concurrent
+                        END AS AppointmentType,
+                        [user].HireDate
+                    FROM
+                        Basic.UserPartTime partime
+                    INNER JOIN Basic.UserInfo [user]
+                        ON partime.UserId = [user].UserId
+                    LEFT JOIN Basic.UserAgent agent
+                        ON [user].UserId = agent.SubstituteUserId
+                       AND agent.StartTime <= @Now
+                       AND agent.EndTime >= @Now
+                    LEFT JOIN Basic.UserInfo agentuser
+                        ON agent.AgentUserId = agentuser.UserId
+                    WHERE
+                        partime.UserId = @UserId
+                      AND [user].IsReview = 1
+                      AND [user].IsEmployed = 1
+                      AND [user].IsFreeze = 0
+                ) t
+                {exactOrderBy}",
+                new[]
+                {
+                    new SugarParameter("@Now", now),
+                    new SugarParameter("@UserId", userId),
+                    new SugarParameter("@Actual", actual),
+                    new SugarParameter("@Agent", agent),
+                    new SugarParameter("@Concurrent", concurrent),
+                    new SugarParameter("@ConcurrentAgent", concurrentAgent),
+                });
 
                 #endregion
 
@@ -1070,10 +1230,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     int currentPositionSort = position.SortOrder - 1;
                     int currentDeptLevelSort = deptlevel.SortOrder;
 
-                    var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                             .With(SqlWith.NoLock)
-                                             .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                    var parentDeptIds = string.Join(',', applyDept.Select(dept => dept.DepartmentId).ToList());
+                    var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                                   .With(SqlWith.NoLock)
+                                                   .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                    var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
                     while (currentPositionSort >= 1)
                     {
@@ -1082,55 +1242,86 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             #region SQL
 
                             var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                                SELECT {topN}
-                                    t.ReviewUserId, t.AgentUserId, t.AppointmentType
-                                FROM (
-                                    SELECT
-                                        [user].UserId AS ReviewUserId,
-                                        ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                        CASE WHEN agent.AgentUserId IS NOT NULL THEN @AutoAgent ELSE @AutoActual END AS AppointmentType,
-                                        [user].HireDate
-                                    FROM Basic.UserInfo [user]
-                                    INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                    INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                    LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId           = agent.SubstituteUserId
-                                                                              AND agent.StartTime       <= @Now AND agent.EndTime >= @Now
-                                    LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId      = agentuser.UserId
-                                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                                      AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                    UNION ALL
-
-                                    SELECT
-                                        [user].UserId AS ReviewUserId,
-                                        ISNULL(agentuser.UserId, 0)           AS AgentUserId,
-                                        CASE WHEN agent.AgentUserId IS NOT NULL THEN @AutoConcurrentAgent ELSE @AutoConcurrent END AS AppointmentType,
-                                        [user].HireDate
-                                    FROM Basic.UserPartTime partime
-                                    INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                    INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                    INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                    LEFT JOIN  Basic.UserAgent       agent     ON [user].UserId               = agent.SubstituteUserId
-                                                                              AND agent.StartTime           <= @Now AND agent.EndTime >= @Now
-                                    LEFT JOIN  Basic.UserInfo agentuser       ON agent.AgentUserId          = agentuser.UserId
-                                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                                      AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                                ) t
-                                {autoOrderBy}",
-                                new[]
-                                {
-                                    new SugarParameter("@Now", now),
-                                    new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                    new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                    new SugarParameter("@AutoActual", autoActual),
-                                    new SugarParameter("@AutoAgent", autoAgent),
-                                    new SugarParameter("@AutoConcurrent", autoConcurrent),
-                                    new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent),
-                                });
+                            SELECT {topN}
+                                t.ReviewUserId,
+                                t.AgentUserId,
+                                t.AppointmentType
+                            FROM (
+                                SELECT
+                                    [user].UserId AS ReviewUserId,
+                                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                                    CASE
+                                        WHEN agent.AgentUserId IS NOT NULL THEN @AutoAgent
+                                        ELSE @AutoActual
+                                    END AS AppointmentType,
+                                    [user].HireDate
+                                FROM
+                                    Basic.UserInfo [user]
+                                INNER JOIN Basic.DepartmentInfo dept
+                                    ON [user].DepartmentId = dept.DepartmentId
+                                INNER JOIN Basic.DepartmentLevel deptlevel
+                                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                                INNER JOIN Basic.PositionInfo position
+                                    ON [user].PositionId = position.PositionId
+                                LEFT JOIN Basic.UserAgent agent
+                                    ON [user].UserId = agent.SubstituteUserId
+                                   AND agent.StartTime <= @Now
+                                   AND agent.EndTime >= @Now
+                                LEFT JOIN Basic.UserInfo agentuser
+                                    ON agent.AgentUserId = agentuser.UserId
+                                WHERE
+                                    dept.DepartmentId IN ({parentDeptIds})
+                                  AND position.SortOrder = @CurrentPositionSort
+                                  AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                                  AND [user].IsReview = 1
+                                  AND [user].IsEmployed = 1
+                                  AND [user].IsFreeze = 0
+ 
+                                UNION ALL
+ 
+                                SELECT
+                                    [user].UserId AS ReviewUserId,
+                                    ISNULL(agentuser.UserId, 0) AS AgentUserId,
+                                    CASE
+                                        WHEN agent.AgentUserId IS NOT NULL THEN @AutoConcurrentAgent
+                                        ELSE @AutoConcurrent
+                                    END AS AppointmentType,
+                                    [user].HireDate
+                                FROM
+                                    Basic.UserPartTime partime
+                                INNER JOIN Basic.UserInfo [user]
+                                    ON partime.UserId = [user].UserId
+                                INNER JOIN Basic.DepartmentInfo dept
+                                    ON partime.PartTimeDeptId = dept.DepartmentId
+                                INNER JOIN Basic.DepartmentLevel deptlevel
+                                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                                INNER JOIN Basic.PositionInfo position
+                                    ON partime.PartTimePositionId = position.PositionId
+                                LEFT JOIN Basic.UserAgent agent
+                                    ON [user].UserId = agent.SubstituteUserId
+                                   AND agent.StartTime <= @Now
+                                   AND agent.EndTime >= @Now
+                                LEFT JOIN Basic.UserInfo agentuser
+                                    ON agent.AgentUserId = agentuser.UserId
+                                WHERE
+                                    dept.DepartmentId IN ({parentDeptIds})
+                                  AND position.SortOrder = @CurrentPositionSort
+                                  AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                                  AND [user].IsReview = 1
+                                  AND [user].IsEmployed = 1
+                                  AND [user].IsFreeze = 0
+                            ) t
+                            {autoOrderBy}",
+                            new[]
+                            {
+                                new SugarParameter("@Now", now),
+                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                                new SugarParameter("@AutoActual", autoActual),
+                                new SugarParameter("@AutoAgent", autoAgent),
+                                new SugarParameter("@AutoConcurrent", autoConcurrent),
+                                new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent),
+                            });
 
                             #endregion
 
@@ -1183,9 +1374,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           PositionSort = position.SortOrder,
                                       }).FirstAsync();
 
-            var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                     .With(SqlWith.NoLock)
-                                     .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
+            var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
 
             List<UserAppointment> result;
 
@@ -1199,7 +1390,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                        .With(SqlWith.NoLock)
                                        .Where(steporg => steporg.StepId == stepInfo.StepId)
                                        .FirstAsync();
-                result = await GetActualConOrgReviewUser(applyDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
+                result = await GetActualConOrgReviewUser(applyParentDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
             }
             else if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
             {
@@ -1239,7 +1430,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #endregion
 
-        #region 查询各指派类型审批人身份（实、兼）
+        #region 查询单步骤各指派类型审批人身份
 
         /// <summary>
         /// 查询起始步骤审批人身份
@@ -1251,17 +1442,20 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             #region SQL
 
-            string sql = $@"SELECT TOP 1
-                        t.ReviewUserId,
-                        t.AppointmentType
-                    FROM (
-                        SELECT
-                            [user].UserId AS ReviewUserId,
-                            @Actual      AS AppointmentType,
-                            [user].HireDate
-                        FROM Basic.UserInfo [user]
-                        WHERE [user].UserId = @ApplicantUserId
-                    ) t";
+            string sql = $@"
+            SELECT TOP 1
+                t.ReviewUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Actual AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                WHERE
+                    [user].UserId = @ApplicantUserId
+            ) t";
 
             var result = await _db.Ado.SqlQueryAsync<UserAppointment>(sql, new[]
             {
@@ -1303,45 +1497,63 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             #region SQL
 
             var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                SELECT {topN}
-                    t.ReviewUserId, t.AppointmentType
-                FROM (
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        @Actual      AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserInfo [user]
-                    INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                      AND deptlevel.SortOrder = @DeptLevelSort AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                    UNION ALL
-
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        @Concurrent  AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserPartTime partime
-                    INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                    INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                      AND deptlevel.SortOrder = @DeptLevelSort AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                ) t
-                {exactOrderBy}",
-                new[]
-                {
-                    new SugarParameter("@Now", now),
-                    new SugarParameter("@DeptLevelSort", deptlevel.SortOrder),
-                    new SugarParameter("@PositionSort", position.SortOrder),
-                    new SugarParameter("@Actual", actual),
-                    new SugarParameter("@Concurrent", concurrent),
-                });
+            SELECT {topN}
+                t.ReviewUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Actual AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON [user].DepartmentId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON [user].PositionId = position.PositionId
+                WHERE
+                    dept.DepartmentId IN ({parentDeptIds})
+                  AND deptlevel.SortOrder = @DeptLevelSort
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+ 
+                UNION ALL
+ 
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Concurrent AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserPartTime partime
+                INNER JOIN Basic.UserInfo [user]
+                    ON partime.UserId = [user].UserId
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON partime.PartTimeDeptId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON partime.PartTimePositionId = position.PositionId
+                WHERE
+                    dept.DepartmentId IN ({parentDeptIds})
+                  AND deptlevel.SortOrder = @DeptLevelSort
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+            ) t
+            {exactOrderBy}",
+            new[]
+            {
+                new SugarParameter("@Now", now),
+                new SugarParameter("@DeptLevelSort", deptlevel.SortOrder),
+                new SugarParameter("@PositionSort", position.SortOrder),
+                new SugarParameter("@Actual", actual),
+                new SugarParameter("@Concurrent", concurrent),
+            });
 
             #endregion
 
@@ -1361,45 +1573,63 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         #region SQL
 
                         var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                            SELECT {topN}
-                                t.ReviewUserId, t.AppointmentType
-                            FROM (
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    @AutoActual  AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserInfo [user]
-                                INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                UNION ALL
-
-                                SELECT
-                                    [user].UserId    AS ReviewUserId,
-                                    @AutoConcurrent AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserPartTime partime
-                                INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                            ) t
-                            {autoOrderBy}",
-                            new[]
-                            {
-                                new SugarParameter("@Now", now),
-                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                new SugarParameter("@AutoActual", autoActual),
-                                new SugarParameter("@AutoConcurrent", autoConcurrent),
-                            });
+                        SELECT {topN}
+                            t.ReviewUserId,
+                            t.AppointmentType
+                        FROM (
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                @AutoActual AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserInfo [user]
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON [user].DepartmentId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON [user].PositionId = position.PositionId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+ 
+                            UNION ALL
+ 
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                @AutoConcurrent AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserPartTime partime
+                            INNER JOIN Basic.UserInfo [user]
+                                ON partime.UserId = [user].UserId
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON partime.PartTimeDeptId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON partime.PartTimePositionId = position.PositionId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+                        ) t
+                        {autoOrderBy}",
+                        new[]
+                        {
+                            new SugarParameter("@Now", now),
+                            new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                            new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                            new SugarParameter("@AutoActual", autoActual),
+                            new SugarParameter("@AutoConcurrent", autoConcurrent),
+                        });
 
                         #endregion
 
@@ -1453,43 +1683,61 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             #region SQL
 
             var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                SELECT {topN}
-                    t.ReviewUserId, t.AppointmentType
-                FROM (
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        @Actual      AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserInfo [user]
-                    INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                    WHERE dept.DepartmentId = @DepartmentId AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                    UNION ALL
-
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        @Concurrent  AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserPartTime partime
-                    INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                    INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                    INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                    WHERE dept.DepartmentId = @DepartmentId AND position.SortOrder = @PositionSort
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                ) t
-                {exactOrderBy}",
-                new[]
-                {
-                    new SugarParameter("@Now", now),
-                    new SugarParameter("@DepartmentId", departmentId),
-                    new SugarParameter("@PositionSort", position.SortOrder),
-                    new SugarParameter("@Actual", actual),
-                    new SugarParameter("@Concurrent", concurrent),
-                });
+            SELECT {topN}
+                t.ReviewUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Actual AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON [user].DepartmentId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON [user].PositionId = position.PositionId
+                WHERE
+                    dept.DepartmentId = @DepartmentId
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+ 
+                UNION ALL
+ 
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Concurrent AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserPartTime partime
+                INNER JOIN Basic.UserInfo [user]
+                    ON partime.UserId = [user].UserId
+                INNER JOIN Basic.DepartmentInfo dept
+                    ON partime.PartTimeDeptId = dept.DepartmentId
+                INNER JOIN Basic.DepartmentLevel deptlevel
+                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                INNER JOIN Basic.PositionInfo position
+                    ON partime.PartTimePositionId = position.PositionId
+                WHERE
+                    dept.DepartmentId = @DepartmentId
+                  AND position.SortOrder = @PositionSort
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+            ) t
+            {exactOrderBy}",
+            new[]
+            {
+                new SugarParameter("@Now", now),
+                new SugarParameter("@DepartmentId", departmentId),
+                new SugarParameter("@PositionSort", position.SortOrder),
+                new SugarParameter("@Actual", actual),
+                new SugarParameter("@Concurrent", concurrent),
+            });
 
             #endregion
 
@@ -1502,10 +1750,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
-                var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                var parentDeptIds = string.Join(',', applyDept.Select(dept => dept.DepartmentId).ToList());
+                var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
+                                               .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
                 while (currentPositionSort >= 1)
                 {
@@ -1514,45 +1762,63 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         #region SQL
 
                         var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                            SELECT {topN}
-                                t.ReviewUserId, t.AppointmentType
-                            FROM (
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    @AutoActual  AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserInfo [user]
-                                INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                UNION ALL
-
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    @AutoConcurrent AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserPartTime partime
-                                INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                            ) t
-                            {autoOrderBy}",
-                            new[]
-                            {
-                                new SugarParameter("@Now", now),
-                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                new SugarParameter("@AutoActual", autoActual),
-                                new SugarParameter("@AutoConcurrent", autoConcurrent),
-                            });
+                        SELECT {topN}
+                            t.ReviewUserId,
+                            t.AppointmentType
+                        FROM (
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                @AutoActual AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserInfo [user]
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON [user].DepartmentId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON [user].PositionId = position.PositionId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+ 
+                            UNION ALL
+ 
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                @AutoConcurrent AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserPartTime partime
+                            INNER JOIN Basic.UserInfo [user]
+                                ON partime.UserId = [user].UserId
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON partime.PartTimeDeptId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON partime.PartTimePositionId = position.PositionId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+                        ) t
+                        {autoOrderBy}",
+                        new[]
+                        {
+                            new SugarParameter("@Now", now),
+                            new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                            new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                            new SugarParameter("@AutoActual", autoActual),
+                            new SugarParameter("@AutoConcurrent", autoConcurrent),
+                        });
 
                         #endregion
 
@@ -1611,36 +1877,46 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             #region SQL
 
             var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                SELECT {topN}
-                    t.ReviewUserId, t.AppointmentType
-                FROM (
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        @Actual      AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserInfo [user]
-                    WHERE [user].UserId = @UserId
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                    UNION ALL
-
-                    SELECT
-                        [user].UserId AS ReviewUserId,
-                        @Concurrent  AS AppointmentType,
-                        [user].HireDate
-                    FROM Basic.UserPartTime partime
-                    INNER JOIN Basic.UserInfo [user] ON partime.UserId = [user].UserId
-                    WHERE partime.UserId = @UserId
-                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                ) t
-                {exactOrderBy}",
-                new[]
-                {
-                    new SugarParameter("@Now", now),
-                    new SugarParameter("@UserId", userId),
-                    new SugarParameter("@Actual", actual),
-                    new SugarParameter("@Concurrent", concurrent),
-                });
+            SELECT {topN}
+                t.ReviewUserId,
+                t.AppointmentType
+            FROM (
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Actual AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserInfo [user]
+                WHERE
+                    [user].UserId = @UserId
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+ 
+                UNION ALL
+ 
+                SELECT
+                    [user].UserId AS ReviewUserId,
+                    @Concurrent AS AppointmentType,
+                    [user].HireDate
+                FROM
+                    Basic.UserPartTime partime
+                INNER JOIN Basic.UserInfo [user]
+                    ON partime.UserId = [user].UserId
+                WHERE
+                    partime.UserId = @UserId
+                  AND [user].IsReview = 1
+                  AND [user].IsEmployed = 1
+                  AND [user].IsFreeze = 0
+            ) t
+            {exactOrderBy}",
+            new[]
+            {
+                new SugarParameter("@Now", now),
+                new SugarParameter("@UserId", userId),
+                new SugarParameter("@Actual", actual),
+                new SugarParameter("@Concurrent", concurrent),
+            });
 
             #endregion
 
@@ -1653,10 +1929,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
-                var applyDept = await _db.Queryable<DepartmentInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                var parentDeptIds = string.Join(',', applyDept.Select(dept => dept.DepartmentId).ToList());
+                var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
+                                               .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
                 while (currentPositionSort >= 1)
                 {
@@ -1665,45 +1941,63 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         #region SQL
 
                         var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                            SELECT {topN}
-                                t.ReviewUserId, t.AppointmentType
-                            FROM (
-                                SELECT
-                                    [user].UserId AS ReviewUserId,
-                                    @AutoActual  AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserInfo [user]
-                                INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                UNION ALL
-
-                                SELECT
-                                    [user].UserId    AS ReviewUserId,
-                                    @AutoConcurrent AS AppointmentType,
-                                    [user].HireDate
-                                FROM Basic.UserPartTime partime
-                                INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                WHERE dept.DepartmentId IN ({parentDeptIds})
-                                  AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                            ) t
-                            {autoOrderBy}",
-                            new[]
-                            {
-                                new SugarParameter("@Now", now),
-                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                new SugarParameter("@AutoActual", autoActual),
-                                new SugarParameter("@AutoConcurrent", autoConcurrent),
-                            });
+                        SELECT {topN}
+                            t.ReviewUserId,
+                            t.AppointmentType
+                        FROM (
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                @AutoActual AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserInfo [user]
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON [user].DepartmentId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON [user].PositionId = position.PositionId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+ 
+                            UNION ALL
+ 
+                            SELECT
+                                [user].UserId AS ReviewUserId,
+                                @AutoConcurrent AS AppointmentType,
+                                [user].HireDate
+                            FROM
+                                Basic.UserPartTime partime
+                            INNER JOIN Basic.UserInfo [user]
+                                ON partime.UserId = [user].UserId
+                            INNER JOIN Basic.DepartmentInfo dept
+                                ON partime.PartTimeDeptId = dept.DepartmentId
+                            INNER JOIN Basic.DepartmentLevel deptlevel
+                                ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                            INNER JOIN Basic.PositionInfo position
+                                ON partime.PartTimePositionId = position.PositionId
+                            WHERE
+                                dept.DepartmentId IN ({parentDeptIds})
+                              AND position.SortOrder = @CurrentPositionSort
+                              AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                              AND [user].IsReview = 1
+                              AND [user].IsEmployed = 1
+                              AND [user].IsFreeze = 0
+                        ) t
+                        {autoOrderBy}",
+                        new[]
+                        {
+                            new SugarParameter("@Now", now),
+                            new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                            new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                            new SugarParameter("@AutoActual", autoActual),
+                            new SugarParameter("@AutoConcurrent", autoConcurrent),
+                        });
 
                         #endregion
 
@@ -1770,36 +2064,46 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 #region SQL
 
                 var exactResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                    SELECT {topN}
-                        t.ReviewUserId, t.AppointmentType
-                    FROM (
-                        SELECT
-                            [user].UserId AS ReviewUserId,
-                            @Actual      AS AppointmentType,
-                            [user].HireDate
-                        FROM Basic.UserInfo [user]
-                        WHERE [user].UserId = @UserId
-                          AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                        UNION ALL
-
-                        SELECT
-                            [user].UserId AS ReviewUserId,
-                            @Concurrent  AS AppointmentType,
-                            [user].HireDate
-                        FROM Basic.UserPartTime partime
-                        INNER JOIN Basic.UserInfo [user] ON partime.UserId = [user].UserId
-                        WHERE partime.UserId = @UserId
-                          AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                    ) t
-                    {exactOrderBy}",
-                    new[]
-                    {
-                        new SugarParameter("@Now", now),
-                        new SugarParameter("@UserId", userId),
-                        new SugarParameter("@Actual", actual),
-                        new SugarParameter("@Concurrent", concurrent),
-                    });
+                SELECT {topN}
+                    t.ReviewUserId,
+                    t.AppointmentType
+                FROM (
+                    SELECT
+                        [user].UserId AS ReviewUserId,
+                        @Actual AS AppointmentType,
+                        [user].HireDate
+                    FROM
+                        Basic.UserInfo [user]
+                    WHERE
+                        [user].UserId = @UserId
+                      AND [user].IsReview = 1
+                      AND [user].IsEmployed = 1
+                      AND [user].IsFreeze = 0
+ 
+                    UNION ALL
+ 
+                    SELECT
+                        [user].UserId AS ReviewUserId,
+                        @Concurrent AS AppointmentType,
+                        [user].HireDate
+                    FROM
+                        Basic.UserPartTime partime
+                    INNER JOIN Basic.UserInfo [user]
+                        ON partime.UserId = [user].UserId
+                    WHERE
+                        partime.UserId = @UserId
+                      AND [user].IsReview = 1
+                      AND [user].IsEmployed = 1
+                      AND [user].IsFreeze = 0
+                ) t
+                {exactOrderBy}",
+                new[]
+                {
+                    new SugarParameter("@Now", now),
+                    new SugarParameter("@UserId", userId),
+                    new SugarParameter("@Actual", actual),
+                    new SugarParameter("@Concurrent", concurrent),
+                });
 
                 #endregion
 
@@ -1824,45 +2128,63 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             #region SQL
 
                             var autoResult = await _db.Ado.SqlQueryAsync<UserAppointment>($@"
-                                SELECT {topN}
-                                    t.ReviewUserId, t.AppointmentType
-                                FROM (
-                                    SELECT
-                                        [user].UserId AS ReviewUserId,
-                                        @AutoActual  AS AppointmentType,
-                                        [user].HireDate
-                                    FROM Basic.UserInfo [user]
-                                    INNER JOIN Basic.DepartmentInfo  dept      ON [user].DepartmentId     = dept.DepartmentId
-                                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                    INNER JOIN Basic.PositionInfo    position  ON [user].PositionId       = position.PositionId
-                                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                                      AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-
-                                    UNION ALL
-
-                                    SELECT
-                                        [user].UserId AS ReviewUserId,
-                                        @AutoConcurrent AS AppointmentType,
-                                        [user].HireDate
-                                    FROM Basic.UserPartTime partime
-                                    INNER JOIN Basic.UserInfo        [user]     ON partime.UserId             = [user].UserId
-                                    INNER JOIN Basic.DepartmentInfo  dept      ON partime.PartTimeDeptId     = dept.DepartmentId
-                                    INNER JOIN Basic.DepartmentLevel deptlevel ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                    INNER JOIN Basic.PositionInfo    position  ON partime.PartTimePositionId = position.PositionId
-                                    WHERE dept.DepartmentId IN ({parentDeptIds})
-                                      AND position.SortOrder = @CurrentPositionSort AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                      AND [user].IsReview = 1 AND [user].IsEmployed = 1 AND [user].IsFreeze = 0
-                                ) t
-                                {autoOrderBy}",
-                                new[]
-                                {
-                                    new SugarParameter("@Now", now),
-                                    new SugarParameter("@CurrentPositionSort", currentPositionSort),
-                                    new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-                                    new SugarParameter("@AutoActual", autoActual),
-                                    new SugarParameter("@AutoConcurrent", autoConcurrent),
-                                });
+                            SELECT {topN}
+                                t.ReviewUserId,
+                                t.AppointmentType
+                            FROM (
+                                SELECT
+                                    [user].UserId AS ReviewUserId,
+                                    @AutoActual AS AppointmentType,
+                                    [user].HireDate
+                                FROM
+                                    Basic.UserInfo [user]
+                                INNER JOIN Basic.DepartmentInfo dept
+                                    ON [user].DepartmentId = dept.DepartmentId
+                                INNER JOIN Basic.DepartmentLevel deptlevel
+                                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                                INNER JOIN Basic.PositionInfo position
+                                    ON [user].PositionId = position.PositionId
+                                WHERE
+                                    dept.DepartmentId IN ({parentDeptIds})
+                                  AND position.SortOrder = @CurrentPositionSort
+                                  AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                                  AND [user].IsReview = 1
+                                  AND [user].IsEmployed = 1
+                                  AND [user].IsFreeze = 0
+ 
+                                UNION ALL
+ 
+                                SELECT
+                                    [user].UserId AS ReviewUserId,
+                                    @AutoConcurrent AS AppointmentType,
+                                    [user].HireDate
+                                FROM
+                                    Basic.UserPartTime partime
+                                INNER JOIN Basic.UserInfo [user]
+                                    ON partime.UserId = [user].UserId
+                                INNER JOIN Basic.DepartmentInfo dept
+                                    ON partime.PartTimeDeptId = dept.DepartmentId
+                                INNER JOIN Basic.DepartmentLevel deptlevel
+                                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                                INNER JOIN Basic.PositionInfo position
+                                    ON partime.PartTimePositionId = position.PositionId
+                                WHERE
+                                    dept.DepartmentId IN ({parentDeptIds})
+                                  AND position.SortOrder = @CurrentPositionSort
+                                  AND deptlevel.SortOrder = @CurrentDeptLevelSort
+                                  AND [user].IsReview = 1
+                                  AND [user].IsEmployed = 1
+                                  AND [user].IsFreeze = 0
+                            ) t
+                            {autoOrderBy}",
+                            new[]
+                            {
+                                new SugarParameter("@Now", now),
+                                new SugarParameter("@CurrentPositionSort", currentPositionSort),
+                                new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
+                                new SugarParameter("@AutoActual", autoActual),
+                                new SugarParameter("@AutoConcurrent", autoConcurrent),
+                            });
 
                             #endregion
 
@@ -2004,49 +2326,43 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private async Task<(WorkflowStepEntity StepInfo, long RuleId)> GetCurrentStepInfo(long formId)
         {
             var entity = await _db.Queryable<FormInstanceEntity>()
-                               .With(SqlWith.NoLock)
-                               .InnerJoin<WorkflowStepEntity>((instance, step) => instance.CurrentStepId == step.StepId)
-                               .Where((instance, step) => instance.FormId == formId)
-                               .Select((instance, step) => new
-                               {
-                                   RuleId = instance.RuleId,
-                                   StepInfo = step,
-                               }).FirstAsync();
+                                  .With(SqlWith.NoLock)
+                                  .InnerJoin<WorkflowStepEntity>((instance, step) => instance.CurrentStepId == step.StepId)
+                                  .Where((instance, step) => instance.FormId == formId)
+                                  .Select((instance, step) => new
+                                  {
+                                      RuleId = instance.RuleId,
+                                      StepInfo = step,
+                                  }).FirstAsync();
 
             return (entity.StepInfo, entity.RuleId);
         }
 
         /// <summary>
-        /// 查询步骤配置的 Guidance 并执行
+        /// 执行当前步骤的 Guidance
         /// </summary>
         /// <param name="formId"></param>
-        private async Task ExecuteStepGuidance(long formId)
+        /// <returns></returns>
+        private async Task<Result<bool>> ExecuteStepGuidance(long formId)
         {
-            // 取表单当前的 RuleId 和 CurrentStepId
-            var formInfo = await _db.Queryable<FormInstanceEntity>()
+            var form = await _db.Queryable<FormInstanceEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(instance => instance.FormId == formId)
+                                .Select(instance => new { instance.RuleId, instance.CurrentStepId })
+                                .FirstAsync();
+
+            var guidance = await _db.Queryable<WorkflowRuleStepEntity>()
                                     .With(SqlWith.NoLock)
-                                    .Where(form => form.FormId == formId)
-                                    .Select(form => new { form.RuleId, form.CurrentStepId })
+                                    .Where(rulestep => rulestep.RuleId == form.RuleId && rulestep.CurrentStepId == form.CurrentStepId)
+                                    .Select(rulestep => rulestep.Guidance)
                                     .FirstAsync();
-
-            if (formInfo == null)
-            {
-                return;
-            }
-
-            // RuleId + StepId 组合查询规则步骤,找出 Guidance
-            string guidance = await _db.Queryable<WorkflowRuleStepEntity>()
-                                       .With(SqlWith.NoLock)
-                                       .Where(ruleStep => ruleStep.RuleId == formInfo.RuleId && ruleStep.CurrentStepId == formInfo.CurrentStepId)
-                                       .Select(ruleStep => ruleStep.Guidance)
-                                       .FirstAsync();
 
             if (string.IsNullOrEmpty(guidance))
             {
-                return;
+                return Result<bool>.Ok(true);
             }
 
-            await _stepcomletion.Resolve(guidance, formId);
+            return await _stepcomletion.Resolve(guidance, formId);
         }
 
         #endregion
@@ -2139,7 +2455,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 var records = appointments.Select(appoint =>
                 {
-                    bool isAgentOp = appoint.AgentUserId != 0 && appoint.AgentUserId == operatorUserId;
+                    bool isAgentOp = appoint.AgentUserId != null && appoint.AgentUserId == operatorUserId;
 
                     // 代理操作：ReviewUserId 取代理人，AppointmentType 保持代理身份（Agent/ConcurrentAgent）
                     // 本人操作：ReviewUserId 取归属人，AppointmentType 换回实/兼身份（去掉 Agent 后缀）
