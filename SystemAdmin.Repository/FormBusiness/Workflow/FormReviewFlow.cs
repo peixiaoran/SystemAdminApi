@@ -60,10 +60,30 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           PositionSort = position.SortOrder
                                       }).FirstAsync();
 
+            string ss = _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                                      .InnerJoin<UserInfoEntity>((instance, formtype, user) => instance.ApplicantUserId == user.UserId)
+                                      .InnerJoin<DepartmentInfoEntity>((instance, formtype, user, dept) => user.DepartmentId == dept.DepartmentId)
+                                      .InnerJoin<DepartmentLevelEntity>((instance, formtype, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
+                                      .InnerJoin<PositionInfoEntity>((instance, formtype, user, dept, deptlevel, position) => user.PositionId == position.PositionId)
+                                      .Where((instance, formtype, user, dept, deptlevel, position) => instance.FormId == formId)
+                                      .Select((instance, formtype, user, dept, deptlevel, position) => new ApplyFormDetail
+                                      {
+                                          FormId = instance.FormId,
+                                          FormTypeId = instance.FormTypeId,
+                                          RuleId = instance.RuleId,
+                                          CurrentStepId = instance.CurrentStepId,
+                                          UserId = user.UserId,
+                                          DeptId = dept.DepartmentId,
+                                          DeptLevelSort = deptlevel.SortOrder,
+                                          PositionSort = position.SortOrder
+                                      }).ToSqlString();
+
             // 申请人上级部门列表（包含申请人所在部门）
-            var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
+            var applyDept = await _db.Queryable<DepartmentInfoEntity>()
+                                     .With(SqlWith.NoLock)
+                                     .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
             // 所属规则的初始步骤
             var ruleStep = await _db.Queryable<WorkflowRuleStepEntity>()
                                     .With(SqlWith.NoLock)
@@ -71,7 +91,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .FirstAsync();
 
             var currentStepId = ruleStep.CurrentStepId;
-            while (currentStepId != 0)
+            while (currentStepId != null)
             {
                 var stepReview = new StepReview();
                 var userReview = new List<UserReview>();
@@ -81,6 +101,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         .Where(step => step.StepId == currentStepId)
                                         .Select(step => new
                                         {
+                                            StepId = step.StepId,
                                             StepName = _lang.Locale == "zh-CN"
                                                        ? step.StepNameCn
                                                        : step.StepNameEn,
@@ -89,7 +110,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             step.ReviewMode,
                                         }).FirstAsync();
 
-                stepReview.StepId = currentStepId;
+                stepReview.StepId = stepInfo.StepId;
                 stepReview.StepName = stepInfo.StepName;
 
                 if (stepInfo.IsStartStep == 1)
@@ -118,7 +139,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     }
                     else
                     {
-                        userReview = await GetOrgReviewUser(applicantDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
+                        userReview = await GetOrgReviewUser(applyDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
                     }
                 }
                 else if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
@@ -260,8 +281,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .Where(position => position.PositionId == positionId)
                                     .FirstAsync();
 
-            var parentDeptIds = applyParentDept.Select(dept => dept.DepartmentId).ToList();
-            string parentDeptIdsStr = string.Join(",", parentDeptIds);
+            string parentDeptIds = string.Join(",", applyParentDept.Select(dept => dept.DepartmentId));
 
             bool isSingle = reviewMode == ReviewMode.Review.ToEnumString();
 
@@ -323,7 +343,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                 AND agent.StartTime     <= @Now
                                                                 AND agent.EndTime       >= @Now
                     LEFT JOIN Basic.UserInfo agentusers         ON agent.AgentUserId     = agentusers.UserId
-                    WHERE dept.DepartmentId IN ({parentDeptIdsStr})
+                    WHERE dept.DepartmentId IN ({parentDeptIds})
                       AND deptlevel.SortOrder = @DeptLevelSort
                       AND position.SortOrder  = @PositionSort
                       AND [user].IsReview    = 1
@@ -370,7 +390,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                 AND agent.StartTime          <= @Now
                                                                 AND agent.EndTime            >= @Now
                     LEFT JOIN Basic.UserInfo agentusers         ON agent.AgentUserId          = agentusers.UserId
-                    WHERE dept.DepartmentId IN ({parentDeptIdsStr})
+                    WHERE dept.DepartmentId IN ({parentDeptIds})
                       AND deptlevel.SortOrder = @DeptLevelSort
                       AND position.SortOrder  = @PositionSort
                       AND [user].IsReview    = 1
@@ -457,7 +477,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime      <= @Now
                                                                        AND agent.EndTime        >= @Now
                             LEFT JOIN Basic.UserInfo agentusers        ON agent.AgentUserId      = agentusers.UserId
-                            WHERE dept.DepartmentId IN ({parentDeptIdsStr})
+                            WHERE dept.DepartmentId IN ({parentDeptIds})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -503,7 +523,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime          <= @Now
                                                                        AND agent.EndTime            >= @Now
                             LEFT JOIN Basic.UserInfo agentusers        ON agent.AgentUserId          = agentusers.UserId
-                            WHERE dept.DepartmentId IN ({parentDeptIdsStr})
+                            WHERE dept.DepartmentId IN ({parentDeptIds})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -708,11 +728,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
-                var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
-                                             .With(SqlWith.NoLock)
-                                             .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                var parentDeptIds = applicantDept.Select(dept => dept.DepartmentId).ToList();
-                string parentDeptIdsStr = string.Join(",", parentDeptIds);
+                var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
+                                               .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                string parentDeptIds = string.Join(",", applyParentDept.Select(dept => dept.DepartmentId));
 
                 while (currentPositionSort >= 1)
                 {
@@ -769,7 +788,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime        <= @Now
                                                                        AND agent.EndTime          >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId      = agentusers.UserId
-                            WHERE dept.DepartmentId IN ({parentDeptIdsStr})
+                            WHERE dept.DepartmentId IN ({parentDeptIds})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -815,7 +834,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime           <= @Now
                                                                        AND agent.EndTime             >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId         = agentusers.UserId
-                            WHERE dept.DepartmentId  IN ({parentDeptIdsStr})
+                            WHERE dept.DepartmentId  IN ({parentDeptIds})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -1027,11 +1046,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentPositionSort = position.SortOrder - 1;
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
-                var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
-                                             .With(SqlWith.NoLock)
-                                             .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                var parentDeptIds = applicantDept.Select(dept => dept.DepartmentId).ToList();
-                string parentDeptIdsStr = string.Join(",", parentDeptIds);
+                var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
+                                               .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                string parentDeptIds = string.Join(",", applyParentDept.Select(dept => dept.DepartmentId));
 
                 while (currentPositionSort >= 1)
                 {
@@ -1088,7 +1106,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime       <= @Now
                                                                        AND agent.EndTime         >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId     = agentusers.UserId
-                            WHERE dept.DepartmentId  IN ({parentDeptIdsStr})
+                            WHERE dept.DepartmentId  IN ({parentDeptIds})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -1134,7 +1152,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                                        AND agent.StartTime           <= @Now
                                                                        AND agent.EndTime             >= @Now
                             LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId         = agentusers.UserId
-                            WHERE dept.DepartmentId  IN ({parentDeptIdsStr})
+                            WHERE dept.DepartmentId  IN ({parentDeptIds})
                               AND position.SortOrder  = @CurrentPositionSort
                               AND deptlevel.SortOrder = @CurrentDeptLevelSort
                               AND [user].IsReview    = 1
@@ -1352,10 +1370,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     int currentPositionSort = position.SortOrder - 1;
                     int currentDeptLevelSort = deptlevel.SortOrder;
 
-                    var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
-                                                 .With(SqlWith.NoLock)
-                                                 .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
-                    var parentDeptIds = applicantDept.Select(dept => dept.DepartmentId).ToList();
+                    var applyDept = await _db.Queryable<DepartmentInfoEntity>()
+                                             .With(SqlWith.NoLock)
+                                             .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
+                    var parentDeptIds = string.Join(',', applyDept.Select(dept => dept.DepartmentId).ToList());
 
                     while (currentPositionSort >= 1)
                     {
@@ -1375,8 +1393,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                 PositionSort, 
                                 HireDate
                             FROM (
-
+                                -- ================================================================================
                                 -- 实职（自动指派）
+                                -- ================================================================================
                                 SELECT
                                     [user].UserId AS ReviewUserId,
                                     {userNameCol} AS ReviewUserName,
@@ -1402,26 +1421,34 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         )
                                     END AS AppointmentTypeName,
                                     deptlevel.SortOrder AS DeptLevelSort,
-                                    position.SortOrder  AS PositionSort,
-                                    [user].HireDate      AS HireDate
+                                    position.SortOrder AS PositionSort,
+                                    [user].HireDate AS HireDate
                                 FROM Basic.UserInfo [user]
-                                INNER JOIN Basic.DepartmentInfo  dept       ON [user].DepartmentId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel  ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position   ON [user].PositionId        = position.PositionId
-                                LEFT  JOIN Basic.UserAgent       agent      ON [user].UserId            = agent.SubstituteUserId
-                                                                           AND agent.StartTime        <= @Now
-                                                                           AND agent.EndTime          >= @Now
-                                LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId      = agentusers.UserId
-                                WHERE dept.DepartmentId  IN ({parentDeptIds})
-                                  AND position.SortOrder  = @CurrentPositionSort
+                                INNER JOIN Basic.DepartmentInfo dept 
+                                    ON [user].DepartmentId = dept.DepartmentId
+                                INNER JOIN Basic.DepartmentLevel deptlevel 
+                                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                                INNER JOIN Basic.PositionInfo position 
+                                    ON [user].PositionId = position.PositionId
+                                LEFT JOIN Basic.UserAgent agent 
+                                    ON [user].UserId = agent.SubstituteUserId
+                                    AND agent.StartTime <= @Now
+                                    AND agent.EndTime >= @Now
+                                LEFT JOIN Basic.UserInfo agentusers 
+                                    ON agent.AgentUserId = agentusers.UserId
+                                WHERE 1 = 1
+                                  AND dept.DepartmentId IN ({parentDeptIds})
+                                  AND position.SortOrder = @CurrentPositionSort
                                   AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview    = 1
-                                  AND [user].IsEmployed    = 1
-                                  AND [user].IsFreeze      = 0
+                                  AND [user].IsReview = 1
+                                  AND [user].IsEmployed = 1
+                                  AND [user].IsFreeze = 0
 
                                 UNION ALL
 
+                                -- ================================================================================
                                 -- 兼职（自动指派）
+                                -- ================================================================================
                                 SELECT
                                     [user].UserId AS ReviewUserId,
                                     {userNameCol} AS ReviewUserName,
@@ -1447,32 +1474,38 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         )
                                     END AS AppointmentTypeName,
                                     deptlevel.SortOrder AS DeptLevelSort,
-                                    position.SortOrder  AS PositionSort,
-                                    [user].HireDate      AS HireDate
-                                FROM Basic.UserPartTime          partime
-                                INNER JOIN Basic.UserInfo        [user]      ON partime.UserId             = [user].UserId
-                                INNER JOIN Basic.DepartmentInfo  dept       ON partime.PartTimeDeptId     = dept.DepartmentId
-                                INNER JOIN Basic.DepartmentLevel deptlevel  ON dept.DepartmentLevelId     = deptlevel.DepartmentLevelId
-                                INNER JOIN Basic.PositionInfo    position   ON partime.PartTimePositionId = position.PositionId
-                                LEFT  JOIN Basic.UserAgent       agent      ON [user].UserId               = agent.SubstituteUserId
-                                                                           AND agent.StartTime           <= @Now
-                                                                           AND agent.EndTime             >= @Now
-                                LEFT  JOIN Basic.UserInfo        agentusers ON agent.AgentUserId         = agentusers.UserId
-                                WHERE dept.DepartmentId  IN ({parentDeptIds})
-                                  AND position.SortOrder  = @CurrentPositionSort
+                                    position.SortOrder AS PositionSort,
+                                    [user].HireDate AS HireDate
+                                FROM Basic.UserPartTime partime
+                                INNER JOIN Basic.UserInfo [user] 
+                                    ON partime.UserId = [user].UserId
+                                INNER JOIN Basic.DepartmentInfo dept 
+                                    ON partime.PartTimeDeptId = dept.DepartmentId
+                                INNER JOIN Basic.DepartmentLevel deptlevel 
+                                    ON dept.DepartmentLevelId = deptlevel.DepartmentLevelId
+                                INNER JOIN Basic.PositionInfo position 
+                                    ON partime.PartTimePositionId = position.PositionId
+                                LEFT JOIN Basic.UserAgent agent 
+                                    ON [user].UserId = agent.SubstituteUserId
+                                    AND agent.StartTime <= @Now
+                                    AND agent.EndTime >= @Now
+                                LEFT JOIN Basic.UserInfo agentusers 
+                                    ON agent.AgentUserId = agentusers.UserId
+                                WHERE 1 = 1
+                                  AND dept.DepartmentId IN ({parentDeptIds})
+                                  AND position.SortOrder = @CurrentPositionSort
                                   AND deptlevel.SortOrder = @CurrentDeptLevelSort
-                                  AND [user].IsReview    = 1
-                                  AND [user].IsEmployed    = 1
-                                  AND [user].IsFreeze      = 0
+                                  AND [user].IsReview = 1
+                                  AND [user].IsEmployed = 1
+                                  AND [user].IsFreeze = 0
 
                             ) combined
                             {autoOrderBy}",
                             new[]
-                                {
+                            {
                                 new SugarParameter("@Now", now),
                                 new SugarParameter("@CurrentPositionSort", currentPositionSort),
                                 new SugarParameter("@CurrentDeptLevelSort", currentDeptLevelSort),
-
                                 new SugarParameter("@AutoActual", autoActual),
                                 new SugarParameter("@AutoAgent", autoAgent),
                                 new SugarParameter("@AutoConcurrent", autoConcurrent),
@@ -1513,7 +1546,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="currentStepId"></param>
         /// <param name="reviewFlow"></param>
         /// <returns></returns>
-        public async Task<List<StepReview>> GetUserReviewResult(long formId, long ruleId, long currentStepId, List<StepReview> reviewFlow)
+        public async Task<List<StepReview>> GetUserReviewResult(long formId, long ruleId, long? currentStepId, List<StepReview> reviewFlow)
         {
             // 1. 取得该表单的所有审批记录(按时间升序)
             var allRecords = await _db.Queryable<FormReviewRecordEntity>()
@@ -1528,7 +1561,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(rule => rule.RuleId == ruleId)
                                      .ToListAsync();
 
-            var stepOrderMap = ruleSteps.ToDictionary(rulestep => rulestep.CurrentStepId, rulestep => rulestep.SortOrder);
+            var stepOrderMap = ruleSteps.Where(rulestep => rulestep.CurrentStepId != null)
+                                        .ToDictionary(
+                                            rulestep => rulestep.CurrentStepId!.Value,
+                                            rulestep => rulestep.SortOrder
+                                        );
 
             // 3. 预先把驳回记录抽出来
             var rejectRecords = allRecords
@@ -1571,9 +1608,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 bool isCurrentStep = currentStepId == flow.StepId;
 
                 // 该步骤只要有人在有效时间后核准过，就认为该步骤已核准
-                bool stepHasApprove = approveRecords.Any(record =>
-                    record.StepId == flow.StepId &&
-                    (validAfter == null || record.ReviewDateTime > validAfter.Value));
+                bool stepHasApprove = approveRecords.Any(record => record.StepId == flow.StepId && (validAfter == null || record.ReviewDateTime > validAfter.Value));
 
                 foreach (var user in flow.stepReviewUser)
                 {
@@ -1654,9 +1689,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           }).FirstAsync();
 
                 // 申请人上级部门列表（包含申请人所在部门）
-                var applicantDept = await _db.Queryable<DepartmentInfoEntity>()
-                                             .With(SqlWith.NoLock)
-                                             .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
+                var applyDept = await _db.Queryable<DepartmentInfoEntity>()
+                                         .With(SqlWith.NoLock)
+                                         .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
                 // 所属规则的初始步骤
                 var ruleStep = await _db.Queryable<WorkflowRuleStepEntity>()
                                         .With(SqlWith.NoLock)
@@ -1664,7 +1699,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         .FirstAsync();
 
                 var currentStepId = ruleStep.CurrentStepId;
-                while (currentStepId != 0)
+                while (currentStepId != null)
                 {
                     var stepReview = new StepReview();
                     var userReview = new List<UserReview>();
@@ -1674,6 +1709,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             .Where(step => step.StepId == currentStepId)
                                             .Select(step => new
                                             {
+                                                StepId = step.StepId,
                                                 StepName = _lang.Locale == "zh-CN"
                                                            ? step.StepNameCn
                                                            : step.StepNameEn,
@@ -1682,7 +1718,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                 step.ReviewMode,
                                             }).FirstAsync();
 
-                    stepReview.StepId = currentStepId;
+                    stepReview.StepId = stepInfo.StepId;
                     stepReview.StepName = stepInfo.StepName;
 
                     if (stepInfo.IsStartStep == 1)
@@ -1711,7 +1747,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         }
                         else
                         {
-                            userReview = await GetOrgReviewUser(applicantDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
+                            userReview = await GetOrgReviewUser(applyDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
                         }
                     }
                     else if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
@@ -1754,17 +1790,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }
 
                 // 查询当前步骤及所有候选步骤的 SortOrder 和 IsStartStep
-                var allStepIds = stepReviewList.Select(stepreview => stepreview.StepId).Append(formDetail.CurrentStepId).Distinct().ToList();
+                var stepIds = stepReviewList.Select(stepreview => stepreview.StepId).Concat(formDetail.CurrentStepId.HasValue ? new[] { formDetail.CurrentStepId.Value } : Array.Empty<long>()).Distinct().ToList();
                 var stepInfoDict = (await _db.Queryable<WorkflowStepEntity>()
                                              .With(SqlWith.NoLock)
-                                             .Where(step => allStepIds.Contains(step.StepId))
+                                             .Where(step => stepIds.Contains(step.StepId))
                                              .Select(step => new { step.StepId, step.SortOrder, step.IsStartStep })
                                              .ToListAsync())
                                              .ToDictionary(step => step.StepId, step => new { step.SortOrder, step.IsStartStep });
 
-                var currentSortOrder = stepInfoDict.TryGetValue(formDetail.CurrentStepId, out var current)
-                                       ? current.SortOrder
-                                       : int.MaxValue;
+                var currentSortOrder = formDetail.CurrentStepId.HasValue && stepInfoDict.TryGetValue(formDetail.CurrentStepId.Value, out var current)
+                                             ? current.SortOrder
+                                             : int.MaxValue;
 
                 // 筛选可驳回步骤
                 var rejectStepDropList = stepReviewList

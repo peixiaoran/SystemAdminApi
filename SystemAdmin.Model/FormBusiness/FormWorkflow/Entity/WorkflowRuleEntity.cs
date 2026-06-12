@@ -27,18 +27,17 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         /// <summary>
         /// 规则名称（英文）
         /// </summary>
-        /// </summary>
         public string RuleNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 职级Id
         /// </summary>
-        public long PositionId { get; set; }
+        public long? PositionId { get; set; }
 
         /// <summary>
         /// 导向
         /// </summary>
-        public string Guidance { get; set; } = string.Empty;
+        public string? Guidance { get; set; }
 
         /// <summary>
         /// 排序

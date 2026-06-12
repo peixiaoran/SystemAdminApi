@@ -34,17 +34,17 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// 职级Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long PositionId { get; set; }
+        public long? PositionId { get; set; }
 
         /// <summary>
         /// 职级名称
         /// </summary>
-        public string PositionName { get; set; } = string.Empty;
+        public string? PositionName { get; set; }
 
         /// <summary>
         /// 导向
         /// </summary>
-        public string Guidance { get; set; } = string.Empty;
+        public string? Guidance { get; set; }
 
         /// <summary>
         /// 排序

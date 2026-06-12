@@ -46,7 +46,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  .With(SqlWith.NoLock)
                                  .FirstAsync(x => x.FormId == formId);
 
-            return leave != null && leave.LeaveDays <= 3;
+            return leave != null && leave.LeaveHours <= 24;
         }
 
         public async Task<bool> MoreOver3(long formId)
@@ -55,7 +55,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  .With(SqlWith.NoLock)
                                  .FirstAsync(x => x.FormId == formId);
 
-            return leave != null && leave.LeaveDays > 3;
+            return leave != null && leave.LeaveHours > 24;
         }
 
         #endregion

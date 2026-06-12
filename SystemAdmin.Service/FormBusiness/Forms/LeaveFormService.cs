@@ -17,11 +17,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly FormPermissionChecker _formChecker;
         private readonly LeaveFormRepository _leaveForm;
         private readonly FormManager _formmanger;
-        private readonly FormReviewFlow _formflow;
         private readonly LocalizationService _localization;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public LeaveFormService(CurrentUser loginuser, ILogger<LeaveFormService> logger, SqlSugarScope db, FormPermissionChecker formchecker,  LeaveFormRepository leaveForm, FormManager formmanger, FormReviewFlow formflow, LocalizationService localization)
+        public LeaveFormService(CurrentUser loginuser, ILogger<LeaveFormService> logger, SqlSugarScope db, FormPermissionChecker formchecker,  LeaveFormRepository leaveForm, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -29,7 +28,6 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             _leaveForm = leaveForm;
             _formChecker = formchecker;
             _formmanger = formmanger;
-            _formflow = formflow;
             _localization = localization;
         }
 
@@ -61,26 +59,29 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 {
                     await _db.BeginTranAsync();
                     var formId = await _formmanger.InitializeFormInstance(long.Parse(formTypeId));
+
                     var leaveForm = new LeaveFormEntity()
                     {
                         FormId = long.Parse(formId),
-                        LeaveType = "",
-                        LeaveReason = "",
-                        LeaveStartTime = null,
-                        LeaveEndTime = null,
-                        LeaveDays = 0,
-                        AgentUserNo = "",
+                        LeaveType = null,
+                        LeaveReason = null,
+                        StartDateTime = null,
+                        EndDateTime = null,
+                        LeaveHours = 0.00M,
+                        AgentUserId = null,
+                        AgentUserName = null,
                         CreatedBy = _loginuser.UserId,
                         CreatedDate = DateTime.Now
                     };
+
                     await _leaveForm.InitLeaveForm(leaveForm);
                     await _formmanger.MatchWorkflowRuleAsync(long.Parse(formTypeId), long.Parse(formId));
                     await _db.CommitTranAsync();
 
                     var leaveFormDto = await _leaveForm.GetLeaveForm(long.Parse(formId));
-                    leaveFormDto.AttachmentList = await _formmanger.GetAttachmentList(long.Parse(formId));
-                    leaveFormDto.ReviewRecordList = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                    leaveFormDto.StepFieldPermissionList = await _formmanger.GetStepFieldPermissionList(long.Parse(formTypeId), leaveFormDto.CurrentStepId);
+                    leaveFormDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                    leaveFormDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                    leaveFormDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formTypeId), leaveFormDto.CurrentStepId);
                     return Result<LeaveFormDto>.Ok(leaveFormDto);
                 }
             }
@@ -106,10 +107,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     FormId = long.Parse(save.FormId),
                     LeaveType = save.LeaveType,
                     LeaveReason = save.LeaveReason,
-                    LeaveStartTime = save.LeaveStartTime,
-                    LeaveEndTime = save.LeaveEndTime,
-                    LeaveDays = save.LeaveDays,
-                    AgentUserNo = save.AgentUserNo,
+                    StartDateTime = save.StartDateTime,
+                    EndDateTime = save.EndDateTime,
+                    LeaveHours = CalculateLeaveHours(save.StartDateTime, save.EndDateTime),
+                    AgentUserId = string.IsNullOrWhiteSpace(save.AgentUserId) ? null : long.Parse(save.AgentUserId),
+                    AgentUserName = save.AgentUserName,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now
                 };
@@ -146,9 +148,9 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 }
 
                 var form = await _leaveForm.GetLeaveForm(long.Parse(formId));
-                form.AttachmentList = await _formmanger.GetAttachmentList(long.Parse(formId));
-                form.ReviewRecordList = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermissionList = await _formmanger.GetStepFieldPermissionList(form.FormTypeId, form.CurrentStepId);
+                form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormTypeId, form.CurrentStepId);
                 return Result<LeaveFormDto>.Ok(form);
             }
             catch (Exception ex)
@@ -157,5 +159,76 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 return Result<LeaveFormDto>.Failure(500, ex.Message);
             }
         }
+
+        #region 计算请假时数
+
+        private decimal CalculateLeaveHours(DateTime startDateTime, DateTime endDateTime)
+        {
+            if (endDateTime <= startDateTime)
+            {
+                return 0m;
+            }
+
+            decimal totalHours = 0m;
+
+            TimeSpan defaultWorkStart = new TimeSpan(8, 0, 0);
+            TimeSpan lunchStart = new TimeSpan(12, 0, 0);
+            TimeSpan lunchEnd = new TimeSpan(13, 0, 0);
+            TimeSpan defaultWorkEnd = new TimeSpan(17, 0, 0);
+
+            DateTime currentDate = startDateTime.Date;
+            DateTime lastDate = endDateTime.Date;
+
+            while (currentDate <= lastDate)
+            {
+                DateTime dayStart = currentDate.Add(defaultWorkStart);
+                DateTime dayEnd = currentDate.Add(defaultWorkEnd);
+
+                // 如果是开始当天，并且开始时间早于 08:00，则从实际开始时间算
+                if (currentDate == startDateTime.Date && startDateTime < dayStart)
+                {
+                    dayStart = startDateTime;
+                }
+
+                // 如果是结束当天，并且结束时间晚于 17:00，则算到实际结束时间
+                if (currentDate == endDateTime.Date && endDateTime > dayEnd)
+                {
+                    dayEnd = endDateTime;
+                }
+
+                DateTime morningStart = dayStart;
+                DateTime morningEnd = currentDate.Add(lunchStart);
+
+                DateTime afternoonStart = currentDate.Add(lunchEnd);
+                DateTime afternoonEnd = dayEnd;
+
+                totalHours += GetHours(morningStart, morningEnd);
+                totalHours += GetHours(afternoonStart, afternoonEnd);
+
+                currentDate = currentDate.AddDays(1);
+            }
+
+            return Math.Round(totalHours, 2);
+
+            decimal GetHours(DateTime periodStart, DateTime periodEnd)
+            {
+                DateTime actualStart = startDateTime > periodStart
+                    ? startDateTime
+                    : periodStart;
+
+                DateTime actualEnd = endDateTime < periodEnd
+                    ? endDateTime
+                    : periodEnd;
+
+                if (actualEnd <= actualStart)
+                {
+                    return 0m;
+                }
+
+                return (decimal)(actualEnd - actualStart).TotalHours;
+            }
+        }
+
+        #endregion
     }
 }

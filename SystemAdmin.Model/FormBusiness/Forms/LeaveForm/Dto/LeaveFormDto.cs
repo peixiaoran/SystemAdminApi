@@ -1,6 +1,5 @@
 ﻿using System.Text.Json.Serialization;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
-using SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto;
 using SystemAdmin.Model.ModelHelper.ModelConverter;
 
 namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
@@ -32,7 +31,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         /// 当前步骤Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long CurrentStepId { get; set; }
+        public long? CurrentStepId { get; set; }
 
         /// <summary>
         /// 请假单号
@@ -67,46 +66,51 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         /// <summary>
         /// 假别编码
         /// </summary>
-        public string LeaveType { get; set; } = string.Empty;
+        public string? LeaveType { get; set; }
 
         /// <summary>
         /// 请假事由
         /// </summary>
-        public string LeaveReason { get; set; } = string.Empty;
+        public string? LeaveReason { get; set; } = string.Empty;
 
         /// <summary>
         /// 开始时间
         /// </summary>
-        public DateTime? LeaveStartTime { get; set; }
+        public DateTime? StartDateTime { get; set; }
 
         /// <summary>
         /// 结束时间
         /// </summary>
-        public DateTime? LeaveEndTime { get; set; }
+        public DateTime? EndDateTime { get; set; }
 
         /// <summary>
         /// 请假小时（系统计算）
         /// </summary>
-        public decimal LeaveHours { get; set; }
+        public decimal? LeaveHours { get; set; }
 
         /// <summary>
-        /// 代理人工号
+        /// 代理人Id
         /// </summary>
-        public string AgentUserNo { get; set; } = string.Empty;
+        public long? AgentUserId { get; set; }
+
+        /// <summary>
+        /// 代理人姓名
+        /// </summary>
+        public string? AgentUserName { get; set; } = string.Empty;
 
         /// <summary>
         /// 附件列表
         /// </summary>
-        public List<FormAttachmentDto> AttachmentList { get; set; } = new List<FormAttachmentDto>();
+        public List<FormAttachmentDto> Attachment { get; set; } = new List<FormAttachmentDto>();
 
         /// <summary>
         /// 审批记录
         /// </summary>
-        public List<FormReviewRecordDto> ReviewRecordList { get; set; } = new List<FormReviewRecordDto>();
+        public List<FormReviewRecordDto> ReviewRecord { get; set; } = new List<FormReviewRecordDto>();
 
         /// <summary>
         /// 栏位权限
         /// </summary>
-        public List<StepFieldPermissionDto> StepFieldPermissionList { get; set; } = new List<StepFieldPermissionDto>();
+        public List<StepFieldPermissionDto> StepFieldPermission { get; set; } = new List<StepFieldPermissionDto>();
     }
 }

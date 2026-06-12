@@ -97,10 +97,11 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                                  : dept.DepartmentNameEn,
                                 LeaveType = leave.LeaveType,
                                 LeaveReason = leave.LeaveReason,
-                                LeaveStartTime = leave.LeaveStartTime,
-                                LeaveEndTime = leave.LeaveEndTime,
-                                LeaveHours = leave.LeaveDays,
-                                AgentUserNo = leave.AgentUserNo,
+                                StartDateTime = leave.StartDateTime,
+                                EndDateTime = leave.EndDateTime,
+                                LeaveHours = leave.LeaveHours,
+                                AgentUserId = leave.AgentUserId,
+                                AgentUserName = leave.AgentUserName,
                             }).FirstAsync();
         }
     }

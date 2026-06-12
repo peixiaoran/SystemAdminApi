@@ -60,22 +60,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var ym = now.ToString("yyyyMM");
             var formId = SnowFlakeSingle.Instance.NextId();
 
-            var prefixTask = _db.Queryable<FormTypeEntity>()
-                                .With(SqlWith.NoLock)
-                                .Where(formtype => formtype.FormTypeId == formTypeId)
-                                .Select(formtype => formtype.Prefix)
-                                .FirstAsync();
+            var prefix = await _db.Queryable<FormTypeEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(formtype => formtype.FormTypeId == formTypeId)
+                                  .Select(formtype => formtype.Prefix)
+                                  .FirstAsync();
 
-            var startStepIdTask = _db.Queryable<WorkflowStepEntity>()
-                                     .With(SqlWith.NoLock)
-                                     .Where(step => step.FormTypeId == formTypeId && step.IsStartStep == 1)
-                                     .Select(step => step.StepId)
-                                     .FirstAsync();
-
-            await Task.WhenAll(prefixTask, startStepIdTask);
-
-            var prefix = await prefixTask;
-            var startStepId = await startStepIdTask;
+            var startStepId = await _db.Queryable<WorkflowStepEntity>()
+                                       .With(SqlWith.NoLock)
+                                       .Where(step => step.FormTypeId == formTypeId && step.IsStartStep == 1)
+                                       .Select(step => step.StepId)
+                                       .FirstAsync();
 
             string formNo = string.Empty;
 
@@ -168,11 +163,32 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             foreach (var rule in ruleList)
             {
+                string? guidance = rule.Guidance;
+
+                bool hasGuidance = !string.IsNullOrWhiteSpace(guidance);
                 bool positionMatch = rule.PositionId == appPositionId;
+                bool isDefaultRule = rule.PositionId == null && !hasGuidance;
 
-                bool guidanceMatch = await _workflowRuleConditions.Resolve(rule.Guidance, formId);
+                // 默认规则：职位和条件都不限制
+                if (isDefaultRule)
+                {
+                    if (ruleId == 0)
+                    {
+                        ruleId = rule.RuleId;
+                    }
 
-                // 优先级1：职位匹配，并且条件为空或条件匹配
+                    continue;
+                }
+
+                // 非默认规则：Guidance 为空就跳过
+                if (!hasGuidance)
+                {
+                    continue;
+                }
+
+                bool guidanceMatch = await _workflowRuleConditions.Resolve(guidance!, formId);
+
+                // 优先级1：职位匹配，并且条件匹配
                 if (positionMatch && guidanceMatch)
                 {
                     ruleId = rule.RuleId;
@@ -180,13 +196,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }
 
                 // 优先级2：职位不限制，只判断条件
-                if (ruleId == 0 && rule.PositionId == 0 && guidanceMatch)
-                {
-                    ruleId = rule.RuleId;
-                }
-
-                // 优先级3：职位和条件都不限制，默认规则
-                if (ruleId == 0 && rule.PositionId == 0 && string.IsNullOrWhiteSpace(rule.Guidance))
+                if (ruleId == 0 && rule.PositionId == null && guidanceMatch)
                 {
                     ruleId = rule.RuleId;
                 }
@@ -214,6 +224,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .Select(instance => instance.FormTypeId)
                                       .FirstAsync();
 
+            // 每次保存都重新匹配工作流规则
             await MatchWorkflowRuleAsync(formTypeId, formId);
 
             return await _db.Updateable<FormInstanceEntity>()
@@ -310,7 +321,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询步骤栏位权限列表
         /// </summary>
-        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formTypeId, long stepId)
+        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formTypeId, long? stepId)
         {
             var list = await _db.Queryable<FormTypeFieldEntity>()
                                 .With(SqlWith.NoLock)
