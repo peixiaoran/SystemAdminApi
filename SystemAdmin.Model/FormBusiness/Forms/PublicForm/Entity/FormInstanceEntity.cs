@@ -35,6 +35,11 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
         public long ApplicantUserId { get; set; }
 
         /// <summary>
+        /// 申请人日期
+        /// </summary>
+        public DateOnly ApplicantDate { get; set; }
+
+        /// <summary>
         /// 所属分支
         /// </summary>
         public long RuleId { get; set; }

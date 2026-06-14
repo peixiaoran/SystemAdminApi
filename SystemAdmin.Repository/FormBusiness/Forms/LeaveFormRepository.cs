@@ -2,7 +2,9 @@
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
@@ -34,6 +36,82 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                                 ? dic.DicNameCn
                                                 : dic.DicNameEn,
                             }).ToListAsync();
+        }
+
+        /// <summary>
+        /// 部门树下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<DepartmentDropDto>> GetDepartmentDrop()
+        {
+            return await _db.Queryable<DepartmentInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<DepartmentLevelEntity>((dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
+                            .OrderBy((dept, deptlevel) => deptlevel.SortOrder)
+                            .Select((dept, deptlevel) => new DepartmentDropDto
+                            {
+                                DepartmentId = dept.DepartmentId,
+                                DepartmentName = _lang.Locale == "zh-CN"
+                                                 ? dept.DepartmentNameCn
+                                                 : dept.DepartmentNameEn,
+                                ParentId = dept.ParentId,
+                            }).ToTreeAsync(menu => menu.DepartmentChildList, menu => menu.ParentId, 0);
+        }
+
+        /// <summary>
+        /// 查询可代理其他用户分页列表
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <returns></returns>
+        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage)
+        {
+            RefAsync<int> totalCount = 0;
+            var query = _db.Queryable<UserInfoEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<DepartmentInfoEntity>((user, dept) => user.DepartmentId == dept.DepartmentId)
+                           .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
+                           .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
+                           .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationId)
+                           .Where((user, dept, position, labor, nation) => user.IsAgent == 0 && user.IsFreeze == 0);
+
+            // 用户工号
+            if (!string.IsNullOrEmpty(getPage.UserNo))
+            {
+                query = query.Where((user, dept, position, labor, nation) =>
+                    user.UserNo.Contains(getPage.UserNo));
+            }
+            // 用户姓名
+            if (!string.IsNullOrEmpty(getPage.UserName))
+            {
+                query = query.Where((user, dept, position, labor, nation) =>
+                    user.UserNameCn.Contains(getPage.UserName) ||
+                    user.UserNameEn.Contains(getPage.UserName));
+            }
+            // 部门Id - 仅当工号和姓名都为空时才应用
+            if (string.IsNullOrEmpty(getPage.UserNo) &&
+                string.IsNullOrEmpty(getPage.UserName) &&
+                !string.IsNullOrEmpty(getPage.DepartmentId) &&
+                long.Parse(getPage.DepartmentId) > 0)
+            {
+                query = query.Where((user, dept, position, labor, nation) =>
+                    user.DepartmentId == long.Parse(getPage.DepartmentId));
+            }
+
+            // 排序
+            query = query.OrderBy((user, dept, position, labor, nation) => user.UserId);
+
+            var page = await query.Select((user, dept, position, labor, nation) => new AgentUserInfoDto
+            {
+                UserId = user.UserId,
+                UserNo = user.UserNo,
+                UserName = _lang.Locale == "zh-CN"
+                           ? user.UserNameCn
+                           : user.UserNameEn,
+                DepartmentName = _lang.Locale == "zh-CN"
+                           ? dept.DepartmentNameCn
+                           : dept.DepartmentNameEn
+            }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
+            return ResultPaged<AgentUserInfoDto>.Ok(page, totalCount, "");
         }
 
         /// <summary>
@@ -95,6 +173,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                 ApplicantDeptName = _lang.Locale == "zh-CN"
                                                  ? dept.DepartmentNameCn
                                                  : dept.DepartmentNameEn,
+                                ApplicantDate = form.ApplicantDate,
                                 LeaveType = leave.LeaveType,
                                 LeaveReason = leave.LeaveReason,
                                 StartDateTime = leave.StartDateTime,

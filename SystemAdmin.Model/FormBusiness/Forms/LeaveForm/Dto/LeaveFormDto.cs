@@ -64,6 +64,11 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         public string ApplicantDeptName { get; set; } = string.Empty;
 
         /// <summary>
+        /// 申请日期
+        /// </summary>
+        public DateOnly ApplicantDate { get; set; }
+
+        /// <summary>
         /// 假别编码
         /// </summary>
         public string? LeaveType { get; set; }
@@ -91,6 +96,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
         /// <summary>
         /// 代理人Id
         /// </summary>
+        [JsonConverter(typeof(LongToStringConverter))]
         public long? AgentUserId { get; set; }
 
         /// <summary>

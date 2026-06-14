@@ -133,6 +133,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplyUserDeptName = _lang.Locale == "zh-CN"
                                ? applyuserdept.DepartmentNameCn
                                : applyuserdept.DepartmentNameEn,
+                ApplicantDate = instance.ApplicantDate,
                 ReviewPath = formtype.ReviewPath,
                 ViewPath = formtype.ViewPath,
                 isVoided = (instance.ApplicantUserId == loginUserId && instance.FormStatus != FormStatus.Voided.ToEnumString()) ? 1 : 0
@@ -192,6 +193,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplyUserDeptName = _lang.Locale == "zh-CN"
                                ? applyuserdept.DepartmentNameCn
                                : applyuserdept.DepartmentNameEn,
+                ApplicantDate = instance.ApplicantDate,
                 ReviewPath = formtype.ReviewPath,
                 ViewPath = formtype.ViewPath,
                 isVoided = 0

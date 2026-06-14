@@ -111,8 +111,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  Total = nextNo,
                                  ModifiedBy = _loginuser.UserId,
                                  ModifiedDate = now
-                             })
-                             .Where(s => s.FormTypeId == formTypeId && s.Ym == ym)
+                             }).Where(s => s.FormTypeId == formTypeId && s.Ym == ym)
                              .ExecuteCommandAsync();
                 }
 
@@ -125,6 +124,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     FormNo = formNo,
                     FormStatus = FormStatus.PendingSubmit.ToEnumString(),
                     ApplicantUserId = _loginuser.UserId,
+                    ApplicantDate = DateOnly.FromDateTime(now),
                     RuleId = 0,
                     CurrentStepId = startStepId,
                     CreatedBy = _loginuser.UserId,
@@ -232,8 +232,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             {
                                 ModifiedBy = _loginuser.UserId,
                                 ModifiedDate = DateTime.Now
-                            })
-                            .Where(instance => instance.FormId == formId)
+                            }).Where(instance => instance.FormId == formId)
                             .ExecuteCommandAsync();
         }
 
@@ -312,8 +311,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         OriginalUserName = _lang.Locale == "zh-CN" ? originaluser.UserNameCn : originaluser.UserNameEn,
                                         OperationUserName = _lang.Locale == "zh-CN" ? operationuser.UserNameCn : operationuser.UserNameEn,
                                         ReviewDateTime = record.ReviewDateTime,
-                                    })
-                                .ToListAsync();
+                                    }).ToListAsync();
 
             return list.Adapt<List<FormReviewRecordDto>>();
         }
@@ -337,8 +335,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                 : formfield.FieldNameEn,
                                     IsVisible = fieldper.IsVisible,
                                     IsDisabled = fieldper.IsDisabled,
-                                })
-                                .ToListAsync();
+                                }).ToListAsync();
 
             return list.Adapt<List<StepFieldPermissionDto>>();
         }

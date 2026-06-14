@@ -1,9 +1,15 @@
 ﻿using Microsoft.Extensions.Logging;
 using SqlSugar;
+using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Commands;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto;
+using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Queries;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 
@@ -14,17 +20,19 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly CurrentUser _loginuser;
         private readonly ILogger<LeaveFormService> _logger;
         private readonly SqlSugarScope _db;
+        private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
         private readonly LeaveFormRepository _leaveForm;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public LeaveFormService(CurrentUser loginuser, ILogger<LeaveFormService> logger, SqlSugarScope db, FormPermissionChecker formchecker,  LeaveFormRepository leaveForm, FormManager formmanger, LocalizationService localization)
+        public LeaveFormService(CurrentUser loginuser, ILogger<LeaveFormService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveFormRepository leaveForm, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
+            _lang = lang;
             _leaveForm = leaveForm;
             _formChecker = formchecker;
             _formmanger = formmanger;
@@ -39,6 +47,42 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             var drop = await _leaveForm.GetLeaveTypeDrop();
             return Result<List<LeaveTypeDropDto>>.Ok(drop);
+        }
+
+        /// <summary>
+        /// 部门下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
+        {
+            try
+            {
+                var drop = await _leaveForm.GetDepartmentDrop();
+                return Result<List<DepartmentDropDto>>.Ok(drop, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<DepartmentDropDto>>.Failure(500, ex.Message.ToString());
+            }
+        }
+
+        /// <summary>
+        /// 查询可代理其他用户分页列表
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <returns></returns>
+        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage)
+        {
+            try
+            {
+                return await _leaveForm.GetUserInfoAgentView(getPage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return ResultPaged<AgentUserInfoDto>.Failure(500, ex.Message);
+            }
         }
 
         /// <summary>

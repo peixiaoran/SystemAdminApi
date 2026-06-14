@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Commands;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Service.FormBusiness.Forms;
 
 namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
@@ -22,6 +24,22 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         public async Task<Result<List<LeaveTypeDropDto>>> GetLeaveTypeDrop()
         {
             return await _leaveFormService.GetLeaveTypeDrop();
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[请假单] 部门下拉")]
+        public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
+        {
+            return await _leaveFormService.GetDepartmentDrop();
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[请假单] 查询可代理用户分页")]
+        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView([FromBody] GetAgentUserPage getPage)
+        {
+            return await _leaveFormService.GetUserInfoAgentView(getPage);
         }
 
         [HttpPost]

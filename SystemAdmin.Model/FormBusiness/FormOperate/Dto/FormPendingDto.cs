@@ -9,6 +9,17 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
     public class FormPendingDto
     {
         /// <summary>
+        /// 表单类别Id
+        /// </summary>
+        [JsonConverter(typeof(LongToStringConverter))]
+        public long FormTypeId { get; set; }
+
+        /// <summary>
+        /// 表单类型
+        /// </summary>
+        public string FormTypeName { get; set; } = string.Empty;
+
+        /// <summary>
         /// 表单Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
@@ -20,15 +31,9 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
         public string FormNo { get; set; } = string.Empty;
 
         /// <summary>
-        /// 表单类别Id
+        /// 申请日期
         /// </summary>
-        [JsonConverter(typeof(LongToStringConverter))]
-        public long FormTypeId { get; set; }
-
-        /// <summary>
-        /// 表单类型
-        /// </summary>
-        public string FormTypeName { get; set; } = string.Empty;
+        public DateOnly ApplicantDate { get; set; }
 
         /// <summary>
         /// 表单状态

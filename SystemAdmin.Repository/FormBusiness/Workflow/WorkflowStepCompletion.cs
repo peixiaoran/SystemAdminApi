@@ -132,14 +132,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 if (leaveAnnual == null)
                 {
-                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", _lang.Locale,
+                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", _lang.Locale,
                         userName ?? formInstance.ApplicantUserId.ToString(), year, leaveForm.LeaveType));
                 }
 
                 var newRemainingDays = leaveAnnual.RemainingDays - (decimal)days;
                 if (newRemainingDays < 0)
                 {
-                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance",
+                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance",
                         userName ?? formInstance.ApplicantUserId.ToString(), year, leaveForm.LeaveType,
                         leaveAnnual.RemainingDays, days));
                 }
