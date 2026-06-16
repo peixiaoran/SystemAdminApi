@@ -1,9 +1,12 @@
 ﻿using SqlSugar;
+using SystemAdmin.Common.Enums.FormBusiness;
+using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
@@ -59,11 +62,12 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询可代理其他用户分页列表
+        /// 查询可代理用户
         /// </summary>
         /// <param name="getPage"></param>
+        /// <param name="loginUserId"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage)
+        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<UserInfoEntity>()
@@ -72,7 +76,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationId)
-                           .Where((user, dept, position, labor, nation) => user.IsAgent == 0 && user.IsFreeze == 0);
+                           .Where((user, dept, position, labor, nation) => user.IsAgent == 0 && user.IsFreeze == 0 && user.UserId != loginUserId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
@@ -112,6 +116,43 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                            : dept.DepartmentNameEn
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<AgentUserInfoDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 查询假期余额
+        /// </summary>
+        public async Task<List<LeaveBalanceDto>> GetLeaveBalances(long loginUserId, string years)
+        {
+            var yearList = (years ?? string.Empty)
+                .Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(yearText => int.Parse(yearText.Trim()))
+                .ToList();
+
+            var flatList = await _db.Queryable<UserLeaveBalanceEntity>()
+                                    .Where(balance => balance.UserId == loginUserId)
+                                    .WhereIF(yearList.Count > 0, balance => yearList.Contains(balance.Year))
+                                    .Select(balance => new
+                                    {
+                                        balance.Year,
+                                        balance.LeaveType,
+                                        balance.RemainingDays
+                                    }).ToListAsync();
+
+            var result = flatList
+                        .GroupBy(balance => balance.Year)
+                        .Select(yearGroup => new LeaveBalanceDto
+                        {
+                            Year = yearGroup.Key,
+                            AnnualRemainingDays = (int)yearGroup
+                                .Where(balance => balance.LeaveType == LeaveType.Annual.ToEnumString())
+                                .Sum(balance => balance.RemainingDays),
+                            SickRemainingDays = (int)yearGroup
+                                .Where(balance => balance.LeaveType == LeaveType.Sick.ToEnumString())
+                                .Sum(balance => balance.RemainingDays)
+                        }).OrderBy(dto => dto.Year)
+                        .ToList();
+
+            return result;
         }
 
         /// <summary>

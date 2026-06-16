@@ -61,7 +61,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
 
-            if (nextStep.NextStepId == 0)
+            if (nextStep.NextStepId == null)
             {
                 await ApproveForm(formId);
 
@@ -162,7 +162,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                     var skippedNext = await GetNextStep(ruleId, stepInfo.StepId);
 
-                    if (skippedNext.NextStepId == 0)
+                    if (skippedNext.NextStepId == null)
                     {
                         await ApproveForm(formId);
 
@@ -270,7 +270,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 var nextStep = await GetNextStep(ruleId, stepInfo.StepId);
 
-                if (nextStep.NextStepId == 0)
+                if (nextStep.NextStepId == null)
                 {
                     await ApproveForm(formId);
 

@@ -25,6 +25,11 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
         public string ReviewPath { get; set; } = string.Empty;
 
         /// <summary>
+        /// 表单视图路径
+        /// </summary>
+        public string ViewPath { get; set; } = string.Empty;
+
+        /// <summary>
         /// 表单类别描述
         /// </summary>
         public string Description { get; set; } = string.Empty;

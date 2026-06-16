@@ -36,7 +36,15 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[请假单] 查询可代理用户分页")]
+        [EndpointSummary("[请假单] 查询假期余额")]
+        public async Task<Result<List<LeaveBalanceDto>>> GetLeaveBalances([FromForm] string year)
+        {
+            return await _leaveFormService.GetLeaveBalances(year);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[请假单] 查询可代理用户")]
         public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView([FromBody] GetAgentUserPage getPage)
         {
             return await _leaveFormService.GetUserInfoAgentView(getPage);

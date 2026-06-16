@@ -1,5 +1,8 @@
 ﻿namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto
 {
+    /// <summary>
+    /// 表单通知邮件审批完成Dto
+    /// </summary>
     public class FormNoticeApprovedDto
     {
         /// <summary>
@@ -23,9 +26,14 @@
         public string FormTypeNameEn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 审批页面路径
+        /// 表单审批路径
         /// </summary>
         public string ReviewPath { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 表单查看路径
+        /// </summary>
+        public string ViewPath { get; set; } = string.Empty;
 
         /// <summary>
         /// 申请人 UserId

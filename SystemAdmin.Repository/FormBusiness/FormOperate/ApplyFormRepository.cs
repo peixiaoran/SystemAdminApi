@@ -57,6 +57,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                                    ? formtype.FormTypeNameCn
                                                    : formtype.FormTypeNameEn,
                                     ReviewPath = formtype.ReviewPath,
+                                    ViewPath = formtype.ViewPath,
                                     Description = _lang.Locale == "zh-CN"
                                                    ? formtype.DescriptionCn
                                                    : formtype.DescriptionEn,

@@ -7,9 +7,6 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
-using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
-using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto;
-using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Queries;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 
@@ -68,7 +65,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询可代理其他用户分页列表
+        /// 查询可代理用户
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
@@ -76,12 +73,31 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                return await _leaveForm.GetUserInfoAgentView(getPage);
+                return await _leaveForm.GetUserInfoAgentView(getPage, _loginuser.UserId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
                 return ResultPaged<AgentUserInfoDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查询假期余额
+        /// </summary>
+        /// <param name="years"></param>
+        /// <returns></returns>
+        public async Task<Result<List<LeaveBalanceDto>>> GetLeaveBalances(string years)
+        {
+            try
+            {
+                var list = await _leaveForm.GetLeaveBalances(_loginuser.UserId, years);
+                return Result<List<LeaveBalanceDto>>.Ok(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<LeaveBalanceDto>>.Failure(500, ex.Message);
             }
         }
 

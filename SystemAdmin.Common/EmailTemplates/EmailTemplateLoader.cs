@@ -15,6 +15,8 @@ namespace SystemAdmin.Common.EmailTemplates
 
         public static string GetRejectNotice() => Load("FormBusiness.RejectNotice.html");
 
+        public static string GetApprovedNotice() => Load("FormBusiness.ApprovedNotice.html");
+
         private static string Load(string fileName)
         {
             return _cache.GetOrAdd(fileName, name =>

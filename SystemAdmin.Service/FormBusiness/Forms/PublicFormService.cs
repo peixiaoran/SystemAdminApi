@@ -587,7 +587,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private async Task<List<EmailMessage>> BuildApplicantApprovedEmailsAsync(long formId)
         {
             DateTime now = DateTime.Now;
-            string template = EmailTemplateLoader.GetApproveNotice();
+            string template = EmailTemplateLoader.GetApprovedNotice();
 
             var formNotice = await _db.Queryable<FormInstanceEntity>()
                                       .InnerJoin<FormTypeEntity>((instance, formType) =>
@@ -603,6 +603,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                               FormTypeNameCn = formType.FormTypeNameCn,
                                               FormTypeNameEn = formType.FormTypeNameEn,
                                               ReviewPath = formType.ReviewPath,
+                                              ViewPath = formType.ViewPath,
                                               UserId = user.UserId,
                                               UserNameCn = user.UserNameCn,
                                               UserNameEn = user.UserNameEn,
@@ -704,31 +705,28 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             string formTypeName = lang == "zh-CN"
                 ? formNotice.FormTypeNameCn
                 : formNotice.FormTypeNameEn;
-            string reviewUrl = BuildReviewUrl(
+            string viewUrl = BuildReviewUrl(
                 _formNotice.BaseDomain,
-                formNotice.ReviewPath,
+                formNotice.ViewPath,
                 lang,
                 token);
 
             string body = template
                           .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))
                           .Replace("{{Greeting}}", greeting)
-                          .Replace("{{LabelStep}}", EncodeMessage("EmailNoticeLabelStep", lang))
                           .Replace("{{FormInfo}}", EncodeMessage("EmailNoticeFormInfo", lang))
                           .Replace("{{LabelFormNo}}", EncodeMessage("EmailNoticeLabelFormNo", lang))
                           .Replace("{{LabelFormType}}", EncodeMessage("EmailNoticeLabelFormType", lang))
-                          .Replace("{{LabelApplicant}}", EncodeMessage("EmailNoticeLabelApplicant", lang))
                           .Replace("{{LabelResult}}", EncodeMessage("EmailNoticeLabelResult", lang))
-                          .Replace("{{LabelComment}}", EncodeMessage("EmailNoticeLabelComment", lang))
                           .Replace("{{ResultText}}", WebUtility.HtmlEncode(resultText))
-                          .Replace("{{BtnReview}}", EncodeMessage("EmailNoticeBtnReview", lang))
+                          .Replace("{{BtnView}}", EncodeMessage("EmailNoticeBtnView", lang))
                           .Replace("{{BtnSignIn}}", EncodeMessage("EmailNoticeBtnSignIn", lang))
                           .Replace("{{ExpireHint}}", EncodeMessage("EmailNoticeExpireHint", lang))
                           .Replace("{{FooterText}}", EncodeMessage("EmailNoticeFooter", lang))
                           .Replace("{{FormNo}}", WebUtility.HtmlEncode(formNotice.FormNo ?? string.Empty))
                           .Replace("{{FormTypeName}}", WebUtility.HtmlEncode(formTypeName ?? string.Empty))
                           .Replace("{{LoginUrl}}", _formNotice.LoginUrl)
-                          .Replace("{{ReviewUrl}}", reviewUrl);
+                          .Replace("{{ViewUrl}}", viewUrl);
 
             return new List<EmailMessage>
             {

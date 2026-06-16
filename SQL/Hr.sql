@@ -12,18 +12,18 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 12/06/2026 16:02:05
+ Date: 16/06/2026 13:22:13
 */
 
 
 -- ----------------------------
--- Table structure for UserLeaveAnnual
+-- Table structure for UserLeaveBalance
 -- ----------------------------
-IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Hr].[UserLeaveAnnual]') AND type IN ('U'))
-	DROP TABLE [Hr].[UserLeaveAnnual]
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Hr].[UserLeaveBalance]') AND type IN ('U'))
+	DROP TABLE [Hr].[UserLeaveBalance]
 GO
 
-CREATE TABLE [Hr].[UserLeaveAnnual] (
+CREATE TABLE [Hr].[UserLeaveBalance] (
   [UserId] bigint  NOT NULL,
   [Year] int  NOT NULL,
   [LeaveType] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
@@ -36,76 +36,76 @@ CREATE TABLE [Hr].[UserLeaveAnnual] (
 )
 GO
 
-ALTER TABLE [Hr].[UserLeaveAnnual] SET (LOCK_ESCALATION = TABLE)
+ALTER TABLE [Hr].[UserLeaveBalance] SET (LOCK_ESCALATION = TABLE)
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'用户Id',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'UserId'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'年度',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'Year'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'假别',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'LeaveType'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'给予天数',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'RenderDays'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'给予天数',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'RemainingDays'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'创建人',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'CreatedBy'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'创建时间',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'CreatedDate'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'修改人',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'ModifiedBy'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'修改时间',
 'SCHEMA', N'Hr',
-'TABLE', N'UserLeaveAnnual',
+'TABLE', N'UserLeaveBalance',
 'COLUMN', N'ModifiedDate'
 GO
 
 
 -- ----------------------------
--- Records of UserLeaveAnnual
+-- Records of UserLeaveBalance
 -- ----------------------------
-INSERT INTO [Hr].[UserLeaveAnnual] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2026', N'Annual', N'15.00', N'0.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
 GO
 

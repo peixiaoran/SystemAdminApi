@@ -2,8 +2,8 @@
 
 namespace SystemAdmin.Model.HR.BasicInfo.Entity
 {
-    [SugarTable("[Hr].[UserLeaveAnnual]")]
-    public class UserLeaveAnnualEntity
+    [SugarTable("[Hr].[UserLeaveBalance]")]
+    public class UserLeaveBalanceEntity
     {
         /// <summary>
         /// 用户Id

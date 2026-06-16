@@ -1,10 +1,13 @@
-﻿using SqlSugar;
+﻿using Dm;
+using SqlSugar;
+using System.Collections;
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
@@ -119,42 +122,51 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var userInfo = await _db.Queryable<UserInfoEntity>()
                                     .FirstAsync(user => user.UserId == formInstance.ApplicantUserId);
 
-            var isChinese = _lang.Locale.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
-            var userName = isChinese ? userInfo?.UserNameCn : userInfo?.UserNameEn;
+            var isChinese = _lang.Locale == "zh-CN";
+            var userName = isChinese ? userInfo.UserNameCn : userInfo.UserNameEn;
+
+            var leaveInfo = await _db.Queryable<DictionaryInfoEntity>()
+                                     .Where(dic => dic.DicType == "LeaveType" && dic.DicCode == leaveForm.LeaveType)
+                                     .FirstAsync();
+            var leaveName = isChinese ? leaveInfo.DicNameCn : leaveInfo.DicNameEn;
 
             foreach (var (year, hours) in leaveHoursByYear)
             {
                 var days = Math.Ceiling(hours / 8);
-                var leaveAnnual = await _db.Queryable<UserLeaveAnnualEntity>()
-                                           .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId
-                                                              && annual.Year == year
-                                                              && annual.LeaveType == leaveForm.LeaveType);
+                var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
+                                           .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveForm.LeaveType);
 
                 if (leaveAnnual == null)
                 {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", _lang.Locale,
-                        userName ?? formInstance.ApplicantUserId.ToString(), year, leaveForm.LeaveType));
+                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
+                    {
+                        userName ?? formInstance.ApplicantUserId.ToString(),
+                        year,
+                        leaveName
+                    }));
                 }
 
                 var newRemainingDays = leaveAnnual.RemainingDays - (decimal)days;
                 if (newRemainingDays < 0)
                 {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance",
-                        userName ?? formInstance.ApplicantUserId.ToString(), year, leaveForm.LeaveType,
-                        leaveAnnual.RemainingDays, days));
+                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance", args: new object[]
+                    {
+                        userName ?? formInstance.ApplicantUserId.ToString(),
+                        year,
+                        leaveName,
+                        leaveAnnual.RemainingDays,
+                        days
+                    }));
                 }
 
-                await _db.Updateable<UserLeaveAnnualEntity>()
-                    .SetColumns(annual => new UserLeaveAnnualEntity
-                    {
-                        RemainingDays = newRemainingDays,
-                        ModifiedBy = formInstance.CreatedBy,
-                        ModifiedDate = DateTime.Now
-                    })
-                    .Where(annual => annual.UserId == formInstance.ApplicantUserId
-                                  && annual.Year == year
-                                  && annual.LeaveType == leaveForm.LeaveType)
-                    .ExecuteCommandAsync();
+                await _db.Updateable<UserLeaveBalanceEntity>()
+                         .SetColumns(annual => new UserLeaveBalanceEntity
+                         {
+                             RemainingDays = newRemainingDays,
+                             ModifiedBy = formInstance.CreatedBy,
+                             ModifiedDate = DateTime.Now
+                         }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveForm.LeaveType)
+                         .ExecuteCommandAsync();
             }
 
             return Result<bool>.Ok(true);

@@ -88,11 +88,11 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
-        ///   查找类似 查看表单 的本地化字符串。
+        ///   查找类似 前往查看 的本地化字符串。
         /// </summary>
-        internal static string EmailNoticeBtnViewForm {
+        internal static string EmailNoticeBtnView {
             get {
-                return ResourceManager.GetString("EmailNoticeBtnViewForm", resourceCulture);
+                return ResourceManager.GetString("EmailNoticeBtnView", resourceCulture);
             }
         }
         
@@ -232,6 +232,15 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
+        ///   查找类似 核准完成 的本地化字符串。
+        /// </summary>
+        internal static string EmailNoticeResultApproved {
+            get {
+                return ResourceManager.GetString("EmailNoticeResultApproved", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 驳回 的本地化字符串。
         /// </summary>
         internal static string EmailNoticeResultReject {
@@ -250,7 +259,7 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
-        ///   查找类似 用户 {0} 在 {1} 年的 {2} 假期余额不足，剩余 {3} 天，申请 {4} 天 的本地化字符串。
+        ///   查找类似 {0} 在 {1} 年的 {2} 不足，剩余 {3} 天，申请 {4} 天 的本地化字符串。
         /// </summary>
         internal static string InsufficientLeaveBalance {
             get {
@@ -259,7 +268,7 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
-        ///   查找类似 用户 {0} 在 {1} 年的 {2} 假期记录不存在 的本地化字符串。
+        ///   查找类似 {0} 在 {1} 年的 {2} 已无剩余天数 的本地化字符串。
         /// </summary>
         internal static string LeaveAnnualNotFound {
             get {
