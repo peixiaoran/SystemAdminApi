@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001115 (17.00.1115)
- Source Host           : 127.0.0.1:1433
+ Source Host           : localhost:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Hr
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 16/06/2026 13:22:13
+ Date: 16/06/2026 22:59:08
 */
 
 
@@ -106,6 +106,15 @@ GO
 -- ----------------------------
 -- Records of UserLeaveBalance
 -- ----------------------------
-INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2027', N'Annual', N'15.00', N'15.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
 GO
 
