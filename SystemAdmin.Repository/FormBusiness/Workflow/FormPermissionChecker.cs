@@ -48,12 +48,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                 .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == _loginuser.UserId || useragent.AgentUserId == _loginuser.UserId))
                                 .AnyAsync();
             }
-            else if(permissionType == "View")
+            else if (permissionType == "View")
             {
                 bool isApplicant = await _db.Queryable<FormInstanceEntity>()
-                                        .With(SqlWith.NoLock)
-                                        .Where(instance => instance.FormId == formId && instance.ApplicantUserId == _loginuser.UserId)
-                                        .AnyAsync();
+                                            .With(SqlWith.NoLock)
+                                            .Where(instance => instance.FormId == formId && instance.ApplicantUserId == _loginuser.UserId)
+                                            .AnyAsync();
 
                 if (isApplicant)
                     return true;

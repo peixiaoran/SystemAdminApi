@@ -53,9 +53,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[请假单] 初始化请假单")]
-        public async Task<Result<LeaveFormDto>> InitializeLevel([FromForm] string formTypeId)
+        public async Task<Result<LeaveFormDto>> InitLeaveForm([FromForm] string formTypeId)
         {
-            return await _leaveFormService.InitializeLevel(formTypeId);
+            return await _leaveFormService.InitLeaveForm(formTypeId);
         }
 
         [HttpPost]

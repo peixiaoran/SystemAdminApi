@@ -22,9 +22,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[表单公共接口] 表单邮件Token验证")]
         [AllowAnonymous]
-        public async Task<Result<FormNotificationReturnDto>> GetFormNotificationToken([FromForm] string tokenValue)
+        public async Task<Result<FormNotificationReturnDto>> GetFormNotificationToken([FromForm] string token)
         {
-            return await _publicFormService.GetFormNotificationToken(Response, tokenValue);
+            return await _publicFormService.GetFormNotificationToken(Response, token);
         }
 
         [HttpPost]

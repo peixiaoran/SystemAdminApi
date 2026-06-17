@@ -115,6 +115,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                            ? dept.DepartmentNameCn
                            : dept.DepartmentNameEn
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
+
             return ResultPaged<AgentUserInfoDto>.Ok(page, totalCount, "");
         }
 
@@ -128,29 +129,127 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                 .Select(yearText => int.Parse(yearText.Trim()))
                 .ToList();
 
-            var flatList = await _db.Queryable<UserLeaveBalanceEntity>()
-                                    .Where(balance => balance.UserId == loginUserId)
-                                    .WhereIF(yearList.Count > 0, balance => yearList.Contains(balance.Year))
-                                    .Select(balance => new
-                                    {
-                                        balance.Year,
-                                        balance.LeaveType,
-                                        balance.RemainingDays
-                                    }).ToListAsync();
+            // 1. 查询用户的基础余额
+            var balanceList = await _db.Queryable<UserLeaveBalanceEntity>()
+                                       .Where(balance => balance.UserId == loginUserId)
+                                       .WhereIF(yearList.Count > 0, balance => yearList.Contains(balance.Year))
+                                       .ToListAsync();
 
-            var result = flatList
-                        .GroupBy(balance => balance.Year)
-                        .Select(yearGroup => new LeaveBalanceDto
-                        {
-                            Year = yearGroup.Key,
-                            AnnualRemainingDays = (int)yearGroup
-                                .Where(balance => balance.LeaveType == LeaveType.Annual.ToEnumString())
-                                .Sum(balance => balance.RemainingDays),
-                            SickRemainingDays = (int)yearGroup
-                                .Where(balance => balance.LeaveType == LeaveType.Sick.ToEnumString())
-                                .Sum(balance => balance.RemainingDays)
-                        }).OrderBy(dto => dto.Year)
-                        .ToList();
+            // 2. 查询正在审批中的请假单
+            var pendingLeaves = await _db.Queryable<LeaveFormEntity>()
+                                         .InnerJoin<FormInstanceEntity>((leaveForm, formInstance) => leaveForm.FormId == formInstance.FormId)
+                                         .Where((leaveForm, formInstance) => formInstance.ApplicantUserId == loginUserId && (formInstance.FormStatus == FormStatus.UnderReview.ToEnumString() || formInstance.FormStatus == FormStatus.Rejected.ToEnumString()))
+                                         .Select((leaveForm, formInstance) => new
+                                         {
+                                             leaveForm.LeaveType,
+                                             leaveForm.StartDateTime,
+                                             leaveForm.EndDateTime,
+                                             leaveForm.LeaveHours
+                                         }).ToListAsync();
+
+            // 3. 计算审批中的请假占用（按年份和假别）
+            var pendingUsageByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
+
+            foreach (var leave in pendingLeaves)
+            {
+                var startDateTime = (DateTime)leave.StartDateTime!;
+                var endDateTime = (DateTime)leave.EndDateTime!;
+
+                var startYear = startDateTime.Year;
+                var endYear = endDateTime.Year;
+
+                if (startYear == endYear)
+                {
+                    // 同年请假：直接计算时差 / 8
+                    var workingHours = (endDateTime - startDateTime).TotalHours;
+                    var leaveDays = (decimal)workingHours / 8;
+
+                    var yearKey = startYear.ToString();
+                    if (!pendingUsageByYearAndType.ContainsKey(yearKey))
+                        pendingUsageByYearAndType[yearKey] = new Dictionary<string, decimal>();
+                    if (!pendingUsageByYearAndType[yearKey].ContainsKey(leave.LeaveType!))
+                        pendingUsageByYearAndType[yearKey][leave.LeaveType!] = 0;
+                    pendingUsageByYearAndType[yearKey][leave.LeaveType!] += leaveDays;
+                }
+                else
+                {
+                    // 跨年请假，分摊到各年
+
+                    // 第一年：从开始时间到该年12月31日 17:00
+                    var firstYearEnd = new DateTime(startYear, 12, 31, 17, 0, 0);
+                    var firstYearHours = (firstYearEnd - startDateTime).TotalHours;
+                    var firstYearDays = (decimal)firstYearHours / 8;
+
+                    var firstYearKey = startYear.ToString();
+                    if (!pendingUsageByYearAndType.ContainsKey(firstYearKey))
+                        pendingUsageByYearAndType[firstYearKey] = new Dictionary<string, decimal>();
+                    if (!pendingUsageByYearAndType[firstYearKey].ContainsKey(leave.LeaveType!))
+                        pendingUsageByYearAndType[firstYearKey][leave.LeaveType!] = 0;
+                    pendingUsageByYearAndType[firstYearKey][leave.LeaveType!] += firstYearDays;
+
+                    // 中间完整年份（如果有）
+                    var currentYear = startYear + 1;
+                    while (currentYear < endYear)
+                    {
+                        var currentYearKey = currentYear.ToString();
+                        if (!pendingUsageByYearAndType.ContainsKey(currentYearKey))
+                            pendingUsageByYearAndType[currentYearKey] = new Dictionary<string, decimal>();
+                        if (!pendingUsageByYearAndType[currentYearKey].ContainsKey(leave.LeaveType!))
+                            pendingUsageByYearAndType[currentYearKey][leave.LeaveType!] = 0;
+                        // 完整年份：8小时/天 * 8天/天 = 64小时 = 8天
+                        pendingUsageByYearAndType[currentYearKey][leave.LeaveType!] += 8;
+
+                        currentYear++;
+                    }
+
+                    // 最后一年：从1月1日 8:00 到结束时间
+                    var lastYearStart = new DateTime(endYear, 1, 1, 8, 0, 0);
+                    var lastYearHours = (endDateTime - lastYearStart).TotalHours;
+                    var lastYearDays = (decimal)lastYearHours / 8;
+
+                    var lastYearKey = endYear.ToString();
+                    if (!pendingUsageByYearAndType.ContainsKey(lastYearKey))
+                        pendingUsageByYearAndType[lastYearKey] = new Dictionary<string, decimal>();
+                    if (!pendingUsageByYearAndType[lastYearKey].ContainsKey(leave.LeaveType!))
+                        pendingUsageByYearAndType[lastYearKey][leave.LeaveType!] = 0;
+                    pendingUsageByYearAndType[lastYearKey][leave.LeaveType!] += lastYearDays;
+                }
+            }
+
+            // 4. 计算最终余额
+            var result = balanceList
+                .GroupBy(balance => balance.Year)
+                .Select(yearGroup =>
+                {
+                    var year = yearGroup.Key;
+                    var yearKey = year.ToString();
+                    var pendingByType = pendingUsageByYearAndType.ContainsKey(yearKey)
+                        ? pendingUsageByYearAndType[yearKey]
+                        : new Dictionary<string, decimal>();
+
+                    var annualRemaining = (decimal)yearGroup
+                        .Where(balance => balance.LeaveType == LeaveType.Annual.ToEnumString())
+                        .Sum(balance => balance.RemainingDays);
+
+                    var sickRemaining = (decimal)yearGroup
+                        .Where(balance => balance.LeaveType == LeaveType.Sick.ToEnumString())
+                        .Sum(balance => balance.RemainingDays);
+
+                    var annualPending = pendingByType.ContainsKey(LeaveType.Annual.ToEnumString())
+                        ? pendingByType[LeaveType.Annual.ToEnumString()]
+                        : 0;
+                    var sickPending = pendingByType.ContainsKey(LeaveType.Sick.ToEnumString())
+                        ? pendingByType[LeaveType.Sick.ToEnumString()]
+                        : 0;
+
+                    return new LeaveBalanceDto
+                    {
+                        Year = year,
+                        AnnualRemainingDays = (int)(annualRemaining - annualPending),
+                        SickRemainingDays = (int)(sickRemaining - sickPending)
+                    };
+                }).OrderBy(dto => dto.Year)
+                .ToList();
 
             return result;
         }

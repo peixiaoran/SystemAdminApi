@@ -102,11 +102,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 初始化表单
+        /// 初始化请假单
         /// </summary>
         /// <param name="formTypeId"></param>
         /// <returns></returns>
-        public async Task<Result<LeaveFormDto>> InitializeLevel(string formTypeId)
+        public async Task<Result<LeaveFormDto>> InitLeaveForm(string formTypeId)
         {
             try
             {
@@ -118,7 +118,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 else
                 {
                     await _db.BeginTranAsync();
-                    var formId = await _formmanger.InitializeFormInstance(long.Parse(formTypeId));
+                    var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
 
                     var leaveForm = new LeaveFormEntity()
                     {
@@ -127,7 +127,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                         LeaveReason = null,
                         StartDateTime = null,
                         EndDateTime = null,
-                        LeaveHours = 0.00M,
+                        LeaveHours = 0.00m,
                         AgentUserId = null,
                         AgentUserName = null,
                         CreatedBy = _loginuser.UserId,
@@ -141,7 +141,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     var leaveFormDto = await _leaveForm.GetLeaveForm(long.Parse(formId));
                     leaveFormDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                     leaveFormDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                    leaveFormDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formTypeId), leaveFormDto.CurrentStepId);
+                    leaveFormDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
                     return Result<LeaveFormDto>.Ok(leaveFormDto);
                 }
             }
@@ -210,7 +210,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var form = await _leaveForm.GetLeaveForm(long.Parse(formId));
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormTypeId, form.CurrentStepId);
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
                 return Result<LeaveFormDto>.Ok(form);
             }
             catch (Exception ex)
@@ -224,69 +224,78 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
         private decimal CalculateLeaveHours(DateTime startDateTime, DateTime endDateTime)
         {
-            if (endDateTime <= startDateTime)
-            {
-                return 0m;
-            }
-
             decimal totalHours = 0m;
-
-            TimeSpan defaultWorkStart = new TimeSpan(8, 0, 0);
-            TimeSpan lunchStart = new TimeSpan(12, 0, 0);
-            TimeSpan lunchEnd = new TimeSpan(13, 0, 0);
-            TimeSpan defaultWorkEnd = new TimeSpan(17, 0, 0);
 
             DateTime currentDate = startDateTime.Date;
             DateTime lastDate = endDateTime.Date;
 
             while (currentDate <= lastDate)
             {
-                DateTime dayStart = currentDate.Add(defaultWorkStart);
-                DateTime dayEnd = currentDate.Add(defaultWorkEnd);
+                DateTime dayMorningStart = currentDate.AddHours(8);
+                DateTime dayMorningEnd = currentDate.AddHours(12);
+                DateTime dayAfternoonStart = currentDate.AddHours(13);
+                DateTime dayAfternoonEnd = currentDate.AddHours(17);
 
-                // 如果是开始当天，并且开始时间早于 08:00，则从实际开始时间算
-                if (currentDate == startDateTime.Date && startDateTime < dayStart)
+                if (currentDate == startDateTime.Date && currentDate == endDateTime.Date)
                 {
-                    dayStart = startDateTime;
+                    // 同一天
+                    if (endDateTime <= dayMorningEnd)
+                    {
+                        // 都在上午
+                        totalHours += (decimal)(endDateTime - startDateTime).TotalHours;
+                    }
+                    else if (startDateTime >= dayAfternoonStart)
+                    {
+                        // 都在下午
+                        totalHours += (decimal)(endDateTime - startDateTime).TotalHours;
+                    }
+                    else
+                    {
+                        // 跨上下午：上午部分 + 下午部分
+                        totalHours += (decimal)(dayMorningEnd - startDateTime).TotalHours;
+                        totalHours += (decimal)(endDateTime - dayAfternoonStart).TotalHours;
+                    }
                 }
-
-                // 如果是结束当天，并且结束时间晚于 17:00，则算到实际结束时间
-                if (currentDate == endDateTime.Date && endDateTime > dayEnd)
+                else if (currentDate == startDateTime.Date)
                 {
-                    dayEnd = endDateTime;
+                    // 开始日期
+                    if (startDateTime < dayMorningEnd)
+                    {
+                        // 开始时间在上午，算上午剩余 + 整个下午
+                        totalHours += (decimal)(dayMorningEnd - startDateTime).TotalHours;
+                        totalHours += 4;
+                    }
+                    else
+                    {
+                        // 开始时间在下午，只算下午部分
+                        totalHours += (decimal)(dayAfternoonEnd - startDateTime).TotalHours;
+                    }
                 }
-
-                DateTime morningStart = dayStart;
-                DateTime morningEnd = currentDate.Add(lunchStart);
-
-                DateTime afternoonStart = currentDate.Add(lunchEnd);
-                DateTime afternoonEnd = dayEnd;
-
-                totalHours += GetHours(morningStart, morningEnd);
-                totalHours += GetHours(afternoonStart, afternoonEnd);
+                else if (currentDate == endDateTime.Date)
+                {
+                    // 结束日期
+                    if (endDateTime <= dayMorningEnd)
+                    {
+                        // 结束时间在上午，只算上午部分
+                        totalHours += (decimal)(endDateTime - dayMorningStart).TotalHours;
+                    }
+                    else
+                    {
+                        // 结束时间在下午，算整个上午 + 下午部分
+                        totalHours += 4;
+                        totalHours += (decimal)(endDateTime - dayAfternoonStart).TotalHours;
+                    }
+                }
+                else
+                {
+                    // 中间的完整工作日
+                    totalHours += 8;
+                }
 
                 currentDate = currentDate.AddDays(1);
             }
 
             return Math.Round(totalHours, 2);
-
-            decimal GetHours(DateTime periodStart, DateTime periodEnd)
-            {
-                DateTime actualStart = startDateTime > periodStart
-                    ? startDateTime
-                    : periodStart;
-
-                DateTime actualEnd = endDateTime < periodEnd
-                    ? endDateTime
-                    : periodEnd;
-
-                if (actualEnd <= actualStart)
-                {
-                    return 0m;
-                }
-
-                return (decimal)(actualEnd - actualStart).TotalHours;
-            }
         }
 
         #endregion

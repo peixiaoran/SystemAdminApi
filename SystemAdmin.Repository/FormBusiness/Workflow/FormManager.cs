@@ -54,7 +54,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 初始化表单
         /// </summary>
-        public async Task<string> InitializeFormInstance(long formTypeId)
+        public async Task<string> InitFormInstance(long formTypeId)
         {
             var now = DateTime.Now;
             var ym = now.ToString("yyyyMM");
@@ -319,25 +319,61 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询步骤栏位权限列表
         /// </summary>
-        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formTypeId, long? stepId)
+        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formId, long loginUserId)
         {
-            var list = await _db.Queryable<FormTypeFieldEntity>()
-                                .With(SqlWith.NoLock)
-                                .LeftJoin<StepFieldPermissionEntity>((formfield, fieldper) =>
-                                    formfield.FieldId == fieldper.FieldId &&
-                                    fieldper.StepId == stepId)
-                                .Where((formfield, fieldper) => formfield.FormTypeId == formTypeId)
-                                .Select((formfield, fieldper) => new StepFieldPermissionDto
-                                {
-                                    FieldKey = formfield.FieldKey,
-                                    FieldName = _lang.Locale == "zh-CN"
-                                                ? formfield.FieldNameCn
-                                                : formfield.FieldNameEn,
-                                    IsVisible = fieldper.IsVisible,
-                                    IsDisabled = fieldper.IsDisabled,
-                                }).ToListAsync();
+            // 1. 该用户在「待审批」中所属的步骤
+            var pendingStepIds = await _db.Queryable<PendingReviewEntity>()
+                                          .Where(pending => pending.FormId == formId && pending.ReviewUserId == loginUserId)
+                                          .Select(pending => pending.StepId)
+                                          .ToListAsync();
 
-            return list.Adapt<List<StepFieldPermissionDto>>();
+            // 2. 该用户在「审批记录」中所属的步骤（原始指派人 / 实际操作人）
+            var recordStepIds = await _db.Queryable<FormReviewRecordEntity>()
+                                         .Where(record => record.FormId == formId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId))
+                                         .Select(record => record.StepId)
+                                         .ToListAsync();
+
+            // 合并去重，得到该用户在此表单的所有审批步骤
+            var stepIds = pendingStepIds.Concat(recordStepIds).Distinct().ToList();
+
+            // 3. 取该表单类型下的所有栏位（FormInstance INNER JOIN FormTypeField，一次查询拿到，省一次往返）
+            var fields = await _db.Queryable<FormInstanceEntity>()
+                                  .InnerJoin<FormTypeFieldEntity>((formInstance, formTypeField) => formInstance.FormTypeId == formTypeField.FormTypeId)
+                                  .Where((formInstance, formTypeField) => formInstance.FormId == formId)
+                                  .OrderBy((formInstance, formTypeField) => formTypeField.SortOrder)
+                                  .Select((formInstance, formTypeField) => formTypeField)
+                                  .ToListAsync();
+
+            // 4. 取这些步骤的栏位权限
+            var permissions = await _db.Queryable<StepFieldPermissionEntity>()
+                                       .Where(permission => stepIds.Contains(permission.StepId))
+                                       .ToListAsync();
+
+            // 5. 按栏位聚合「最大权限」：IsVisible / IsDisabled 都取 Max（1 表示有权限，1 > 0）
+            var maxPermissionByFieldId = permissions
+                                        .GroupBy(permission => permission.FieldId)
+                                        .ToDictionary(
+                                            group => group.Key,
+                                            group => new
+                                            {
+                                                IsVisible = group.Max(permission => permission.IsVisible),
+                                                IsDisabled = group.Max(permission => permission.IsDisabled)
+                                            });
+
+            // 6. 以表单类型的栏位为基准组装结果；无权限配置的栏位默认 0/0（不显示、不可编辑）
+            var result = fields.Select(field =>
+            {
+                maxPermissionByFieldId.TryGetValue(field.FieldId, out var permission);
+                return new StepFieldPermissionDto
+                {
+                    FieldKey = field.FieldKey,
+                    FieldName = field.FieldNameCn,
+                    IsVisible = permission?.IsVisible ?? 0,
+                    IsDisabled = permission?.IsDisabled ?? 0
+                };
+            }).ToList();
+
+            return result;
         }
     }
 }

@@ -64,11 +64,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// 查询表单通知Token信息
         /// </summary>
         /// <param name="httpResponse"></param>
-        /// <param name="tokenValue"></param>
+        /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<Result<FormNotificationReturnDto>> GetFormNotificationToken(HttpResponse httpResponse, string tokenValue)
+        public async Task<Result<FormNotificationReturnDto>> GetFormNotificationToken(HttpResponse httpResponse, string token)
         {
-            var entity = await _formmanger.GetFormNotificationTokenWithUser(tokenValue);
+            var entity = await _formmanger.GetFormNotificationTokenWithUser(token);
             if (entity == null)
             {
                 return Result<FormNotificationReturnDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
@@ -380,42 +380,34 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         #region 邮件通知
 
         /// <summary>
-        /// 生成待审批人邮件，并写入邮件 Token。
-        /// 此操作在主业务事务提交后执行。
+        /// 生成待审批人邮件，并写入邮件 Token
         /// </summary>
         private async Task<List<EmailMessage>> BuildPendingReviewerEmailsAsync(long formId, long stepId, ReviewResult result)
         {
             DateTime now = DateTime.Now;
 
             var formNotice = await _db.Queryable<FormInstanceEntity>()
-                                      .InnerJoin<FormTypeEntity>((instance, formType) =>
-                                          instance.FormTypeId == formType.FormTypeId)
-                                      .InnerJoin<UserInfoEntity>((instance, formType, applicant) =>
-                                          instance.ApplicantUserId == applicant.UserId)
-                                      .InnerJoin<FormReviewRecordEntity>((instance, formType, applicant, record) =>
-                                          instance.FormId == record.FormId &&
+                                      .InnerJoin<FormTypeEntity>((instance, formType) => instance.FormTypeId == formType.FormTypeId)
+                                      .InnerJoin<UserInfoEntity>((instance, formType, applicant) => instance.ApplicantUserId == applicant.UserId)
+                                      .InnerJoin<FormReviewRecordEntity>((instance, formType, applicant, record) => instance.FormId == record.FormId &&
                                           record.ReviewDateTime == SqlFunc.Subqueryable<FormReviewRecordEntity>()
                                                                           .Where(subRecord => subRecord.FormId == instance.FormId)
                                                                           .Max(subRecord => subRecord.ReviewDateTime))
-                                      .InnerJoin<WorkflowStepEntity>((instance, formType, applicant, record, step) =>
-                                          instance.CurrentStepId == step.StepId)
-                                      .Where((instance, formType, applicant, record, step) =>
-                                          instance.FormId == formId)
-                                      .Select((instance, formType, applicant, record, step) =>
-                                          new FormNoticeReviewDto
-                                          {
-                                              FormId = instance.FormId,
-                                              FormNo = instance.FormNo,
-                                              FormTypeNameCn = formType.FormTypeNameCn,
-                                              FormTypeNameEn = formType.FormTypeNameEn,
-                                              ApplicantUserCn = applicant.UserNameCn,
-                                              ApplicantUserEn = applicant.UserNameEn,
-                                              Comment = record.Comment,
-                                              CurrentStepNameCn = step.StepNameCn,
-                                              CurrentStepNameEn = step.StepNameEn,
-                                              ReviewPath = formType.ReviewPath,
-                                          })
-                                      .FirstAsync();
+                                      .InnerJoin<WorkflowStepEntity>((instance, formType, applicant, record, step) => instance.CurrentStepId == step.StepId)
+                                      .Where((instance, formType, applicant, record, step) => instance.FormId == formId)
+                                      .Select((instance, formType, applicant, record, step) => new FormNoticeReviewDto
+                                      {
+                                          FormId = instance.FormId,
+                                          FormNo = instance.FormNo,
+                                          FormTypeNameCn = formType.FormTypeNameCn,
+                                          FormTypeNameEn = formType.FormTypeNameEn,
+                                          ApplicantUserCn = applicant.UserNameCn,
+                                          ApplicantUserEn = applicant.UserNameEn,
+                                          Comment = record.Comment,
+                                          CurrentStepNameCn = step.StepNameCn,
+                                          CurrentStepNameEn = step.StepNameEn,
+                                          ReviewPath = formType.ReviewPath,
+                                      }).FirstAsync();
 
             if (formNotice == null)
             {
@@ -454,18 +446,14 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                                   group => group.First().AgentUserId);
 
             List<long> notifyUserIds = pendingUserIds
-                                       .Select(userId =>
-                                           agentMap.TryGetValue(userId, out long agentUserId)
+                                       .Select(userId => agentMap.TryGetValue(userId, out long agentUserId)
                                                ? agentUserId
                                                : userId)
                                        .Distinct()
                                        .ToList();
 
             List<UserInfoEntity> userList = await _db.Queryable<UserInfoEntity>()
-                                                     .Where(user =>
-                                                         notifyUserIds.Contains(user.UserId) &&
-                                                         user.IsRealtimeNotification == 1 &&
-                                                         !string.IsNullOrEmpty(user.Email))
+                                                     .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                                      .ToListAsync();
 
             if (userList.Count == 0)
@@ -478,16 +466,14 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 user => user.UserId,
                 _ => GenerateSecureToken());
 
-            List<FormNotificationTokenEntity> tokenEntities = tokens
-                                                              .Select(token => new FormNotificationTokenEntity
-                                                              {
-                                                                  FormId = formNotice.FormId,
-                                                                  ReviewUserId = token.Key,
-                                                                  Token = token.Value,
-                                                                  ExpirationTime = expirationTime,
-                                                                  CreatedDate = now,
-                                                              })
-                                                              .ToList();
+            var tokenEntities = tokens.Select(token => new FormNotificationTokenEntity
+                                      {
+                                          FormId = formNotice.FormId,
+                                          ReviewUserId = token.Key,
+                                          Token = token.Value,
+                                          ExpirationTime = expirationTime,
+                                          CreatedDate = now,
+                                      }).ToList();
 
             await _db.Insertable(tokenEntities).ExecuteCommandAsync();
 
@@ -590,29 +576,25 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             string template = EmailTemplateLoader.GetApprovedNotice();
 
             var formNotice = await _db.Queryable<FormInstanceEntity>()
-                                      .InnerJoin<FormTypeEntity>((instance, formType) =>
-                                          instance.FormTypeId == formType.FormTypeId)
-                                      .InnerJoin<UserInfoEntity>((instance, formType, user) =>
-                                          instance.ApplicantUserId == user.UserId)
+                                      .InnerJoin<FormTypeEntity>((instance, formType) => instance.FormTypeId == formType.FormTypeId)
+                                      .InnerJoin<UserInfoEntity>((instance, formType, user) => instance.ApplicantUserId == user.UserId)
                                       .Where((instance, formType, user) => instance.FormId == formId)
-                                      .Select((instance, formType, user) =>
-                                          new FormNoticeApprovedDto
-                                          {
-                                              FormId = instance.FormId,
-                                              FormNo = instance.FormNo,
-                                              FormTypeNameCn = formType.FormTypeNameCn,
-                                              FormTypeNameEn = formType.FormTypeNameEn,
-                                              ReviewPath = formType.ReviewPath,
-                                              ViewPath = formType.ViewPath,
-                                              UserId = user.UserId,
-                                              UserNameCn = user.UserNameCn,
-                                              UserNameEn = user.UserNameEn,
-                                              Gender = user.Gender,
-                                              Email = user.Email,
-                                              IsRealtimeNotification = user.IsRealtimeNotification,
-                                              NoticeLanguage = user.NoticeLanguage,
-                                          })
-                                      .FirstAsync();
+                                      .Select((instance, formType, user) => new FormNoticeApprovedDto
+                                      {
+                                          FormId = instance.FormId,
+                                          FormNo = instance.FormNo,
+                                          FormTypeNameCn = formType.FormTypeNameCn,
+                                          FormTypeNameEn = formType.FormTypeNameEn,
+                                          ReviewPath = formType.ReviewPath,
+                                          ViewPath = formType.ViewPath,
+                                          UserId = user.UserId,
+                                          UserNameCn = user.UserNameCn,
+                                          UserNameEn = user.UserNameEn,
+                                          Gender = user.Gender,
+                                          Email = user.Email,
+                                          IsRealtimeNotification = user.IsRealtimeNotification,
+                                          NoticeLanguage = user.NoticeLanguage,
+                                      }).FirstAsync();
 
             if (formNotice == null)
             {
@@ -620,10 +602,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             }
 
             long agentUserId = await _db.Queryable<UserAgentEntity>()
-                                        .Where(agent =>
-                                            agent.SubstituteUserId == formNotice.UserId &&
-                                            agent.StartTime <= now &&
-                                            agent.EndTime >= now)
+                                        .Where(agent => agent.SubstituteUserId == formNotice.UserId && agent.StartTime <= now && agent.EndTime >= now)
                                         .Select(agent => agent.AgentUserId)
                                         .FirstAsync();
 
@@ -632,16 +611,12 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             if (agentUserId > 0)
             {
                 recipient = await _db.Queryable<UserInfoEntity>()
-                                     .Where(user =>
-                                         user.UserId == agentUserId &&
-                                         user.IsRealtimeNotification == 1 &&
-                                         !string.IsNullOrEmpty(user.Email))
+                                     .Where(user => user.UserId == agentUserId && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                      .FirstAsync();
             }
             else
             {
-                if (formNotice.IsRealtimeNotification != 1 ||
-                    string.IsNullOrWhiteSpace(formNotice.Email))
+                if (formNotice.IsRealtimeNotification != 1 || string.IsNullOrWhiteSpace(formNotice.Email))
                 {
                     return new List<EmailMessage>();
                 }
@@ -738,6 +713,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 },
             };
         }
+
+        #endregion
+
+        #region 工具
 
         private string EncodeMessage(string key, string lang) =>
             WebUtility.HtmlEncode(
