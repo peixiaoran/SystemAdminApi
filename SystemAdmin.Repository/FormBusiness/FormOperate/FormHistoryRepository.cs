@@ -137,7 +137,9 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplyUserDeptName = _lang.Locale == "zh-CN"
                                ? applyuserdept.DepartmentNameCn
                                : applyuserdept.DepartmentNameEn,
+                ApplicantDate = instance.ApplicantDate,
                 ViewPath = formtype.ViewPath,
+                IsWithdraw = instance.FormStatus != FormStatus.Voided.ToEnumString() ? 1 : 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
         }
@@ -197,6 +199,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                ? applyuserdept.DepartmentNameCn
                                : applyuserdept.DepartmentNameEn,
                 ViewPath = formtype.ViewPath,
+                IsWithdraw = 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
         }

@@ -136,7 +136,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplicantDate = instance.ApplicantDate,
                 ReviewPath = formtype.ReviewPath,
                 ViewPath = formtype.ViewPath,
-                isVoided = (instance.ApplicantUserId == loginUserId && instance.FormStatus != FormStatus.Voided.ToEnumString()) ? 1 : 0
+                IsVoided = instance.FormStatus != FormStatus.Voided.ToEnumString() ? 1 : 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormPendingDto>.Ok(page, totalCount, "");
         }
@@ -196,7 +196,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplicantDate = instance.ApplicantDate,
                 ReviewPath = formtype.ReviewPath,
                 ViewPath = formtype.ViewPath,
-                isVoided = 0
+                IsVoided = 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormPendingDto>.Ok(page, totalCount, "");
         }

@@ -68,6 +68,6 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
         /// <summary>
         /// 是否可以作废
         /// </summary>
-        public int isVoided { get; set; }
+        public int IsVoided { get; set; }
     }
 }

@@ -75,7 +75,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     });
                     await _db.CommitTranAsync();
 
-                    return Result<SysUserLoginReturnDto>.Failure(400, _localization.ReturnMsg($"{_this}UserNotFound"));
+                    return Result<SysUserLoginReturnDto>.Failure(406, _localization.ReturnMsg($"{_this}UserNotFound"));
                 }
 
                 // 账号已冻结
