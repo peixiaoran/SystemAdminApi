@@ -184,7 +184,7 @@
     <value>核准完成</value>
   </data>
   <data name="InsufficientLeaveBalance" xml:space="preserve">
-    <value>{0} 在 {1} 年的 {2} 不足，剩余 {3} 天，申请 {4} 天</value>
+    <value>{0} 在 {1} 年的「 {2} 」不足，剩余 {3} 天，申请 {4} 天</value>
   </data>
   <data name="LeaveAnnualNotFound" xml:space="preserve">
     <value>{0} 在 {1} 年的 {2} 已无剩余天数</value>

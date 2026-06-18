@@ -44,7 +44,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var (stepInfo, ruleId) = await GetCurrentStepInfo(formId);
 
             // 手动核准
-            bool hasPendingUser = await ProcessStepApproval(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
+            bool hasPendingUser = await ProcessApprove(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
 
             // 会审尚有其他人未签，不推进流程，也不重复发送邮件。
             if (hasPendingUser)
@@ -64,14 +64,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             if (nextStep.NextStepId == null)
             {
                 await ApproveForm(formId);
-
                 return Result<bool>.Ok(true);
             }
 
             await AdvanceCurrentStep(formId, nextStep.NextStepId);
 
-            // 自动核准后续包含当前操作人的步骤。
-            return await AutoApproveIfSelfInNextSteps(formId);
+            // 自动核准
+            return await AutoApprove(formId);
         }
 
         /// <summary>
@@ -82,71 +81,78 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="reviewType"></param>
         /// <param name="comment"></param>
         /// <returns>true = 当前步骤还有剩余待审批人</returns>
-        private async Task<bool> ProcessStepApproval(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
+        private async Task<bool> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
         {
             string reviewMode = stepInfo.ReviewMode;
             var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
-            // 取当前登录用户在待审批人表中对应的归属人 UserId（登录用户可能是代理人）
-            long selfOriginalUserId = await _db.Queryable<PendingReviewEntity>()
-                                               .LeftJoin<UserAgentEntity>((pending, agent) => pending.ReviewUserId == agent.SubstituteUserId && agent.StartTime <= DateTime.Now && agent.EndTime >= DateTime.Now)
-                                               .Where((pending, agent) => pending.FormId == formId && pending.StepId == stepInfo.StepId && (pending.ReviewUserId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
-                                               .Select((pending, agent) => pending.ReviewUserId)
-                                               .FirstAsync();
-
-            if (reviewMode == ReviewMode.Review.ToEnumString())
+            // 自定义人可能会找不到，例如加签人员
+            if (selfAppointments.Count > 0)
             {
-                await _db.Deleteable<PendingReviewEntity>()
-                         .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                         .ExecuteCommandAsync();
+                // 取当前登录用户在待审批人表中对应的归属人 UserId（登录用户可能是代理人）
+                long selfOriginalUserId = await _db.Queryable<PendingReviewEntity>()
+                                                   .With(SqlWith.NoLock)
+                                                   .LeftJoin<UserAgentEntity>((pending, agent) => pending.ReviewUserId == agent.SubstituteUserId && agent.StartTime <= DateTime.Now && agent.EndTime >= DateTime.Now)
+                                                   .Where((pending, agent) => pending.FormId == formId && pending.StepId == stepInfo.StepId && (pending.ReviewUserId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
+                                                   .Select((pending, agent) => pending.ReviewUserId)
+                                                   .FirstAsync();
 
-                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
-            }
-            else if (reviewMode == ReviewMode.OrReview.ToEnumString())
-            {
-                // 排除自己，其余人仍需记录
-                var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>()
-                                                   .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId != selfOriginalUserId)
-                                                   .Select(pending => pending.ReviewUserId)
-                                                   .ToListAsync();
-
-                await _db.Deleteable<PendingReviewEntity>()
-                         .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                         .ExecuteCommandAsync();
-
-                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
-
-                foreach (long otherUserId in otherPendingUserIds)
+                if (reviewMode == ReviewMode.Review.ToEnumString())
                 {
-                    // 其他人的自动操作记录：操作人视为归属人本人
-                    var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
-                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
+                    await _db.Deleteable<PendingReviewEntity>()
+                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                             .ExecuteCommandAsync();
+
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
                 }
-            }
-            else if (reviewMode == ReviewMode.AndReview.ToEnumString())
-            {
-                // 会审：按归属人 UserId 删除自己的待审批记录
-                await _db.Deleteable<PendingReviewEntity>()
-                         .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId == selfOriginalUserId)
+                else if (reviewMode == ReviewMode.OrReview.ToEnumString())
+                {
+                    // 排除自己，其余人仍需记录
+                    var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>().With(SqlWith.NoLock)
+                                                       .With(SqlWith.NoLock)
+                                                       .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId != selfOriginalUserId)
+                                                       .Select(pending => pending.ReviewUserId)
+                                                       .ToListAsync();
+
+                    await _db.Deleteable<PendingReviewEntity>()
+                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                             .ExecuteCommandAsync();
+
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
+
+                    foreach (long otherUserId in otherPendingUserIds)
+                    {
+                        // 其他人的自动操作记录：操作人视为归属人本人
+                        var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
+                    }
+                }
+                else if (reviewMode == ReviewMode.AndReview.ToEnumString())
+                {
+                    // 会审：按归属人 UserId 删除自己的待审批记录
+                    await _db.Deleteable<PendingReviewEntity>()
+                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId == selfOriginalUserId)
+                             .ExecuteCommandAsync();
+
+                    await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
+                }
+
+                await _db.Updateable<FormInstanceEntity>()
+                         .SetColumns(instance => instance.FormStatus == FormStatus.UnderReview.ToEnumString())
+                         .Where(instance => instance.FormId == formId)
                          .ExecuteCommandAsync();
-
-                await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
             }
-
-            await _db.Updateable<FormInstanceEntity>()
-                     .SetColumns(instance => instance.FormStatus == FormStatus.UnderReview.ToEnumString())
-                     .Where(instance => instance.FormId == formId)
-                     .ExecuteCommandAsync();
 
             return await _db.Queryable<PendingReviewEntity>()
+                            .With(SqlWith.NoLock)
                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
                             .AnyAsync();
         }
 
         /// <summary>
-        /// 自动核准后续包含当前操作人的步骤（仅执行数据库流程）
+        /// 自动核准
         /// </summary>
-        private async Task<Result<bool>> AutoApproveIfSelfInNextSteps(long formId)
+        private async Task<Result<bool>> AutoApprove(long formId)
         {
             while (true)
             {
@@ -174,6 +180,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }
 
                 var selfPendingUserId = await _db.Queryable<PendingReviewEntity>()
+                                                 .With(SqlWith.NoLock)
                                                  .LeftJoin<UserAgentEntity>((pending, agent) =>
                                                      pending.ReviewUserId == agent.SubstituteUserId &&
                                                      agent.StartTime <= DateTime.Now &&
@@ -198,67 +205,70 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 {
                     var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
-                    await _db.Deleteable<PendingReviewEntity>()
-                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                             .ExecuteCommandAsync();
+                    if (selfAppointments.Count > 0)
+                    {
+                        await _db.Deleteable<PendingReviewEntity>()
+                                 .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                                 .ExecuteCommandAsync();
 
-                    await InsertReviewRecords(
-                        formId, stepInfo.StepId, ReviewResult.Approve, null,
-                        selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+                    }
                 }
                 else if (reviewMode == ReviewMode.OrReview.ToEnumString())
                 {
                     var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
-                    var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>()
-                                                       .Where(pending =>
-                                                           pending.FormId == formId &&
-                                                           pending.StepId == stepInfo.StepId &&
-                                                           pending.ReviewUserId != selfPendingUserId)
-                                                       .Select(pending => pending.ReviewUserId)
-                                                       .ToListAsync();
-
-                    await _db.Deleteable<PendingReviewEntity>()
-                             .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
-                             .ExecuteCommandAsync();
-
-                    await InsertReviewRecords(
-                        formId, stepInfo.StepId, ReviewResult.Approve, null,
-                        selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
-
-                    foreach (long otherUserId in otherPendingUserIds)
+                    if (selfAppointments.Count > 0)
                     {
-                        var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
+                        var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>()
+                                                           .With(SqlWith.NoLock)
+                                                           .Where(pending =>
+                                                               pending.FormId == formId &&
+                                                               pending.StepId == stepInfo.StepId &&
+                                                               pending.ReviewUserId != selfPendingUserId)
+                                                           .Select(pending => pending.ReviewUserId)
+                                                           .ToListAsync();
 
-                        await InsertReviewRecords(
-                            formId, stepInfo.StepId, ReviewResult.Approve, null,
-                            otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
+                        await _db.Deleteable<PendingReviewEntity>()
+                                 .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId)
+                                 .ExecuteCommandAsync();
+
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+
+                        foreach (long otherUserId in otherPendingUserIds)
+                        {
+                            var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
+
+                            await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
+                        }
                     }
                 }
                 else if (reviewMode == ReviewMode.AndReview.ToEnumString())
                 {
                     var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
-                    await _db.Deleteable<PendingReviewEntity>()
-                             .Where(pending =>
-                                 pending.FormId == formId &&
-                                 pending.StepId == stepInfo.StepId &&
-                                 pending.ReviewUserId == selfPendingUserId)
-                             .ExecuteCommandAsync();
-
-                    await InsertReviewRecords(
-                        formId, stepInfo.StepId, ReviewResult.Approve, null,
-                        selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
-
-                    bool othersPending = await _db.Queryable<PendingReviewEntity>()
-                                                  .Where(pending =>
-                                                      pending.FormId == formId &&
-                                                      pending.StepId == stepInfo.StepId)
-                                                  .AnyAsync();
-
-                    if (othersPending)
+                    if (selfAppointments.Count > 0)
                     {
-                        return Result<bool>.Ok(true);
+                        await _db.Deleteable<PendingReviewEntity>()
+                                 .Where(pending =>
+                                     pending.FormId == formId &&
+                                     pending.StepId == stepInfo.StepId &&
+                                     pending.ReviewUserId == selfPendingUserId)
+                                 .ExecuteCommandAsync();
+
+                        await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, string.Empty, ReviewType.Automatic, _loginuser.UserId);
+
+                        bool othersPending = await _db.Queryable<PendingReviewEntity>()
+                                                      .With(SqlWith.NoLock)
+                                                      .Where(pending =>
+                                                          pending.FormId == formId &&
+                                                          pending.StepId == stepInfo.StepId)
+                                                      .AnyAsync();
+
+                        if (othersPending)
+                        {
+                            return Result<bool>.Ok(true);
+                        }
                     }
                 }
 
@@ -293,7 +303,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <returns></returns>
         private async Task EnsurePendingReviewExists(long formId, long stepId)
         {
-            bool hasPending = await _db.Queryable<PendingReviewEntity>()
+            bool hasPending = await _db.Queryable<PendingReviewEntity>().With(SqlWith.NoLock)
                                        .Where(pending => pending.FormId == formId && pending.StepId == stepId)
                                        .AnyAsync();
             if (hasPending)
@@ -334,6 +344,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private async Task<List<UserAppointment>> GetStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
         {
             var formDetail = await _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
                                       .InnerJoin<UserInfoEntity>((instance, user) => instance.ApplicantUserId == user.UserId)
                                       .InnerJoin<DepartmentInfoEntity>((instance, user, dept) => user.DepartmentId == dept.DepartmentId)
                                       .InnerJoin<DepartmentLevelEntity>((instance, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
@@ -350,6 +361,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       }).FirstAsync();
 
             var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                           .With(SqlWith.NoLock)
                                            .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
 
             List<UserAppointment> result;
@@ -361,6 +373,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             else if (stepInfo.Assignment == Assignment.Org.ToEnumString())
             {
                 var orgInfo = await _db.Queryable<WorkflowStepOrgEntity>()
+                                       .With(SqlWith.NoLock)
                                        .Where(steporg => steporg.StepId == stepInfo.StepId)
                                        .FirstAsync();
                 result = await GetOrgReviewUser(applyParentDept, orgInfo.DeptLeaveId, orgInfo.PositionId, stepInfo.ReviewMode);
@@ -368,6 +381,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             else if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
             {
                 var deptUserInfo = await _db.Queryable<WorkflowStepDeptUserEntity>()
+                                            .With(SqlWith.NoLock)
                                             .Where(stepdeptuser => stepdeptuser.StepId == stepInfo.StepId)
                                             .FirstAsync();
                 result = await GetDeptUserReviewUser(deptUserInfo.DepartmentId, deptUserInfo.PositionId, stepInfo.ReviewMode);
@@ -375,6 +389,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             else if (stepInfo.Assignment == Assignment.User.ToEnumString())
             {
                 var userInfo = await _db.Queryable<WorkflowStepUserEntity>()
+                                        .With(SqlWith.NoLock)
                                         .Where(stepuser => stepuser.StepId == stepInfo.StepId)
                                         .FirstAsync();
                 result = await GetUserReviewUser(userInfo.UserId, stepInfo.ReviewMode);
@@ -382,6 +397,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             else if (stepInfo.Assignment == Assignment.Custom.ToEnumString())
             {
                 var customInfo = await _db.Queryable<WorkflowStepCustomEntity>()
+                                          .With(SqlWith.NoLock)
                                           .Where(steporg => steporg.StepId == stepInfo.StepId)
                                           .FirstAsync();
                 result = await GetCustomReviewUser(formDetail.FormId, customInfo.Guidance, stepInfo.ReviewMode);
@@ -457,10 +473,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         public async Task<List<UserAppointment>> GetOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, long deptLeaveId, long positionId, string reviewMode)
         {
             var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
+                                     .With(SqlWith.NoLock)
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == deptLeaveId)
                                      .FirstAsync();
 
             var position = await _db.Queryable<PositionInfoEntity>()
+                                    .With(SqlWith.NoLock)
                                     .Where(position => position.PositionId == positionId)
                                     .FirstAsync();
 
@@ -683,14 +701,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         public async Task<List<UserAppointment>> GetDeptUserReviewUser(long departmentId, long positionId, string reviewMode)
         {
             var position = await _db.Queryable<PositionInfoEntity>()
+                                    .With(SqlWith.NoLock)
                                     .Where(position => position.PositionId == positionId)
                                     .FirstAsync();
 
             var dept = await _db.Queryable<DepartmentInfoEntity>()
+                                .With(SqlWith.NoLock)
                                 .Where(dept => dept.DepartmentId == departmentId)
                                 .FirstAsync();
 
             var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
+                                     .With(SqlWith.NoLock)
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
                                      .FirstAsync();
 
@@ -797,6 +818,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
                 var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
                                                .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
                 var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
@@ -914,18 +936,22 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         public async Task<List<UserAppointment>> GetUserReviewUser(long userId, string reviewMode)
         {
             var user = await _db.Queryable<UserInfoEntity>()
+                                .With(SqlWith.NoLock)
                                 .Where(user => user.UserId == userId)
                                 .FirstAsync();
 
             var position = await _db.Queryable<PositionInfoEntity>()
+                                    .With(SqlWith.NoLock)
                                     .Where(position => position.PositionId == user.PositionId)
                                     .FirstAsync();
 
             var dept = await _db.Queryable<DepartmentInfoEntity>()
+                                .With(SqlWith.NoLock)
                                 .Where(dept => dept.DepartmentId == user.DepartmentId)
                                 .FirstAsync();
 
             var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
+                                     .With(SqlWith.NoLock)
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
                                      .FirstAsync();
 
@@ -994,6 +1020,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int currentDeptLevelSort = deptlevel.SortOrder;
 
                 var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                               .With(SqlWith.NoLock)
                                                .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
                 var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
@@ -1089,18 +1116,22 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 long userId = custom.UserId;
                 var user = await _db.Queryable<UserInfoEntity>()
+                                    .With(SqlWith.NoLock)
                                     .Where(user => user.UserId == userId)
                                     .FirstAsync();
 
                 var position = await _db.Queryable<PositionInfoEntity>()
+                                        .With(SqlWith.NoLock)
                                         .Where(position => position.PositionId == custom.PositionId)
                                         .FirstAsync();
 
                 var dept = await _db.Queryable<DepartmentInfoEntity>()
+                                    .With(SqlWith.NoLock)
                                     .Where(dept => dept.DepartmentId == custom.DepartmentId)
                                     .FirstAsync();
 
                 var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
+                                         .With(SqlWith.NoLock)
                                          .Where(deptlevel => deptlevel.DepartmentLevelId == custom.DepartmentLevelId)
                                          .FirstAsync();
 
@@ -1192,6 +1223,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     int currentDeptLevelSort = deptlevel.SortOrder;
 
                     var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                                   .With(SqlWith.NoLock)
                                                    .ToParentListAsync(dept => dept.ParentId, dept.DepartmentId);
                     var parentDeptIds = string.Join(',', applyParentDept.Select(dept => dept.DepartmentId).ToList());
 
@@ -2161,6 +2193,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             if (stepInfo.Assignment == Assignment.Custom.ToEnumString())
             {
                 var customInfo = await _db.Queryable<WorkflowStepCustomEntity>()
+                                          .With(SqlWith.NoLock)
                                           .Where(custom => custom.StepId == stepInfo.StepId)
                                           .FirstAsync();
 
@@ -2178,6 +2211,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             else
             {
                 var formDetail = await _db.Queryable<FormInstanceEntity>()
+                                          .With(SqlWith.NoLock)
                                           .InnerJoin<UserInfoEntity>((instance, user) => instance.ApplicantUserId == user.UserId)
                                           .InnerJoin<DepartmentInfoEntity>((instance, user, dept) => user.DepartmentId == dept.DepartmentId)
                                           .InnerJoin<DepartmentLevelEntity>((instance, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
@@ -2190,14 +2224,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                           }).FirstAsync();
 
                 var orgInfo = await _db.Queryable<WorkflowStepOrgEntity>()
+                                       .With(SqlWith.NoLock)
                                        .Where(steporg => steporg.StepId == stepInfo.StepId)
                                        .FirstAsync();
 
                 var configDeptLevel = await _db.Queryable<DepartmentLevelEntity>()
+                                               .With(SqlWith.NoLock)
                                                .Where(deptlevel => deptlevel.DepartmentLevelId == orgInfo.DeptLeaveId)
                                                .FirstAsync();
 
                 var configPosition = await _db.Queryable<PositionInfoEntity>()
+                                              .With(SqlWith.NoLock)
                                               .Where(postion => postion.PositionId == orgInfo.PositionId)
                                               .FirstAsync();
 
@@ -2214,6 +2251,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private async Task<WorkflowRuleStepEntity> GetNextStep(long ruleId, long currentStepId)
         {
             return await _db.Queryable<WorkflowRuleStepEntity>()
+                            .With(SqlWith.NoLock)
                             .Where(rulestep => rulestep.RuleId == ruleId && rulestep.CurrentStepId == currentStepId)
                             .FirstAsync();
         }
@@ -2258,6 +2296,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private async Task<(WorkflowStepEntity StepInfo, long RuleId)> GetCurrentStepInfo(long formId)
         {
             var entity = await _db.Queryable<FormInstanceEntity>()
+                                  .With(SqlWith.NoLock)
                                   .InnerJoin<WorkflowStepEntity>((instance, step) => instance.CurrentStepId == step.StepId)
                                   .Where((instance, step) => instance.FormId == formId)
                                   .Select((instance, step) => new
@@ -2277,11 +2316,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private async Task<Result<bool>> ExecuteStepGuidance(long formId)
         {
             var form = await _db.Queryable<FormInstanceEntity>()
+                                .With(SqlWith.NoLock)
                                 .Where(instance => instance.FormId == formId)
                                 .Select(instance => new { instance.RuleId, instance.CurrentStepId })
                                 .FirstAsync();
 
             var guidance = await _db.Queryable<WorkflowRuleStepEntity>()
+                                    .With(SqlWith.NoLock)
                                     .Where(rulestep => rulestep.RuleId == form.RuleId && rulestep.CurrentStepId == form.CurrentStepId)
                                     .Select(rulestep => rulestep.Guidance)
                                     .FirstAsync();
@@ -2307,20 +2348,19 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             long rejectStepId = long.Parse(rejectForm.RejectStepId);
 
             var rejectStep = await _db.Queryable<WorkflowStepEntity>()
+                                      .With(SqlWith.NoLock)
                                       .Where(step => step.StepId == rejectStepId)
                                       .FirstAsync();
 
             var currentStep = await _db.Queryable<FormInstanceEntity>()
+                                       .With(SqlWith.NoLock)
                                        .InnerJoin<WorkflowStepEntity>((instance, step) =>
                                            instance.CurrentStepId == step.StepId)
                                        .Where((instance, step) => instance.FormId == formId)
                                        .Select((instance, step) => step)
                                        .FirstAsync();
 
-            var selfAppointments = await GetStepReviewUser(
-                formId,
-                currentStep,
-                _loginuser.UserId);
+            var selfAppointments = await GetStepReviewUser(formId, currentStep, _loginuser.UserId);
 
             // 清空该表单所有待审批人。删除 0 行不代表业务失败。
             await _db.Deleteable<PendingReviewEntity>()
@@ -2352,9 +2392,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             return Result<bool>.Ok(true);
         }
 
-        #endregion
-
-        #region 审批日志记录
         #endregion
 
         #region 审批日志记录

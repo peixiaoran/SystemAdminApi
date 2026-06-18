@@ -37,9 +37,17 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[请假单] 查询假期余额")]
-        public async Task<Result<List<LeaveBalanceDto>>> GetLeaveBalances([FromForm] string year)
+        public async Task<Result<List<LeaveBalanceDto>>> GetLeaveBalances([FromForm] string formId, [FromForm] string years)
         {
-            return await _leaveFormService.GetLeaveBalances(year);
+            return await _leaveFormService.GetLeaveBalances(formId, years);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[请假单] 验证假期余额")]
+        public async Task<Result<bool>> ValidateLeaveBalance([FromForm] string formId)
+        {
+            return await _leaveFormService.ValidateLeaveBalance(formId);
         }
 
         [HttpPost]

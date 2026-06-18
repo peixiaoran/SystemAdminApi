@@ -39,7 +39,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly FormReviewAction _formction;
         private readonly FormReviewFlow _formflow;
         private readonly LocalizationService _localization;
-        private readonly string _form = "FormBusiness.Forms.";
+        private readonly string _form = "FormBusiness.Forms";
         private const string WorkflowLocalizationPrefix = "FormBusiness.Workflow";
         private readonly string _formLocalizationPrefix = "Form";
 
@@ -71,7 +71,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             var entity = await _formmanger.GetFormNotificationTokenWithUser(token);
             if (entity == null)
             {
-                return Result<FormNotificationReturnDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
+                return Result<FormNotificationReturnDto>.Failure(400, _localization.ReturnMsg($"{_form}.NotCanView"));
             }
             else
             {
@@ -103,7 +103,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             {
                 if (attachments == null || attachments.Count == 0)
                 {
-                    return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}AttachmentNotNull"));
+                    return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentNotNull"));
                 }
 
                 long maxAttachmentSize = _attachmentUpload.MaxSizeMB * 1024L * 1024L;
@@ -114,17 +114,17 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 {
                     if (attachment == null || attachment.Length == 0)
                     {
-                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}AttachmentNotNull"));
+                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentNotNull"));
                     }
                     if (attachment.Length > maxAttachmentSize)
                     {
-                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}AttachmentSizeLimit"));
+                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentSizeLimit"));
                     }
 
                     var attachmentExt = Path.GetExtension(attachment.FileName)?.ToLowerInvariant();
                     if (string.IsNullOrWhiteSpace(attachmentExt) || !_attachmentUpload.AllowExtensions.Contains(attachmentExt))
                     {
-                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}AttachmentExtensionNotAllow"));
+                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentExtensionNotAllow"));
                     }
 
                     using var stream = attachment.OpenReadStream();
@@ -148,13 +148,13 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 }
                 await _db.CommitTranAsync();
 
-                return Result<List<FormAttachmentDto>>.Ok(formAttachmentList, _localization.ReturnMsg($"{_form}UploadSuccess"));
+                return Result<List<FormAttachmentDto>>.Ok(formAttachmentList, _localization.ReturnMsg($"{_form}.UploadSuccess"));
             }
             catch (Exception ex)
             {
                 await _db.RollbackTranAsync();
                 _logger.LogError(ex, ex.Message);
-                return Result<List<FormAttachmentDto>>.Failure(500, _localization.ReturnMsg($"{_form}UploadFailed"));
+                return Result<List<FormAttachmentDto>>.Failure(500, _localization.ReturnMsg($"{_form}.UploadFailed"));
             }
         }
 
@@ -170,7 +170,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             {
                 if (string.IsNullOrEmpty(attachmentId))
                 {
-                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_form}AttachmentIdNotNull"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentIdNotNull"));
                 }
 
                 await _db.BeginTranAsync();
@@ -184,7 +184,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             {
                 await _db.RollbackTranAsync();
                 _logger.LogError(ex, ex.Message);
-                return Result<int>.Failure(500, _localization.ReturnMsg($"{_form}DeleteAttachmentFailed"));
+                return Result<int>.Failure(500, _localization.ReturnMsg($"{_form}.DeleteAttachmentFailed"));
             }
         }
 
@@ -409,22 +409,12 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                           ReviewPath = formType.ReviewPath,
                                       }).FirstAsync();
 
-            if (formNotice == null)
-            {
-                return new List<EmailMessage>();
-            }
-
             List<long> pendingUserIds = await _db.Queryable<PendingReviewEntity>()
                                                  .Where(pending =>
                                                      pending.FormId == formId &&
                                                      pending.StepId == stepId)
                                                  .Select(pending => pending.ReviewUserId)
                                                  .ToListAsync();
-
-            if (pendingUserIds.Count == 0)
-            {
-                return new List<EmailMessage>();
-            }
 
             var agentRows = await _db.Queryable<UserAgentEntity>()
                                      .Where(agent =>
@@ -467,13 +457,13 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 _ => GenerateSecureToken());
 
             var tokenEntities = tokens.Select(token => new FormNotificationTokenEntity
-                                      {
-                                          FormId = formNotice.FormId,
-                                          ReviewUserId = token.Key,
-                                          Token = token.Value,
-                                          ExpirationTime = expirationTime,
-                                          CreatedDate = now,
-                                      }).ToList();
+            {
+                FormId = formNotice.FormId,
+                ReviewUserId = token.Key,
+                Token = token.Value,
+                ExpirationTime = expirationTime,
+                CreatedDate = now,
+            }).ToList();
 
             await _db.Insertable(tokenEntities).ExecuteCommandAsync();
 
@@ -486,9 +476,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             foreach (UserInfoEntity user in userList)
             {
                 string lang = user.NoticeLanguage;
-                string rawName = lang == "zh-CN"
-                    ? user.UserNameCn
-                    : user.UserNameEn;
+                string rawName = lang == "zh-CN" ? user.UserNameCn : user.UserNameEn;
                 string name = WebUtility.HtmlEncode(rawName ?? string.Empty);
 
                 string titleKey = user.Gender switch
@@ -499,39 +487,18 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 };
 
                 string title = _localization.ReturnMsg(titleKey, lang);
-                string greeting = _localization.ReturnMsg(
-                    $"{WorkflowLocalizationPrefix}.EmailNoticeGreetingTemplate",
-                    lang,
-                    name,
-                    title);
-
-                string headerTitle = _localization.ReturnMsg(
-                    $"{WorkflowLocalizationPrefix}.EmailNoticePendingTitle",
-                    lang);
+                string greeting = _localization.ReturnMsg($"{WorkflowLocalizationPrefix}.EmailNoticeGreetingTemplate", lang, name, title);
+                string headerTitle = _localization.ReturnMsg($"{WorkflowLocalizationPrefix}.EmailNoticePendingTitle", lang);
                 string subjectPrefix = headerTitle;
                 string resultText = result == ReviewResult.Approve
-                    ? _localization.ReturnMsg(
-                        $"{WorkflowLocalizationPrefix}.EmailNoticeResultApprove",
-                        lang)
-                    : _localization.ReturnMsg(
-                        $"{WorkflowLocalizationPrefix}.EmailNoticeResultReject",
-                        lang);
+                    ? _localization.ReturnMsg($"{WorkflowLocalizationPrefix}.EmailNoticeResultApprove", lang)
+                    : _localization.ReturnMsg($"{WorkflowLocalizationPrefix}.EmailNoticeResultReject", lang);
 
-                string formTypeName = lang == "zh-CN"
-                    ? formNotice.FormTypeNameCn
-                    : formNotice.FormTypeNameEn;
-                string applicantUser = lang == "zh-CN"
-                    ? formNotice.ApplicantUserCn
-                    : formNotice.ApplicantUserEn;
-                string currentStepName = lang == "zh-CN"
-                    ? formNotice.CurrentStepNameCn
-                    : formNotice.CurrentStepNameEn;
+                string formTypeName = lang == "zh-CN" ? formNotice.FormTypeNameCn : formNotice.FormTypeNameEn;
+                string applicantUser = lang == "zh-CN" ? formNotice.ApplicantUserCn : formNotice.ApplicantUserEn;
+                string currentStepName = lang == "zh-CN" ? formNotice.CurrentStepNameCn : formNotice.CurrentStepNameEn;
 
-                string reviewUrl = BuildReviewUrl(
-                    _formNotice.BaseDomain,
-                    formNotice.ReviewPath,
-                    lang,
-                    tokens[user.UserId]);
+                string reviewUrl = BuildReviewUrl(_formNotice.BaseDomain, formNotice.ReviewPath, lang, tokens[user.UserId]);
 
                 string body = template
                               .Replace("{{Title}}", WebUtility.HtmlEncode(headerTitle))

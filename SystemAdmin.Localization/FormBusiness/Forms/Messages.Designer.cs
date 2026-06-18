@@ -106,6 +106,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 {0} 年「{1}」余额不足，本次请假 {2} 天，可用余额 {3} 天 的本地化字符串。
+        /// </summary>
+        internal static string LeaveBalanceNotEnough {
+            get {
+                return ResourceManager.GetString("LeaveBalanceNotEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 无权申请此表单 的本地化字符串。
         /// </summary>
         internal static string NotCanApply {

@@ -584,13 +584,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string dicNameCol = isChinese ? "dic.DicNameCn" : "dic.DicNameEn";
 
             var position = await _db.Queryable<PositionInfoEntity>()
-                                   .With(SqlWith.NoLock)
-                                   .Where(position => position.PositionId == positionId)
-                                   .FirstAsync();
+                                    .With(SqlWith.NoLock)
+                                    .Where(position => position.PositionId == positionId)
+                                    .FirstAsync();
+
             var dept = await _db.Queryable<DepartmentInfoEntity>()
                                 .With(SqlWith.NoLock)
                                 .Where(dept => dept.DepartmentId == departmentId)
                                 .FirstAsync();
+
             var deptlevel = await _db.Queryable<DepartmentLevelEntity>()
                                      .With(SqlWith.NoLock)
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)

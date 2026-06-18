@@ -13,11 +13,11 @@
         /// <summary>
         /// 年假剩余天数
         /// </summary>
-        public int AnnualRemainingDays { get; set; }
+        public decimal AnnualRemainingDays { get; set; }
 
         /// <summary>
         /// 病假剩余天数
         /// </summary>
-        public int SickRemainingDays { get; set; }
+        public decimal SickRemainingDays { get; set; }
     }
 }

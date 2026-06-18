@@ -153,4 +153,7 @@
   <data name="NotCanView" xml:space="preserve">
     <value>无权查看此表单</value>
   </data>
+  <data name="LeaveBalanceNotEnough" xml:space="preserve">
+    <value>{0} 年「{1}」余额不足，本次请假 {2} 天，可用余额 {3} 天</value>
+  </data>
 </root>

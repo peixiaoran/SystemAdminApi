@@ -153,4 +153,7 @@
   <data name="NotCanView" xml:space="preserve">
     <value>You do not have permission to view this form</value>
   </data>
+  <data name="LeaveBalanceNotEnough" xml:space="preserve">
+    <value>Insufficient {1} leave balance for year {0}. Requested: {2} day(s), Available: {3} day(s)</value>
+  </data>
 </root>

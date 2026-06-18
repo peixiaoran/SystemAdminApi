@@ -184,7 +184,7 @@
     <value>Approved</value>
   </data>
   <data name="InsufficientLeaveBalance" xml:space="preserve">
-    <value>{0} does not have enough {2} days for {1}. Available: {3} days; Requested: {4} days</value>
+    <value>{0} does not have enough「 {2}  」days for {1}. Available: {3} days; Requested: {4} days</value>
   </data>
   <data name="LeaveAnnualNotFound" xml:space="preserve">
     <value>{0} has no {2} days remaining for {1}</value>
