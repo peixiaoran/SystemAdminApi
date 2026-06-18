@@ -108,7 +108,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 else if (reviewMode == ReviewMode.OrReview.ToEnumString())
                 {
                     // 排除自己，其余人仍需记录
-                    var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>().With(SqlWith.NoLock)
+                    var otherPendingUserIds = await _db.Queryable<PendingReviewEntity>()
                                                        .With(SqlWith.NoLock)
                                                        .Where(pending => pending.FormId == formId && pending.StepId == stepInfo.StepId && pending.ReviewUserId != selfOriginalUserId)
                                                        .Select(pending => pending.ReviewUserId)

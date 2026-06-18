@@ -143,12 +143,13 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                await _db.BeginTranAsync();
                 var isCan = await _formChecker.CanVoided(long.Parse(formId));
                 if (!isCan)
                 {
                     return Result<int>.Ok(500, _localization.ReturnMsg($"{_this}NotCanVoided"));
                 }
+
+                await _db.BeginTranAsync();
                 var count = await _formPendingRepo.VoidedForm(long.Parse(formId), _loginuser.UserId);
                 await _db.CommitTranAsync();
 

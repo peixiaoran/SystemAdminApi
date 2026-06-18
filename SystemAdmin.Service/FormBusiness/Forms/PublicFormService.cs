@@ -380,13 +380,14 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         #region 邮件通知
 
         /// <summary>
-        /// 生成待审批人邮件，并写入邮件 Token
+        /// 生成待审批邮件
         /// </summary>
         private async Task<List<EmailMessage>> BuildPendingReviewerEmailsAsync(long formId, long stepId, ReviewResult result)
         {
             DateTime now = DateTime.Now;
 
             var formNotice = await _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
                                       .InnerJoin<FormTypeEntity>((instance, formType) => instance.FormTypeId == formType.FormTypeId)
                                       .InnerJoin<UserInfoEntity>((instance, formType, applicant) => instance.ApplicantUserId == applicant.UserId)
                                       .InnerJoin<FormReviewRecordEntity>((instance, formType, applicant, record) => instance.FormId == record.FormId &&
@@ -410,6 +411,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                       }).FirstAsync();
 
             List<long> pendingUserIds = await _db.Queryable<PendingReviewEntity>()
+                                                 .With(SqlWith.NoLock)
                                                  .Where(pending =>
                                                      pending.FormId == formId &&
                                                      pending.StepId == stepId)
@@ -417,6 +419,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                                  .ToListAsync();
 
             var agentRows = await _db.Queryable<UserAgentEntity>()
+                                     .With(SqlWith.NoLock)
                                      .Where(agent =>
                                          pendingUserIds.Contains(agent.SubstituteUserId) &&
                                          agent.StartTime <= now &&
@@ -442,9 +445,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                        .Distinct()
                                        .ToList();
 
-            List<UserInfoEntity> userList = await _db.Queryable<UserInfoEntity>()
-                                                     .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
-                                                     .ToListAsync();
+            var userList = await _db.Queryable<UserInfoEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && string.IsNullOrEmpty(user.Email))
+                                    .ToListAsync();
 
             if (userList.Count == 0)
             {
@@ -535,7 +539,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 生成申请人核准完成邮件，并写入邮件 Token。
+        /// 生成核准完成邮件
         /// </summary>
         private async Task<List<EmailMessage>> BuildApplicantApprovedEmailsAsync(long formId)
         {
@@ -543,6 +547,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             string template = EmailTemplateLoader.GetApprovedNotice();
 
             var formNotice = await _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
                                       .InnerJoin<FormTypeEntity>((instance, formType) => instance.FormTypeId == formType.FormTypeId)
                                       .InnerJoin<UserInfoEntity>((instance, formType, user) => instance.ApplicantUserId == user.UserId)
                                       .Where((instance, formType, user) => instance.FormId == formId)
@@ -569,6 +574,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             }
 
             long agentUserId = await _db.Queryable<UserAgentEntity>()
+                                        .With(SqlWith.NoLock)
                                         .Where(agent => agent.SubstituteUserId == formNotice.UserId && agent.StartTime <= now && agent.EndTime >= now)
                                         .Select(agent => agent.AgentUserId)
                                         .FirstAsync();
@@ -578,6 +584,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             if (agentUserId > 0)
             {
                 recipient = await _db.Queryable<UserInfoEntity>()
+                                     .With(SqlWith.NoLock)
                                      .Where(user => user.UserId == agentUserId && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                      .FirstAsync();
             }

@@ -103,7 +103,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         {
             return await _db.Queryable<FormInstanceEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(instance => instance.ApplicantUserId == _loginuser.UserId && (instance.FormStatus == FormStatus.PendingSubmit.ToEnumString() || instance.FormStatus == FormStatus.Rejected.ToEnumString()))
+                            .Where(instance => instance.ApplicantUserId == _loginuser.UserId && instance.FormStatus == FormStatus.Approved.ToEnumString())
                             .AnyAsync();
         }
     }
