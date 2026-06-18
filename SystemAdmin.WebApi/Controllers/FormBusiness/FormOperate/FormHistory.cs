@@ -57,5 +57,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         {
             return await _formHistoryService.GetReviewHistoryPage(getpage);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单作业模块")]
+        [EndpointSummary("[表单历史记录] 表单撤回")]
+        public async Task<Result<int>> WithdrawForm([FromForm] string formId)
+        {
+            return await _formHistoryService.WithdrawForm(formId);
+        }
     }
 }

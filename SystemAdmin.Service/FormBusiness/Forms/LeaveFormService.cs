@@ -398,7 +398,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     };
 
                     await _leaveForm.InitLeaveForm(leaveForm);
-                    await _formmanger.MatchWorkflowRuleAsync(long.Parse(formTypeId), long.Parse(formId));
+                    await _formmanger.MatchWorkflowRule(long.Parse(formTypeId), long.Parse(formId));
                     await _db.CommitTranAsync();
 
                     var leaveFormDto = await _leaveForm.GetLeaveForm(long.Parse(formId));

@@ -1,4 +1,5 @@
 ﻿using SqlSugar;
+using System.Data;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
@@ -8,20 +9,24 @@ using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
+using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
+using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
 {
     public class FormHistoryRepository
     {
         private readonly SqlSugarScope _db;
+        private readonly WorkflowRuleConditions _workflowRuleConditions;
         private readonly Language _lang;
 
-        public FormHistoryRepository(SqlSugarScope db, Language lang)
+        public FormHistoryRepository(SqlSugarScope db, WorkflowRuleConditions workflowRuleConditions, Language lang)
         {
             _db = db;
+            _workflowRuleConditions = workflowRuleConditions;
             _lang = lang;
         }
 
@@ -194,6 +199,220 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ViewPath = formtype.ViewPath,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 表单撤回-待审批人还原
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <param name="loginUserId"></param>
+        /// <returns></returns>
+        public async Task<int> WithdrawPendingSubmit(long formId, long loginUserId)
+        {
+            var formTypeId = await _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .Where(instance => instance.FormId == formId)
+                                      .Select(instance => instance.FormTypeId)
+                                      .FirstAsync();
+
+            var startStepId = await _db.Queryable<WorkflowStepEntity>()
+                                       .With(SqlWith.NoLock)
+                                       .Where(step => step.FormTypeId == formTypeId && step.IsStartStep == 1)
+                                       .Select(step => step.StepId)
+                                       .FirstAsync();
+
+            await _db.Deleteable<PendingReviewEntity>()
+                     .Where(pending => pending.FormId == formId)
+                     .ExecuteCommandAsync();
+
+            await _db.Insertable(new PendingReviewEntity
+            {
+                FormId = formId,
+                StepId = startStepId,
+                AppointmentType = AppointmentType.Actual.ToEnumString(),
+                ReviewUserId = loginUserId
+            }).ExecuteCommandAsync();
+
+            return await _db.Updateable<FormReviewRecordEntity>()
+                            .SetColumns(record => new FormReviewRecordEntity
+                            {
+                                RecordStatus = 0
+                            }).Where(instance => instance.FormId == formId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 查询表单开始步骤信息
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<WorkflowStepEntity> GetStartStepInfo(long formId)
+        {
+            return await _db.Queryable<FormInstanceEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<WorkflowStepEntity>((instance, step) => instance.FormTypeId == step.FormTypeId)
+                            .Where((instance, step) => instance.FormId == formId && step.IsStartStep == 1)
+                            .Select((instance, step) => step)
+                            .FirstAsync();
+        }
+
+
+        public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
+        {
+            if (!appointments.Any())
+            {
+                return 0;
+            }
+            else
+            {
+                var agentActual = AppointmentType.Agent.ToEnumString();
+                var agentConcurrent = AppointmentType.ConcurrentAgent.ToEnumString();
+                var autoAgentActual = AppointmentType.AutoAgent.ToEnumString();
+                var autoAgentConc = AppointmentType.AutoConcurrentAgent.ToEnumString();
+
+                var records = appointments.Select(appoint =>
+                {
+                    bool isAgentOp = appoint.AgentUserId != null && appoint.AgentUserId == operatorUserId;
+
+                    // 代理操作：ReviewUserId 取代理人，AppointmentType 保持代理身份（Agent/ConcurrentAgent）
+                    // 本人操作：ReviewUserId 取归属人，AppointmentType 换回实/兼身份（去掉 Agent 后缀）
+                    string appointmentCode;
+                    long reviewUserId;
+
+                    if (isAgentOp)
+                    {
+                        appointmentCode = appoint.AppointmentType; // 已是代理身份
+                        reviewUserId = operatorUserId;
+                    }
+                    else
+                    {
+                        // 本人操作，将 AppointmentType 中的代理身份还原为实/兼身份
+                        appointmentCode = appoint.AppointmentType switch
+                        {
+                            var c when c == agentActual => AppointmentType.Actual.ToEnumString(),
+                            var c when c == agentConcurrent => AppointmentType.Concurrent.ToEnumString(),
+                            var c when c == autoAgentActual => AppointmentType.AutoActual.ToEnumString(),
+                            var c when c == autoAgentConc => AppointmentType.AutoConcurrent.ToEnumString(),
+                            _ => appoint.AppointmentType,
+                        };
+                        reviewUserId = appoint.ReviewUserId;
+                    }
+
+                    return new FormReviewRecordEntity
+                    {
+                        FormId = formId,
+                        StepId = stepId,
+                        ReviewResult = result.ToEnumString(),
+                        RejectStepId = rejectStepId,
+                        Comment = comment,
+                        ReviewType = reviewType.ToEnumString(),
+                        AppointmentType = appointmentCode,
+                        OriginalUserId = appoint.ReviewUserId,
+                        OperationUserId = reviewUserId,
+                        ReviewDateTime = DateTime.Now,
+                        RecordStatus = 1
+                    };
+                }).ToList();
+                return await _db.Insertable(records).ExecuteCommandAsync();
+            }
+        }
+
+        /// <summary>
+        /// 匹配工作流规则
+        /// </summary>
+        public async Task<long> MatchWorkflowRule(long formId, long loginUserId)
+        {
+            var formTypeId = await _db.Queryable<FormInstanceEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .Where(instance => instance.FormId == formId)
+                                      .Select(instance => instance.FormTypeId)
+                                      .FirstAsync();
+
+            var appPositionId = await _db.Queryable<UserInfoEntity>()
+                                         .With(SqlWith.NoLock)
+                                         .Where(user => user.UserId == loginUserId)
+                                         .Select(user => user.PositionId)
+                                         .FirstAsync();
+
+            var ruleList = await _db.Queryable<WorkflowRuleEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .Where(rule => rule.FormTypeId == formTypeId)
+                                    .ToListAsync();
+
+            long ruleId = 0;
+
+            foreach (var rule in ruleList)
+            {
+                string? guidance = rule.Guidance;
+
+                bool hasGuidance = !string.IsNullOrWhiteSpace(guidance);
+                bool positionMatch = rule.PositionId == appPositionId;
+                bool isDefaultRule = rule.PositionId == null && !hasGuidance;
+
+                // 默认规则：职位和条件都不限制
+                if (isDefaultRule)
+                {
+                    if (ruleId == 0)
+                    {
+                        ruleId = rule.RuleId;
+                    }
+
+                    continue;
+                }
+
+                // 非默认规则：Guidance 为空就跳过
+                if (!hasGuidance)
+                {
+                    continue;
+                }
+
+                bool guidanceMatch = await _workflowRuleConditions.Resolve(guidance!, formId);
+
+                // 优先级1：职位匹配，并且条件匹配
+                if (positionMatch && guidanceMatch)
+                {
+                    ruleId = rule.RuleId;
+                    break;
+                }
+
+                // 优先级2：职位不限制，只判断条件
+                if (ruleId == 0 && rule.PositionId == null && guidanceMatch)
+                {
+                    ruleId = rule.RuleId;
+                }
+            }
+
+            await _db.Updateable<FormInstanceEntity>()
+                     .SetColumns(instance => new FormInstanceEntity
+                     {
+                         FormStatus = FormStatus.PendingSubmit.ToEnumString(),
+                         RuleId = ruleId,
+                         ModifiedBy = loginUserId,
+                         ModifiedDate = DateTime.Now,
+                     }).Where(instance => instance.FormId == formId)
+                     .ExecuteCommandAsync();
+
+            return ruleId;
+        }
+
+        /// <summary>
+        /// 表单撤回
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <param name="stepId"></param>
+        /// <param name="loginUserId"></param>
+        /// <returns></returns>
+        public Task<int> WithdrawForm(long formId, long stepId, long loginUserId)
+        {
+            return _db.Updateable<FormInstanceEntity>()
+                      .SetColumns(instance => new FormInstanceEntity
+                      {
+                          FormStatus = FormStatus.PendingSubmit.ToEnumString(),
+                          CurrentStepId = stepId,
+                          ModifiedBy = loginUserId,
+                          ModifiedDate = DateTime.Now,
+                      }).Where(instance => instance.FormId == formId)
+                      .ExecuteCommandAsync();
         }
     }
 }

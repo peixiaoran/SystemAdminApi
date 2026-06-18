@@ -14,6 +14,9 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
+    /// <summary>
+    /// 表单签核、驳回、撤回😈
+    /// </summary>
     public class FormReviewAction
     {
         private readonly CurrentUser _loginuser;
@@ -36,7 +39,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 表单核准
 
         /// <summary>
-        /// 表单核准（仅执行数据库流程，不发送邮件）
+        /// 表单核准
         /// </summary>
         public async Task<Result<bool>> FromApprove(ApproveForm approveForm)
         {
@@ -81,7 +84,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="reviewType"></param>
         /// <param name="comment"></param>
         /// <returns>true = 当前步骤还有剩余待审批人</returns>
-        private async Task<bool> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
+        public async Task<bool> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
         {
             string reviewMode = stepInfo.ReviewMode;
             var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
@@ -152,7 +155,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 自动核准
         /// </summary>
-        private async Task<Result<bool>> AutoApprove(long formId)
+        public async Task<Result<bool>> AutoApprove(long formId)
         {
             while (true)
             {
@@ -301,7 +304,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="formId"></param>
         /// <param name="stepId"></param>
         /// <returns></returns>
-        private async Task EnsurePendingReviewExists(long formId, long stepId)
+        public async Task EnsurePendingReviewExists(long formId, long stepId)
         {
             bool hasPending = await _db.Queryable<PendingReviewEntity>().With(SqlWith.NoLock)
                                        .Where(pending => pending.FormId == formId && pending.StepId == stepId)
@@ -341,7 +344,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="stepInfo"></param>
         /// <param name="reviewUserId"></param>
         /// <returns></returns>
-        private async Task<List<UserAppointment>> GetStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
+        public async Task<List<UserAppointment>> GetStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
         {
             var formDetail = await _db.Queryable<FormInstanceEntity>()
                                       .With(SqlWith.NoLock)
@@ -421,7 +424,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询起始步骤审批人身份
         /// </summary>
-        private async Task<List<UserAppointment>> GetStartReviewUser(long applicantUserId)
+        public async Task<List<UserAppointment>> GetStartReviewUser(long applicantUserId)
         {
             var (actual, agent, _, _, _, _, _, _) = AppointmentEnumStrings();
             var now = DateTime.Now;
@@ -1347,7 +1350,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="stepInfo"></param>
         /// <param name="reviewUserId"></param>
         /// <returns></returns>
-        private async Task<List<UserAppointment>> GetActualConStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
+        public async Task<List<UserAppointment>> GetActualConStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
         {
             var formDetail = await _db.Queryable<FormInstanceEntity>()
                                       .InnerJoin<UserInfoEntity>((instance, user) => instance.ApplicantUserId == user.UserId)
@@ -1421,7 +1424,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询起始步骤审批人身份
         /// </summary>
-        private async Task<List<UserAppointment>> GetActualConStartReviewUser(long applicantUserId)
+        public async Task<List<UserAppointment>> GetActualConStartReviewUser(long applicantUserId)
         {
             var (actual, _, _, _, _, _, _, _) = AppointmentEnumStrings();
             var now = DateTime.Now;
@@ -2187,7 +2190,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="formId"></param>
         /// <param name="stepInfo"></param>
         /// <returns></returns>
-        private async Task<bool> ShouldSkipStep(long formId, WorkflowStepEntity stepInfo)
+        public async Task<bool> ShouldSkipStep(long formId, WorkflowStepEntity stepInfo)
         {
             // 自定义审批人
             if (stepInfo.Assignment == Assignment.Custom.ToEnumString())
@@ -2248,7 +2251,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="ruleId"></param>
         /// <param name="currentStepId"></param>
         /// <returns></returns>
-        private async Task<WorkflowRuleStepEntity> GetNextStep(long ruleId, long currentStepId)
+        public async Task<WorkflowRuleStepEntity> GetNextStep(long ruleId, long currentStepId)
         {
             return await _db.Queryable<WorkflowRuleStepEntity>()
                             .With(SqlWith.NoLock)
@@ -2262,7 +2265,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="formId"></param>
         /// <param name="nextStepId"></param>
         /// <returns></returns>
-        private async Task AdvanceCurrentStep(long formId, long? nextStepId)
+        public async Task AdvanceCurrentStep(long formId, long? nextStepId)
         {
             await _db.Updateable<FormInstanceEntity>()
                      .SetColumns(instance => new FormInstanceEntity
@@ -2277,7 +2280,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        private async Task ApproveForm(long formId)
+        public async Task ApproveForm(long formId)
         {
             await _db.Updateable<FormInstanceEntity>()
                      .SetColumns(instance => new FormInstanceEntity
@@ -2293,7 +2296,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        private async Task<(WorkflowStepEntity StepInfo, long RuleId)> GetCurrentStepInfo(long formId)
+        public async Task<(WorkflowStepEntity StepInfo, long RuleId)> GetCurrentStepInfo(long formId)
         {
             var entity = await _db.Queryable<FormInstanceEntity>()
                                   .With(SqlWith.NoLock)
@@ -2313,7 +2316,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        private async Task<Result<bool>> ExecuteStepGuidance(long formId)
+        public async Task<Result<bool>> ExecuteStepGuidance(long formId)
         {
             var form = await _db.Queryable<FormInstanceEntity>()
                                 .With(SqlWith.NoLock)
@@ -2406,7 +2409,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="comment"></param>
         /// <param name="operatorUserId"></param>
         /// <returns></returns>
-        private async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
+        public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
         {
             if (!appointments.Any())
             {
@@ -2459,6 +2462,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         OriginalUserId = appoint.ReviewUserId,
                         OperationUserId = reviewUserId,
                         ReviewDateTime = DateTime.Now,
+                        RecordStatus = 1
                     };
                 }).ToList();
                 return await _db.Insertable(records).ExecuteCommandAsync();
@@ -2475,7 +2479,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <param name="isSingle"></param>
         /// <param name="isAuto"></param>
         /// <returns></returns>
-        private string BuildOrderBy(bool isSingle, bool isAuto)
+        public string BuildOrderBy(bool isSingle, bool isAuto)
         {
             if (!isSingle)
             {
@@ -2502,7 +2506,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 一次性取出所有 AppointmentType 枚举字符串
         /// </summary>
         /// <returns></returns>
-        private (string actual, string agent, string concurrent, string concurrentAgent, string autoActual, string autoAgent, string autoConcurrent, string autoConcurrentAgent) AppointmentEnumStrings() =>
+        public (string actual, string agent, string concurrent, string concurrentAgent, string autoActual, string autoAgent, string autoConcurrent, string autoConcurrentAgent) AppointmentEnumStrings() =>
         (
             AppointmentType.Actual.ToEnumString(),
             AppointmentType.Agent.ToEnumString(),

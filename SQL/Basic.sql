@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001115 (17.00.1115)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Basic
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 16/06/2026 22:59:01
+ Date: 18/06/2026 14:35:56
 */
 
 
@@ -1751,6 +1751,9 @@ INSERT INTO [Basic].[MenuInfo] ([MenuId], [ModuleId], [ParentMenuId], [MenuCode]
 FolderRemove', N'3', N'1', N'/api/FormBusiness/FormOperate/FormHistory', N'', N'', N'1903486709602062336', N'2026-05-28 08:47:40.000', NULL, NULL)
 GO
 
+INSERT INTO [Basic].[MenuInfo] ([MenuId], [ModuleId], [ParentMenuId], [MenuCode], [MenuNameCn], [MenuNameEn], [MenuType], [Path], [MenuIcon], [SortOrder], [IsVisible], [RoutePath], [Redirect], [Remark], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1988928242475733000', N'1968271760889614336', N'1988927293837414400', N'InvalidForms', N'已作废单据', N'Invalid Forms', N'SecondaryMenu', N'formbusiness/form-operate/invalidforms', N'FolderRemove', N'3', N'1', N'/api/FormBusiness/FormOperate/InvalidForms', N'', N'', N'1903486709602062336', N'2026-05-28 08:47:40.000', NULL, NULL)
+GO
+
 
 -- ----------------------------
 -- Table structure for ModuleInfo
@@ -2474,6 +2477,9 @@ INSERT INTO [Basic].[RoleMenu] ([RoleId], [MenuId], [CreatedBy], [CreatedDate], 
 GO
 
 INSERT INTO [Basic].[RoleMenu] ([RoleId], [MenuId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1979881189825187840', N'1988928242475732999', N'1903486709602062336', N'2025-11-13 19:14:19.000', N'1903486709602062336', N'2026-05-28 08:51:00.000')
+GO
+
+INSERT INTO [Basic].[RoleMenu] ([RoleId], [MenuId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1905670034215276544', N'1988928242475733000', N'1903486709602062336', N'2026-05-31 00:30:51.602', N'1903486709602062336', N'2026-05-31 00:30:51.602')
 GO
 
 
@@ -5581,6 +5587,12 @@ INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALU
 GO
 
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-06-16 22:04:32.687')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-06-17 13:40:14.010')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'127.0.0.1', N'LoginSuccessful', N'2026-06-18 10:23:04.473')
 GO
 
 

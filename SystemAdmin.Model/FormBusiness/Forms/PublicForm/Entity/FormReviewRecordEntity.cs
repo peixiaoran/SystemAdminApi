@@ -57,5 +57,10 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
         /// 审批时间
         /// </summary>
         public DateTime ReviewDateTime { get; set; }
+
+        /// <summary>
+        /// 是否有效
+        /// </summary>
+        public int RecordStatus { get; set; }
     }
 }

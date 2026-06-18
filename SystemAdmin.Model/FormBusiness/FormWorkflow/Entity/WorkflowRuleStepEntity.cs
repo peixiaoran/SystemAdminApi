@@ -16,7 +16,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
         /// <summary>
         /// 当前步骤Id
         /// </summary>
-        public long? CurrentStepId { get; set; }
+        public long CurrentStepId { get; set; }
 
         /// <summary>
         /// 下一步骤Id

@@ -17,7 +17,7 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 表单基础
+    /// 表单基础😈
     /// </summary>
     public class FormManager
     {
@@ -47,8 +47,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             {
                                 user = user,
                                 FormId = token.FormId
-                            })
-                            .FirstAsync();
+                            }).FirstAsync();
         }
 
         /// <summary>
@@ -146,7 +145,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 匹配工作流规则
         /// </summary>
-        public async Task<long> MatchWorkflowRuleAsync(long formTypeId, long formId)
+        public async Task<long> MatchWorkflowRule(long formTypeId, long formId)
         {
             var appPositionId = await _db.Queryable<UserInfoEntity>()
                                          .With(SqlWith.NoLock)
@@ -206,8 +205,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                      .SetColumns(instance => new FormInstanceEntity
                      {
                          RuleId = ruleId
-                     })
-                     .Where(instance => instance.FormId == formId)
+                     }).Where(instance => instance.FormId == formId)
                      .ExecuteCommandAsync();
 
             return ruleId;
@@ -225,7 +223,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .FirstAsync();
 
             // 每次保存都重新匹配工作流规则
-            await MatchWorkflowRuleAsync(formTypeId, formId);
+            await MatchWorkflowRule(formTypeId, formId);
 
             return await _db.Updateable<FormInstanceEntity>()
                             .SetColumns(f => new FormInstanceEntity

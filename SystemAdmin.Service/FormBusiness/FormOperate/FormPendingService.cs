@@ -18,7 +18,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
 
-        public FormPendingService(CurrentUser loginuser, ILogger<FormPendingService> logger, SqlSugarScope db, FormPermissionChecker formChecker, FormPendingRepository formPendingRepo, LocalizationService localization)
+        public FormPendingService(CurrentUser loginuser, ILogger<FormPendingService> logger, SqlSugarScope db, FormPermissionChecker formChecker,  FormPendingRepository formPendingRepo, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -136,7 +136,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 作废表单
+        /// 表单作废
         /// </summary>
         /// <returns></returns>
         public async Task<Result<int>> VoidedForm(string formId)

@@ -8,6 +8,9 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
+    /// <summary>
+    /// 表单权限验证😈
+    /// </summary>
     public class FormPermissionChecker
     {
         private readonly CurrentUser _loginuser;
@@ -20,7 +23,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 验证是否有权申请
+        /// 验证是否可以申请
         /// </summary>
         /// <param name="formTypeId"></param>
         /// <returns></returns>
@@ -33,7 +36,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 验证是否有权查看/审批
+        /// 验证是否可以查看/审批
         /// </summary>
         /// <param name="formId"></param>
         /// <param name="permissionType"></param>
@@ -80,7 +83,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 验证是否有权审批
+        /// 验证是否可以审批
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
@@ -95,7 +98,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 验证是否有权作废
+        /// 验证是否可以作废
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
@@ -103,7 +106,20 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         {
             return await _db.Queryable<FormInstanceEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(instance => instance.ApplicantUserId == _loginuser.UserId && instance.FormStatus == FormStatus.Approved.ToEnumString())
+                            .Where(instance => instance.ApplicantUserId == _loginuser.UserId && instance.FormStatus != FormStatus.Approved.ToEnumString())
+                            .AnyAsync();
+        }
+
+        /// <summary>
+        /// 验证是否可以撤回
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<bool> CanWithdraw(long formId)
+        {
+            return await _db.Queryable<FormInstanceEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(instance => instance.ApplicantUserId == _loginuser.UserId && instance.FormStatus != FormStatus.Approved.ToEnumString() && instance.FormStatus != FormStatus.Rejected.ToEnumString())
                             .AnyAsync();
         }
     }

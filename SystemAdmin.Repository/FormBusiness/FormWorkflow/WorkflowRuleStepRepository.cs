@@ -176,7 +176,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                 .InnerJoin<WorkflowStepEntity>((rulestep, currentstep) => rulestep.CurrentStepId == currentstep.StepId)
                                 .LeftJoin<WorkflowStepEntity>((rulestep, currentstep, nextstep) => rulestep.NextStepId == nextstep.StepId)
                                 .Where((rulestep, currentstep, nextstep) => rulestep.RuleId == ruleId)
-                                .OrderBy((rulestep, currentstep, nextstep)=>rulestep.SortOrder)
+                                .OrderBy((rulestep, currentstep, nextstep) => rulestep.SortOrder)
                                 .Select((rulestep, currentstep, nextstep) => new WorkflowRuleStepDto
                                 {
                                     RuleId = rulestep.RuleId,

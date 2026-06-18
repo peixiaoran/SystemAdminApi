@@ -61,6 +61,15 @@ namespace SystemAdmin.Localization.FormBusiness.FormOperate {
         }
         
         /// <summary>
+        ///   查找类似 表单必须为待送审或审批中才可撤回 的本地化字符串。
+        /// </summary>
+        internal static string FormPedingNotCanWithdraw {
+            get {
+                return ResourceManager.GetString("FormPedingNotCanWithdraw", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 表单不是待送审阶段，不可作废 的本地化字符串。
         /// </summary>
         internal static string FormPendingNotVoided {
@@ -70,7 +79,7 @@ namespace SystemAdmin.Localization.FormBusiness.FormOperate {
         }
         
         /// <summary>
-        ///   查找类似 作废失败 的本地化字符串。
+        ///   查找类似 表单作废失败 的本地化字符串。
         /// </summary>
         internal static string FormPendingVoidedFailed {
             get {
@@ -79,11 +88,29 @@ namespace SystemAdmin.Localization.FormBusiness.FormOperate {
         }
         
         /// <summary>
-        ///   查找类似 作废成功 的本地化字符串。
+        ///   查找类似 表单作废成功 的本地化字符串。
         /// </summary>
         internal static string FormPendingVoidedSuccess {
             get {
                 return ResourceManager.GetString("FormPendingVoidedSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 表单撤回失败 的本地化字符串。
+        /// </summary>
+        internal static string FormPendingWithdrawFailed {
+            get {
+                return ResourceManager.GetString("FormPendingWithdrawFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 表单撤回成功 的本地化字符串。
+        /// </summary>
+        internal static string FormPendingWithdrawSuccess {
+            get {
+                return ResourceManager.GetString("FormPendingWithdrawSuccess", resourceCulture);
             }
         }
     }

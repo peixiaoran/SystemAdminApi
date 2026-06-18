@@ -11,6 +11,9 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
+    /// <summary>
+    /// 表单流程😈
+    /// </summary>
     public class FormReviewFlow
     {
         private readonly CurrentUser _loginuser;
@@ -70,7 +73,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .Where(rule => rule.RuleId == formDetail.RuleId && rule.SortOrder == 1)
                                     .FirstAsync();
 
-            var currentStepId = ruleStep.CurrentStepId;
+            long? currentStepId = ruleStep.CurrentStepId;
             while (currentStepId != null)
             {
                 var stepReview = new StepReview();
@@ -1599,7 +1602,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 获取人员审批结果
+        /// 查询人员审批结果
         /// </summary>
         /// <param name="formId"></param>
         /// <param name="ruleId"></param>
@@ -1608,10 +1611,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <returns></returns>
         public async Task<List<StepReview>> GetUserReviewResult(long formId, long ruleId, long? currentStepId, List<StepReview> reviewFlow)
         {
-            // 1. 取得该表单的所有审批记录(按时间升序)
+            // 1. 取得该表单的所有审批记录
             var allRecords = await _db.Queryable<FormReviewRecordEntity>()
                                       .With(SqlWith.NoLock)
-                                      .Where(record => record.FormId == formId)
+                                      .Where(record => record.FormId == formId && record.RecordStatus == 1)
                                       .OrderBy(record => record.ReviewDateTime)
                                       .ToListAsync();
 
@@ -1621,9 +1624,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(rule => rule.RuleId == ruleId)
                                      .ToListAsync();
 
-            var stepOrderMap = ruleSteps.Where(rulestep => rulestep.CurrentStepId != null)
-                                        .ToDictionary(
-                                            rulestep => rulestep.CurrentStepId!.Value,
+            var stepOrderMap = ruleSteps.ToDictionary(
+                                            rulestep => rulestep.CurrentStepId,
                                             rulestep => rulestep.SortOrder
                                         );
 
@@ -1675,14 +1677,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     if (!isCurrentStep)
                     {
                         user.Result = stepHasApprove
-                            ? FormReviewResult.Approve.ToEnumString()
-                            : FormReviewResult.Unsigned.ToEnumString();
+                            ? ReviewStatus.Approve.ToEnumString()
+                            : ReviewStatus.Unsigned.ToEnumString();
                     }
                     else
                     {
                         user.Result = stepHasApprove
-                            ? FormReviewResult.Approve.ToEnumString()
-                            : FormReviewResult.UnderReview.ToEnumString();
+                            ? ReviewStatus.Approve.ToEnumString()
+                            : ReviewStatus.UnderReview.ToEnumString();
                     }
                 }
             }
@@ -1693,7 +1695,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询表单总计驳回次数
         /// </summary>
-        private async Task<int> GetRejectCount(long formId)
+        public async Task<int> GetRejectCount(long formId)
         {
             return await _db.Queryable<FormReviewRecordEntity>()
                             .With(SqlWith.NoLock)
@@ -1758,7 +1760,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         .Where(rule => rule.RuleId == formDetail.RuleId && rule.SortOrder == 1)
                                         .FirstAsync();
 
-                var currentStepId = ruleStep.CurrentStepId;
+                long? currentStepId = ruleStep.CurrentStepId;
                 while (currentStepId != null)
                 {
                     var stepReview = new StepReview();

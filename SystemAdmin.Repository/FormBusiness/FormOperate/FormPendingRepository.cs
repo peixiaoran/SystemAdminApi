@@ -235,7 +235,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 作废表单
+        /// 表单作废
         /// </summary>
         /// <param name="formId"></param>
         /// <param name="loginUserId"></param>

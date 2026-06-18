@@ -14,5 +14,10 @@
         /// 驳回
         /// </summary>
         Reject = 2,
+
+        /// <summary>
+        /// 撤回
+        /// </summary>
+        Withdraw = 3,
     }
 }

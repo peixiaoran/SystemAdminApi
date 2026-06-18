@@ -5,6 +5,9 @@ using SystemAdmin.Model.FormBusiness.Workflow.PersonResolver.Dto;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
+    /// <summary>
+    /// 步骤自定义😇
+    /// </summary>
     public class WorkflowCustomResolver
     {
         private readonly CurrentUser _loginuser;

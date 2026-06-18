@@ -68,7 +68,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[待审表单列表] 作废表单")]
+        [EndpointSummary("[待审表单列表] 表单作废")]
         public async Task<Result<int>> VoidedForm([FromForm] string formId)
         {
             return await _formPendingService.VoidedForm(formId);

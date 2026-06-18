@@ -253,7 +253,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// <summary>
         /// 统一执行签核或驳回
         /// </summary>
-        /// <param name="formIdText"></param>
+        /// <param name="formId"></param>
         /// <param name="operation"></param>
         /// <param name="reviewAction"></param>
         /// <param name="rejectStepIdText"></param>
@@ -390,8 +390,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                                       .With(SqlWith.NoLock)
                                       .InnerJoin<FormTypeEntity>((instance, formType) => instance.FormTypeId == formType.FormTypeId)
                                       .InnerJoin<UserInfoEntity>((instance, formType, applicant) => instance.ApplicantUserId == applicant.UserId)
-                                      .InnerJoin<FormReviewRecordEntity>((instance, formType, applicant, record) => instance.FormId == record.FormId &&
-                                          record.ReviewDateTime == SqlFunc.Subqueryable<FormReviewRecordEntity>()
+                                      .InnerJoin<FormReviewRecordEntity>((instance, formType, applicant, record) => instance.FormId == record.FormId && record.ReviewDateTime == SqlFunc.Subqueryable<FormReviewRecordEntity>()
                                                                           .Where(subRecord => subRecord.FormId == instance.FormId)
                                                                           .Max(subRecord => subRecord.ReviewDateTime))
                                       .InnerJoin<WorkflowStepEntity>((instance, formType, applicant, record, step) => instance.CurrentStepId == step.StepId)
@@ -447,7 +446,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
             var userList = await _db.Queryable<UserInfoEntity>()
                                     .With(SqlWith.NoLock)
-                                    .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && string.IsNullOrEmpty(user.Email))
+                                    .Where(user => notifyUserIds.Contains(user.UserId) && user.IsRealtimeNotification == 1 && !string.IsNullOrEmpty(user.Email))
                                     .ToListAsync();
 
             if (userList.Count == 0)

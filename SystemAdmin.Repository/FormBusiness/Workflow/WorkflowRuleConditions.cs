@@ -4,7 +4,7 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 工作流规则条件
+    /// 工作流规则条件😇
     /// </summary>
     public class WorkflowRuleConditions
     {

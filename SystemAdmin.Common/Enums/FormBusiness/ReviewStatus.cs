@@ -3,7 +3,7 @@
     /// <summary>
     /// 审批状态
     /// </summary>
-    public enum FormReviewResult
+    public enum ReviewStatus
     {
         /// <summary>
         /// 未审批

@@ -117,13 +117,22 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="FormPedingNotCanWithdraw" xml:space="preserve">
+    <value>表单必须为待送审或审批中才可撤回</value>
+  </data>
   <data name="FormPendingNotVoided" xml:space="preserve">
-    <value>表单不是待送审阶段，不可作废</value>
+    <value>表单必须为待送审才可作废</value>
   </data>
   <data name="FormPendingVoidedFailed" xml:space="preserve">
-    <value>作废失败</value>
+    <value>表单作废失败</value>
   </data>
   <data name="FormPendingVoidedSuccess" xml:space="preserve">
-    <value>作废成功</value>
+    <value>表单作废成功</value>
+  </data>
+  <data name="FormPendingWithdrawFailed" xml:space="preserve">
+    <value>表单撤回失败</value>
+  </data>
+  <data name="FormPendingWithdrawSuccess" xml:space="preserve">
+    <value>表单撤回成功</value>
   </data>
 </root>
