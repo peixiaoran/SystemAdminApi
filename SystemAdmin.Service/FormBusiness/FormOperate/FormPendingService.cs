@@ -117,7 +117,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 查询表单待审批人列表
+        /// 查询待审批人用户
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>

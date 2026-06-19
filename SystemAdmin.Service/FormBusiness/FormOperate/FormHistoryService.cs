@@ -120,6 +120,25 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
+        /// 查询待审批人用户
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUsers(string formId)
+        {
+            try
+            {
+                var list = await _formHistoryRepo.GetFormPendingUsers(long.Parse(formId));
+                return Result<List<FormPendingUserDto>>.Ok(list);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<FormPendingUserDto>>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// 表单撤回
         /// </summary>
         /// <returns></returns>
@@ -146,6 +165,36 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 return withCount >= 1
                         ? Result<int>.Ok(withCount, _localization.ReturnMsg($"{_this}WithdrawSuccess"))
                         : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}WithdrawFailed"));
+            }
+            catch (Exception ex)
+            {
+                await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 表单作废
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<int>> VoidedForm(string formId)
+        {
+            try
+            {
+                var isCan = await _formChecker.CanVoided(long.Parse(formId));
+                if (!isCan)
+                {
+                    return Result<int>.Ok(500, _localization.ReturnMsg($"{_this}NotCanVoided"));
+                }
+
+                await _db.BeginTranAsync();
+                var count = await _formHistoryRepo.VoidedForm(long.Parse(formId), _loginuser.UserId);
+                await _db.CommitTranAsync();
+
+                return count >= 1
+                        ? Result<int>.Ok(count, _localization.ReturnMsg($"{_this}VoidedSuccess"))
+                        : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}VoidedFailed"));
             }
             catch (Exception ex)
             {

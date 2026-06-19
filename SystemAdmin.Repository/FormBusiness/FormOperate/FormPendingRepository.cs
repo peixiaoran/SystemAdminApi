@@ -135,8 +135,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                : applyuserdept.DepartmentNameEn,
                 ApplicantDate = instance.ApplicantDate,
                 ReviewPath = formtype.ReviewPath,
-                ViewPath = formtype.ViewPath,
-                IsVoided = instance.FormStatus != FormStatus.Voided.ToEnumString() ? 1 : 0
+                ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormPendingDto>.Ok(page, totalCount, "");
         }
@@ -195,14 +194,13 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                : applyuserdept.DepartmentNameEn,
                 ApplicantDate = instance.ApplicantDate,
                 ReviewPath = formtype.ReviewPath,
-                ViewPath = formtype.ViewPath,
-                IsVoided = 0
+                ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormPendingDto>.Ok(page, totalCount, "");
         }
 
         /// <summary>
-        /// 查询表单待审批用户
+        /// 查询待审批用户
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>

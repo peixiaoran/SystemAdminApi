@@ -188,7 +188,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 // 判断用户是否存在
                 if (user == null)
                 {
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}UserNotFound"));
+                    return Result<int>.Failure(406, _localization.ReturnMsg($"{_this}UserNotFound"));
                 }
 
                 await _db.BeginTranAsync();

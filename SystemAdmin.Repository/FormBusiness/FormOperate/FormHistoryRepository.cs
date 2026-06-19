@@ -99,27 +99,27 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && dic.DicCode == instance.FormStatus && instance.FormStatus != FormStatus.PendingSubmit.ToEnumString() && instance.FormStatus != FormStatus.Rejected.ToEnumString())
                            .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
                            .LeftJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
-                           .LeftJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applyuserdept) => applyuser.DepartmentId == applyuserdept.DepartmentId)
-                           .LeftJoin<UserAgentEntity>((instance, dic, formtype, applyuser, applyuserdept, useragent) => applyuser.UserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
-                           .Where((instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.ApplicantUserId == loginUserId || useragent.AgentUserId == loginUserId);
+                           .LeftJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
+                           .LeftJoin<UserAgentEntity>((instance, dic, formtype, applyuser, applydept, useragent) => applyuser.UserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                           .Where((instance, dic, formtype, applyuser, applydept, useragent) => instance.ApplicantUserId == loginUserId || useragent.AgentUserId == loginUserId);
 
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applyuserdept, useragent) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept, useragent) =>
                     formtype.FormGroupId == long.Parse(getPage.FormGroupId));
             }
             // 表单类别Id
             if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applyuserdept, useragent) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept, useragent) =>
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
             // 排序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applyuserdept, useragent) => new { instance.CreatedDate });
+            query = query.OrderBy((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.CreatedDate });
 
-            var page = await query.Select((instance, dic, formtype, applyuser, applyuserdept, useragent) => new FormHistoryDto
+            var page = await query.Select((instance, dic, formtype, applyuser, applydept, useragent) => new FormHistoryDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -135,8 +135,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                ? applyuser.UserNameCn
                                : applyuser.UserNameEn,
                 ApplyUserDeptName = _lang.Locale == "zh-CN"
-                               ? applyuserdept.DepartmentNameCn
-                               : applyuserdept.DepartmentNameEn,
+                               ? applydept.DepartmentNameCn
+                               : applydept.DepartmentNameEn,
                 ApplicantDate = instance.ApplicantDate,
                 ViewPath = formtype.ViewPath,
                 IsWithdraw = instance.FormStatus != FormStatus.Voided.ToEnumString() ? 1 : 0
@@ -157,8 +157,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && instance.FormStatus == dic.DicCode)
                            .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
                            .InnerJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
-                           .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applyuserdept) => applyuser.DepartmentId == applyuserdept.DepartmentId)
-                           .Where((instance, dic, formtype, applyuser, applyuserdept) =>
+                           .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
+                           .Where((instance, dic, formtype, applyuser, applydept) =>
                                SqlFunc.Subqueryable<FormReviewRecordEntity>()
                                       .InnerJoin<WorkflowStepEntity>((record, step) => record.StepId == step.StepId)
                                       .Where((record, step) => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId) && step.IsStartStep != 1)
@@ -167,20 +167,20 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applyuserdept) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
                     formtype.FormGroupId == long.Parse(getPage.FormGroupId));
             }
             // 表单类别Id
             if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applyuserdept) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
             // 排序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applyuserdept) => instance.CreatedDate);
+            query = query.OrderBy((instance, dic, formtype, applyuser, applydept) => instance.CreatedDate);
 
-            var page = await query.Select((instance, dic, formtype, applyuser, applyuserdept) => new FormHistoryDto
+            var page = await query.Select((instance, dic, formtype, applyuser, applydept) => new FormHistoryDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -196,12 +196,47 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                ? applyuser.UserNameCn
                                : applyuser.UserNameEn,
                 ApplyUserDeptName = _lang.Locale == "zh-CN"
-                               ? applyuserdept.DepartmentNameCn
-                               : applyuserdept.DepartmentNameEn,
+                               ? applydept.DepartmentNameCn
+                               : applydept.DepartmentNameEn,
                 ViewPath = formtype.ViewPath,
+                ApplicantDate = instance.ApplicantDate,
                 IsWithdraw = 0
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
+
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 查询待审批用户
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<List<FormPendingUserDto>> GetFormPendingUsers(long formId)
+        {
+            return await _db.Queryable<PendingReviewEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<WorkflowStepEntity>((pending, step) => pending.StepId == step.StepId)
+                            .InnerJoin<DictionaryInfoEntity>((pending, step, dic) => dic.DicType == "AppointmentType" && pending.AppointmentType == dic.DicCode)
+                            .InnerJoin<UserInfoEntity>((pending, step, dic, user) => pending.ReviewUserId == user.UserId)
+                            .LeftJoin<UserAgentEntity>((pending, step, dic, user, useragent) => user.UserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                            .LeftJoin<UserInfoEntity>((pending, step, dic, user, useragent, agentuser) => useragent.AgentUserId == agentuser.UserId)
+                            .Where((pending, step, dic, user, useragent, agentuser) => pending.FormId == formId)
+                            .Select((pending, step, dic, user, useragent, agentuser) => new FormPendingUserDto
+                            {
+                                StepName = _lang.Locale == "zh-CN"
+                                           ? step.StepNameCn
+                                           : step.StepNameEn,
+                                AppointmentType = pending.AppointmentType,
+                                AppointmentTypeName = _lang.Locale == "zh-CN"
+                                           ? dic.DicNameCn
+                                           : dic.DicNameEn,
+                                ReviewUserName = _lang.Locale == "zh-CN"
+                                           ? user.UserNameCn
+                                           : user.UserNameEn,
+                                AgentUserName = _lang.Locale == "zh-CN"
+                                           ? agentuser.UserNameCn
+                                           : agentuser.UserNameEn,
+                            }).ToListAsync();
         }
 
         /// <summary>
@@ -259,7 +294,18 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                             .FirstAsync();
         }
 
-
+        /// <summary>
+        /// 新增审批记录
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <param name="stepId"></param>
+        /// <param name="result"></param>
+        /// <param name="rejectStepId"></param>
+        /// <param name="appointments"></param>
+        /// <param name="comment"></param>
+        /// <param name="reviewType"></param>
+        /// <param name="operatorUserId"></param>
+        /// <returns></returns>
         public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
         {
             if (!appointments.Any())
@@ -412,6 +458,24 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                       {
                           FormStatus = FormStatus.PendingSubmit.ToEnumString(),
                           CurrentStepId = stepId,
+                          ModifiedBy = loginUserId,
+                          ModifiedDate = DateTime.Now,
+                      }).Where(instance => instance.FormId == formId)
+                      .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 表单作废
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <param name="loginUserId"></param>
+        /// <returns></returns>
+        public Task<int> VoidedForm(long formId, long loginUserId)
+        {
+            return _db.Updateable<FormInstanceEntity>()
+                      .SetColumns(instance => new FormInstanceEntity
+                      {
+                          FormStatus = FormStatus.Voided.ToEnumString(),
                           ModifiedBy = loginUserId,
                           ModifiedDate = DateTime.Now,
                       }).Where(instance => instance.FormId == formId)
