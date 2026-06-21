@@ -85,7 +85,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         /// <param name="positionId"></param>
         /// <param name="guidance"></param>
         /// <returns></returns>
-        public async Task<bool> RuleIsRepeat(long formTypeId, long positionId, string guidance)
+        public async Task<bool> RuleIsRepeat(long formTypeId, long? positionId, string? guidance)
         {
             return await _db.Queryable<WorkflowRuleEntity>()
                             .With(SqlWith.NoLock)

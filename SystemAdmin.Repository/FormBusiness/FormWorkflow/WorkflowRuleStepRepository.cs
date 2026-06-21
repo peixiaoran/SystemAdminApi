@@ -102,7 +102,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         /// <param name="currentStepId"></param>
         /// <param name="nextStepId"></param>
         /// <returns></returns>
-        public async Task<bool> RuleStepIsRepeat(long ruleId, long currentStepId, long nextStepId)
+        public async Task<bool> RuleStepIsRepeat(long ruleId, long currentStepId, long? nextStepId)
         {
             return await _db.Queryable<WorkflowRuleStepEntity>()
                             .With(SqlWith.NoLock)

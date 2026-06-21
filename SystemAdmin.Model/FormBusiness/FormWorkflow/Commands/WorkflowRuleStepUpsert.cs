@@ -18,7 +18,7 @@
         /// <summary>
         /// 下一步骤Id
         /// </summary>
-        public string NextStepId { get; set; } = string.Empty;
+        public string? NextStepId { get; set; } = string.Empty;
 
         /// <summary>
         /// 导向

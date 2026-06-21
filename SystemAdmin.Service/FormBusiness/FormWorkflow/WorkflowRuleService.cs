@@ -93,7 +93,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
             try
             {
                 // 规则是否重复配置
-                var isRepat = await _workflowRuleRepo.RuleIsRepeat(long.Parse(upsert.FormTypeId), long.Parse(upsert.PositionId), upsert.Guidance);
+                var isRepat = await _workflowRuleRepo.RuleIsRepeat(long.Parse(upsert.FormTypeId), long.TryParse(upsert.PositionId, out var positionId) ? positionId : null, upsert.Guidance);
                 if (isRepat)
                 {
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}Repat"));
@@ -106,7 +106,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                         FormTypeId = long.Parse(upsert.FormTypeId),
                         RuleNameCn = upsert.RuleNameCn,
                         RuleNameEn = upsert.RuleNameEn,
-                        PositionId = long.Parse(upsert.PositionId),
+                        PositionId = long.TryParse(upsert.PositionId, out var ipositionId) ? ipositionId : null,
                         Guidance = upsert.Guidance,
                         SortOrder = upsert.SortOrder,
                         CreatedBy = _loginuser.UserId,
@@ -178,7 +178,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     FormTypeId = long.Parse(upsert.FormTypeId),
                     RuleNameCn = upsert.RuleNameCn,
                     RuleNameEn = upsert.RuleNameEn,
-                    PositionId = long.Parse(upsert.PositionId),
+                    PositionId = long.TryParse(upsert.PositionId, out var positionId) ? positionId : null,
                     Guidance = upsert.Guidance,
                     SortOrder = upsert.SortOrder,
                     ModifiedBy = _loginuser.UserId,

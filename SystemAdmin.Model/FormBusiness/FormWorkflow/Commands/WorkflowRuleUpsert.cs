@@ -28,12 +28,12 @@
         /// <summary>
         /// 职级Id
         /// </summary>
-        public string PositionId { get; set; } = string.Empty;
+        public string? PositionId { get; set; } = string.Empty;
 
         /// <summary>
         /// 导向
         /// </summary>
-        public string Guidance { get; set; } = string.Empty;
+        public string? Guidance { get; set; } = string.Empty;
 
         /// <summary>
         /// 排序
