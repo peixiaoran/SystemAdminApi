@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 21/06/2026 20:18:31
+ Date: 22/06/2026 00:25:13
 */
 
 
@@ -493,7 +493,10 @@ GO
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067432975540293632', N'1987217256446300160', N'LVR-2026060001', N'Voided', N'1903486709602062336', N'2026-06-18', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-18 10:23:27.073', N'1903486709602062336', N'2026-06-20 14:24:32.750')
 GO
 
-INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067988913603088384', N'1987217256446300160', N'LVR-2026060002', N'PendingSubmit', N'1903486709602062336', N'2026-06-19', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-19 23:12:33.033', N'1903486709602062336', N'2026-06-21 19:56:43.827')
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067988913603088384', N'1987217256446300160', N'LVR-2026060002', N'Voided', N'1903486709602062336', N'2026-06-19', N'2051186271467999232', N'2009890853346217984', N'1903486709602062336', N'2026-06-19 23:12:33.033', N'1903486709602062336', N'2026-06-22 00:23:13.750')
+GO
+
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2068731514094489600', N'1987217256446300160', N'LVR-2026060003', N'PendingSubmit', N'1903486709602062336', N'2026-06-22', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-22 00:23:22.790', N'1903486709602062336', N'2026-06-22 00:24:29.170')
 GO
 
 
@@ -571,6 +574,12 @@ INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [
 GO
 
 INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N't1Qizekl9fsO3slBzMdUWpAiow_SMmog28ZSP7Hea7E', N'2026-07-03 21:39:54.120', N'2026-06-18 21:39:54.120')
+GO
+
+INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067988913603088384', N'1903486709602062340', N'RraUCYmOLI4qp2nMRIFu5o-dv0X1drfGPZUdNNdlKUs', N'2026-07-06 23:17:27.253', N'2026-06-21 23:17:27.253')
+GO
+
+INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067988913603088384', N'2050599625240481792', N'ai1iOUNSjHn2n0Z2czv11rmz5TUKoHuYOcU_O1fuSWA', N'2026-07-06 23:34:41.870', N'2026-06-21 23:34:41.870')
 GO
 
 INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062336', N'dDWVRP3hDwKxrS3dLAclMMP0hF8KVdcBzaUl8oACRgo', N'2026-07-04 13:35:14.210', N'2026-06-19 13:35:14.210')
@@ -707,6 +716,15 @@ GO
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2067432975540293632', N'2009890853346217984', N'Withdraw', NULL, N'', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-20 13:51:20.713', N'1')
 GO
 
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2067988913603088384', N'2009890853346217984', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-21 23:17:27.057', N'0')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2067988913603088384', N'2009897830268932096', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-21 23:34:41.800', N'0')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2067988913603088384', N'2009890853346217984', N'Withdraw', NULL, N'', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-22 00:22:19.007', N'1')
+GO
+
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2067432975540293632', N'2009890853346217984', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-18 21:39:53.983', N'0')
 GO
 
@@ -797,7 +815,7 @@ GO
 -- ----------------------------
 -- Records of FormSequence
 -- ----------------------------
-INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'202606', N'2', N'1903486709602062336', N'2026-06-18 10:23:27.073', N'1903486709602062336', N'2026-06-19 23:12:33.033')
+INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'202606', N'3', N'1903486709602062336', N'2026-06-18 10:23:27.073', N'1903486709602062336', N'2026-06-22 00:23:22.790')
 GO
 
 
@@ -1214,7 +1232,10 @@ GO
 INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067432975540293632', N'Annual', N'123', N'2026-05-01 08:00:00.0000000', N'2026-05-02 17:00:00.0000000', N'16.00', N'1903486709602062336', N'E347473 / 裴小然', N'1903486709602062336', N'2026-06-18 10:23:27.463', N'1903486709602062336', N'2026-06-19 23:14:14.813')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067988913603088384', N'Sick', N'123', N'2026-06-22 08:00:00.0000000', N'2026-06-23 17:00:00.0000000', N'16.00', N'1903486709602062340', N'E342306 / 于长洋', N'1903486709602062336', N'2026-06-19 23:12:33.090', N'1903486709602062336', N'2026-06-21 19:56:43.750')
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067988913603088384', N'Annual', N'123', N'2026-06-22 08:00:00.0000000', N'2026-06-23 17:00:00.0000000', N'16.00', N'2050600303354580992', N'E352462 / Liang Chen', N'1903486709602062336', N'2026-06-19 23:12:33.090', N'1903486709602062340', N'2026-06-21 23:34:41.437')
+GO
+
+INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2068731514094489600', N'Annual', N'123', N'2026-12-31 08:00:00.0000000', N'2027-01-01 17:00:00.0000000', N'16.00', N'2050602218733834240', N'ETW00225 / 蔡佳桦', N'1903486709602062336', N'2026-06-22 00:23:22.830', N'1903486709602062336', N'2026-06-22 00:24:29.160')
 GO
 
 
@@ -1278,6 +1299,9 @@ INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [Revi
 GO
 
 INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2067432975540293632', N'2009890853346217984', N'Actual', N'1903486709602062336')
+GO
+
+INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2068731514094489600', N'2009890853346217984', N'Actual', N'1903486709602062336')
 GO
 
 
@@ -1411,7 +1435,46 @@ GO
 INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009890853346217984', N'2060786334641033216', N'1', N'0', N'1903486709602062336', N'2026-06-16 22:30:27.642', N'1903486709602062336', N'2026-06-16 22:30:27.642')
 GO
 
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059813328053735424', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2066137776289615872', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059839522363019264', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059839903075799040', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059839903075799041', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2066887051650928640', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060784098187808768', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060784667472302080', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060785386585722880', N'1', N'0', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060785728597659648', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
 INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009892923604340736', N'2059813328053735424', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:50:05.714', N'1903486709602062336', N'2026-06-18 21:50:05.714')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060785864845430784', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786020718350336', N'1', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786240139169792', N'0', N'1', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
 GO
 
 INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009892923604340736', N'2066137776289615872', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:50:05.714', N'1903486709602062336', N'2026-06-18 21:50:05.714')
@@ -1669,6 +1732,12 @@ GO
 INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009892923604340736', N'2060786455856418816', N'1', N'0', N'1903486709602062336', N'2026-06-18 21:50:05.714', N'1903486709602062336', N'2026-06-18 21:50:05.714')
 GO
 
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786334641033216', N'1', N'0', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
+INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786455856418816', N'1', N'0', N'1903486709602062336', N'2026-06-21 23:18:34.041', N'1903486709602062336', N'2026-06-21 23:18:34.041')
+GO
+
 INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009898117243211776', N'2060786455856418816', N'1', N'0', N'1903486709602062336', N'2026-06-18 21:50:13.673', N'1903486709602062336', N'2026-06-18 21:50:13.673')
 GO
 
@@ -1682,51 +1751,6 @@ INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsD
 GO
 
 INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2032353104544010286', N'2060786455856418816', N'1', N'0', N'1903486709602062336', N'2026-06-18 21:49:54.224', N'1903486709602062336', N'2026-06-18 21:49:54.224')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059813328053735424', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2066137776289615872', N'0', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059839522363019264', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059839903075799040', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2059839903075799041', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2066887051650928640', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060784098187808768', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060784667472302080', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060785386585722880', N'1', N'0', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060785728597659648', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060785864845430784', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786020718350336', N'1', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786240139169792', N'0', N'1', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786334641033216', N'1', N'0', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
-GO
-
-INSERT INTO [Form].[StepFieldPermission] ([StepId], [FieldId], [IsVisible], [IsDisabled], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2009897830268932096', N'2060786455856418816', N'1', N'0', N'1903486709602062336', N'2026-06-18 21:52:31.437', N'1903486709602062336', N'2026-06-18 21:52:31.437')
 GO
 
 

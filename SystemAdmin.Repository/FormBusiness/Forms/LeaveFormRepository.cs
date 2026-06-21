@@ -65,10 +65,15 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// 查询可代理用户
         /// </summary>
         /// <param name="getPage"></param>
-        /// <param name="loginUserId"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage, long loginUserId)
+        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage)
         {
+            var applyUserId = _db.Queryable<FormInstanceEntity>()
+                                 .With(SqlWith.NoLock)
+                                 .Where(instance => instance.FormId == long.Parse(getPage.FormId))
+                                 .Select(instance => instance.ApplicantUserId)
+                                 .First();
+
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<UserInfoEntity>()
                            .With(SqlWith.NoLock)
@@ -76,7 +81,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationId)
-                           .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsAgent == 0 && user.IsFreeze == 0 && user.UserId != loginUserId);
+                           .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsAgent == 0 && user.IsFreeze == 0 && user.UserId != applyUserId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
@@ -143,7 +148,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
                                 .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
-                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId
+                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId && instance.FormId != formId
                                     && instance.FormStatus == FormStatus.UnderReview.ToEnumString())
                                 .Select((leave, instance, applicant) => leave)
                                 .ToListAsync();

@@ -75,7 +75,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                return await _leaveForm.GetUserInfoAgentView(getPage, _loginuser.UserId);
+                return await _leaveForm.GetUserInfoAgentView(getPage);
             }
             catch (Exception ex)
             {
