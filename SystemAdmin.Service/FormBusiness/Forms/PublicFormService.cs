@@ -78,7 +78,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             {
                 _jwt.SetAuthCookie(httpResponse, userId: entity.user.UserId, userNo: entity.user.UserNo);
 
-                // 返回登录成功信息（JWT Cookie 已在其他层处理）
+                // 返回登录成功信息
                 return Result<FormNotifyReturnDto>.Ok(
                     new FormNotifyReturnDto
                     {
