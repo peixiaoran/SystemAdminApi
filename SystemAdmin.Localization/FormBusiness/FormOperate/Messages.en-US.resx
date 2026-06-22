@@ -124,7 +124,7 @@
     <value>A form must be marked as “PendingSubmit” before it can be voided.</value>
   </data>
   <data name="FormPendingVoidedFailed" xml:space="preserve">
-    <value>Form Invalidation Failed</value>
+    <value>Form Voided Failed</value>
   </data>
   <data name="FormPendingVoidedSuccess" xml:space="preserve">
     <value>Form Cancellation Successful</value>

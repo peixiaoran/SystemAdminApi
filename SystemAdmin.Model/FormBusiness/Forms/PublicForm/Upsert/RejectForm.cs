@@ -13,7 +13,7 @@
         /// <summary>
         /// 驳回至步骤Id
         /// </summary>
-        public string RejectStepId { get; set; } = "0";
+        public string RejectStepId { get; set; } = string.Empty;
 
         /// <summary>
         /// 审批意见

@@ -6,7 +6,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto
     /// <summary>
     /// 表单通知Token返回 Dto
     /// </summary>
-    public class FormNotificationReturnDto
+    public class FormNotifyReturnDto
     {
         /// <summary>
         /// 用户工号

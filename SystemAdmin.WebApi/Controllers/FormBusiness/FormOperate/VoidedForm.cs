@@ -10,12 +10,12 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
     [RoutingAuthorize]
     [Route("api/FormBusiness/FormOperate/[controller]/[action]")]
     [ApiController]
-    public class InvalidForm : ControllerBase
+    public class VoidedForm : ControllerBase
     {
-        private readonly InvalidFormService _invalidFormService;
-        public InvalidForm(InvalidFormService invalidFormService)
+        private readonly VoidedFormService _voidedFormService;
+        public VoidedForm(VoidedFormService voidedFormService)
         {
-            _invalidFormService = invalidFormService;
+            _voidedFormService = voidedFormService;
         }
 
         [HttpPost]
@@ -23,7 +23,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [EndpointSummary("[作废表单列表] 表单组别下拉")]
         public async Task<Result<List<FormGroupDropDto>>> GetFormGroupDrop()
         {
-            return await _invalidFormService.GetFormGroupDrop();
+            return await _voidedFormService.GetFormGroupDrop();
         }
 
         [HttpPost]
@@ -31,7 +31,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [EndpointSummary("[作废表单列表] 表单类别下拉")]
         public async Task<Result<List<FormTypeDropDto>>> GetFormTypeDrop([FromForm] string formGroupId)
         {
-            return await _invalidFormService.GetFormTypeDrop(formGroupId);
+            return await _voidedFormService.GetFormTypeDrop(formGroupId);
         }
 
         [HttpPost]
@@ -39,15 +39,15 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [EndpointSummary("[作废表单列表] 表单状态下拉")]
         public async Task<Result<List<FormStatusDropDto>>> GetFormStatusDrop()
         {
-            return await _invalidFormService.GetFormStatusDrop();
+            return await _voidedFormService.GetFormStatusDrop();
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[作废表单列表] 查询作废表单分页")]
-        public async Task<ResultPaged<InvalidFormDto>> GetInvalidFormsPage([FromBody] GetInvalidFormsPage getpage)
+        public async Task<ResultPaged<VoidedFormDto>> GetVoidedFormsPage([FromBody] GetVoidedFormPage getpage)
         {
-            return await _invalidFormService.GetInvalidFormsPage(getpage);
+            return await _voidedFormService.GetVoidedFormsPage(getpage);
         }
     }
 }

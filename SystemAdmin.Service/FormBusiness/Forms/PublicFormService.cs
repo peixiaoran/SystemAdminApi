@@ -26,6 +26,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 {
     public class PublicFormService
     {
+        private class ReviewBusinessException : Exception { }
         private readonly CurrentUser _loginuser;
         private readonly ILogger<PublicFormService> _logger;
         private readonly JwtTokenService _jwt;
@@ -66,20 +67,20 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// <param name="httpResponse"></param>
         /// <param name="token"></param>
         /// <returns></returns>
-        public async Task<Result<FormNotificationReturnDto>> GetFormNotificationToken(HttpResponse httpResponse, string token)
+        public async Task<Result<FormNotifyReturnDto>> GetFormNotifyToken(HttpResponse httpResponse, string token)
         {
-            var entity = await _formmanger.GetFormNotificationTokenWithUser(token);
+            var entity = await _formmanger.GetFormNotifyTokenWithUser(token);
             if (entity == null)
             {
-                return Result<FormNotificationReturnDto>.Failure(400, _localization.ReturnMsg($"{_form}.NotCanView"));
+                return Result<FormNotifyReturnDto>.Failure(400, _localization.ReturnMsg($"{_form}.NotCanView"));
             }
             else
             {
                 _jwt.SetAuthCookie(httpResponse, userId: entity.user.UserId, userNo: entity.user.UserNo);
 
                 // 返回登录成功信息（JWT Cookie 已在其他层处理）
-                return Result<FormNotificationReturnDto>.Ok(
-                    new FormNotificationReturnDto
+                return Result<FormNotifyReturnDto>.Ok(
+                    new FormNotifyReturnDto
                     {
                         UserNo = entity.user.UserNo,
                         UserNameCn = entity.user.UserNameCn,
@@ -250,134 +251,114 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 () => _formction.FromReject(rejectForm),
                 rejectForm.RejectStepId);
 
+
         /// <summary>
         /// 统一执行签核或驳回
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="operation"></param>
-        /// <param name="reviewAction"></param>
-        /// <param name="rejectStepIdText"></param>
-        /// <returns></returns>
         private async Task<Result<bool>> ExecuteReviewAsync(string formId, ReviewResult operation, Func<Task<Result<bool>>> reviewAction, string? rejectStepIdText = null)
         {
-            long? rejectStepId = null;
-            if (operation == ReviewResult.Reject && !string.IsNullOrEmpty(rejectStepIdText))
-            {
-                rejectStepId = long.Parse(rejectStepIdText);
-            }
+            long formIdValue = long.Parse(formId);
+            long? rejectStepId = operation == ReviewResult.Reject && !string.IsNullOrEmpty(rejectStepIdText)
+                ? long.Parse(rejectStepIdText)
+                : null;
 
-            bool transactionStarted = false;
             long? originalStepId = null;
+            Result<bool> reviewResult = Result<bool>.Ok(true);
 
-            try
+            // 事务内：校验 + 业务执行，UseTranAsync 自动提交/回滚
+            var tranResult = await _db.Ado.UseTranAsync(async () =>
             {
-                await _db.BeginTranAsync();
-                transactionStarted = true;
-
-                bool canReview = await _formchecker.CanReview(long.Parse(formId));
-                if (!canReview)
+                if (!await _formchecker.CanReview(formIdValue))
                 {
-                    await _db.RollbackTranAsync();
-                    transactionStarted = false;
-
-                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_formLocalizationPrefix}NotCanReview"));
+                    reviewResult = Result<bool>.Failure(400, _localization.ReturnMsg($"{_formLocalizationPrefix}NotCanReview"));
+                    return;
                 }
 
                 if (operation == ReviewResult.Approve)
                 {
                     originalStepId = await _db.Queryable<FormInstanceEntity>()
-                                              .Where(instance => instance.FormId == long.Parse(formId))
+                                              .Where(instance => instance.FormId == formIdValue)
                                               .Select(instance => instance.CurrentStepId)
                                               .FirstAsync();
                 }
 
-                Result<bool> result = await reviewAction();
-                if (result.Code != 200)
+                reviewResult = await reviewAction();
+                if (reviewResult.Code != 200)
                 {
-                    await _db.RollbackTranAsync();
-                    transactionStarted = false;
-                    return result;
+                    throw new ReviewBusinessException(); // 触发自动回滚，结果已存入 reviewResult
                 }
+            });
 
-                await _db.CommitTranAsync();
-                transactionStarted = false;
-
-                try
-                {
-                    List<EmailMessage> messages = new();
-
-                    if (operation == ReviewResult.Approve)
-                    {
-                        var state = await _db.Queryable<FormInstanceEntity>()
-                                             .Where(instance => instance.FormId == long.Parse(formId))
-                                             .Select(instance => new
-                                             {
-                                                 instance.FormStatus,
-                                                 instance.CurrentStepId,
-                                             }).FirstAsync();
-
-                        if (state.FormStatus == FormStatus.Approved.ToEnumString())
-                        {
-                            messages = await BuildApplicantApprovedEmailsAsync(long.Parse(formId));
-                        }
-                        else if (state.CurrentStepId.HasValue && state.CurrentStepId != originalStepId)
-                        {
-                            messages = await BuildPendingReviewerEmailsAsync(
-                                long.Parse(formId),
-                                state.CurrentStepId.Value,
-                                ReviewResult.Approve);
-                        }
-                    }
-                    else if (rejectStepId.HasValue)
-                    {
-                        messages = await BuildPendingReviewerEmailsAsync(
-                            long.Parse(formId),
-                            rejectStepId.Value,
-                            ReviewResult.Reject);
-                    }
-
-                    foreach (EmailMessage message in messages)
-                    {
-                        try
-                        {
-                            await _email.SendAsync(message);
-                        }
-                        catch (Exception emailException)
-                        {
-                            _logger.LogError(emailException, emailException.Message);
-                        }
-                    }
-                }
-                catch (Exception notificationException)
-                {
-                    _logger.LogError(notificationException, notificationException.Message);
-                }
-
-                return result;
-            }
-            catch (Exception ex)
+            // 业务校验失败或业务返回非 200：直接返回，事务已回滚
+            if (reviewResult.Code != 200)
             {
-                if (transactionStarted)
-                {
-                    try
-                    {
-                        await _db.RollbackTranAsync();
-                    }
-                    catch (Exception rollbackException)
-                    {
-                        _logger.LogError(rollbackException, rollbackException.Message);
-                    }
-                }
-
-                _logger.LogError(ex, ex.Message);
-
-                return Result<bool>.Failure(500, ex.Message);
+                return reviewResult;
             }
+
+            // 数据库异常（非业务异常）
+            if (!tranResult.IsSuccess && tranResult.ErrorException is not ReviewBusinessException)
+            {
+                _logger.LogError(tranResult.ErrorException, tranResult.ErrorMessage);
+                return Result<bool>.Failure(500, tranResult.ErrorMessage);
+            }
+
+            // 事务后：发送邮件通知（失败不影响主流程）
+            await SendReviewNotificationsAsync(formIdValue, operation, originalStepId, rejectStepId);
+
+            return reviewResult;
         }
 
         #endregion
 
         #region 邮件通知
+
+        /// <summary>
+        /// 发送签核/驳回的邮件通知
+        /// </summary>
+        private async Task SendReviewNotificationsAsync(long formIdValue, ReviewResult operation, long? originalStepId, long? rejectStepId)
+        {
+            try
+            {
+                List<EmailMessage> messages = new();
+
+                if (operation == ReviewResult.Approve)
+                {
+                    var state = await _db.Queryable<FormInstanceEntity>()
+                                         .Where(instance => instance.FormId == formIdValue)
+                                         .Select(instance => new { instance.FormStatus, instance.CurrentStepId })
+                                         .FirstAsync();
+
+                    if (state.FormStatus == FormStatus.Approved.ToEnumString())
+                    {
+                        messages = await BuildApplicantApprovedEmailsAsync(formIdValue);
+                    }
+                    else if (state.CurrentStepId.HasValue && state.CurrentStepId != originalStepId)
+                    {
+                        messages = await BuildPendingReviewerEmailsAsync(formIdValue, state.CurrentStepId.Value, ReviewResult.Approve);
+                    }
+                }
+                else if (rejectStepId.HasValue)
+                {
+                    messages = await BuildPendingReviewerEmailsAsync(formIdValue, rejectStepId.Value, ReviewResult.Reject);
+                }
+
+                foreach (EmailMessage message in messages)
+                {
+                    try
+                    {
+                        await _email.SendAsync(message);
+                    }
+                    catch (Exception emailException)
+                    {
+                        _logger.LogError(emailException, emailException.Message);
+                    }
+                }
+            }
+            catch (Exception notificationException)
+            {
+                _logger.LogError(notificationException, notificationException.Message);
+            }
+        }
 
         /// <summary>
         /// 生成待审批邮件

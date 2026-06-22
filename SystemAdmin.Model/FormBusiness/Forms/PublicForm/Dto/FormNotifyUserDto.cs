@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto
     /// <summary>
     /// 表单通知Token Dto
     /// </summary>
-    public class FormNotificationUserDto
+    public class FormNotifyUserDto
     {
         /// <summary>
         /// 用户信息

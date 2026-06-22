@@ -16,12 +16,12 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
 {
-    public class InvalidFormRepository
+    public class VoidedFormRepository
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
 
-        public InvalidFormRepository(SqlSugarScope db, Language lang)
+        public VoidedFormRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
             _lang = lang;
@@ -88,7 +88,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<InvalidFormDto>> GetInvalidFormsPage(GetInvalidFormsPage getPage, long loginUserId)
+        public async Task<ResultPaged<VoidedFormDto>> GetVoidedFormsPage(GetVoidedFormPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<FormInstanceEntity>()
@@ -115,7 +115,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             // 排序
             query = query.OrderBy((instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
 
-            var page = await query.Select((instance, dic, formtype, applyuser, applyuserdept, useragent) => new InvalidFormDto
+            var page = await query.Select((instance, dic, formtype, applyuser, applyuserdept, useragent) => new VoidedFormDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -131,7 +131,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 VoidedDate = instance.ModifiedDate!.Value,
                 ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
-            return ResultPaged<InvalidFormDto>.Ok(page, totalCount, "");
+            return ResultPaged<VoidedFormDto>.Ok(page, totalCount, "");
         }
     }
 }

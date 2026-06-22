@@ -3,7 +3,7 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 
 namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
 {
-    public class InvalidFormDto
+    public class VoidedFormDto
     {
         /// <summary>
         /// 表单类别Id

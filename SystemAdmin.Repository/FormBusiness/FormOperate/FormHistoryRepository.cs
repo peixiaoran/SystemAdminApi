@@ -138,8 +138,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                ? applydept.DepartmentNameCn
                                : applydept.DepartmentNameEn,
                 ApplicantDate = instance.ApplicantDate,
-                ViewPath = formtype.ViewPath,
-                IsWithdraw = instance.FormStatus != FormStatus.Voided.ToEnumString() ? 1 : 0
+                ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
         }
@@ -199,8 +198,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                                ? applydept.DepartmentNameCn
                                : applydept.DepartmentNameEn,
                 ViewPath = formtype.ViewPath,
-                ApplicantDate = instance.ApplicantDate,
-                IsWithdraw = 0
+                ApplicantDate = instance.ApplicantDate
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
 
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");

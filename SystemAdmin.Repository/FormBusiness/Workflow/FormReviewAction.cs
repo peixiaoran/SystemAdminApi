@@ -2296,7 +2296,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<(WorkflowStepEntity StepInfo, long RuleId)> GetCurrentStepInfo(long formId)
+        public async Task<(WorkflowStepEntity stepInfo, long ruleId)> GetCurrentStepInfo(long formId)
         {
             var entity = await _db.Queryable<FormInstanceEntity>()
                                   .With(SqlWith.NoLock)
@@ -2382,13 +2382,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             // 状态和当前步骤一次更新，避免中间状态。
            await _db.Updateable<FormInstanceEntity>()
-                                        .SetColumns(instance => new FormInstanceEntity
-                                        {
-                                            FormStatus = FormStatus.Rejected.ToEnumString(),
-                                            CurrentStepId = rejectStepId,
-                                        })
-                                        .Where(instance => instance.FormId == formId)
-                                        .ExecuteCommandAsync();
+                    .SetColumns(instance => new FormInstanceEntity
+                    {
+                        FormStatus = FormStatus.Rejected.ToEnumString(),
+                        CurrentStepId = rejectStepId,
+                    }).Where(instance => instance.FormId == formId)
+                    .ExecuteCommandAsync();
 
             await EnsurePendingReviewExists(formId, rejectStepId);
 

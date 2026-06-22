@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Queries
     /// <summary>
     /// 查询已作废表单请求参数
     /// </summary>
-    public class GetInvalidFormsPage : PageModel
+    public class GetVoidedFormPage : PageModel
     {
         /// <summary>
         /// 表单组别Id

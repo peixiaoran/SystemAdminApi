@@ -20,11 +20,11 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[表单公共接口] 表单邮件Token验证")]
+        [EndpointSummary("[表单公共接口] 邮件Token验证")]
         [AllowAnonymous]
-        public async Task<Result<FormNotificationReturnDto>> GetFormNotificationToken([FromForm] string token)
+        public async Task<Result<FormNotifyReturnDto>> GetFormNotifyToken([FromForm] string token)
         {
-            return await _publicFormService.GetFormNotificationToken(Response, token);
+            return await _publicFormService.GetFormNotifyToken(Response, token);
         }
 
         [HttpPost]
@@ -45,7 +45,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[表单公共接口] 查询驳回步骤下拉")]
+        [EndpointSummary("[表单公共接口] 可驳回步骤")]
         public async Task<Result<List<RejectStepDrop>>> GetRejectStepDrop([FromForm] string formId)
         {
             return await _publicFormService.GetRejectStepDrop(formId);
@@ -53,7 +53,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[表单公共接口] 查询表单流程")]
+        [EndpointSummary("[表单公共接口] 表单流程")]
         public async Task<Result<FormReview>> GetFullReviewFlow([FromForm] string formId)
         {
             return await _publicFormService.GetFullReviewFlow(formId);

@@ -37,13 +37,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询表单通知Token信息
         /// </summary>
-        public async Task<FormNotificationUserDto> GetFormNotificationTokenWithUser(string tokenValue)
+        public async Task<FormNotifyUserDto> GetFormNotifyTokenWithUser(string tokenValue)
         {
             return await _db.Queryable<FormNotifyTokenEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<UserInfoEntity>((token, user) => token.ReviewUserId == user.UserId)
                             .Where((token, user) => token.Token == tokenValue)
-                            .Select((token, user) => new FormNotificationUserDto
+                            .Select((token, user) => new FormNotifyUserDto
                             {
                                 user = user,
                                 FormId = token.FormId

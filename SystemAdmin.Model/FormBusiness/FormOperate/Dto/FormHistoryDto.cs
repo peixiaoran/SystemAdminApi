@@ -59,10 +59,5 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
         /// 表单视图路径
         /// </summary>
         public string ViewPath { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 是否可以撤回
-        /// </summary>
-        public int IsWithdraw { get; set; }
     }
 }
