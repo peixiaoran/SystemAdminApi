@@ -56,7 +56,7 @@ namespace SystemAdmin.CommonSetup.Security
             var browser = await GetBrowserAsync();
             await using var page = await browser.NewPageAsync();
 
-            await page.SetContentAsync(htmlContent, new NavigationOptions
+            await page.SetContentAsync(htmlContent, new PuppeteerSharp.NavigationOptions
             {
                 WaitUntil = new[] { WaitUntilNavigation.Networkidle0 }
             });
