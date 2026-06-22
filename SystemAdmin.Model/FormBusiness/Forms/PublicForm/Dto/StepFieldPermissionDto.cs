@@ -11,11 +11,6 @@
         public string FieldKey { get; set; } = string.Empty;
 
         /// <summary>
-        /// 栏位名称
-        /// </summary>
-        public string FieldName { get; set; } = string.Empty;
-
-        /// <summary>
         /// 是否显示
         /// </summary>
         public int IsVisible { get; set; }

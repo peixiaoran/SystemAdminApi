@@ -127,7 +127,7 @@
     <value>The uploaded file cannot be empty</value>
   </data>
   <data name="AttachmentSizeLimit" xml:space="preserve">
-    <value>The maximum file size is 25MB!</value>
+    <value>The file size exceeds the maximum limit of 25 MB per attachment</value>
   </data>
   <data name="UploadFailed" xml:space="preserve">
     <value>File upload failed</value>
@@ -136,7 +136,7 @@
     <value>Please select the files you want to delete</value>
   </data>
   <data name="DeleteAttachmentFailed" xml:space="preserve">
-    <value>Failed to delete attachment</value>
+    <value>Unable to delete the attachment</value>
   </data>
   <data name="AttachmentExtensionNotAllow" xml:space="preserve">
     <value>The file extension does not comply with the specifications</value>
@@ -155,5 +155,8 @@
   </data>
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
     <value>Insufficient {1} leave balance for year {0}. Requested: {2} day(s), Available: {3} day(s)</value>
+  </data>
+  <data name="AgentLeaveConflict" xml:space="preserve">
+    <value>The selected agent "{0}" already has a pending leave request from {1} to {2}. Please select another agent</value>
   </data>
 </root>

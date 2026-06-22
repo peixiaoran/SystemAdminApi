@@ -44,10 +44,10 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[请假单] 验证假期余额")]
-        public async Task<Result<bool>> ValidateLeaveBalance([FromForm] string formId)
+        [EndpointSummary("[请假单] 请假单送审验证")]
+        public async Task<Result<bool>> ValidateLeaveInfo([FromForm] string formId)
         {
-            return await _leaveFormService.ValidateLeaveBalance(formId);
+            return await _leaveFormService.ValidateLeaveInfo(formId);
         }
 
         [HttpPost]
@@ -68,18 +68,18 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[请假单] 保存请假单")]
-        public async Task<Result<int>> SaveLeaveForm([FromBody] LeaveFormSave save)
-        {
-            return await _leaveFormService.SaveLeaveForm(save);
-        }
-
-        [HttpPost]
-        [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[请假单] 查询请假单明细")]
         public async Task<Result<LeaveFormDto>> GetLeaveForm([FromForm] string formId, [FromForm] string type)
         {
             return await _leaveFormService.GetLeaveForm(formId, type);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[请假单] 保存请假单")]
+        public async Task<Result<int>> SaveLeaveForm([FromBody] LeaveFormSave save)
+        {
+            return await _leaveFormService.SaveLeaveForm(save);
         }
     }
 }

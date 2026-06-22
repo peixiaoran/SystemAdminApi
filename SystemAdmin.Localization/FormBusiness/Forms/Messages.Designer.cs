@@ -61,6 +61,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 代理人「{0}」于 {1} 至 {2} 期间有待审批的请假申请，请改选其他代理人 的本地化字符串。
+        /// </summary>
+        internal static string AgentLeaveConflict {
+            get {
+                return ResourceManager.GetString("AgentLeaveConflict", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 附件后缀不符合规范 的本地化字符串。
         /// </summary>
         internal static string AttachmentExtensionNotAllow {
@@ -88,7 +97,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
-        ///   查找类似 附件最大限制为25MB！ 的本地化字符串。
+        ///   查找类似 附件大小不得超过 25 MB 的本地化字符串。
         /// </summary>
         internal static string AttachmentSizeLimit {
             get {

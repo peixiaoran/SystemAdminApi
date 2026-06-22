@@ -3,10 +3,10 @@
 namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity
 {
     /// <summary>
-    /// 表单邮件通知链接Token实体
+    /// 表单邮件链接Token实体
     /// </summary>
-    [SugarTable("[Form].[FormNotificationToken]")]
-    public class FormNotificationTokenEntity
+    [SugarTable("[Form].[FormNotifyToken]")]
+    public class FormNotifyTokenEntity
     {
         /// <summary>
         /// 表单Id

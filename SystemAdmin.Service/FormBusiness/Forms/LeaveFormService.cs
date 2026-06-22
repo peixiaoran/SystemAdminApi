@@ -192,28 +192,45 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 验证假期余额
+        /// 请假单送审验证
         /// </summary>
-        public async Task<Result<bool>> ValidateLeaveBalance(string formId)
+        public async Task<Result<bool>> ValidateLeaveInfo(string formId)
         {
-            // 1. 查询当前表单请假信息
+            // 查询当前表单请假信息
             var currentLeave = await _leaveForm.GetCurrentLeaveForm(long.Parse(formId));
 
-            // 2. 查询假别字典
-            var leaveTypeDics = await _leaveForm.GetLeaveTypeDictionary();
-
-            // 3. 计算当前表单涉及的年份
+            // 计算当前表单涉及的年份
             var currentStart = (DateTime)currentLeave.StartDateTime!;
             var currentEnd = (DateTime)currentLeave.EndDateTime!;
             var involvedYears = Enumerable.Range(currentStart.Year, currentEnd.Year - currentStart.Year + 1).ToList();
 
-            // 4. 查询申请人基础余额
+            // 1. 校验代理人在本次请假期间是否已有审批中的请假（代理人本人不能同时也在请假）
+            var agentPendingLeaves = await _leaveForm.GetAppRejectPendingLeaves(long.Parse(formId));
+
+            var conflictLeave = agentPendingLeaves.FirstOrDefault(agentPendingLeave =>
+                currentStart < (DateTime)agentPendingLeave.EndDateTime!
+                && (DateTime)agentPendingLeave.StartDateTime! < currentEnd);
+            
+            if (conflictLeave != null)
+            {
+                return Result<bool>.Failure(402, _localization.ReturnMsg(
+                    $"{_form}AgentLeaveConflict",
+                    args: new object[]
+                    {
+                        currentLeave.AgentUserName!,
+                        ((DateTime)conflictLeave.StartDateTime!).ToString("yyyy-MM-dd HH:mm"),
+                        ((DateTime)conflictLeave.EndDateTime!).ToString("yyyy-MM-dd HH:mm")
+                    }
+                ));
+            }
+
+            // 查询申请人基础余额
             var balanceList = await _leaveForm.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
 
-            // 5. 查询其余审批中的请假单
+            // 查询其余审批中的请假单
             var pendingLeaves = await _leaveForm.GetApplicantPendingLeaves(long.Parse(formId));
 
-            // 6. 计算其余审批中请假的占用工时（按年份和假别），逐日累计
+            // 2. 校验计算其余审批中请假的占用工时（按年份和假别），逐日累计
             var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
 
             foreach (var leave in pendingLeaves)
@@ -270,7 +287,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 }
             }
 
-            // 7. 计算当前表单本次请假的占用工时（按年份），逐日累计
+            // 计算当前表单本次请假的占用工时（按年份），逐日累计
             var currentHoursByYear = new Dictionary<string, decimal>();
 
             var currentCursor = currentStart.Date;
@@ -318,6 +335,9 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 currentCursor = currentCursor.AddDays(1);
             }
+
+            // 查询假别字典
+            var leaveTypeDics = await _leaveForm.GetLeaveTypeDictionary();
 
             // 8. 按年份逐一校验余额（天数，1天=8小时），遇到第一个不符合立即返回
             foreach (var year in involvedYears)
@@ -417,6 +437,34 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
+        /// 查询请假单明细
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<Result<LeaveFormDto>> GetLeaveForm(string formId, string type)
+        {
+            try
+            {
+                var isCan = await _formChecker.CanView(long.Parse(formId), type);
+                if (!isCan)
+                {
+                    return Result<LeaveFormDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
+                }
+
+                var form = await _leaveForm.GetLeaveForm(long.Parse(formId));
+                form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
+                return Result<LeaveFormDto>.Ok(form);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<LeaveFormDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// 保存请假单
         /// </summary>
         /// <param name="save"></param>
@@ -452,34 +500,6 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 await _db.RollbackTranAsync();
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 查询请假单明细
-        /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<Result<LeaveFormDto>> GetLeaveForm(string formId, string type)
-        {
-            try
-            {
-                var isCan = await _formChecker.CanView(long.Parse(formId), type);
-                if (!isCan)
-                {
-                    return Result<LeaveFormDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
-                }
-
-                var form = await _leaveForm.GetLeaveForm(long.Parse(formId));
-                form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
-                form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
-                return Result<LeaveFormDto>.Ok(form);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<LeaveFormDto>.Failure(500, ex.Message);
             }
         }
 

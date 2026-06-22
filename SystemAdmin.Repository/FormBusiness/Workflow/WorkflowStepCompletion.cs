@@ -6,6 +6,7 @@ using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
@@ -27,7 +28,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             _lang = lang;
             _registry = new Dictionary<string, Func<long, Task<Result<bool>>>>(StringComparer.OrdinalIgnoreCase)
             {
-                [nameof(DeductLeaveBalance)] = DeductLeaveBalance,
+                [nameof(ProcessLeaveForm)] = ProcessLeaveForm,
             };
         }
 
@@ -51,14 +52,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 请假单
 
         /// <summary>
-        /// 扣除假期余额
+        /// 请假单审批完成后处理
         /// </summary>
-        public async Task<Result<bool>> DeductLeaveBalance(long formId)
+        public async Task<Result<bool>> ProcessLeaveForm(long formId)
         {
             var leaveForm = await _db.Queryable<FormInstanceEntity>()
                                      .InnerJoin<LeaveFormEntity>((instance, leave) => instance.FormId == leave.FormId)
                                      .Where((instance, leave) => instance.FormId == formId)
-                                     .Select<LeaveFormEntity>()
+                                     .Select((instance, leave) => leave)
                                      .FirstAsync();
 
             var startTime = leaveForm.StartDateTime!.Value;
@@ -128,6 +129,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .FirstAsync();
             var leaveName = isChinese ? leaveInfo.DicNameCn : leaveInfo.DicNameEn;
 
+            var updateBlance = 0;
             foreach (var (year, hours) in leaveHoursByYear)
             {
                 var days = Math.Ceiling(hours / 8);
@@ -157,17 +159,37 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     }));
                 }
 
-                await _db.Updateable<UserLeaveBalanceEntity>()
-                         .SetColumns(annual => new UserLeaveBalanceEntity
-                         {
-                             RemainingDays = newRemainingDays,
-                             ModifiedBy = formInstance.CreatedBy,
-                             ModifiedDate = DateTime.Now
-                         }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveForm.LeaveType)
-                         .ExecuteCommandAsync();
+                updateBlance = await _db.Updateable<UserLeaveBalanceEntity>()
+                                        .SetColumns(annual => new UserLeaveBalanceEntity
+                                        {
+                                            RemainingDays = newRemainingDays,
+                                            ModifiedBy = formInstance.CreatedBy,
+                                            ModifiedDate = DateTime.Now
+                                        }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveForm.LeaveType)
+                                        .ExecuteCommandAsync();
             }
 
-            return Result<bool>.Ok(true);
+            // 记录代理人信息
+            var userAgent = new UserAgentEntity
+            {
+                SubstituteUserId = formInstance.ApplicantUserId, // 被代理人（申请人）
+                AgentUserId = leaveForm.AgentUserId!.Value, // 代理人
+                StartTime = leaveForm.StartDateTime!.Value,
+                EndTime = leaveForm.EndDateTime!.Value,
+                CreatedBy = formInstance.CreatedBy,
+                CreatedDate = DateTime.Now
+            };
+
+            var insertAgentCount = await _db.Insertable(userAgent).ExecuteCommandAsync();
+
+            var updateAgentCount = await _db.Updateable<UserInfoEntity>()
+                                            .SetColumns(user => new UserInfoEntity
+                                            {
+                                                IsAgent = 1
+                                            }).Where(user => user.UserId == leaveForm.AgentUserId)
+                                            .ExecuteCommandAsync();
+
+            return Result<bool>.Ok(updateBlance>=1 && insertAgentCount >= 1 && updateAgentCount >= 1);
         }
 
         #endregion

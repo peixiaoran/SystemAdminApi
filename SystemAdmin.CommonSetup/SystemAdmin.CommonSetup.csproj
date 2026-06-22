@@ -11,10 +11,11 @@
     <PackageReference Include="Mapster" Version="10.0.8" />
     <PackageReference Include="Mapster.DependencyInjection" Version="10.0.8" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="10.0.9" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.7.0" />
     <PackageReference Include="MimeKit" Version="4.17.0" />
     <PackageReference Include="Minio.AspNetCore" Version="6.0.1" />
-    <PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
+    <PackageReference Include="SqlSugarCoreNoDrive" Version="5.1.4.213" />
   </ItemGroup>
 
   <ItemGroup>

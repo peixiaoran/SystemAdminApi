@@ -8,9 +8,10 @@
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="8.6.1" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="7.0.1" />
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.7.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.9" />
-    <PackageReference Include="SqlSugarCore" Version="5.1.4.214" />
+    <PackageReference Include="SqlSugarCoreNoDrive" Version="5.1.4.213" />
   </ItemGroup>
 
   <ItemGroup>

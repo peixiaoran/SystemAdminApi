@@ -127,7 +127,7 @@
     <value>附件不能为空</value>
   </data>
   <data name="AttachmentSizeLimit" xml:space="preserve">
-    <value>附件最大限制为25MB！</value>
+    <value>附件大小不得超过 25 MB</value>
   </data>
   <data name="UploadFailed" xml:space="preserve">
     <value>附件上传失败</value>
@@ -155,5 +155,8 @@
   </data>
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
     <value>{0} 年「{1}」余额不足，本次请假 {2} 天，可用余额 {3} 天</value>
+  </data>
+  <data name="AgentLeaveConflict" xml:space="preserve">
+    <value>代理人「{0}」于 {1} 至 {2} 期间有待审批的请假申请，请改选其他代理人</value>
   </data>
 </root>

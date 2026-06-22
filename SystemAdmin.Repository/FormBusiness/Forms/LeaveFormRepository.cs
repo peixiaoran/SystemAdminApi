@@ -148,8 +148,22 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
                                 .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
-                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId && instance.FormId != formId
-                                    && instance.FormStatus == FormStatus.UnderReview.ToEnumString())
+                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId && instance.FormId != formId && instance.FormStatus == FormStatus.UnderReview.ToEnumString())
+                                .Select((leave, instance, applicant) => leave)
+                                .ToListAsync();
+            return list;
+        }
+
+        /// <summary>
+        /// 查询审批中、已驳回的请假单
+        /// </summary>
+        public async Task<List<LeaveFormEntity>> GetAppRejectPendingLeaves(long formId)
+        {
+            var list = await _db.Queryable<LeaveFormEntity>()
+                                .With(SqlWith.NoLock)
+                                .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
+                                .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
+                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId && instance.FormId != formId && (instance.FormStatus == FormStatus.UnderReview.ToEnumString() || instance.FormStatus == FormStatus.Rejected.ToEnumString()))
                                 .Select((leave, instance, applicant) => leave)
                                 .ToListAsync();
             return list;

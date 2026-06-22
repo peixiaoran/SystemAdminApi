@@ -459,7 +459,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 user => user.UserId,
                 _ => GenerateSecureToken());
 
-            var tokenEntities = tokens.Select(token => new FormNotificationTokenEntity
+            var tokenEntities = tokens.Select(token => new FormNotifyTokenEntity
             {
                 FormId = formNotice.FormId,
                 ReviewUserId = token.Key,
@@ -612,7 +612,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
             string token = GenerateSecureToken();
 
-            await _db.Insertable(new FormNotificationTokenEntity
+            await _db.Insertable(new FormNotifyTokenEntity
             {
                 FormId = formNotice.FormId,
                 ReviewUserId = recipient.UserId,

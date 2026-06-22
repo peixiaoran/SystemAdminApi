@@ -39,7 +39,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<FormNotificationUserDto> GetFormNotificationTokenWithUser(string tokenValue)
         {
-            return await _db.Queryable<FormNotificationTokenEntity>()
+            return await _db.Queryable<FormNotifyTokenEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<UserInfoEntity>((token, user) => token.ReviewUserId == user.UserId)
                             .Where((token, user) => token.Token == tokenValue)
@@ -365,7 +365,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new StepFieldPermissionDto
                 {
                     FieldKey = field.FieldKey,
-                    FieldName = field.FieldNameCn,
                     IsVisible = permission?.IsVisible ?? 0,
                     IsDisabled = permission?.IsDisabled ?? 0
                 };
