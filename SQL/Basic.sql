@@ -5825,4 +5825,346 @@ GO
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoginSuccessful', N'2026-06-22 19:58:11.847')
 GO
 
-INSERT INTO [Basic].[U
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062341', N'::1', N'LoggedOut', N'2026-06-22 20:01:30.140')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-06-22 20:01:38.950')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoggedOut', N'2026-06-22 20:08:14.103')
+GO
+
+
+-- ----------------------------
+-- Table structure for UserPartTime
+-- ----------------------------
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Basic].[UserPartTime]') AND type IN ('U'))
+	DROP TABLE [Basic].[UserPartTime]
+GO
+
+CREATE TABLE [Basic].[UserPartTime] (
+  [UserId] bigint  NOT NULL,
+  [PartTimeDeptId] bigint  NOT NULL,
+  [PartTimePositionId] bigint  NOT NULL,
+  [StartTime] datetime2(7)  NOT NULL,
+  [EndTime] datetime2(7)  NOT NULL,
+  [CreatedBy] bigint  NOT NULL,
+  [CreatedDate] datetime2(3)  NOT NULL,
+  [ModifiedBy] bigint  NULL,
+  [ModifiedDate] datetime2(3)  NULL
+)
+GO
+
+ALTER TABLE [Basic].[UserPartTime] SET (LOCK_ESCALATION = TABLE)
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'员工Id',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'UserId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'部门Id',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'PartTimeDeptId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'兼任职级Id',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'PartTimePositionId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'兼任开始时间',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'StartTime'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'兼任结束时间',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'EndTime'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建人',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'CreatedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建时间',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'CreatedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改人',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'ModifiedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改时间',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime',
+'COLUMN', N'ModifiedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'员工兼任表',
+'SCHEMA', N'Basic',
+'TABLE', N'UserPartTime'
+GO
+
+
+-- ----------------------------
+-- Records of UserPartTime
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for UserRole
+-- ----------------------------
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Basic].[UserRole]') AND type IN ('U'))
+	DROP TABLE [Basic].[UserRole]
+GO
+
+CREATE TABLE [Basic].[UserRole] (
+  [UserId] bigint  NOT NULL,
+  [RoleId] bigint  NOT NULL,
+  [CreatedBy] bigint  NOT NULL,
+  [CreatedDate] datetime2(3)  NOT NULL,
+  [ModifiedBy] bigint DEFAULT NULL NULL,
+  [ModifiedDate] datetime2(3)  NULL
+)
+GO
+
+ALTER TABLE [Basic].[UserRole] SET (LOCK_ESCALATION = TABLE)
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'用户Id',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole',
+'COLUMN', N'UserId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'角色Id',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole',
+'COLUMN', N'RoleId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建人',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole',
+'COLUMN', N'CreatedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建时间',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole',
+'COLUMN', N'CreatedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改人',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole',
+'COLUMN', N'ModifiedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改时间',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole',
+'COLUMN', N'ModifiedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'员工角色对照表',
+'SCHEMA', N'Basic',
+'TABLE', N'UserRole'
+GO
+
+
+-- ----------------------------
+-- Records of UserRole
+-- ----------------------------
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'1905670034215276544', N'1903486709602062336', N'2025-03-04 16:50:11.000', N'1903486709602062336', N'2026-03-15 00:59:11.183')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062337', N'1979881189825187840', N'1903486709602062336', N'2025-03-04 16:50:11.000', N'1903486709602062336', N'2026-05-02 23:31:09.400')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062338', N'1979881189825187840', N'1903486709602062336', N'2026-04-27 13:28:17.000', N'1903486709602062336', N'2026-05-02 23:52:03.777')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'1979881189825187840', N'1903486709602062336', N'2026-04-27 13:28:17.000', N'1903486709602062336', N'2026-05-02 23:44:35.937')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062341', N'1979881189825187840', N'1903486709602062336', N'2026-04-27 14:10:17.000', N'1903486709602062336', N'2026-05-02 23:52:26.240')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062342', N'1979881189825187840', N'1903486709602062336', N'2026-04-28 16:03:49.000', N'1903486709602062336', N'2026-05-02 23:52:18.160')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:23:10.913', NULL, NULL)
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050597318784323584', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:24:34.027', N'1903486709602062336', N'2026-05-05 12:53:50.877')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050598466639499264', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:29:07.520', N'1903486709602062336', N'2026-05-02 23:45:56.227')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599298114129920', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:32:25.753', N'1903486709602062336', N'2026-05-02 23:35:06.050')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:33:43.743', NULL, NULL)
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599950684917760', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:35:01.313', N'1903486709602062336', N'2026-05-03 00:23:59.413')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600303354580992', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:36:25.423', NULL, NULL)
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600734554198016', N'1905670034215276544', N'1903486709602062336', N'2026-05-02 23:38:08.250', N'1903486709602062336', N'2026-05-02 23:46:00.310')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601504599052288', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:41:11.820', N'1903486709602062336', N'2026-05-02 23:46:18.463')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601857436487680', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:42:35.947', N'1903486709602062336', N'2026-05-02 23:46:26.273')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050602218733834240', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:44:02.070', N'1903486709602062336', N'2026-05-31 00:23:41.210')
+GO
+
+INSERT INTO [Basic].[UserRole] ([UserId], [RoleId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050603324033601536', N'1979881189825187840', N'1903486709602062336', N'2026-05-02 23:48:25.580', N'1903486709602062336', N'2026-05-02 23:52:53.937')
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table CurrencyInfo
+-- ----------------------------
+ALTER TABLE [Basic].[CurrencyInfo] ADD CONSTRAINT [PK__Currency__14470AF0F60CC698] PRIMARY KEY CLUSTERED ([CurrencyId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table DepartmentInfo
+-- ----------------------------
+ALTER TABLE [Basic].[DepartmentInfo] ADD CONSTRAINT [PK_DepartmentInfo] PRIMARY KEY CLUSTERED ([DepartmentId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table DepartmentLevel
+-- ----------------------------
+ALTER TABLE [Basic].[DepartmentLevel] ADD CONSTRAINT [PK_DepartmentLevel] PRIMARY KEY CLUSTERED ([DepartmentLevelId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table MenuInfo
+-- ----------------------------
+ALTER TABLE [Basic].[MenuInfo] ADD CONSTRAINT [PK__MenuInfo__C99ED23073DEC746] PRIMARY KEY CLUSTERED ([MenuId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table ModuleInfo
+-- ----------------------------
+ALTER TABLE [Basic].[ModuleInfo] ADD CONSTRAINT [PK__DomainIn__2498D75048722D1E] PRIMARY KEY CLUSTERED ([ModuleId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table NationalityInfo
+-- ----------------------------
+ALTER TABLE [Basic].[NationalityInfo] ADD CONSTRAINT [PK__National__211B9BBE8AA806D4] PRIMARY KEY CLUSTERED ([NationId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table PositionInfo
+-- ----------------------------
+ALTER TABLE [Basic].[PositionInfo] ADD CONSTRAINT [PK__UserPosi__60BB9A7952FCAD62] PRIMARY KEY CLUSTERED ([PositionId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table RoleInfo
+-- ----------------------------
+ALTER TABLE [Basic].[RoleInfo] ADD CONSTRAINT [PK__RoleInfo__8AFACE1A81A70B73] PRIMARY KEY CLUSTERED ([RoleId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table UserInfo
+-- ----------------------------
+ALTER TABLE [Basic].[UserInfo] ADD CONSTRAINT [PK__UserInfo__1788CC4C15412757] PRIMARY KEY CLUSTERED ([UserId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table UserLabor
+-- ----------------------------
+ALTER TABLE [Basic].[UserLabor] ADD CONSTRAINT [PK__UserLazy__369CEBB6063C3DE7] PRIMARY KEY CLUSTERED ([LaborId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Indexes structure for table UserRole
+-- ----------------------------
+CREATE NONCLUSTERED INDEX [IX_UserRole_RoleId_UserId]
+ON [Basic].[UserRole] (
+  [RoleId] ASC,
+  [UserId] ASC
+)
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table UserRole
+-- ----------------------------
+ALTER TABLE [Basic].[UserRole] ADD CONSTRAINT [PK_UserRole] PRIMARY KEY CLUSTERED ([UserId], [RoleId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
