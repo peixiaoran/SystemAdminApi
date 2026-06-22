@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001115 (17.00.1115)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Basic
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 22/06/2026 00:25:02
+ Date: 22/06/2026 18:34:59
 */
 
 
@@ -1753,7 +1753,7 @@ GO
 INSERT INTO [Basic].[MenuInfo] ([MenuId], [ModuleId], [ParentMenuId], [MenuCode], [MenuNameCn], [MenuNameEn], [MenuType], [Path], [MenuIcon], [SortOrder], [IsVisible], [RoutePath], [Redirect], [Remark], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1988928242475732999', N'1968271760889614336', N'1988927293837414400', N'FormHistory', N'表单历史记录', N'Form History', N'SecondaryMenu', N'formbusiness/form-operate/formhistory', N'FolderOpened', N'3', N'1', N'/api/FormBusiness/FormOperate/FormHistory', N'', N'', N'1903486709602062336', N'2026-05-28 08:47:40.000', N'1903486709602062336', N'2026-06-21 22:56:44.713')
 GO
 
-INSERT INTO [Basic].[MenuInfo] ([MenuId], [ModuleId], [ParentMenuId], [MenuCode], [MenuNameCn], [MenuNameEn], [MenuType], [Path], [MenuIcon], [SortOrder], [IsVisible], [RoutePath], [Redirect], [Remark], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1988928242475733000', N'1968271760889614336', N'1988927293837414400', N'InvalidForm', N'已作废单据', N'Invalid Form', N'SecondaryMenu', N'formbusiness/form-operate/invalidform', N' FolderDelete', N'3', N'1', N'/api/FormBusiness/FormOperate/InvalidForm', N'', N'', N'1903486709602062336', N'2026-05-28 08:47:40.000', N'1903486709602062336', N'2026-06-21 22:54:54.787')
+INSERT INTO [Basic].[MenuInfo] ([MenuId], [ModuleId], [ParentMenuId], [MenuCode], [MenuNameCn], [MenuNameEn], [MenuType], [Path], [MenuIcon], [SortOrder], [IsVisible], [RoutePath], [Redirect], [Remark], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1988928242475733000', N'1968271760889614336', N'1988927293837414400', N'VoidedForm', N'已作废单据', N'Voided Form', N'SecondaryMenu', N'formbusiness/form-operate/voidedform', N'FolderDelete', N'4', N'1', N'/api/FormBusiness/FormOperate/VoidedForm', N'', N'', N'1903486709602062336', N'2026-05-28 08:47:40.000', N'1903486709602062336', N'2026-06-21 22:54:54.787')
 GO
 
 

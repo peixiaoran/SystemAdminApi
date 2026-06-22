@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 22/06/2026 14:36:25
+ Date: 22/06/2026 18:34:54
 */
 
 
@@ -496,7 +496,7 @@ GO
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2067988913603088384', N'1987217256446300160', N'LVR-2026060002', N'Voided', N'1903486709602062336', N'2026-06-19', N'2051186271467999232', N'2009890853346217984', N'1903486709602062336', N'2026-06-19 23:12:33.033', N'1903486709602062336', N'2026-06-22 00:23:13.750')
 GO
 
-INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2068731514094489600', N'1987217256446300160', N'LVR-2026060003', N'UnderReview', N'1903486709602062336', N'2026-06-22', N'2046850267772751872', N'2032353104544010240', N'1903486709602062336', N'2026-06-22 00:23:22.790', N'1903486709602062336', N'2026-06-22 13:56:52.813')
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2068731514094489600', N'1987217256446300160', N'LVR-2026060003', N'Approved', N'1903486709602062336', N'2026-06-22', N'2046850267772751872', NULL, N'1903486709602062336', N'2026-06-22 00:23:22.790', N'1903486709602062336', N'2026-06-22 13:56:52.813')
 GO
 
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2068936975129382912', N'1987217256446300160', N'LVR-2026060004', N'PendingSubmit', N'1903486709602062336', N'2026-06-22', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-22 13:59:48.517', N'1903486709602062336', N'2026-06-22 14:00:08.253')
@@ -504,13 +504,13 @@ GO
 
 
 -- ----------------------------
--- Table structure for FormNotificationToken
+-- Table structure for FormNotifyToken
 -- ----------------------------
-IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[FormNotificationToken]') AND type IN ('U'))
-	DROP TABLE [Form].[FormNotificationToken]
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[FormNotifyToken]') AND type IN ('U'))
+	DROP TABLE [Form].[FormNotifyToken]
 GO
 
-CREATE TABLE [Form].[FormNotificationToken] (
+CREATE TABLE [Form].[FormNotifyToken] (
   [FormId] bigint  NOT NULL,
   [ReviewUserId] bigint  NOT NULL,
   [Token] nvarchar(100) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
@@ -519,82 +519,85 @@ CREATE TABLE [Form].[FormNotificationToken] (
 )
 GO
 
-ALTER TABLE [Form].[FormNotificationToken] SET (LOCK_ESCALATION = TABLE)
+ALTER TABLE [Form].[FormNotifyToken] SET (LOCK_ESCALATION = TABLE)
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'表单Id',
 'SCHEMA', N'Form',
-'TABLE', N'FormNotificationToken',
+'TABLE', N'FormNotifyToken',
 'COLUMN', N'FormId'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'待审批人Id',
 'SCHEMA', N'Form',
-'TABLE', N'FormNotificationToken',
+'TABLE', N'FormNotifyToken',
 'COLUMN', N'ReviewUserId'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'Token',
 'SCHEMA', N'Form',
-'TABLE', N'FormNotificationToken',
+'TABLE', N'FormNotifyToken',
 'COLUMN', N'Token'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'过期时间',
 'SCHEMA', N'Form',
-'TABLE', N'FormNotificationToken',
+'TABLE', N'FormNotifyToken',
 'COLUMN', N'ExpirationTime'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'创建时间',
 'SCHEMA', N'Form',
-'TABLE', N'FormNotificationToken',
+'TABLE', N'FormNotifyToken',
 'COLUMN', N'CreatedDate'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'表单邮件通知Token表',
 'SCHEMA', N'Form',
-'TABLE', N'FormNotificationToken'
+'TABLE', N'FormNotifyToken'
 GO
 
 
 -- ----------------------------
--- Records of FormNotificationToken
+-- Records of FormNotifyToken
 -- ----------------------------
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N'SzEIYUBNmXCJuxE4BxNeuOww4q1ySHs3Vj_imNjJI3k', N'2026-07-03 15:23:52.147', N'2026-06-18 15:23:52.147')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N'SzEIYUBNmXCJuxE4BxNeuOww4q1ySHs3Vj_imNjJI3k', N'2026-07-03 15:23:52.147', N'2026-06-18 15:23:52.147')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N'P1TFYNk0SgGvwMyIUAWj1jN4MC_12VV-tpcZWfasYKA', N'2026-07-03 21:22:42.910', N'2026-06-18 21:22:42.910')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N'P1TFYNk0SgGvwMyIUAWj1jN4MC_12VV-tpcZWfasYKA', N'2026-07-03 21:22:42.910', N'2026-06-18 21:22:42.910')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062336', N'o8p_HTU0CMlEzwR7foXdZEqt-EhIgy5rR116nIB1tTA', N'2026-07-03 21:29:28.907', N'2026-06-18 21:29:28.907')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062336', N'o8p_HTU0CMlEzwR7foXdZEqt-EhIgy5rR116nIB1tTA', N'2026-07-03 21:29:28.907', N'2026-06-18 21:29:28.907')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N't1Qizekl9fsO3slBzMdUWpAiow_SMmog28ZSP7Hea7E', N'2026-07-03 21:39:54.120', N'2026-06-18 21:39:54.120')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N't1Qizekl9fsO3slBzMdUWpAiow_SMmog28ZSP7Hea7E', N'2026-07-03 21:39:54.120', N'2026-06-18 21:39:54.120')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067988913603088384', N'1903486709602062340', N'RraUCYmOLI4qp2nMRIFu5o-dv0X1drfGPZUdNNdlKUs', N'2026-07-06 23:17:27.253', N'2026-06-21 23:17:27.253')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067988913603088384', N'1903486709602062340', N'RraUCYmOLI4qp2nMRIFu5o-dv0X1drfGPZUdNNdlKUs', N'2026-07-06 23:17:27.253', N'2026-06-21 23:17:27.253')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067988913603088384', N'2050599625240481792', N'ai1iOUNSjHn2n0Z2czv11rmz5TUKoHuYOcU_O1fuSWA', N'2026-07-06 23:34:41.870', N'2026-06-21 23:34:41.870')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067988913603088384', N'2050599625240481792', N'ai1iOUNSjHn2n0Z2czv11rmz5TUKoHuYOcU_O1fuSWA', N'2026-07-06 23:34:41.870', N'2026-06-21 23:34:41.870')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062336', N'dDWVRP3hDwKxrS3dLAclMMP0hF8KVdcBzaUl8oACRgo', N'2026-07-04 13:35:14.210', N'2026-06-19 13:35:14.210')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062336', N'dDWVRP3hDwKxrS3dLAclMMP0hF8KVdcBzaUl8oACRgo', N'2026-07-04 13:35:14.210', N'2026-06-19 13:35:14.210')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N'GsRhwcpClBSj4J0MJORXhEjaWN1KIZ7aYL8gLktNDEY', N'2026-07-04 23:14:15.013', N'2026-06-19 23:14:15.013')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2067432975540293632', N'1903486709602062340', N'GsRhwcpClBSj4J0MJORXhEjaWN1KIZ7aYL8gLktNDEY', N'2026-07-04 23:14:15.013', N'2026-06-19 23:14:15.013')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2068731514094489600', N'1903486709602062340', N'eDK_0_0GfSbFoiuGJcFsbQ3wD1U4EbOv6twH5Td6Fk8', N'2026-07-07 14:00:49.230', N'2026-06-22 14:00:49.230')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2068731514094489600', N'1903486709602062340', N'eDK_0_0GfSbFoiuGJcFsbQ3wD1U4EbOv6twH5Td6Fk8', N'2026-07-07 14:00:49.230', N'2026-06-22 14:00:49.230')
 GO
 
-INSERT INTO [Form].[FormNotificationToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2068731514094489600', N'1903486709602062341', N'qLi-BmVnZjP0lxdVfWYdkT-r6V8_aoXeoTQzPnWFepk', N'2026-07-07 14:35:20.630', N'2026-06-22 14:35:20.630')
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2068731514094489600', N'1903486709602062341', N'qLi-BmVnZjP0lxdVfWYdkT-r6V8_aoXeoTQzPnWFepk', N'2026-07-07 14:35:20.630', N'2026-06-22 14:35:20.630')
+GO
+
+INSERT INTO [Form].[FormNotifyToken] ([FormId], [ReviewUserId], [Token], [ExpirationTime], [CreatedDate]) VALUES (N'2068731514094489600', N'1903486709602062336', N'ZIoepC1d4pJrGwJTfTY67_Dg2JKWK4AG4ZLhxra80uY', N'2026-07-07 15:10:56.000', N'2026-06-22 15:10:56.000')
 GO
 
 
@@ -747,6 +750,9 @@ INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [Reje
 GO
 
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2068731514094489600', N'2009897830268932096', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-22 14:35:20.470', N'1')
+GO
+
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2068731514094489600', N'2032353104544010240', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062341', N'1903486709602062341', N'2026-06-22 15:10:55.760', N'1')
 GO
 
 
@@ -1317,9 +1323,6 @@ INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [Revi
 GO
 
 INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2067432975540293632', N'2009890853346217984', N'Actual', N'1903486709602062336')
-GO
-
-INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2068731514094489600', N'2032353104544010240', N'Actual', N'1903486709602062341')
 GO
 
 INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2068936975129382912', N'2009890853346217984', N'Actual', N'1903486709602062336')
