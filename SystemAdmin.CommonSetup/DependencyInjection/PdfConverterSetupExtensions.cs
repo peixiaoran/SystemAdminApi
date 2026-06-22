@@ -1,9 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
@@ -17,7 +15,7 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
                 configuration.GetSection("PdfConverter"));
 
             // 转换器持有长期存活的 Chrome 进程，注册 Singleton
-            services.AddSingleton<IHtmlToPdfConverter, HtmlToPdfConverter>();
+            services.AddSingleton<HtmlToPdfConverter, HtmlToPdfConverter>();
 
             return services;
         }

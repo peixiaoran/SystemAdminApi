@@ -145,11 +145,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 匹配工作流规则
         /// </summary>
-        public async Task<long> MatchWorkflowRule(long formTypeId, long formId)
+        public async Task<long> MatchWorkflowRule(long formTypeId, long formId, long applicantUserId)
         {
             var appPositionId = await _db.Queryable<UserInfoEntity>()
                                          .With(SqlWith.NoLock)
-                                         .Where(user => user.UserId == _loginuser.UserId)
+                                         .Where(user => user.UserId == applicantUserId)
                                          .Select(user => user.PositionId)
                                          .FirstAsync();
 
@@ -216,14 +216,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> SaveFormInstance(long formId)
         {
-            var formTypeId = await _db.Queryable<FormInstanceEntity>()
-                                      .With(SqlWith.NoLock)
-                                      .Where(instance => instance.FormId == formId)
-                                      .Select(instance => instance.FormTypeId)
-                                      .FirstAsync();
+            var formInstance = await _db.Queryable<FormInstanceEntity>()
+                                        .With(SqlWith.NoLock)
+                                        .Where(instance => instance.FormId == formId)
+                                        .FirstAsync();
 
             // 每次保存都重新匹配工作流规则
-            await MatchWorkflowRule(formTypeId, formId);
+            await MatchWorkflowRule(formInstance.FormTypeId, formId, formInstance.ApplicantUserId);
 
             return await _db.Updateable<FormInstanceEntity>()
                             .SetColumns(f => new FormInstanceEntity

@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 22/06/2026 00:25:08
+ Date: 22/06/2026 20:08:47
 */
 
 
@@ -106,7 +106,7 @@ GO
 -- ----------------------------
 -- Records of UserLeaveBalance
 -- ----------------------------
-INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2026', N'Annual', N'15.00', N'11.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', N'1903486709602062336', N'2026-06-22 20:00:36.043')
 GO
 
 INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)

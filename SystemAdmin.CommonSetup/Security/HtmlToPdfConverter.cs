@@ -1,5 +1,4 @@
-﻿using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using PuppeteerSharp;
 using PuppeteerSharp.Media;
 using SystemAdmin.CommonSetup.Options;
@@ -56,7 +55,7 @@ namespace SystemAdmin.CommonSetup.Security
             var browser = await GetBrowserAsync();
             await using var page = await browser.NewPageAsync();
 
-            await page.SetContentAsync(htmlContent, new PuppeteerSharp.NavigationOptions
+            await page.SetContentAsync(htmlContent, new SetContentOptions
             {
                 WaitUntil = new[] { WaitUntilNavigation.Networkidle0 }
             });
