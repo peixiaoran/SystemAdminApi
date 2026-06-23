@@ -10,76 +10,68 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
     [RoutingAuthorize]
     [Route("api/FormBusiness/FormOperate/[controller]/[action]")]
     [ApiController]
-    public class FormHistory : ControllerBase
+    public class ApplyHistory : ControllerBase
     {
-        private readonly FormHistoryService _formHistoryService;
-        public FormHistory(FormHistoryService formHistoryService)
+        private readonly ApplyHistoryService _appHistoryService;
+        public ApplyHistory(ApplyHistoryService appHistoryService)
         {
-            _formHistoryService = formHistoryService;
+            _appHistoryService = appHistoryService;
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 表单组别下拉")]
+        [EndpointSummary("[申请历史记录] 表单组别下拉")]
         public async Task<Result<List<FormGroupDropDto>>> GetFormGroupDrop()
         {
-            return await _formHistoryService.GetFormGroupDrop();
+            return await _appHistoryService.GetFormGroupDrop();
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 表单类别下拉")]
+        [EndpointSummary("[申请历史记录] 表单类别下拉")]
         public async Task<Result<List<FormTypeDropDto>>> GetFormTypeDrop([FromForm] string formGroupId)
         {
-            return await _formHistoryService.GetFormTypeDrop(formGroupId);
+            return await _appHistoryService.GetFormTypeDrop(formGroupId);
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 表单状态下拉")]
+        [EndpointSummary("[申请历史记录] 表单状态下拉")]
         public async Task<Result<List<FormStatusDropDto>>> GetFormStatusDrop()
         {
-            return await _formHistoryService.GetFormStatusDrop();
+            return await _appHistoryService.GetFormStatusDrop();
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 查询申请记录分页")]
+        [EndpointSummary("[申请历史记录] 查询申请记录分页")]
         public async Task<ResultPaged<FormHistoryDto>> GetApplyHistoryPage([FromBody] GetFormHistoryPage getpage)
         {
-            return await _formHistoryService.GetApplyHistoryPage(getpage);
+            return await _appHistoryService.GetApplyHistoryPage(getpage);
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 查询审批记录分页")]
-        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage([FromBody] GetFormHistoryPage getpage)
-        {
-            return await _formHistoryService.GetReviewHistoryPage(getpage);
-        }
-
-        [HttpPost]
-        [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[待审表单列表] 查询待审批人")]
+        [EndpointSummary("[申请历史记录] 查询待审批人")]
         public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUsers([FromForm] string formId)
         {
-            return await _formHistoryService.GetFormPendingUsers(formId);
+            return await _appHistoryService.GetFormPendingUsers(formId);
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 表单撤回")]
+        [EndpointSummary("[申请历史记录] 表单撤回")]
         public async Task<Result<int>> WithdrawForm([FromForm] string formId)
         {
-            return await _formHistoryService.WithdrawForm(formId);
+            return await _appHistoryService.WithdrawForm(formId);
         }
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[表单历史记录] 表单作废")]
+        [EndpointSummary("[申请历史记录] 表单作废")]
         public async Task<Result<int>> VoidedForm([FromForm] string formId)
         {
-            return await _formHistoryService.VoidedForm(formId);
+            return await _appHistoryService.VoidedForm(formId);
         }
     }
 }

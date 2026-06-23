@@ -154,7 +154,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     }
                 }
 
-                stepReview.stepReviewUser.AddRange(userReview);
+                stepReview.StepReviewUser.AddRange(userReview);
                 stepReviewList.Add(stepReview);
 
                 currentStepId = await _db.Queryable<WorkflowRuleStepEntity>()
@@ -165,7 +165,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
 
             // 获取审批结果
-            formReview.stepReviewList = await GetUserReviewResult(formId, formDetail.RuleId, formDetail.CurrentStepId, stepReviewList);
+            formReview.StepReviewList = await GetUserReviewResult(formId, formDetail.RuleId, formDetail.CurrentStepId, stepReviewList);
             formReview.RejectCount = await GetRejectCount(formId);
             return formReview;
         }
@@ -1672,7 +1672,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 该步骤只要有人在有效时间后核准过，就认为该步骤已核准
                 bool stepHasApprove = approveRecords.Any(record => record.StepId == flow.StepId && (validAfter == null || record.ReviewDateTime > validAfter.Value));
 
-                foreach (var user in flow.stepReviewUser)
+                foreach (var user in flow.StepReviewUser)
                 {
                     if (!isCurrentStep)
                     {
@@ -1841,7 +1841,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         }
                     }
 
-                    stepReview.stepReviewUser.AddRange(userReview);
+                    stepReview.StepReviewUser.AddRange(userReview);
                     stepReviewList.Add(stepReview);
 
                     currentStepId = await _db.Queryable<WorkflowRuleStepEntity>()
@@ -1877,7 +1877,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             if (!stepInfoDict.TryGetValue(step.StepId, out var info)) return false;
                                             if (info.IsStartStep == 1) return true; // 起始步骤始终保留，不做用户过滤
                                             return info.SortOrder < currentSortOrder
-                                                   && !step.stepReviewUser.Any(user =>
+                                                   && !step.StepReviewUser.Any(user =>
                                                        user.ReviewUserId == _loginuser.UserId ||
                                                        user.AgentUserId == _loginuser.UserId);
                                         })

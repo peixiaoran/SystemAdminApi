@@ -9,25 +9,26 @@ using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Service.FormBusiness.FormOperate
 {
-    public class FormHistoryService
+    public class ApplyHistoryService
+
     {
         private readonly CurrentUser _loginuser;
         private readonly ILogger<FormPendingService> _logger;
         private readonly SqlSugarScope _db;
         private readonly FormPermissionChecker _formChecker;
         private readonly FormReviewAction _formReviewAction;
-        private readonly FormHistoryRepository _formHistoryRepo;
+        private readonly ApplyHistoryRepository _applyHistoryRepo;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
 
-        public FormHistoryService(CurrentUser loginuser, ILogger<FormPendingService> logger, SqlSugarScope db, FormPermissionChecker formChecker, FormReviewAction formReviewAction, FormHistoryRepository formHistoryRepo, LocalizationService localization)
+        public ApplyHistoryService(CurrentUser loginuser, ILogger<FormPendingService> logger, SqlSugarScope db, FormPermissionChecker formChecker, FormReviewAction formReviewAction, ApplyHistoryRepository applyHistoryRepo, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _formChecker = formChecker;
             _formReviewAction = formReviewAction;
-            _formHistoryRepo = formHistoryRepo;
+            _applyHistoryRepo = applyHistoryRepo;
             _localization = localization;
         }
 
@@ -39,7 +40,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var drop = await _formHistoryRepo.GetFormGroupDrop();
+                var drop = await _applyHistoryRepo.GetFormGroupDrop();
                 return Result<List<FormGroupDropDto>>.Ok(drop);
             }
             catch (Exception ex)
@@ -57,7 +58,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var drop = await _formHistoryRepo.GetFormTypeDrop(long.Parse(formGroupId));
+                var drop = await _applyHistoryRepo.GetFormTypeDrop(long.Parse(formGroupId));
                 return Result<List<FormTypeDropDto>>.Ok(drop);
             }
             catch (Exception ex)
@@ -75,7 +76,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var drop = await _formHistoryRepo.GetFormStatusDrop();
+                var drop = await _applyHistoryRepo.GetFormStatusDrop();
                 return Result<List<FormStatusDropDto>>.Ok(drop);
             }
             catch (Exception ex)
@@ -93,24 +94,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                return await _formHistoryRepo.GetApplyHistoryPage(getpage, _loginuser.UserId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return ResultPaged<FormHistoryDto>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 查询审批记录分页
-        /// </summary>
-        /// <returns></returns>
-        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetFormHistoryPage getpage)
-        {
-            try
-            {
-                return await _formHistoryRepo.GetReviewHistoryPage(getpage, _loginuser.UserId);
+                return await _applyHistoryRepo.GetApplyHistoryPage(getpage, _loginuser.UserId);
             }
             catch (Exception ex)
             {
@@ -128,7 +112,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                var list = await _formHistoryRepo.GetFormPendingUsers(long.Parse(formId));
+                var list = await _applyHistoryRepo.GetFormPendingUsers(long.Parse(formId));
                 return Result<List<FormPendingUserDto>>.Ok(list);
             }
             catch (Exception ex)
@@ -154,12 +138,12 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
                 await _db.BeginTranAsync();
 
-                var stepInfo = await _formHistoryRepo.GetStartStepInfo(long.Parse(formId));
-                var pendingCount = await _formHistoryRepo.WithdrawPendingSubmit(long.Parse(formId), _loginuser.UserId);
-                var withCount = await _formHistoryRepo.WithdrawForm(long.Parse(formId), stepInfo.StepId, _loginuser.UserId);
+                var stepInfo = await _applyHistoryRepo.GetStartStepInfo(long.Parse(formId));
+                var pendingCount = await _applyHistoryRepo.WithdrawPendingSubmit(long.Parse(formId), _loginuser.UserId);
+                var withCount = await _applyHistoryRepo.WithdrawForm(long.Parse(formId), stepInfo.StepId, _loginuser.UserId);
 
                 var selfAppointments = await _formReviewAction.GetStepReviewUser(long.Parse(formId), stepInfo, _loginuser.UserId);
-                var reacordsCount = await _formHistoryRepo.InsertReviewRecords(long.Parse(formId), stepInfo.StepId, ReviewResult.Withdraw, null, selfAppointments, "", ReviewType.Manual, _loginuser.UserId);
+                var reacordsCount = await _applyHistoryRepo.InsertReviewRecords(long.Parse(formId), stepInfo.StepId, ReviewResult.Withdraw, null, selfAppointments, "", ReviewType.Manual, _loginuser.UserId);
                 await _db.CommitTranAsync();
 
                 return withCount >= 1
@@ -189,7 +173,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 }
 
                 await _db.BeginTranAsync();
-                var count = await _formHistoryRepo.VoidedForm(long.Parse(formId), _loginuser.UserId);
+                var count = await _applyHistoryRepo.VoidedForm(long.Parse(formId), _loginuser.UserId);
                 await _db.CommitTranAsync();
 
                 return count >= 1

@@ -19,8 +19,8 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 用户登录")]
+        [Tags("系统基础管理-Auth")]
+        [EndpointSummary("[身份验证] 登录")]
         [AllowAnonymous]
         public async Task<Result<SysUserLoginReturnDto>> UserLogin([FromBody] UserLogin login)
         {
@@ -28,8 +28,8 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 解锁账号发送验证码")]
+        [Tags("系统基础管理-Auth")]
+        [EndpointSummary("[身份验证] 解锁-发送验证码")]
         [AllowAnonymous]
         public async Task<Result<string>> UnLockSendCode([FromForm] string userNo)
         {
@@ -37,7 +37,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
+        [Tags("系统基础管理-Auth")]
         [EndpointSummary("[身份验证] 账号解锁")]
         [AllowAnonymous]
         public async Task<Result<int>> UserUnlock([FromBody] UserUnlock unlock)
@@ -46,8 +46,8 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 密码过期发送验证码")]
+        [Tags("系统基础管理-Auth")]
+        [EndpointSummary("[身份验证] 过期-发送验证码")]
         [AllowAnonymous]
         public async Task<Result<string>> UnExpirationSendCode([FromForm] string userNo)
         {
@@ -55,8 +55,8 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 密码过期重置")]
+        [Tags("系统基础管理-Auth")]
+        [EndpointSummary("[身份验证] 密码重置")]
         [AllowAnonymous]
         public async Task<Result<int>> UserPwdExpiration([FromBody] PwdExpiration expiration)
         {
@@ -64,8 +64,8 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
-        [EndpointSummary("[身份验证] 用户登出")]
+        [Tags("系统基础管理-Auth")]
+        [EndpointSummary("[身份验证] 登出")]
         public async Task<Result<int>> UserLogOut()
         {
             return await _sysUserOperateService.UserLogOut();

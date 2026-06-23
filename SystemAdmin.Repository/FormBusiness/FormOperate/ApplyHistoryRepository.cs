@@ -1,5 +1,4 @@
 ﻿using SqlSugar;
-using System.Data;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
@@ -17,13 +16,13 @@ using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
 {
-    public class FormHistoryRepository
+    public class ApplyHistoryRepository
     {
         private readonly SqlSugarScope _db;
         private readonly WorkflowRuleConditions _workflowRuleConditions;
         private readonly Language _lang;
 
-        public FormHistoryRepository(SqlSugarScope db, WorkflowRuleConditions workflowRuleConditions, Language lang)
+        public ApplyHistoryRepository(SqlSugarScope db, WorkflowRuleConditions workflowRuleConditions, Language lang)
         {
             _db = db;
             _workflowRuleConditions = workflowRuleConditions;
@@ -96,7 +95,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<FormInstanceEntity>()
                            .With(SqlWith.NoLock)
-                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && dic.DicCode == instance.FormStatus && instance.FormStatus != FormStatus.PendingSubmit.ToEnumString() && instance.FormStatus != FormStatus.Rejected.ToEnumString())
+                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && dic.DicCode == instance.FormStatus && instance.FormStatus != FormStatus.PendingSubmit.ToEnumString() && instance.FormStatus != FormStatus.Rejected.ToEnumString() && instance.FormStatus != FormStatus.Voided.ToEnumString())
                            .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
                            .LeftJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
                            .LeftJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
@@ -117,7 +116,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             }
 
             // 排序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.CreatedDate });
+            query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.ModifiedDate });
 
             var page = await query.Select((instance, dic, formtype, applyuser, applydept, useragent) => new FormHistoryDto
             {
@@ -140,67 +139,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplicantDate = instance.ApplicantDate,
                 ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
-            return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
-        }
-
-        /// <summary>
-        /// 查询审批记录分页
-        /// </summary>
-        /// <param name="getPage"></param>
-        /// <returns></returns>
-        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetFormHistoryPage getPage, long loginUserId)
-        {
-            RefAsync<int> totalCount = 0;
-            var query = _db.Queryable<FormInstanceEntity>()
-                           .With(SqlWith.NoLock)
-                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && instance.FormStatus == dic.DicCode)
-                           .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
-                           .InnerJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
-                           .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
-                           .Where((instance, dic, formtype, applyuser, applydept) =>
-                               SqlFunc.Subqueryable<FormReviewRecordEntity>()
-                                      .InnerJoin<WorkflowStepEntity>((record, step) => record.StepId == step.StepId)
-                                      .Where((record, step) => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId) && step.IsStartStep != 1)
-                           .Any());
-
-            // 表单组别Id
-            if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
-            {
-                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
-                    formtype.FormGroupId == long.Parse(getPage.FormGroupId));
-            }
-            // 表单类别Id
-            if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
-            {
-                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
-                    formtype.FormTypeId == long.Parse(getPage.FormTypeId));
-            }
-
-            // 排序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applydept) => instance.CreatedDate);
-
-            var page = await query.Select((instance, dic, formtype, applyuser, applydept) => new FormHistoryDto
-            {
-                FormId = instance.FormId,
-                FormNo = instance.FormNo,
-                FormTypeId = formtype.FormTypeId,
-                FormTypeName = _lang.Locale == "zh-CN"
-                               ? formtype.FormTypeNameCn
-                               : formtype.FormTypeNameEn,
-                FormStatus = instance.FormStatus,
-                FormStatusName = _lang.Locale == "zh-CN"
-                               ? dic.DicNameCn
-                               : dic.DicNameEn,
-                ApplyUserName = _lang.Locale == "zh-CN"
-                               ? applyuser.UserNameCn
-                               : applyuser.UserNameEn,
-                ApplyUserDeptName = _lang.Locale == "zh-CN"
-                               ? applydept.DepartmentNameCn
-                               : applydept.DepartmentNameEn,
-                ViewPath = formtype.ViewPath,
-                ApplicantDate = instance.ApplicantDate
-            }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
-
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
         }
 
@@ -238,7 +176,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 表单撤回-待审批人还原
+        /// 表单撤回
         /// </summary>
         /// <param name="formId"></param>
         /// <param name="loginUserId"></param>

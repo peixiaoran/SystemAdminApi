@@ -18,7 +18,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
+        [Tags("系统基础管理-Auth")]
         [EndpointSummary("[模块菜单] 查询模块")]
         public async Task<Result<List<SysModuleInfoDto>>> GetModuleList()
         {
@@ -26,7 +26,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         }
 
         [HttpPost]
-        [Tags("系统基础管理-Auth接口")]
+        [Tags("系统基础管理-Auth")]
         [EndpointSummary("[模块菜单] 查询菜单树")]
         public async Task<Result<List<SysMenuInfoDto>>> GetMenuTreeList([FromForm] string moduleId)
         {

@@ -27,6 +27,6 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         /// <summary>
         /// 审批人员列表
         /// </summary>
-        public List<UserReview> stepReviewUser { get; set; } = new List<UserReview>();
+        public List<UserReview> StepReviewUser { get; set; } = new List<UserReview>();
     }
 }
