@@ -78,7 +78,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     DepartmentCode = upsert.DepartmentCode,
                     DepartmentNameCn = upsert.DepartmentNameCn,
                     DepartmentNameEn = upsert.DepartmentNameEn,
-                    ParentId = long.Parse(upsert.ParentId),
+                    ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
                     SortOrder = upsert.SortOrder,
                     Landline = upsert.Landline,
@@ -116,7 +116,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
             var userList = await _deptInfoRepo.GetUserInfoList();
             var deptList = await _deptInfoRepo.GetDepartmentInfoList();
 
-            var deptChildrenMap = deptList.GroupBy(dept => dept.ParentId).ToDictionary(g => g.Key, g => g.ToList());
+            var deptChildrenMap = deptList.GroupBy(dept => dept.ParentId ?? 0).ToDictionary(g => g.Key, g => g.ToList());
 
             bool CanDelete(long deptId)
             {
@@ -174,7 +174,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     DepartmentCode = upsert.DepartmentCode,
                     DepartmentNameCn = upsert.DepartmentNameCn,
                     DepartmentNameEn = upsert.DepartmentNameEn,
-                    ParentId = long.Parse(upsert.ParentId),
+                    ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
                     SortOrder = upsert.SortOrder,
                     Landline = upsert.Landline,

@@ -30,9 +30,9 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         public string DepartmentNameEn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 上级部门Id（可为空）
+        /// 上级部门Id
         /// </summary>
-        public long ParentId { get; set; }
+        public long? ParentId { get; set; }
 
         /// <summary>
         /// 部门级别Id

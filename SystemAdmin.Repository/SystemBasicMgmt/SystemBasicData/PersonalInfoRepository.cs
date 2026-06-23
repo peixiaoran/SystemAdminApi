@@ -64,7 +64,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                                  ? dept.DepartmentNameCn
                                                  : dept.DepartmentNameEn,
                                 ParentId = dept.ParentId,
-                            }).ToTreeAsync(menu => menu.DepartmentChildList, menu => menu.ParentId, 0);
+                            }).ToTreeAsync(menu => menu.DepartmentChildList, menu => menu.ParentId, null);
         }
 
         /// <summary>

@@ -9,20 +9,20 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Entity
     public class SysMenuInfoEntity
     {
         /// <summary>
-        /// 菜单主键Id
+        /// 菜单Id
         /// </summary>
         [SugarColumn(IsPrimaryKey = true, ColumnDescription = "Primary Key")]
         public long MenuId { get; set; }
 
         /// <summary>
-        /// 模块父节点Id
+        /// 模块Id
         /// </summary>
         public long ModuleId { get; set; }
 
         /// <summary>
-        /// 父节点Id
+        /// 父菜单Id
         /// </summary>
-        public long ParentMenuId { get; set; }
+        public long? ParentMenuId { get; set; }
 
         /// <summary>
         ///  菜单编码

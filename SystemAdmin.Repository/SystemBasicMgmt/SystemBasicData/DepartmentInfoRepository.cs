@@ -35,7 +35,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                                  ? dept.DepartmentNameCn
                                                  : dept.DepartmentNameEn,
                                 ParentId = dept.ParentId,
-                            }).ToTreeAsync(menu => menu.DepartmentChildList, menu => menu.ParentId, 0);
+                            }).ToTreeAsync(menu => menu.DepartmentChildList, menu => menu.ParentId, null);
         }
 
         /// <summary>
@@ -172,17 +172,14 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
 
             foreach (var node in matchedNodes)
             {
-                var parentId = node.ParentId;
+                long parentId = node.ParentId ?? 0;
                 while (parentId != 0 && nodeMap.TryGetValue(parentId, out var parent))
                 {
                     if (!allDeptIds.Add(parentId))
                     {
                         break;
                     }
-                    else
-                    {
-                        parentId = parent.ParentId;
-                    }
+                    parentId = parent.ParentId ?? 0;
                 }
             }
 
@@ -210,7 +207,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                         Address = dept.Address,
                                     }).ToListAsync();
 
-            var deptDict = deptList.GroupBy(dept => dept.ParentId).ToDictionary(g => g.Key, g => g.OrderBy(d => d.SortOrder).ToList());
+            var deptDict = deptList.GroupBy(dept => dept.ParentId ?? 0).ToDictionary(g => g.Key, g => g.OrderBy(d => d.SortOrder).ToList());
 
             List<DepartmentInfoDto> BuildTree(long parentId = 0)
             {

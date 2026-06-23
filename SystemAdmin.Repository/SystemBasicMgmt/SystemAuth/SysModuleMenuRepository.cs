@@ -70,7 +70,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
                                            : menu.MenuNameEn,
                                 Path = menu.Path,
                                 MenuIcon = menu.MenuIcon
-                            }).ToTreeAsync(menu => menu.MenuChildList, menu => menu.ParentMenuId, 0);
+                            }).ToTreeAsync(menu => menu.MenuChildList, menu => menu.ParentMenuId, null);
         }
     }
 }

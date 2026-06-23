@@ -10,7 +10,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Dto
     public class SysMenuInfoDto
     {
         /// <summary>
-        /// 菜单主键Id
+        /// 菜单Id
         /// </summary>
         [SugarColumn(IsPrimaryKey = true, ColumnDescription = "Primary Key")]
         [JsonConverter(typeof(LongToStringConverter))]
@@ -20,7 +20,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Dto
         /// 父节点Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long ParentMenuId { get; set; }
+        public long? ParentMenuId { get; set; }
 
         /// <summary>
         /// 菜单编码

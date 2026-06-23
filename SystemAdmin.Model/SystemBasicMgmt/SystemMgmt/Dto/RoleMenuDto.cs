@@ -17,7 +17,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Dto
         /// 父级菜单Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long ParentMenuId { get; set; }
+        public long? ParentMenuId { get; set; }
 
         /// <summary>
         /// 菜单名称

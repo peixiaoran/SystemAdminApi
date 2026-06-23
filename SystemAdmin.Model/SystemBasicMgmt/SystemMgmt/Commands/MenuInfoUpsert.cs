@@ -6,14 +6,14 @@
     public class MenuInfoUpsert
     {
         /// <summary>
-        /// 菜单主键Id
+        /// 菜单Id
         /// </summary>
         public string MenuId { get; set; } = string.Empty;
 
         /// <summary>
-        /// 父节点Id
+        /// 父菜单Id
         /// </summary>
-        public string ParentMenuId { get; set; } = string.Empty;
+        public string? ParentMenuId { get; set; }
 
         /// <summary>
         /// 模块父节点Id

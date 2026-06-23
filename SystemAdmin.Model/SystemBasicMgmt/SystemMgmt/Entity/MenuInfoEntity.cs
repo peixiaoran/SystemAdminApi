@@ -22,7 +22,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Entity
         /// <summary>
         /// 父菜单Id
         /// </summary>
-        public long ParentMenuId { get; set; }
+        public long? ParentMenuId { get; set; }
 
         /// <summary>
         /// 菜单编码

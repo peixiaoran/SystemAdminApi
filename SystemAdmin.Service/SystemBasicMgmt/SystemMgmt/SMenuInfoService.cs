@@ -80,7 +80,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemMgmt
                     MenuCode = upsert.MenuCode,
                     MenuNameCn = upsert.MenuNameCn,
                     MenuNameEn = upsert.MenuNameEn,
-                    ParentMenuId = long.Parse(upsert.ParentMenuId),
+                    ParentMenuId = long.TryParse(upsert.ParentMenuId, out var iParentMenuId) ? iParentMenuId : null,
                     ModuleId = long.Parse(upsert.ModuleId),
                     MenuType = MenuType.SecondaryMenu.ToEnumString(),
                     RoutePath = upsert.RoutePath,
@@ -152,7 +152,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemMgmt
                 {
                     MenuId = long.Parse(upsert.MenuId),
                     ModuleId = long.Parse(upsert.ModuleId),
-                    ParentMenuId = long.Parse(upsert.ParentMenuId),
+                    ParentMenuId = long.TryParse(upsert.ParentMenuId, out var iParentMenuId) ? iParentMenuId : null,
                     MenuCode = upsert.MenuCode,
                     MenuNameCn = upsert.MenuNameCn,
                     MenuNameEn = upsert.MenuNameEn,

@@ -178,7 +178,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
                                            ? menu.MenuNameCn
                                            : menu.MenuNameEn,
                                 IsChecked = SqlFunc.IsNull(rolemenu.RoleId, 0) > 0
-                            }).ToTreeAsync(menu => menu.MenuChildren, menu => menu.ParentMenuId, 0);
+                            }).ToTreeAsync(menu => menu.MenuChildren, menu => menu.ParentMenuId, null);
         }
 
         /// <summary>

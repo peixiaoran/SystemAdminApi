@@ -25,7 +25,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// 上级部门Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long ParentId { get; set; }
+        public long? ParentId { get; set; }
 
         /// <summary>
         /// 子节点集合

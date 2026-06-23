@@ -26,9 +26,9 @@
         public string DepartmentNameEn { get; set; } = string.Empty;
 
         /// <summary>
-        /// 上级部门Id（可为空）
+        /// 上级部门Id
         /// </summary>
-        public string ParentId { get; set; } = string.Empty;
+        public string? ParentId { get; set; }
 
         /// <summary>
         /// 部门级别Id
