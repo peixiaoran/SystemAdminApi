@@ -195,6 +195,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     IsRealtimeNotification = upsert.IsRealtimeNotification,
                     IsScheduledNotification = upsert.IsScheduledNotification,
                     AvatarAddress = upsert.AvatarAddress,
+                    NoticeLanguage = upsert.NoticeLanguage,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now
                 };
