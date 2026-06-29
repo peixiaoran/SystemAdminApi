@@ -12,7 +12,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto
         /// 所属组别Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long ParentId { get; set; }
+        public long? ParentId { get; set; }
 
         /// <summary>
         /// 表单绑定Id
@@ -33,12 +33,12 @@ namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto
         /// <summary>
         /// 是否启用（1、是 0、否）
         /// </summary>
-        public bool Disabled { get; set; }
+        public int Disabled { get; set; }
 
         /// <summary>
         /// 是否绑定
         /// </summary>
-        public bool IsChecked { get; set; }
+        public int IsChecked { get; set; }
 
         /// <summary>
         /// 表单类型子集合

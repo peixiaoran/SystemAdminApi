@@ -142,11 +142,20 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.UserSettings {
         }
         
         /// <summary>
-        ///   查找类似 表单配置成功 的本地化字符串。
+        ///   查找类似 配置失败 的本地化字符串。
         /// </summary>
-        internal static string UserFormInsertSuccess {
+        internal static string UserFormUpdateFailed {
             get {
-                return ResourceManager.GetString("UserFormInsertSuccess", resourceCulture);
+                return ResourceManager.GetString("UserFormUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 配置成功 的本地化字符串。
+        /// </summary>
+        internal static string UserFormUpdateSuccess {
+            get {
+                return ResourceManager.GetString("UserFormUpdateSuccess", resourceCulture);
             }
         }
         

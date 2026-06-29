@@ -92,21 +92,53 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         {
             try
             {
+                var userId = long.Parse(upsert.UserId);
+                var newIds = upsert.FormGroupTypeId.Select(long.Parse).ToHashSet();
+                var now = DateTime.Now;
+
                 await _db.BeginTranAsync();
-                await _userFormBindRepo.DeleteUserForm(long.Parse(upsert.UserId));
-                var entity = upsert.FormGroupTypeId.Select(id => new UserFormEntity
+
+                var existing = await _userFormBindRepo.GetUserFormList(userId);
+                var existingIds = existing.Select(x => x.FormGroupTypeId).ToHashSet();
+
+                // 删除：旧有但新列表中没有
+                var toDelete = existing.Where(x => !newIds.Contains(x.FormGroupTypeId)).ToList();
+
+                // 新增：新列表中有但旧记录没有
+                var toInsert = newIds.Where(id => !existingIds.Contains(id))
+                                     .Select(id => new UserFormEntity
+                                     {
+                                         UserId = userId,
+                                         FormGroupTypeId = id,
+                                         CreatedBy = _loginuser.UserId,
+                                         CreatedDate = now,
+                                         ModifiedBy = _loginuser.UserId,
+                                         ModifiedDate = now
+                                     }).ToList();
+
+                // 更新：两边都有，只改修改字段
+                var toUpdate = existing.Where(x => newIds.Contains(x.FormGroupTypeId)).ToList();
+                foreach (var item in toUpdate)
                 {
-                    UserId = long.Parse(upsert.UserId),
-                    FormGroupTypeId = long.Parse(id),
-                    CreatedBy = _loginuser.UserId,
-                    CreatedDate = DateTime.Now,
-                    ModifiedBy = _loginuser.UserId,
-                    ModifiedDate = DateTime.Now
-                }).ToList();
-                var count = await _userFormBindRepo.InsertUserForm(entity);
+                    item.ModifiedBy = _loginuser.UserId;
+                    item.ModifiedDate = now;
+                }
+
+                if (toDelete.Count > 0)
+                    await _userFormBindRepo.DeleteUserFormBatch(toDelete);
+
+                if (toUpdate.Count > 0)
+                    await _userFormBindRepo.UpdateUserFormModified(toUpdate);
+
+                if (toInsert.Count > 0)
+                    await _userFormBindRepo.InsertUserForm(toInsert);
+
                 await _db.CommitTranAsync();
 
-                return Result<int>.Ok(count, _localization.ReturnMsg($"{_this}InsertSuccess"));
+                var count = toInsert.Count + toUpdate.Count;
+                return count > 0
+                    ? Result<int>.Ok(count, _localization.ReturnMsg($"{_this}UpdateSuccess"))
+                    : Result<int>.Failure(400, _localization.ReturnMsg($"{_this}UpdateFailure"));
             }
             catch (Exception ex)
             {

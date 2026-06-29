@@ -117,7 +117,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                                      .OrderBy((formgroup, userform) => formgroup.SortOrder)
                                      .Select((formgroup, userform) => new UserFormViewTreeDto
                                      {
-                                         ParentId = 0,
                                          FormGroupTypeId = formgroup.FormGroupId,
                                          FormGroupTypeName = _lang.Locale == "zh-CN"
                                                              ? formgroup.FormGroupNameCn
@@ -125,8 +124,8 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                                          Description = _lang.Locale == "zh-CN"
                                                              ? formgroup.DescriptionCn
                                                              : formgroup.DescriptionEn,
-                                         Disabled = false,
-                                         IsChecked = SqlFunc.IsNull(userform.UserId, 0) > 0,
+                                         Disabled = 1,
+                                         IsChecked = SqlFunc.IsNull(userform.UserId, 0) > 0 ? 1 : 0,
                                          FormTypeChildren = new List<UserFormViewTreeDto>()
                                      }).ToListAsync();
 
@@ -144,34 +143,55 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                                         Description = _lang.Locale == "zh-CN"
                                                             ? formtype.DescriptionCn
                                                             : formtype.DescriptionEn,
-                                        IsChecked = SqlFunc.IsNull(userform.UserId, 0) > 0,
+                                        IsChecked = SqlFunc.IsNull(userform.UserId, 0) > 0 ? 1 : 0,
                                         FormTypeChildren = new List<UserFormViewTreeDto>()
                                     }).ToListAsync();
 
             var formTypeLookup = formType.ToLookup(formtype => formtype.ParentId);
 
-            return formGroup.Select(group =>
+            var tree = formGroup.Select(group =>
             {
                 group.FormTypeChildren = formTypeLookup[group.FormGroupTypeId].ToList();
                 return group;
             }).ToList();
+
+            tree.AddRange(formTypeLookup[null]);
+
+            return tree;
         }
 
         /// <summary>
-        /// 删除用户表单绑定
+        /// 查询用户已绑定的表单记录
         /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteUserForm(long userId)
+        public async Task<List<UserFormEntity>> GetUserFormList(long userId)
         {
-            return await _db.Deleteable<UserFormEntity>(userform => userform.UserId == userId).ExecuteCommandAsync();
+            return await _db.Queryable<UserFormEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(x => x.UserId == userId)
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 批量删除用户表单绑定
+        /// </summary>
+        public async Task<int> DeleteUserFormBatch(List<UserFormEntity> entityList)
+        {
+            return await _db.Deleteable(entityList).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 批量更新用户表单绑定（仅修改字段）
+        /// </summary>
+        public async Task<int> UpdateUserFormModified(List<UserFormEntity> entityList)
+        {
+            return await _db.Updateable(entityList)
+                            .UpdateColumns(x => new { x.ModifiedBy, x.ModifiedDate })
+                            .ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 新增用户表单绑定
         /// </summary>
-        /// <param name="entityList"></param>
-        /// <returns></returns>
         public async Task<int> InsertUserForm(List<UserFormEntity> entityList)
         {
             return await _db.Insertable(entityList).ExecuteCommandAsync();
