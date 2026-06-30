@@ -111,9 +111,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
                                          UserId = userId,
                                          FormGroupTypeId = id,
                                          CreatedBy = _loginuser.UserId,
-                                         CreatedDate = now,
-                                         ModifiedBy = _loginuser.UserId,
-                                         ModifiedDate = now
+                                         CreatedDate = now
                                      }).ToList();
 
                 // 更新：两边都有，只改修改字段
@@ -135,7 +133,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
 
                 await _db.CommitTranAsync();
 
-                var count = toInsert.Count + toUpdate.Count;
+                var count = toInsert.Count + toUpdate.Count + toDelete.Count;
                 return count > 0
                     ? Result<int>.Ok(count, _localization.ReturnMsg($"{_this}UpdateSuccess"))
                     : Result<int>.Failure(400, _localization.ReturnMsg($"{_this}UpdateFailure"));

@@ -11,11 +11,13 @@ namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity
         /// <summary>
         /// 用户Id
         /// </summary>
+        [SugarColumn(IsPrimaryKey = true)]
         public long UserId { get; set; }
 
         /// <summary>
         /// 表单组别类型Id
         /// </summary>
+        [SugarColumn(IsPrimaryKey = true)]
         public long FormGroupTypeId { get; set; }
 
         /// <summary>
