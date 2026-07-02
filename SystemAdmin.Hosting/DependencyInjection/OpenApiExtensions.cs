@@ -1,8 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.OpenApi;
-using SystemAdmin.Hosting.DependencyInjection;
 
-namespace SystemAdmin.WebApi.DependencyInjection
+namespace SystemAdmin.Hosting.DependencyInjection
 {
     public static class OpenApiExtensions
     {

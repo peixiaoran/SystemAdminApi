@@ -1,7 +1,6 @@
 ﻿using Scalar.AspNetCore;
 using SystemAdmin.CommonSetup.DependencyInjection;
 using SystemAdmin.Hosting.DependencyInjection;
-using SystemAdmin.WebApi.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
