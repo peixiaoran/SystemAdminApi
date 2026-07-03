@@ -135,4 +135,7 @@
   <data name="FormPendingWithdrawSuccess" xml:space="preserve">
     <value>Form withdrawal successful</value>
   </data>
+  <data name="FormPendingPrintNotSupport" xml:space="preserve">
+    <value>Printing PDF is not supported for this form type</value>
+  </data>
 </root>

@@ -160,6 +160,195 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 代理人 的本地化字符串。
+        /// </summary>
+        internal static string PdfAgentUser {
+            get {
+                return ResourceManager.GetString("PdfAgentUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 申请日期 的本地化字符串。
+        /// </summary>
+        internal static string PdfApplicantDate {
+            get {
+                return ResourceManager.GetString("PdfApplicantDate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 附件 的本地化字符串。
+        /// </summary>
+        internal static string PdfAttachment {
+            get {
+                return ResourceManager.GetString("PdfAttachment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 文件名称 的本地化字符串。
+        /// </summary>
+        internal static string PdfAttachmentName {
+            get {
+                return ResourceManager.GetString("PdfAttachmentName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 文件大小 的本地化字符串。
+        /// </summary>
+        internal static string PdfAttachmentSize {
+            get {
+                return ResourceManager.GetString("PdfAttachmentSize", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 意见 的本地化字符串。
+        /// </summary>
+        internal static string PdfComment {
+            get {
+                return ResourceManager.GetString("PdfComment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 用户部门 的本地化字符串。
+        /// </summary>
+        internal static string PdfDepartment {
+            get {
+                return ResourceManager.GetString("PdfDepartment", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 表单编号 的本地化字符串。
+        /// </summary>
+        internal static string PdfFormNo {
+            get {
+                return ResourceManager.GetString("PdfFormNo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请假总时数 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveHours {
+            get {
+                return ResourceManager.GetString("PdfLeaveHours", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请假时间 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeavePeriod {
+            get {
+                return ResourceManager.GetString("PdfLeavePeriod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请假事由 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveReason {
+            get {
+                return ResourceManager.GetString("PdfLeaveReason", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请假单 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveTitle {
+            get {
+                return ResourceManager.GetString("PdfLeaveTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请假类型 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveType {
+            get {
+                return ResourceManager.GetString("PdfLeaveType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 暂无数据 的本地化字符串。
+        /// </summary>
+        internal static string PdfNoData {
+            get {
+                return ResourceManager.GetString("PdfNoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 审批记录 的本地化字符串。
+        /// </summary>
+        internal static string PdfReviewRecord {
+            get {
+                return ResourceManager.GetString("PdfReviewRecord", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 审批结果 的本地化字符串。
+        /// </summary>
+        internal static string PdfReviewResult {
+            get {
+                return ResourceManager.GetString("PdfReviewResult", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 审批步骤 的本地化字符串。
+        /// </summary>
+        internal static string PdfReviewStep {
+            get {
+                return ResourceManager.GetString("PdfReviewStep", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 审批时间 的本地化字符串。
+        /// </summary>
+        internal static string PdfReviewTime {
+            get {
+                return ResourceManager.GetString("PdfReviewTime", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 审批人 的本地化字符串。
+        /// </summary>
+        internal static string PdfReviewUser {
+            get {
+                return ResourceManager.GetString("PdfReviewUser", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 用户姓名 的本地化字符串。
+        /// </summary>
+        internal static string PdfUserName {
+            get {
+                return ResourceManager.GetString("PdfUserName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 用户工号 的本地化字符串。
+        /// </summary>
+        internal static string PdfUserNo {
+            get {
+                return ResourceManager.GetString("PdfUserNo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 表单保存失败 的本地化字符串。
         /// </summary>
         internal static string SaveFailed {

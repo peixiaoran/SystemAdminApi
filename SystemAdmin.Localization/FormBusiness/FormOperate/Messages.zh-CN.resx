@@ -135,4 +135,7 @@
   <data name="FormPendingWithdrawSuccess" xml:space="preserve">
     <value>表单撤回成功</value>
   </data>
+  <data name="FormPendingPrintNotSupport" xml:space="preserve">
+    <value>该表单类型暂不支持打印PDF</value>
+  </data>
 </root>

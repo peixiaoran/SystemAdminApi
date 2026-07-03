@@ -8,14 +8,17 @@
 
   <ItemGroup>
     <EmbeddedResource Include="EmailTemplates\**" />
+    <EmbeddedResource Include="PdfTemplates\**\*.html" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Remove="EmailTemplates\SystemBasicMgmt\**" />
+    <EmbeddedResource Remove="EmailTemplates\SystemBasicMgmt\**" />
+    <None Remove="EmailTemplates\SystemBasicMgmt\**" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="EPPlus" Version="8.6.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="EmailTemplates\SystemBasicMgmt\" />
   </ItemGroup>
 
 </Project>

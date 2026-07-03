@@ -159,4 +159,67 @@
   <data name="AgentLeaveConflict" xml:space="preserve">
     <value>The selected agent "{0}" already has a pending leave request from {1} to {2}. Please select another agent</value>
   </data>
+  <data name="PdfLeaveTitle" xml:space="preserve">
+    <value>Leave Request Form</value>
+  </data>
+  <data name="PdfFormNo" xml:space="preserve">
+    <value>Form No</value>
+  </data>
+  <data name="PdfApplicantDate" xml:space="preserve">
+    <value>Apply Date</value>
+  </data>
+  <data name="PdfUserNo" xml:space="preserve">
+    <value>User No</value>
+  </data>
+  <data name="PdfUserName" xml:space="preserve">
+    <value>User Name</value>
+  </data>
+  <data name="PdfDepartment" xml:space="preserve">
+    <value>Department</value>
+  </data>
+  <data name="PdfLeaveType" xml:space="preserve">
+    <value>Leave Type</value>
+  </data>
+  <data name="PdfLeavePeriod" xml:space="preserve">
+    <value>Leave Period</value>
+  </data>
+  <data name="PdfAgentUser" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PdfLeaveHours" xml:space="preserve">
+    <value>Total Hours</value>
+  </data>
+  <data name="PdfLeaveReason" xml:space="preserve">
+    <value>Reason</value>
+  </data>
+  <data name="PdfAttachment" xml:space="preserve">
+    <value>Attachments</value>
+  </data>
+  <data name="PdfAttachmentName" xml:space="preserve">
+    <value>File Name</value>
+  </data>
+  <data name="PdfAttachmentSize" xml:space="preserve">
+    <value>File Size</value>
+  </data>
+  <data name="PdfReviewRecord" xml:space="preserve">
+    <value>Approval Records</value>
+  </data>
+  <data name="PdfReviewStep" xml:space="preserve">
+    <value>Approval Step</value>
+  </data>
+  <data name="PdfReviewUser" xml:space="preserve">
+    <value>Approver</value>
+  </data>
+  <data name="PdfReviewResult" xml:space="preserve">
+    <value>Approval Result</value>
+  </data>
+  <data name="PdfComment" xml:space="preserve">
+    <value>Comment</value>
+  </data>
+  <data name="PdfReviewTime" xml:space="preserve">
+    <value>Approval Time</value>
+  </data>
+  <data name="PdfNoData" xml:space="preserve">
+    <value>No Data</value>
+  </data>
 </root>

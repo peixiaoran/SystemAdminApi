@@ -79,6 +79,15 @@ namespace SystemAdmin.Localization.FormBusiness.FormOperate {
         }
         
         /// <summary>
+        ///   查找类似 该表单类型暂不支持打印PDF 的本地化字符串。
+        /// </summary>
+        internal static string FormPendingPrintNotSupport {
+            get {
+                return ResourceManager.GetString("FormPendingPrintNotSupport", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 表单作废失败 的本地化字符串。
         /// </summary>
         internal static string FormPendingVoidedFailed {

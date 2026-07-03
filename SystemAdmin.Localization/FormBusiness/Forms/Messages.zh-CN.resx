@@ -159,4 +159,67 @@
   <data name="AgentLeaveConflict" xml:space="preserve">
     <value>代理人「{0}」于 {1} 至 {2} 期间有待审批的请假申请，请改选其他代理人</value>
   </data>
+  <data name="PdfLeaveTitle" xml:space="preserve">
+    <value>请假单</value>
+  </data>
+  <data name="PdfFormNo" xml:space="preserve">
+    <value>表单编号</value>
+  </data>
+  <data name="PdfApplicantDate" xml:space="preserve">
+    <value>申请日期</value>
+  </data>
+  <data name="PdfUserNo" xml:space="preserve">
+    <value>用户工号</value>
+  </data>
+  <data name="PdfUserName" xml:space="preserve">
+    <value>用户姓名</value>
+  </data>
+  <data name="PdfDepartment" xml:space="preserve">
+    <value>用户部门</value>
+  </data>
+  <data name="PdfLeaveType" xml:space="preserve">
+    <value>请假类型</value>
+  </data>
+  <data name="PdfLeavePeriod" xml:space="preserve">
+    <value>请假时间</value>
+  </data>
+  <data name="PdfAgentUser" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="PdfLeaveHours" xml:space="preserve">
+    <value>请假总时数</value>
+  </data>
+  <data name="PdfLeaveReason" xml:space="preserve">
+    <value>请假事由</value>
+  </data>
+  <data name="PdfAttachment" xml:space="preserve">
+    <value>附件</value>
+  </data>
+  <data name="PdfAttachmentName" xml:space="preserve">
+    <value>文件名称</value>
+  </data>
+  <data name="PdfAttachmentSize" xml:space="preserve">
+    <value>文件大小</value>
+  </data>
+  <data name="PdfReviewRecord" xml:space="preserve">
+    <value>审批记录</value>
+  </data>
+  <data name="PdfReviewStep" xml:space="preserve">
+    <value>审批步骤</value>
+  </data>
+  <data name="PdfReviewUser" xml:space="preserve">
+    <value>审批人</value>
+  </data>
+  <data name="PdfReviewResult" xml:space="preserve">
+    <value>审批结果</value>
+  </data>
+  <data name="PdfComment" xml:space="preserve">
+    <value>意见</value>
+  </data>
+  <data name="PdfReviewTime" xml:space="preserve">
+    <value>审批时间</value>
+  </data>
+  <data name="PdfNoData" xml:space="preserve">
+    <value>暂无数据</value>
+  </data>
 </root>

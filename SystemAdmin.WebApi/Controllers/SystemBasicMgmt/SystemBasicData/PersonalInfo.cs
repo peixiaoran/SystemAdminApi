@@ -19,7 +19,6 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
             _personalInfoService = personalInfoService;
         }
 
-
         [HttpPost]
         [Tags("系统基础管理-系统管理模块")]
         [EndpointSummary("[个人信息] 职业下拉")]

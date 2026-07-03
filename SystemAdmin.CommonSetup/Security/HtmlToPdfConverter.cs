@@ -28,7 +28,19 @@ namespace SystemAdmin.CommonSetup.Security
                 var launchOptions = new LaunchOptions
                 {
                     Headless = true,
-                    Args = new[] { "--no-sandbox", "--disable-setuid-sandbox" }
+                    Args = new[]
+                    {
+                        "--no-sandbox",
+                        "--disable-setuid-sandbox",
+                        "--disable-gpu",
+                        "--no-first-run",
+                        "--no-default-browser-check",
+                        "--hide-scrollbars",
+                        "--mute-audio",
+                        // Chromium 新版 headless 在 Windows 上存在偶发弹出空白窗口的已知缺陷，
+                        // 把窗口移出可视区域兜底，保证任何版本下都不会在桌面上出现白框
+                        "--window-position=-32000,-32000"
+                    }
                 };
 
                 // 配了路径就用现成的 Chrome，否则自动下载 Chromium

@@ -73,5 +73,18 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         {
             return await _appHistoryService.VoidedForm(formId);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单作业模块")]
+        [EndpointSummary("[申请历史记录] 打印PDF")]
+        public async Task<IActionResult> PrintFormPdf([FromForm] string formId, [FromForm] string prefix)
+        {
+            var result = await _appHistoryService.PrintFormPdf(formId, prefix);
+            if (result.Code != 200)
+            {
+                return Ok(result);
+            }
+            return File(result.Data!.FileBytes, "application/pdf", result.Data.FileName);
+        }
     }
 }

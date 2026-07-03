@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001115 (17.00.1115)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Basic
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 30/06/2026 23:53:03
+ Date: 03/07/2026 16:59:33
 */
 
 
@@ -422,7 +422,7 @@ GO
 INSERT INTO [Basic].[DepartmentInfo] ([DepartmentId], [DepartmentCode], [DepartmentNameCn], [DepartmentNameEn], [ParentId], [DepartmentLevelId], [SortOrder], [Landline], [Email], [Address], [Description], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1950000000000000047', N'7047', N'系统管理科', N'Systems Administration Section', N'1950000000000000005', N'1949168956883472384', N'47', N'', N'', N'', NULL, N'1903486709602062336', N'2026-03-31 09:00:00.000', N'1903486709602062336', N'2026-03-31 09:00:00.000')
 GO
 
-INSERT INTO [Basic].[DepartmentInfo] ([DepartmentId], [DepartmentCode], [DepartmentNameCn], [DepartmentNameEn], [ParentId], [DepartmentLevelId], [SortOrder], [Landline], [Email], [Address], [Description], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1950000000000000048', N'7048', N'系统开发组', N'System Development Team', N'1950000000000000047', N'1949169142347206656', N'48', N'', N'', N'', NULL, N'1903486709602062336', N'2026-03-31 09:00:00.000', N'1903486709602062336', N'2026-03-31 09:00:00.000')
+INSERT INTO [Basic].[DepartmentInfo] ([DepartmentId], [DepartmentCode], [DepartmentNameCn], [DepartmentNameEn], [ParentId], [DepartmentLevelId], [SortOrder], [Landline], [Email], [Address], [Description], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1950000000000000048', N'7048', N'系统开发组', N'System Dev Team', N'1950000000000000047', N'1949169142347206656', N'48', N'', N'', N'', NULL, N'1903486709602062336', N'2026-03-31 09:00:00.000', N'1903486709602062336', N'2026-03-31 09:00:00.000')
 GO
 
 INSERT INTO [Basic].[DepartmentInfo] ([DepartmentId], [DepartmentCode], [DepartmentNameCn], [DepartmentNameEn], [ParentId], [DepartmentLevelId], [SortOrder], [Landline], [Email], [Address], [Description], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1950000000000000049', N'7049', N'网路管理组', N'Network Administration Team', N'1950000000000000047', N'1949169142347206656', N'49', N'', N'', N'', NULL, N'1903486709602062336', N'2026-03-31 09:00:00.000', N'1903486709602062336', N'2026-03-31 09:00:00.000')
@@ -5913,6 +5913,24 @@ INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALU
 GO
 
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-06-27 17:16:04.540')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'0', N'223.104.153.113', N'AccountNotExist', N'2026-07-03 14:24:34.420')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'0', N'223.104.153.113', N'AccountNotExist', N'2026-07-03 14:24:42.697')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'223.104.153.113', N'LoginSuccessful', N'2026-07-03 14:25:12.193')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-03 15:14:03.173')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-03 16:55:25.083')
+GO
+
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'10.112.138.22', N'LoginSuccessful', N'2026-07-03 09:42:54.827')
 GO
 
 
