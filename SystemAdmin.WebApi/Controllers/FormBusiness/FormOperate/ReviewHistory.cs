@@ -68,9 +68,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
             var result = await _formPrintPdfService.PrintFormPdf(formId, prefix);
             if (result.Code != 200)
             {
-                return Ok(result);
+                return StatusCode(result.Code, result);
             }
-            return File(result.Data!.FileBytes, "application/pdf", result.Data.FileName);
+            return File(result.Data!.FileStream, "application/pdf", result.Data.FileName);
         }
     }
 }

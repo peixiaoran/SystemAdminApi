@@ -59,9 +59,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// <summary>
         /// 打印PDF（根据表单前缀分发，LVR=请假单）
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="prefix"></param>
-        /// <returns></returns>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, string prefix)
         {
             try
@@ -81,9 +78,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         #region 请假单PDF
 
-        /// <summary>
-        /// 生成请假单PDF
-        /// </summary>
         private async Task<Result<FormPdfDto>> PrintLeaveFormPdf(long formId)
         {
             var isCan = await _formChecker.CanView(formId, "View");
@@ -92,13 +86,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
             }
 
-            // 表头、附件、审批记录、栏位权限（按当前登录用户，仅判断是否显示）
             var form = await _leaveFormRepo.GetLeaveForm(formId);
             form.Attachment = await _formmanger.GetAttachmentList(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
             form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
 
-            // 假别名称（按当前语言取字典）
             var leaveTypeDics = await _leaveFormRepo.GetLeaveTypeDictionary();
             var leaveTypeDic = leaveTypeDics.FirstOrDefault(dic => dic.DicCode == form.LeaveType);
             var leaveTypeName = _lang.Locale == "zh-CN" ? leaveTypeDic?.DicNameCn : leaveTypeDic?.DicNameEn;
@@ -106,7 +98,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             var pdf = new FormPdfDto
             {
                 FileName = $"{Msg("PdfLeaveTitle")}_{form.FormNo}.pdf",
-                FileBytes = BuildLeaveFormPdf(form, leaveTypeName)
+                FileStream = BuildLeaveFormPdf(form, leaveTypeName)
             };
             return Result<FormPdfDto>.Ok(pdf);
         }
@@ -114,9 +106,8 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// <summary>
         /// 组装请假单PDF文档
         /// </summary>
-        private byte[] BuildLeaveFormPdf(LeaveFormDto form, string? leaveTypeName)
+        private MemoryStream BuildLeaveFormPdf(LeaveFormDto form, string? leaveTypeName)
         {
-            // 栏位可见性（未配置的栏位默认显示）
             var fieldVisible = form.StepFieldPermission
                 .GroupBy(permission => permission.FieldKey)
                 .ToDictionary(group => group.Key, group => group.Any(permission => permission.IsVisible == 1));
@@ -135,7 +126,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                     page.Margin(28);
                     page.DefaultTextStyle(style => style.FontSize(9).FontFamily(FontFamilyName).FontColor(BodyTextColor));
 
-                    // 审批完成的表单在右上角加盖绿色印章（前景层，置于最上层不会被内容覆盖）
                     if (form.FormStatus == FormStatus.Approved.ToEnumString())
                     {
                         var approvedDateTime = form.ReviewRecord.Count > 0
@@ -146,58 +136,53 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
                     page.Content().Column(column =>
                     {
-                        // 标题
                         column.Item().AlignCenter().Text(Msg("PdfLeaveTitle")).FontSize(14).SemiBold();
                         column.Item().PaddingTop(10).LineHorizontal(0.75f).LineColor(BorderColor);
                         column.Item().PaddingTop(14);
 
-                        // 表单编号 / 申请日期
                         var row1 = new List<PdfField>();
                         if (Show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo));
                         if (Show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
                         ComposeFieldRow(column, row1);
 
-                        // 用户工号 / 用户姓名 / 用户部门
                         var row2 = new List<PdfField>();
                         if (Show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
                         if (Show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
                         if (Show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
                         ComposeFieldRow(column, row2);
 
-                        // 请假类型 / 请假时间
                         var row3 = new List<PdfField>();
                         if (Show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty));
                         if (Show("LeavePeriod")) row3.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod));
                         ComposeFieldRow(column, row3);
 
-                        // 代理人 / 请假总时数
                         var row4 = new List<PdfField>();
                         if (Show("SelectAgent")) row4.Add(new PdfField(Msg("PdfAgentUser"), form.AgentUserName ?? string.Empty));
                         if (Show("LeaveHours")) row4.Add(new PdfField(Msg("PdfLeaveHours"), (form.LeaveHours ?? 0).ToString("0.00"), Emphasized: true));
                         ComposeFieldRow(column, row4);
 
-                        // 请假事由
                         if (Show("LeaveReason"))
                         {
                             ComposeFieldRow(column, new List<PdfField>
-                            {
-                                new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f)
-                            });
+                    {
+                        new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f)
+                    });
                         }
 
-                        // 附件
                         if (Show("Upload"))
                         {
                             ComposeAttachmentTable(column, form);
                         }
 
-                        // 审批记录
                         ComposeReviewRecordTable(column, form);
                     });
                 });
             });
 
-            return document.GeneratePdf();
+            var stream = new MemoryStream();
+            document.GeneratePdf(stream);   // QuestPDF 的 Stream 重载
+            stream.Position = 0;            // 必须归零，否则 File() 读到 0 字节
+            return stream;
         }
 
         /// <summary>

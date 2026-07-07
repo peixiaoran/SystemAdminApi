@@ -5,14 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
     /// </summary>
     public class FormPdfDto
     {
-        /// <summary>
-        /// 文件名（含后缀）
-        /// </summary>
-        public string FileName { get; set; } = string.Empty;
-
-        /// <summary>
-        /// PDF文件内容
-        /// </summary>
-        public byte[] FileBytes { get; set; } = Array.Empty<byte>();
+        public Stream FileStream { get; set; } = null!;
+        public string FileName { get; set; } = null!;
     }
 }
