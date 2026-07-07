@@ -13,9 +13,11 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
     public class ReviewHistory : ControllerBase
     {
         private readonly ReviewHistoryService _reviewHistoryService;
-        public ReviewHistory(ReviewHistoryService reviewHistoryService)
+        private readonly FormPrintPdfService _formPrintPdfService;
+        public ReviewHistory(ReviewHistoryService reviewHistoryService, FormPrintPdfService formPrintPdfService)
         {
             _reviewHistoryService = reviewHistoryService;
+            _formPrintPdfService = formPrintPdfService;
         }
 
         [HttpPost]
@@ -56,6 +58,19 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         public async Task<Result<List<FormPendingUserDto>>> GetFormPendingUsers([FromForm] string formId)
         {
             return await _reviewHistoryService.GetFormPendingUsers(formId);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单作业模块")]
+        [EndpointSummary("[审批历史记录] 打印PDF")]
+        public async Task<IActionResult> PrintFormPdf([FromForm] string formId, [FromForm] string prefix)
+        {
+            var result = await _formPrintPdfService.PrintFormPdf(formId, prefix);
+            if (result.Code != 200)
+            {
+                return Ok(result);
+            }
+            return File(result.Data!.FileBytes, "application/pdf", result.Data.FileName);
         }
     }
 }

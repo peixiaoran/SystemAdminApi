@@ -181,7 +181,7 @@
     <value>Leave Type</value>
   </data>
   <data name="PdfLeavePeriod" xml:space="preserve">
-    <value>Leave Period</value>
+    <value>Leave Time</value>
   </data>
   <data name="PdfAgentUser" xml:space="preserve">
     <value>Agent</value>
@@ -205,21 +205,24 @@
     <value>Approval Records</value>
   </data>
   <data name="PdfReviewStep" xml:space="preserve">
-    <value>Approval Step</value>
+    <value>Step</value>
   </data>
   <data name="PdfReviewUser" xml:space="preserve">
     <value>Approver</value>
   </data>
   <data name="PdfReviewResult" xml:space="preserve">
-    <value>Approval Result</value>
+    <value>Result</value>
   </data>
   <data name="PdfComment" xml:space="preserve">
     <value>Comment</value>
   </data>
   <data name="PdfReviewTime" xml:space="preserve">
-    <value>Approval Time</value>
+    <value>Time</value>
   </data>
   <data name="PdfNoData" xml:space="preserve">
     <value>No Data</value>
+  </data>
+  <data name="PdfStampApproved" xml:space="preserve">
+    <value>APPROVED</value>
   </data>
 </root>

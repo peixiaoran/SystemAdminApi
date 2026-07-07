@@ -37,9 +37,6 @@ builder.Services.AddAppUrlSetup(builder.Configuration);
 // 注入 MailKit
 builder.Services.AddMailKitSetup(builder.Configuration);
 
-// 注入 Html转Pdf转换器
-builder.Services.AddPdfConverterSetup(builder.Configuration);
-
 // 注入 获取语言服务
 builder.Services.AddLocalizationSetup();
 

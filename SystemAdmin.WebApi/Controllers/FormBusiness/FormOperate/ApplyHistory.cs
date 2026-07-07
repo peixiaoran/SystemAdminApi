@@ -13,9 +13,11 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
     public class ApplyHistory : ControllerBase
     {
         private readonly ApplyHistoryService _appHistoryService;
-        public ApplyHistory(ApplyHistoryService appHistoryService)
+        private readonly FormPrintPdfService _formPrintPdfService;
+        public ApplyHistory(ApplyHistoryService appHistoryService, FormPrintPdfService formPrintPdfService)
         {
             _appHistoryService = appHistoryService;
+            _formPrintPdfService = formPrintPdfService;
         }
 
         [HttpPost]
@@ -79,7 +81,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [EndpointSummary("[申请历史记录] 打印PDF")]
         public async Task<IActionResult> PrintFormPdf([FromForm] string formId, [FromForm] string prefix)
         {
-            var result = await _appHistoryService.PrintFormPdf(formId, prefix);
+            var result = await _formPrintPdfService.PrintFormPdf(formId, prefix);
             if (result.Code != 200)
             {
                 return Ok(result);

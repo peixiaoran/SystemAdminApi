@@ -222,4 +222,7 @@
   <data name="PdfNoData" xml:space="preserve">
     <value>暂无数据</value>
   </data>
+  <data name="PdfStampApproved" xml:space="preserve">
+    <value>审批完成</value>
+  </data>
 </root>

@@ -329,7 +329,16 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfReviewUser", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   查找类似 审批完成 的本地化字符串。
+        /// </summary>
+        internal static string PdfStampApproved {
+            get {
+                return ResourceManager.GetString("PdfStampApproved", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 用户姓名 的本地化字符串。
         /// </summary>
