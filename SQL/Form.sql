@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 03/07/2026 16:59:38
+ Date: 07/07/2026 17:00:30
 */
 
 
@@ -692,7 +692,7 @@ GO
 -- ----------------------------
 -- Records of FormReviewRecord
 -- ----------------------------
-INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2069025311722442752', N'2009890853346217984', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-22 19:52:18.587', N'1')
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2069025311722442752', N'2009890853346217984', N'Approve', NULL, N'清晨的阳光洒进窗前，微风轻轻吹动树叶，空气中弥漫着花草的清香。我走在安静的小路上，听见鸟儿欢快地歌唱，心情也变得轻松愉快。新的一天充满希望，只要保持努力与坚持，勇敢面对每一次挑战，就能不断成长，迎接更加美好的未来。', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-22 19:52:18.587', N'1')
 GO
 
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2069025311722442752', N'2009897830268932096', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-22 19:55:04.013', N'1')
