@@ -8,6 +8,7 @@ using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 
@@ -15,7 +16,8 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 {
     /// <summary>
     /// 表单打印PDF服务（QuestPDF）
-    /// 根据表单前缀分发到对应的打印方法，新表单在 PrintFormPdf 的 switch 中登记即可扩展
+    /// 根据表单前缀分发到对应的打印方法，新表单在 PrintFormPdf 的 switch 中登记，
+    /// 并复用「PDF通用组件」region 内的页面设置、标题、栏位行、附件/审批记录表格、印章与单元格样式
     /// </summary>
     public class FormPrintPdfService
     {
@@ -28,16 +30,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
         private readonly string _forms = "FormBusiness.Forms.";
-
-        // PDF 通用样式
-        private const string FontFamilyName = "Microsoft YaHei";
-        private const string BorderColor = "#DCDFE6";
-        private const string LabelBgColor = "#F5F7FA";
-        private const string LabelTextColor = "#606266";
-        private const string BodyTextColor = "#303133";
-        private const string MutedTextColor = "#909399";
-        private const string EmphasizedColor = "#F56C6C";
-        private const string StampColor = "#1F9254";
 
         static FormPrintPdfService()
         {
@@ -78,6 +70,9 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         #region 请假单PDF
 
+        /// <summary>
+        /// 生成请假单PDF（权限校验+取数）
+        /// </summary>
         private async Task<Result<FormPdfDto>> PrintLeaveFormPdf(long formId)
         {
             var isCan = await _formChecker.CanView(formId, "View");
@@ -86,11 +81,13 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
             }
 
+            // 表头、附件、审批记录、栏位权限（按当前登录用户，仅判断是否显示）
             var form = await _leaveFormRepo.GetLeaveForm(formId);
             form.Attachment = await _formmanger.GetAttachmentList(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
             form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
 
+            // 假别名称（按当前语言取字典）
             var leaveTypeDics = await _leaveFormRepo.GetLeaveTypeDictionary();
             var leaveTypeDic = leaveTypeDics.FirstOrDefault(dic => dic.DicCode == form.LeaveType);
             var leaveTypeName = _lang.Locale == "zh-CN" ? leaveTypeDic?.DicNameCn : leaveTypeDic?.DicNameEn;
@@ -104,15 +101,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 组装请假单PDF文档
+        /// 组装请假单PDF文档（仅负责请假单版面，通用部分调用「PDF通用组件」）
         /// </summary>
         private MemoryStream BuildLeaveFormPdf(LeaveFormDto form, string? leaveTypeName)
         {
-            var fieldVisible = form.StepFieldPermission
-                .GroupBy(permission => permission.FieldKey)
-                .ToDictionary(group => group.Key, group => group.Any(permission => permission.IsVisible == 1));
-
-            bool Show(string fieldKey) => !fieldVisible.TryGetValue(fieldKey, out var isVisible) || isVisible;
+            var show = BuildFieldVisibility(form.StepFieldPermission);
 
             var leavePeriod = form.StartDateTime.HasValue && form.EndDateTime.HasValue
                 ? $"{form.StartDateTime:yyyy-MM-dd HH:mm:ss}  -  {form.EndDateTime:yyyy-MM-dd HH:mm:ss}"
@@ -122,170 +115,124 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             {
                 container.Page(page =>
                 {
-                    page.Size(PageSizes.A4);
-                    page.Margin(28);
-                    page.DefaultTextStyle(style => style.FontSize(9).FontFamily(FontFamilyName).FontColor(BodyTextColor));
-
-                    if (form.FormStatus == FormStatus.Approved.ToEnumString())
-                    {
-                        var approvedDateTime = form.ReviewRecord.Count > 0
-                            ? form.ReviewRecord.Max(record => record.ReviewDateTime)
-                            : (DateTime?)null;
-                        ComposeApprovalStamp(page, approvedDateTime);
-                    }
+                    ConfigurePage(page);
+                    ComposeApprovalStamp(page, form.FormStatus, form.ReviewRecord);
 
                     page.Content().Column(column =>
                     {
-                        column.Item().AlignCenter().Text(Msg("PdfLeaveTitle")).FontSize(14).SemiBold();
-                        column.Item().PaddingTop(10).LineHorizontal(0.75f).LineColor(BorderColor);
-                        column.Item().PaddingTop(14);
+                        ComposeTitle(column, Msg("PdfLeaveTitle"));
 
+                        // 表单编号 / 申请日期
                         var row1 = new List<PdfField>();
-                        if (Show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo));
-                        if (Show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo));
+                        if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
                         ComposeFieldRow(column, row1);
 
+                        // 用户工号 / 用户姓名 / 用户部门
                         var row2 = new List<PdfField>();
-                        if (Show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
-                        if (Show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
-                        if (Show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
                         ComposeFieldRow(column, row2);
 
+                        // 请假类型 / 请假时间
                         var row3 = new List<PdfField>();
-                        if (Show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty));
-                        if (Show("LeavePeriod")) row3.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod));
+                        if (show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty));
+                        if (show("LeavePeriod")) row3.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod));
                         ComposeFieldRow(column, row3);
 
+                        // 代理人 / 请假总时数
                         var row4 = new List<PdfField>();
-                        if (Show("SelectAgent")) row4.Add(new PdfField(Msg("PdfAgentUser"), form.AgentUserName ?? string.Empty));
-                        if (Show("LeaveHours")) row4.Add(new PdfField(Msg("PdfLeaveHours"), (form.LeaveHours ?? 0).ToString("0.00"), Emphasized: true));
+                        if (show("SelectAgent")) row4.Add(new PdfField(Msg("PdfAgentUser"), form.AgentUserName ?? string.Empty));
+                        if (show("LeaveHours")) row4.Add(new PdfField(Msg("PdfLeaveHours"), (form.LeaveHours ?? 0).ToString("0.00"), Emphasized: true));
                         ComposeFieldRow(column, row4);
 
-                        if (Show("LeaveReason"))
+                        // 请假事由
+                        if (show("LeaveReason"))
                         {
                             ComposeFieldRow(column, new List<PdfField>
-                    {
-                        new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f)
-                    });
+                            {
+                                new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f)
+                            });
                         }
 
-                        if (Show("Upload"))
+                        // 附件
+                        if (show("Upload"))
                         {
-                            ComposeAttachmentTable(column, form);
+                            ComposeAttachmentTable(column, form.Attachment);
                         }
 
-                        ComposeReviewRecordTable(column, form);
+                        // 审批记录
+                        ComposeReviewRecordTable(column, form.ReviewRecord);
                     });
                 });
             });
 
-            var stream = new MemoryStream();
-            document.GeneratePdf(stream);   // QuestPDF 的 Stream 重载
-            stream.Position = 0;            // 必须归零，否则 File() 读到 0 字节
-            return stream;
-        }
-
-        /// <summary>
-        /// 组装附件表格
-        /// </summary>
-        private void ComposeAttachmentTable(ColumnDescriptor column, LeaveFormDto form)
-        {
-            column.Item().PaddingBottom(10).Row(row =>
-            {
-                row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfAttachment")).FontColor(LabelTextColor);
-                row.RelativeItem().Table(table =>
-                {
-                    table.ColumnsDefinition(columns =>
-                    {
-                        columns.ConstantColumn(30);
-                        columns.RelativeColumn();
-                        columns.ConstantColumn(90);
-                    });
-
-                    table.Header(header =>
-                    {
-                        header.Cell().Element(HeaderCell).Text("#").FontColor(LabelTextColor);
-                        header.Cell().Element(HeaderCell).Text(Msg("PdfAttachmentName")).FontColor(LabelTextColor);
-                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfAttachmentSize")).FontColor(LabelTextColor);
-                    });
-
-                    if (form.Attachment.Count == 0)
-                    {
-                        table.Cell().ColumnSpan(3).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
-                        return;
-                    }
-
-                    var index = 1;
-                    foreach (var attachment in form.Attachment)
-                    {
-                        table.Cell().Element(BodyCell).Text(index++.ToString());
-                        table.Cell().Element(BodyCell).Text(attachment.AttachmentName);
-                        table.Cell().Element(BodyCell).AlignRight().Text($"{attachment.AttachmentSize} KB");
-                    }
-                });
-            });
-        }
-
-        /// <summary>
-        /// 组装审批记录表格
-        /// </summary>
-        private void ComposeReviewRecordTable(ColumnDescriptor column, LeaveFormDto form)
-        {
-            column.Item().PaddingTop(6).Text(Msg("PdfReviewRecord")).FontSize(11).SemiBold();
-
-            column.Item().PaddingTop(8).Table(table =>
-            {
-                table.ColumnsDefinition(columns =>
-                {
-                    columns.ConstantColumn(30);
-                    columns.RelativeColumn(2f);    // 审批步骤
-                    columns.RelativeColumn(2f);    // 审批人
-                    columns.RelativeColumn(1.2f);  // 审批结果
-                    columns.RelativeColumn(4f);  // 意见
-                    columns.RelativeColumn(2.4f);  // 审批时间
-                });
-
-                table.Header(header =>
-                {
-                    header.Cell().Element(HeaderCell).Text("#").FontColor(LabelTextColor);
-                    header.Cell().Element(HeaderCell).Text(Msg("PdfReviewStep")).FontColor(LabelTextColor);
-                    header.Cell().Element(HeaderCell).Text(Msg("PdfReviewUser")).FontColor(LabelTextColor);
-                    header.Cell().Element(HeaderCell).Text(Msg("PdfReviewResult")).FontColor(LabelTextColor);
-                    header.Cell().Element(HeaderCell).Text(Msg("PdfComment")).FontColor(LabelTextColor);
-                    header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfReviewTime")).FontColor(LabelTextColor);
-                });
-
-                if (form.ReviewRecord.Count == 0)
-                {
-                    table.Cell().ColumnSpan(6).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
-                    return;
-                }
-
-                var index = 1;
-                foreach (var record in form.ReviewRecord)
-                {
-                    table.Cell().Element(BodyCell).Text(index++.ToString());
-                    table.Cell().Element(BodyCell).Text(record.StepName);
-                    table.Cell().Element(BodyCell).Text(record.OperationUserName);
-                    table.Cell().Element(BodyCell).AlignCenter().Text(record.ReviewResultName);
-                    table.Cell().Element(BodyCell).Text(record.Comment);
-                    table.Cell().Element(BodyCell).AlignCenter().Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
-                }
-            });
+            return GeneratePdfStream(document);
         }
 
         #endregion
 
-        #region PDF通用组件
+        #region PDF通用组件（多表单共用：样式、页面、标题、栏位行、表格、印章）
+
+        // 通用样式
+        private const string FontFamilyName = "Microsoft YaHei";
+        private const string BorderColor = "#DCDFE6";
+        private const string LabelBgColor = "#F5F7FA";
+        private const string LabelTextColor = "#606266";
+        private const string BodyTextColor = "#303133";
+        private const string MutedTextColor = "#909399";
+        private const string EmphasizedColor = "#F56C6C";
+        private const string StampColor = "#1F9254";
+
+        // 标签格宽度 / 每行第一个值格的固定宽度（保证各行第二个栏位起始位置对齐）
+        private const float LabelCellWidth = 66f;
+        private const float FirstValueCellWidth = 136f;
 
         /// <summary>
         /// 表单栏位（标签+值）
         /// </summary>
         private sealed record PdfField(string Label, string Value, float Weight = 1f, bool Emphasized = false, float MinHeight = 0f);
 
-        // 标签格宽度 / 每行第一个值格的固定宽度（保证各行第二个栏位起始位置对齐）
-        private const float LabelCellWidth = 66f;
-        private const float FirstValueCellWidth = 136f;
+        /// <summary>
+        /// 读取表单多语言文案
+        /// </summary>
+        private string Msg(string key)
+        {
+            return _localization.ReturnMsg($"{_forms}{key}");
+        }
+
+        /// <summary>
+        /// 页面通用设置（A4、边距、默认字体）
+        /// </summary>
+        private static void ConfigurePage(PageDescriptor page)
+        {
+            page.Size(PageSizes.A4);
+            page.Margin(28);
+            page.DefaultTextStyle(style => style.FontSize(9).FontFamily(FontFamilyName).FontColor(BodyTextColor));
+        }
+
+        /// <summary>
+        /// 表单标题（居中标题+分隔线）
+        /// </summary>
+        private static void ComposeTitle(ColumnDescriptor column, string title)
+        {
+            column.Item().AlignCenter().Text(title).FontSize(14).SemiBold();
+            column.Item().PaddingTop(10).LineHorizontal(0.75f).LineColor(BorderColor);
+            column.Item().PaddingTop(14);
+        }
+
+        /// <summary>
+        /// 构建栏位可见性判断（按当前登录用户的栏位权限，未配置的栏位默认显示）
+        /// </summary>
+        private static Func<string, bool> BuildFieldVisibility(List<StepFieldPermissionDto> permissions)
+        {
+            var fieldVisible = permissions
+                .GroupBy(permission => permission.FieldKey)
+                .ToDictionary(group => group.Key, group => group.Any(permission => permission.IsVisible == 1));
+
+            return fieldKey => !fieldVisible.TryGetValue(fieldKey, out var isVisible) || isVisible;
+        }
 
         /// <summary>
         /// 组装一行表单栏位（不可见的栏位不传入即可）
@@ -320,60 +267,108 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 标签单元格样式
+        /// 组装附件表格（左侧标签+右侧表格）
         /// </summary>
-        private static IContainer LabelCell(IContainer container)
+        private void ComposeAttachmentTable(ColumnDescriptor column, List<FormAttachmentDto> attachments)
         {
-            return container.Border(0.5f)
-                            .BorderColor(BorderColor)
-                            .Background(LabelBgColor)
-                            .PaddingVertical(5)
-                            .PaddingHorizontal(6)
-                            .AlignMiddle();
+            column.Item().PaddingBottom(10).Row(row =>
+            {
+                row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfAttachment")).FontColor(LabelTextColor);
+                row.RelativeItem().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(30);
+                        columns.RelativeColumn();
+                        columns.ConstantColumn(90);
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCell).Text("#").FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).Text(Msg("PdfAttachmentName")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfAttachmentSize")).FontColor(LabelTextColor);
+                    });
+
+                    if (attachments.Count == 0)
+                    {
+                        table.Cell().ColumnSpan(3).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
+                        return;
+                    }
+
+                    var index = 1;
+                    foreach (var attachment in attachments)
+                    {
+                        table.Cell().Element(BodyCell).Text(index++.ToString());
+                        table.Cell().Element(BodyCell).Text(attachment.AttachmentName);
+                        table.Cell().Element(BodyCell).AlignRight().Text($"{attachment.AttachmentSize} KB");
+                    }
+                });
+            });
         }
 
         /// <summary>
-        /// 值单元格样式（minHeight 大于 0 时为多行文本区域）
+        /// 组装审批记录表格（小标题+表格）
         /// </summary>
-        private static IContainer ValueCell(IContainer container, float minHeight = 0f)
+        private void ComposeReviewRecordTable(ColumnDescriptor column, List<FormReviewRecordDto> reviewRecords)
         {
-            container = container.Border(0.5f)
-                                 .BorderColor(BorderColor)
-                                 .PaddingVertical(5)
-                                 .PaddingHorizontal(6);
-            return minHeight > 0 ? container.MinHeight(minHeight) : container.AlignMiddle();
+            column.Item().PaddingTop(6).Text(Msg("PdfReviewRecord")).FontSize(11).SemiBold();
+
+            column.Item().PaddingTop(8).Table(table =>
+            {
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.ConstantColumn(30);
+                    columns.RelativeColumn(2f);    // 审批步骤
+                    columns.RelativeColumn(2f);    // 审批人
+                    columns.RelativeColumn(1.2f);  // 审批结果
+                    columns.RelativeColumn(4f);    // 意见
+                    columns.RelativeColumn(2.4f);  // 审批时间
+                });
+
+                table.Header(header =>
+                {
+                    header.Cell().Element(HeaderCell).Text("#").FontColor(LabelTextColor);
+                    header.Cell().Element(HeaderCell).Text(Msg("PdfReviewStep")).FontColor(LabelTextColor);
+                    header.Cell().Element(HeaderCell).Text(Msg("PdfReviewUser")).FontColor(LabelTextColor);
+                    header.Cell().Element(HeaderCell).Text(Msg("PdfReviewResult")).FontColor(LabelTextColor);
+                    header.Cell().Element(HeaderCell).Text(Msg("PdfComment")).FontColor(LabelTextColor);
+                    header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfReviewTime")).FontColor(LabelTextColor);
+                });
+
+                if (reviewRecords.Count == 0)
+                {
+                    table.Cell().ColumnSpan(6).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
+                    return;
+                }
+
+                var index = 1;
+                foreach (var record in reviewRecords)
+                {
+                    table.Cell().Element(BodyCell).Text(index++.ToString());
+                    table.Cell().Element(BodyCell).Text(record.StepName);
+                    table.Cell().Element(BodyCell).Text(record.OperationUserName);
+                    table.Cell().Element(BodyCell).AlignCenter().Text(record.ReviewResultName);
+                    table.Cell().Element(BodyCell).Text(record.Comment);
+                    table.Cell().Element(BodyCell).AlignCenter().Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                }
+            });
         }
 
         /// <summary>
-        /// 表格表头单元格样式
+        /// 组装审批完成印章（仅已批准状态加盖；页面前景层右上角，覆盖在所有内容之上）
         /// </summary>
-        private static IContainer HeaderCell(IContainer container)
+        private void ComposeApprovalStamp(PageDescriptor page, string formStatus, List<FormReviewRecordDto> reviewRecords)
         {
-            return container.Border(0.5f)
-                            .BorderColor(BorderColor)
-                            .Background(LabelBgColor)
-                            .PaddingVertical(5)
-                            .PaddingHorizontal(6)
-                            .AlignMiddle();
-        }
+            if (formStatus != FormStatus.Approved.ToEnumString())
+            {
+                return;
+            }
 
-        /// <summary>
-        /// 表格内容单元格样式（垂直居中，行内某列换行时其余列保持居中）
-        /// </summary>
-        private static IContainer BodyCell(IContainer container)
-        {
-            return container.Border(0.5f)
-                            .BorderColor(BorderColor)
-                            .PaddingVertical(5)
-                            .PaddingHorizontal(6)
-                            .AlignMiddle();
-        }
+            var approvedDateTime = reviewRecords.Count > 0
+                ? reviewRecords.Max(record => record.ReviewDateTime)
+                : (DateTime?)null;
 
-        /// <summary>
-        /// 组装审批完成印章（页面前景层右上角，覆盖在所有内容之上）
-        /// </summary>
-        private void ComposeApprovalStamp(PageDescriptor page, DateTime? approvedDateTime)
-        {
             var svg = BuildApprovalStampSvg(
                 Msg("PdfStampApproved"),
                 _lang.IsChinese ? "APPROVED" : string.Empty,
@@ -425,12 +420,69 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 读取表单多语言文案
+        /// 文档生成PDF流
         /// </summary>
-        private string Msg(string key)
+        private static MemoryStream GeneratePdfStream(Document document)
         {
-            return _localization.ReturnMsg($"{_forms}{key}");
+            var stream = new MemoryStream();
+            document.GeneratePdf(stream);
+            stream.Position = 0;    // 必须归零，否则 File() 读到 0 字节
+            return stream;
         }
+
+        #region 单元格样式
+
+        /// <summary>
+        /// 标签单元格样式
+        /// </summary>
+        private static IContainer LabelCell(IContainer container)
+        {
+            return container.Border(0.5f)
+                            .BorderColor(BorderColor)
+                            .Background(LabelBgColor)
+                            .PaddingVertical(5)
+                            .PaddingHorizontal(6)
+                            .AlignMiddle();
+        }
+
+        /// <summary>
+        /// 值单元格样式（minHeight 大于 0 时为多行文本区域）
+        /// </summary>
+        private static IContainer ValueCell(IContainer container, float minHeight = 0f)
+        {
+            container = container.Border(0.5f)
+                                 .BorderColor(BorderColor)
+                                 .PaddingVertical(5)
+                                 .PaddingHorizontal(6);
+            return minHeight > 0 ? container.MinHeight(minHeight) : container.AlignMiddle();
+        }
+
+        /// <summary>
+        /// 表格表头单元格样式
+        /// </summary>
+        private static IContainer HeaderCell(IContainer container)
+        {
+            return container.Border(0.5f)
+                            .BorderColor(BorderColor)
+                            .Background(LabelBgColor)
+                            .PaddingVertical(5)
+                            .PaddingHorizontal(6)
+                            .AlignMiddle();
+        }
+
+        /// <summary>
+        /// 表格内容单元格样式（垂直居中，行内某列换行时其余列保持居中）
+        /// </summary>
+        private static IContainer BodyCell(IContainer container)
+        {
+            return container.Border(0.5f)
+                            .BorderColor(BorderColor)
+                            .PaddingVertical(5)
+                            .PaddingHorizontal(6)
+                            .AlignMiddle();
+        }
+
+        #endregion
 
         #endregion
     }
