@@ -20,6 +20,11 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity
         public long LeaveRequestId { get; set; }
 
         /// <summary>
+        /// 请假单号
+        /// </summary>
+        public string LeaveRequestNo { get; set; } = string.Empty;
+
+        /// <summary>
         /// 开始时间
         /// </summary>
         public DateTime? StartDateTime { get; set; }
