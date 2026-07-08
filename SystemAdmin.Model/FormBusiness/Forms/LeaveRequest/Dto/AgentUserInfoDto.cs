@@ -1,7 +1,7 @@
 ﻿using System.Text.Json.Serialization;
 using SystemAdmin.Model.ModelHelper.ModelConverter;
 
-namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
+namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
 {
     /// <summary>
     /// 用户信息详情Dto

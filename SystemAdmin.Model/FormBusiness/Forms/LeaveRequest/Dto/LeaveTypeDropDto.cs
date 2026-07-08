@@ -1,4 +1,4 @@
-﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
+﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
 {
     /// <summary>
     /// 假别下拉Dto

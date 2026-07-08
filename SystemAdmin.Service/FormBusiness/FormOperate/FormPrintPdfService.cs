@@ -1,4 +1,4 @@
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -7,7 +7,7 @@ using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
@@ -25,7 +25,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly ILogger<FormPrintPdfService> _logger;
         private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
-        private readonly LeaveFormRepository _leaveFormRepo;
+        private readonly LeaveRequestRepository _leaveRequestRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
@@ -37,13 +37,13 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
         }
 
-        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveFormRepository leaveFormRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _lang = lang;
             _formChecker = formChecker;
-            _leaveFormRepo = leaveFormRepo;
+            _leaveRequestRepo = leaveRequestRepo;
             _formmanger = formmanger;
             _localization = localization;
         }
@@ -57,7 +57,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             {
                 return prefix switch
                 {
-                    "LVR" => await PrintLeaveFormPdf(long.Parse(formId)),
+                    "LVR" => await PrintLeaveRequestPdf(long.Parse(formId)),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -73,7 +73,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// <summary>
         /// 生成请假单PDF（权限校验+取数）
         /// </summary>
-        private async Task<Result<FormPdfDto>> PrintLeaveFormPdf(long formId)
+        private async Task<Result<FormPdfDto>> PrintLeaveRequestPdf(long formId)
         {
             var isCan = await _formChecker.CanView(formId, "View");
             if (!isCan)
@@ -82,20 +82,20 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             }
 
             // 表头、附件、审批记录、栏位权限（按当前登录用户，仅判断是否显示）
-            var form = await _leaveFormRepo.GetLeaveForm(formId);
+            var form = await _leaveRequestRepo.GetLeaveRequest(formId);
             form.Attachment = await _formmanger.GetAttachmentList(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
             form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
 
             // 假别名称（按当前语言取字典）
-            var leaveTypeDics = await _leaveFormRepo.GetLeaveTypeDictionary();
+            var leaveTypeDics = await _leaveRequestRepo.GetLeaveTypeDictionary();
             var leaveTypeDic = leaveTypeDics.FirstOrDefault(dic => dic.DicCode == form.LeaveType);
             var leaveTypeName = _lang.Locale == "zh-CN" ? leaveTypeDic?.DicNameCn : leaveTypeDic?.DicNameEn;
 
             var pdf = new FormPdfDto
             {
-                FileName = $"{Msg("PdfLeaveTitle")}_{form.FormNo}.pdf",
-                FileStream = BuildLeaveFormPdf(form, leaveTypeName)
+                FileName = $"{Msg("PdfLeaveRequestTitle")}_{form.FormNo}.pdf",
+                FileStream = BuildLeaveRequestPdf(form, leaveTypeName)
             };
             return Result<FormPdfDto>.Ok(pdf);
         }
@@ -103,7 +103,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// <summary>
         /// 组装请假单PDF文档（仅负责请假单版面，通用部分调用「PDF通用组件」）
         /// </summary>
-        private MemoryStream BuildLeaveFormPdf(LeaveFormDto form, string? leaveTypeName)
+        private MemoryStream BuildLeaveRequestPdf(LeaveRequestDto form, string? leaveTypeName)
         {
             var show = BuildFieldVisibility(form.StepFieldPermission);
 
@@ -120,7 +120,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
                     page.Content().Column(column =>
                     {
-                        ComposeTitle(column, Msg("PdfLeaveTitle"));
+                        ComposeTitle(column, Msg("PdfLeaveRequestTitle"));
 
                         // 表单编号 / 申请日期
                         var row1 = new List<PdfField>();

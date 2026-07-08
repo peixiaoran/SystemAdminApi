@@ -4,35 +4,35 @@ using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Commands;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Commands;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Service.FormBusiness.Forms
 {
-    public class LeaveFormService
+    public class LeaveRequestService
     {
         private readonly CurrentUser _loginuser;
-        private readonly ILogger<LeaveFormService> _logger;
+        private readonly ILogger<LeaveRequestService> _logger;
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
-        private readonly LeaveFormRepository _leaveForm;
+        private readonly LeaveRequestRepository _leaveRequest;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public LeaveFormService(CurrentUser loginuser, ILogger<LeaveFormService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveFormRepository leaveForm, FormManager formmanger, LocalizationService localization)
+        public LeaveRequestService(CurrentUser loginuser, ILogger<LeaveRequestService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveRequestRepository leaveRequest, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _lang = lang;
-            _leaveForm = leaveForm;
+            _leaveRequest = leaveRequest;
             _formChecker = formchecker;
             _formmanger = formmanger;
             _localization = localization;
@@ -44,7 +44,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// <returns></returns>
         public async Task<Result<List<LeaveTypeDropDto>>> GetLeaveTypeDrop()
         {
-            var drop = await _leaveForm.GetLeaveTypeDrop();
+            var drop = await _leaveRequest.GetLeaveTypeDrop();
             return Result<List<LeaveTypeDropDto>>.Ok(drop);
         }
 
@@ -56,7 +56,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                var drop = await _leaveForm.GetDepartmentDrop();
+                var drop = await _leaveRequest.GetDepartmentDrop();
                 return Result<List<DepartmentDropDto>>.Ok(drop, "");
             }
             catch (Exception ex)
@@ -75,7 +75,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                return await _leaveForm.GetUserInfoAgentView(getPage);
+                return await _leaveRequest.GetUserInfoAgentView(getPage);
             }
             catch (Exception ex)
             {
@@ -95,10 +95,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 .ToList();
 
             // 1. 查询申请人基础余额
-            var balanceList = await _leaveForm.GetApplicantLeaveBalances(long.Parse(formId), yearList);
+            var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), yearList);
 
             // 2. 查询申请人审批中的请假单
-            var pendingLeaves = await _leaveForm.GetApplicantPendingLeaves(long.Parse(formId));
+            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(long.Parse(formId));
 
             // 3. 计算审批中请假的占用工时（按年份和假别），逐日累计
             var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
@@ -197,7 +197,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         public async Task<Result<bool>> ValidateLeaveInfo(string formId)
         {
             // 查询当前表单请假信息
-            var currentLeave = await _leaveForm.GetCurrentLeaveForm(long.Parse(formId));
+            var currentLeave = await _leaveRequest.GetCurrentLeaveRequest(long.Parse(formId));
 
             // 计算当前表单涉及的年份
             var currentStart = (DateTime)currentLeave.StartDateTime!;
@@ -205,7 +205,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             var involvedYears = Enumerable.Range(currentStart.Year, currentEnd.Year - currentStart.Year + 1).ToList();
 
             // 1. 校验代理人在本次请假期间是否已有审批中的请假（代理人本人不能同时也在请假）
-            var agentPendingLeaves = await _leaveForm.GetAppRejectPendingLeaves(long.Parse(formId));
+            var agentPendingLeaves = await _leaveRequest.GetAppRejectPendingLeaves(long.Parse(formId));
 
             var conflictLeave = agentPendingLeaves.FirstOrDefault(agentPendingLeave =>
                 currentStart < (DateTime)agentPendingLeave.EndDateTime!
@@ -225,10 +225,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             }
 
             // 查询申请人基础余额
-            var balanceList = await _leaveForm.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
+            var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
 
             // 查询其余审批中的请假单
-            var pendingLeaves = await _leaveForm.GetApplicantPendingLeaves(long.Parse(formId));
+            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(long.Parse(formId));
 
             // 2. 校验计算其余审批中请假的占用工时（按年份和假别），逐日累计
             var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
@@ -337,7 +337,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             }
 
             // 查询假别字典
-            var leaveTypeDics = await _leaveForm.GetLeaveTypeDictionary();
+            var leaveTypeDics = await _leaveRequest.GetLeaveTypeDictionary();
 
             // 8. 按年份逐一校验余额（天数，1天=8小时），遇到第一个不符合立即返回
             foreach (var year in involvedYears)
@@ -389,21 +389,21 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         /// <param name="formTypeId"></param>
         /// <returns></returns>
-        public async Task<Result<LeaveFormDto>> InitLeaveForm(string formTypeId)
+        public async Task<Result<LeaveRequestDto>> InitLeaveRequest(string formTypeId)
         {
             try
             {
                 var isCan = await _formChecker.CanApply(long.Parse(formTypeId));
                 if (!isCan)
                 {
-                    return Result<LeaveFormDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanApply"));
+                    return Result<LeaveRequestDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanApply"));
                 }
                 else
                 {
                     await _db.BeginTranAsync();
                     var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
 
-                    var leaveForm = new LeaveFormEntity()
+                    var leaveRequest = new LeaveRequestEntity()
                     {
                         FormId = long.Parse(formId),
                         LeaveType = null,
@@ -417,22 +417,22 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                         CreatedDate = DateTime.Now
                     };
 
-                    await _leaveForm.InitLeaveForm(leaveForm);
+                    await _leaveRequest.InitLeaveRequest(leaveRequest);
                     await _formmanger.MatchWorkflowRule(long.Parse(formTypeId), long.Parse(formId), _loginuser.UserId);
                     await _db.CommitTranAsync();
 
-                    var leaveFormDto = await _leaveForm.GetLeaveForm(long.Parse(formId));
-                    leaveFormDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
-                    leaveFormDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                    leaveFormDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
-                    return Result<LeaveFormDto>.Ok(leaveFormDto);
+                    var leaveRequestDto = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
+                    leaveRequestDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                    leaveRequestDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                    leaveRequestDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                    return Result<LeaveRequestDto>.Ok(leaveRequestDto);
                 }
             }
             catch (Exception ex)
             {
                 await _db.RollbackTranAsync();
                 _logger.LogError(ex, ex.Message);
-                return Result<LeaveFormDto>.Failure(500, ex.Message);
+                return Result<LeaveRequestDto>.Failure(500, ex.Message);
             }
         }
 
@@ -441,26 +441,26 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<Result<LeaveFormDto>> GetLeaveForm(string formId, string type)
+        public async Task<Result<LeaveRequestDto>> GetLeaveRequest(string formId, string type)
         {
             try
             {
                 var isCan = await _formChecker.CanView(long.Parse(formId), type);
                 if (!isCan)
                 {
-                    return Result<LeaveFormDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
+                    return Result<LeaveRequestDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanView"));
                 }
 
-                var form = await _leaveForm.GetLeaveForm(long.Parse(formId));
+                var form = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
                 form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
-                return Result<LeaveFormDto>.Ok(form);
+                return Result<LeaveRequestDto>.Ok(form);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<LeaveFormDto>.Failure(500, ex.Message);
+                return Result<LeaveRequestDto>.Failure(500, ex.Message);
             }
         }
 
@@ -469,11 +469,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         /// <param name="save"></param>
         /// <returns></returns>
-        public async Task<Result<int>> SaveLeaveForm(LeaveFormSave save)
+        public async Task<Result<int>> SaveLeaveRequest(LeaveRequestSave save)
         {
             try
             {
-                var entity = new LeaveFormEntity()
+                var entity = new LeaveRequestEntity()
                 {
                     FormId = long.Parse(save.FormId),
                     LeaveType = save.LeaveType,
@@ -487,7 +487,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     ModifiedDate = DateTime.Now
                 };
                 await _db.BeginTranAsync();
-                var count = await _leaveForm.SaveLeaveForm(entity);
+                var count = await _leaveRequest.SaveLeaveRequest(entity);
                 await _formmanger.SaveFormInstance(long.Parse(save.FormId));
                 await _db.CommitTranAsync();
 

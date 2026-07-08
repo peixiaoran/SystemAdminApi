@@ -1,9 +1,9 @@
-﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Commands
+﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Commands
 {
     /// <summary>
     /// 请假单保存类
     /// </summary>
-    public class LeaveFormSave
+    public class LeaveRequestSave
     {
         /// <summary>
         /// 请假单Id

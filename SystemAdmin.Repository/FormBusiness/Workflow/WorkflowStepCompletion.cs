@@ -1,7 +1,7 @@
 ﻿using SqlSugar;
 using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
@@ -28,7 +28,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             _lang = lang;
             _registry = new Dictionary<string, Func<long, Task<Result<bool>>>>(StringComparer.OrdinalIgnoreCase)
             {
-                [nameof(ProcessLeaveForm)] = ProcessLeaveForm,
+                [nameof(ProcessLeaveRequest)] = ProcessLeaveRequest,
+                // 兼容数据库 WorkflowRuleStep.Guidance 中已配置的旧标识，待数据更新为 ProcessLeaveRequest 后可移除
+                ["ProcessLeaveForm"] = ProcessLeaveRequest,
             };
         }
 
@@ -54,16 +56,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 请假单审批完成后处理
         /// </summary>
-        public async Task<Result<bool>> ProcessLeaveForm(long formId)
+        public async Task<Result<bool>> ProcessLeaveRequest(long formId)
         {
-            var leaveForm = await _db.Queryable<FormInstanceEntity>()
-                                     .InnerJoin<LeaveFormEntity>((instance, leave) => instance.FormId == leave.FormId)
+            var leaveRequest = await _db.Queryable<FormInstanceEntity>()
+                                     .InnerJoin<LeaveRequestEntity>((instance, leave) => instance.FormId == leave.FormId)
                                      .Where((instance, leave) => instance.FormId == formId)
                                      .Select((instance, leave) => leave)
                                      .FirstAsync();
 
-            var startTime = leaveForm.StartDateTime!.Value;
-            var endTime = leaveForm.EndDateTime!.Value;
+            var startTime = leaveRequest.StartDateTime!.Value;
+            var endTime = leaveRequest.EndDateTime!.Value;
             var leaveHoursByYear = new Dictionary<int, double>();
 
             var currentDate = startTime.Date;
@@ -125,7 +127,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var userName = isChinese ? userInfo.UserNameCn : userInfo.UserNameEn;
 
             var leaveInfo = await _db.Queryable<DictionaryInfoEntity>()
-                                     .Where(dic => dic.DicType == "LeaveType" && dic.DicCode == leaveForm.LeaveType)
+                                     .Where(dic => dic.DicType == "LeaveType" && dic.DicCode == leaveRequest.LeaveType)
                                      .FirstAsync();
             var leaveName = isChinese ? leaveInfo.DicNameCn : leaveInfo.DicNameEn;
 
@@ -134,7 +136,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 var days = Math.Ceiling(hours / 8);
                 var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
-                                           .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveForm.LeaveType);
+                                           .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType);
 
                 if (leaveAnnual == null)
                 {
@@ -165,7 +167,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             RemainingDays = newRemainingDays,
                                             ModifiedBy = formInstance.CreatedBy,
                                             ModifiedDate = DateTime.Now
-                                        }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveForm.LeaveType)
+                                        }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType)
                                         .ExecuteCommandAsync();
             }
 
@@ -173,9 +175,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var userAgent = new UserAgentEntity
             {
                 SubstituteUserId = formInstance.ApplicantUserId, // 被代理人（申请人）
-                AgentUserId = leaveForm.AgentUserId!.Value, // 代理人
-                StartTime = leaveForm.StartDateTime!.Value,
-                EndTime = leaveForm.EndDateTime!.Value,
+                AgentUserId = leaveRequest.AgentUserId!.Value, // 代理人
+                StartTime = leaveRequest.StartDateTime!.Value,
+                EndTime = leaveRequest.EndDateTime!.Value,
                 CreatedBy = formInstance.CreatedBy,
                 CreatedDate = DateTime.Now
             };
@@ -186,7 +188,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             .SetColumns(user => new UserInfoEntity
                                             {
                                                 IsAgent = 1
-                                            }).Where(user => user.UserId == leaveForm.AgentUserId)
+                                            }).Where(user => user.UserId == leaveRequest.AgentUserId)
                                             .ExecuteCommandAsync();
 
             return Result<bool>.Ok(updateBlance>=1 && insertAgentCount >= 1 && updateAgentCount >= 1);

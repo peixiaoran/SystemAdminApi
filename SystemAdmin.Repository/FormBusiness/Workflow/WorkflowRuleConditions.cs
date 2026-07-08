@@ -1,5 +1,5 @@
 ﻿using SqlSugar;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
@@ -42,7 +42,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         public async Task<bool> LessOver3(long formId)
         {
-            var leave = await _db.Queryable<LeaveFormEntity>()
+            var leave = await _db.Queryable<LeaveRequestEntity>()
                                  .With(SqlWith.NoLock)
                                  .FirstAsync(x => x.FormId == formId);
 
@@ -51,7 +51,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         public async Task<bool> MoreOver3(long formId)
         {
-            var leave = await _db.Queryable<LeaveFormEntity>()
+            var leave = await _db.Queryable<LeaveRequestEntity>()
                                  .With(SqlWith.NoLock)
                                  .FirstAsync(x => x.FormId == formId);
 

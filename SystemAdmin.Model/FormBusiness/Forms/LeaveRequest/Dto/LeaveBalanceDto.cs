@@ -1,4 +1,4 @@
-﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
+﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
 {
     /// <summary>
     /// 用户请假余额Dto

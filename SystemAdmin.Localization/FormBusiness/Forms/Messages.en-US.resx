@@ -159,7 +159,7 @@
   <data name="AgentLeaveConflict" xml:space="preserve">
     <value>The selected agent "{0}" already has a pending leave request from {1} to {2}. Please select another agent</value>
   </data>
-  <data name="PdfLeaveTitle" xml:space="preserve">
+  <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>Leave Request Form</value>
   </data>
   <data name="PdfFormNo" xml:space="preserve">

@@ -1,12 +1,12 @@
 ﻿using SqlSugar;
 
-namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity
+namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity
 {
     /// <summary>
     /// 请假单基础信息实体
     /// </summary>
-    [SugarTable("[Form].[LeaveForm]")]
-    public class LeaveFormEntity
+    [SugarTable("[Form].[LeaveRequest]")]
+    public class LeaveRequestEntity
     {
         /// <summary>
         /// 请假单Id

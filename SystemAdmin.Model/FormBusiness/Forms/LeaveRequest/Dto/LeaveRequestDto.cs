@@ -2,12 +2,12 @@
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Model.ModelHelper.ModelConverter;
 
-namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
+namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
 {
     /// <summary>
     /// 请假单基础信息Dto
     /// </summary>
-    public class LeaveFormDto
+    public class LeaveRequestDto
     {
         /// <summary>
         /// 请假单Id

@@ -159,7 +159,7 @@
   <data name="AgentLeaveConflict" xml:space="preserve">
     <value>代理人「{0}」于 {1} 至 {2} 期间有待审批的请假申请，请改选其他代理人</value>
   </data>
-  <data name="PdfLeaveTitle" xml:space="preserve">
+  <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>请假单</value>
   </data>
   <data name="PdfFormNo" xml:space="preserve">

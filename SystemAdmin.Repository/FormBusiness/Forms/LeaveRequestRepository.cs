@@ -2,9 +2,9 @@
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Options;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Entity;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Queries;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
@@ -13,12 +13,12 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Forms
 {
-    public class LeaveFormRepository
+    public class LeaveRequestRepository
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
 
-        public LeaveFormRepository(SqlSugarScope db, Language lang)
+        public LeaveRequestRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
             _lang = lang;
@@ -142,9 +142,9 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// <summary>
         /// 查询审批中的请假单
         /// </summary>
-        public async Task<List<LeaveFormEntity>> GetApplicantPendingLeaves(long formId)
+        public async Task<List<LeaveRequestEntity>> GetApplicantPendingLeaves(long formId)
         {
-            var list = await _db.Queryable<LeaveFormEntity>()
+            var list = await _db.Queryable<LeaveRequestEntity>()
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
                                 .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
@@ -157,9 +157,9 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// <summary>
         /// 查询审批中、已驳回的请假单
         /// </summary>
-        public async Task<List<LeaveFormEntity>> GetAppRejectPendingLeaves(long formId)
+        public async Task<List<LeaveRequestEntity>> GetAppRejectPendingLeaves(long formId)
         {
-            var list = await _db.Queryable<LeaveFormEntity>()
+            var list = await _db.Queryable<LeaveRequestEntity>()
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
                                 .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
@@ -172,9 +172,9 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// <summary>
         /// 查询当前表单的请假信息
         /// </summary>
-        public async Task<LeaveFormEntity>  GetCurrentLeaveForm(long formId)
+        public async Task<LeaveRequestEntity>  GetCurrentLeaveRequest(long formId)
         {
-            return await _db.Queryable<LeaveFormEntity>()
+            return await _db.Queryable<LeaveRequestEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
                             .Where((leave, instance) => instance.FormId == formId)
@@ -199,7 +199,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<int> InitLeaveForm(LeaveFormEntity entity)
+        public async Task<int> InitLeaveRequest(LeaveRequestEntity entity)
         {
             return await _db.Insertable(entity).ExecuteCommandAsync();
         }
@@ -209,7 +209,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<int> SaveLeaveForm(LeaveFormEntity entity)
+        public async Task<int> SaveLeaveRequest(LeaveRequestEntity entity)
         {
             return await _db.Updateable(entity)
                             .IgnoreColumns(leave => new
@@ -226,16 +226,16 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<LeaveFormDto> GetLeaveForm(long formId)
+        public async Task<LeaveRequestDto> GetLeaveRequest(long formId)
         {
             return await _db.Queryable<FormInstanceEntity>()
                             .With(SqlWith.NoLock)
-                            .InnerJoin<LeaveFormEntity>((form, leave) => form.FormId == leave.FormId)
+                            .InnerJoin<LeaveRequestEntity>((form, leave) => form.FormId == leave.FormId)
                             .InnerJoin<UserInfoEntity>((form, leave, user) => form.ApplicantUserId == user.UserId)
                             .InnerJoin<DepartmentInfoEntity>((form, leave, user, dept) => user.DepartmentId == dept.DepartmentId)
                             .InnerJoin<DictionaryInfoEntity>((form, leave, user, dept, dic) => dic.DicType == "FormStatus" && form.FormStatus == dic.DicCode)
                             .Where((form, leave, user, dept, dic) => form.FormId == formId)
-                            .Select((form, leave, user, dept, dic) => new LeaveFormDto()
+                            .Select((form, leave, user, dept, dic) => new LeaveRequestDto()
                             {
                                 FormTypeId = form.FormTypeId,
                                 RuleId = form.RuleId,

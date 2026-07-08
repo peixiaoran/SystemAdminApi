@@ -1,4 +1,4 @@
-﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveForm.Dto
+﻿namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
 {
     /// <summary>
     /// 表单用户基本信息

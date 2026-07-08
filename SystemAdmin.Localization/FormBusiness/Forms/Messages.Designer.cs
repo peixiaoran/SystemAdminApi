@@ -261,9 +261,9 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         /// <summary>
         ///   查找类似 请假单 的本地化字符串。
         /// </summary>
-        internal static string PdfLeaveTitle {
+        internal static string PdfLeaveRequestTitle {
             get {
-                return ResourceManager.GetString("PdfLeaveTitle", resourceCulture);
+                return ResourceManager.GetString("PdfLeaveRequestTitle", resourceCulture);
             }
         }
         
