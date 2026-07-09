@@ -20,6 +20,26 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto
         public string LeaveRequestNo { get; set; } = string.Empty;
 
         /// <summary>
+        /// 假别编码
+        /// </summary>
+        public string? LeaveType { get; set; }
+
+        /// <summary>
+        /// 开始时间
+        /// </summary>
+        public DateTime? StartDateTime { get; set; }
+
+        /// <summary>
+        /// 结束时间
+        /// </summary>
+        public DateTime? EndDateTime { get; set; }
+
+        /// <summary>
+        /// 请假小时（系统计算）
+        /// </summary>
+        public decimal? LeaveHours { get; set; }
+
+        /// <summary>
         /// 申请时间
         /// </summary>
         public DateTime ApplicantDate { get; set; }

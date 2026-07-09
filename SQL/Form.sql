@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 07/07/2026 17:00:30
+ Date: 09/07/2026 16:58:36
 */
 
 
@@ -925,7 +925,10 @@ GO
 -- ----------------------------
 -- Records of FormType
 -- ----------------------------
-INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'1987215338470772736', N'请假单', N'Leave Request Form', N'LVR', N'formbusiness/forms/leaveform/leaveform_r', N'formbusiness/forms/leaveform/leaveform_v', N'1', N'请假单用于员工因个人事由、病假、事假、年假等原因需要离开工作岗位时，向所属部门及管理层提出请假申请、审批与备案的业务单据。该单据记录请假类型、请假时间、时长、事由以及审批流程，用于确保人员安排合理、流程合规与人事数据准确。', N'A Leave Request Form is used when an employee needs to be absent from work due to personal reasons, sickness, annual leave, or other approved leave types. The form is submitted to the employee’s department and management for approval and record-keeping. It captures the leave type, leave period, duration, reason, and approval workflow, ensuring proper staffing, compliance, and accurate HR records.', N'1903486709602062336', N'2025-11-09 01:54:49.000', N'1903486709602062336', N'2026-06-28 17:06:17.340')
+INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'1987215338470772736', N'请假单', N'Leave Request Form', N'LVR', N'formbusiness/forms/leaverequest/leaverequest_r', N'formbusiness/forms/leaverequest/leaverequest_v', N'1', N'请假单用于员工因个人事由、病假、事假、年假等原因需要离开工作岗位时，向所属部门及管理层提出请假申请、审批与备案的业务单据。该单据记录请假类型、请假时间、时长、事由以及审批流程，用于确保人员安排合理、流程合规与人事数据准确。', N'A Leave Request Form is used when an employee needs to be absent from work due to personal reasons, sickness, annual leave, or other approved leave types. The form is submitted to the employee’s department and management for approval and record-keeping. It captures the leave type, leave period, duration, reason, and approval workflow, ensuring proper staffing, compliance, and accurate HR records.', N'1903486709602062336', N'2025-11-09 01:54:49.000', N'1903486709602062336', N'2026-06-28 17:06:17.340')
+GO
+
+INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2074764225741459456', N'1987215338470772736', N'销假单', N'Leave Cancellation Form', N'LCF', N'formbusiness/forms/leaverequest/leavecancell_r', N'formbusiness/forms/leaverequest/leavecancell_v', N'2', N'销假单用于员工在请假结束、提前返岗或需要取消/终止原请假记录时提交申请。该单据通常关联原请假单，用于确认员工实际返岗时间，并更新请假记录及考勤状态。', N'Leave Cancellation Form is used when an employee ends a leave, returns to work early, or needs to cancel/terminate an existing leave request. This form is usually linked to the original leave request form and is used to confirm the employee’s actual return date and update the leave and attendance records.', N'1903486709602062336', N'2026-07-08 15:55:13.330', NULL, NULL)
 GO
 
 
@@ -1080,13 +1083,112 @@ GO
 
 
 -- ----------------------------
--- Table structure for LeaveForm
+-- Table structure for LeaveCancell
 -- ----------------------------
-IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[LeaveForm]') AND type IN ('U'))
-	DROP TABLE [Form].[LeaveForm]
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[LeaveCancell]') AND type IN ('U'))
+	DROP TABLE [Form].[LeaveCancell]
 GO
 
-CREATE TABLE [Form].[LeaveForm] (
+CREATE TABLE [Form].[LeaveCancell] (
+  [FormId] bigint  NOT NULL,
+  [LeaveRequestId] bigint  NOT NULL,
+  [LeaveRequestNo] nvarchar(30) COLLATE Chinese_PRC_CI_AS  NOT NULL,
+  [StartDateTime] datetime2(7)  NOT NULL,
+  [EndDateTime] datetime2(7)  NOT NULL,
+  [CancellHours] decimal(6,2)  NOT NULL,
+  [CreatedBy] bigint  NOT NULL,
+  [CreatedDate] datetime2(3)  NOT NULL,
+  [ModifiedBy] bigint  NULL,
+  [ModifiedDate] datetime2(3)  NULL
+)
+GO
+
+ALTER TABLE [Form].[LeaveCancell] SET (LOCK_ESCALATION = TABLE)
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'销假单Id',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'FormId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'请假单Id',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'LeaveRequestId'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'请假单号',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'LeaveRequestNo'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'销假开始时间',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'StartDateTime'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'销假结束时间',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'EndDateTime'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'销假时数',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'CancellHours'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建人',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'CreatedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'创建时间',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'CreatedDate'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改人',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'ModifiedBy'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'修改时间',
+'SCHEMA', N'Form',
+'TABLE', N'LeaveCancell',
+'COLUMN', N'ModifiedDate'
+GO
+
+
+-- ----------------------------
+-- Records of LeaveCancell
+-- ----------------------------
+
+-- ----------------------------
+-- Table structure for LeaveRequest
+-- ----------------------------
+IF EXISTS (SELECT * FROM sys.all_objects WHERE object_id = OBJECT_ID(N'[Form].[LeaveRequest]') AND type IN ('U'))
+	DROP TABLE [Form].[LeaveRequest]
+GO
+
+CREATE TABLE [Form].[LeaveRequest] (
   [FormId] bigint  NOT NULL,
   [LeaveType] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [LeaveReason] nvarchar(150) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
@@ -1102,107 +1204,107 @@ CREATE TABLE [Form].[LeaveForm] (
 )
 GO
 
-ALTER TABLE [Form].[LeaveForm] SET (LOCK_ESCALATION = TABLE)
+ALTER TABLE [Form].[LeaveRequest] SET (LOCK_ESCALATION = TABLE)
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假单Id',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'FormId'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假假别',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'LeaveType'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假事由',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'LeaveReason'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假开始时间',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'StartDateTime'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假结束时间',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'EndDateTime'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假时数',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'LeaveHours'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'代理人Id',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'AgentUserId'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'代理人姓名',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'AgentUserName'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'创建人',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'CreatedBy'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'创建时间',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'CreatedDate'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'修改人',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'ModifiedBy'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'修改时间',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm',
+'TABLE', N'LeaveRequest',
 'COLUMN', N'ModifiedDate'
 GO
 
 EXEC sp_addextendedproperty
 'MS_Description', N'请假单表',
 'SCHEMA', N'Form',
-'TABLE', N'LeaveForm'
+'TABLE', N'LeaveRequest'
 GO
 
 
 -- ----------------------------
--- Records of LeaveForm
+-- Records of LeaveRequest
 -- ----------------------------
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2069025311722442752', N'Annual', N'11', N'2026-06-22 08:00:00.0000000', N'2026-06-25 17:00:00.0000000', N'32.00', N'2050602218733834240', N'ETW00225 / 蔡佳桦', N'1903486709602062336', N'2026-06-22 19:50:49.723', N'1903486709602062341', N'2026-06-22 20:00:35.907')
+INSERT INTO [Form].[LeaveRequest] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2069025311722442752', N'Annual', N'11', N'2026-06-22 08:00:00.0000000', N'2026-06-25 17:00:00.0000000', N'32.00', N'2050602218733834240', N'ETW00225 / 蔡佳桦', N'1903486709602062336', N'2026-06-22 19:50:49.723', N'1903486709602062341', N'2026-06-22 20:00:35.907')
 GO
 
-INSERT INTO [Form].[LeaveForm] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2070475946498068480', N'Sick', N'生病请假2天', N'2026-06-26 08:00:00.0000000', N'2026-06-27 17:00:00.0000000', N'16.00', N'2050600734554198016', N'E346899 / Zhehao Gong', N'1903486709602062336', N'2026-06-26 19:55:08.033', N'1903486709602062336', N'2026-06-26 19:56:18.330')
+INSERT INTO [Form].[LeaveRequest] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2070475946498068480', N'Sick', N'生病请假2天', N'2026-06-26 08:00:00.0000000', N'2026-06-27 17:00:00.0000000', N'16.00', N'2050600734554198016', N'E346899 / Zhehao Gong', N'1903486709602062336', N'2026-06-26 19:55:08.033', N'1903486709602062336', N'2026-06-26 19:56:18.330')
 GO
 
 
@@ -2529,9 +2631,18 @@ GO
 
 
 -- ----------------------------
--- Primary Key structure for table LeaveForm
+-- Primary Key structure for table LeaveCancell
 -- ----------------------------
-ALTER TABLE [Form].[LeaveForm] ADD CONSTRAINT [PK__LeaveIns__796DB959B422B703] PRIMARY KEY CLUSTERED ([FormId])
+ALTER TABLE [Form].[LeaveCancell] ADD CONSTRAINT [PK__LeaveCan__FB05B7DD369322D1] PRIMARY KEY CLUSTERED ([FormId])
+WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
+ON [PRIMARY]
+GO
+
+
+-- ----------------------------
+-- Primary Key structure for table LeaveRequest
+-- ----------------------------
+ALTER TABLE [Form].[LeaveRequest] ADD CONSTRAINT [PK__LeaveIns__796DB959B422B703] PRIMARY KEY CLUSTERED ([FormId])
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
 ON [PRIMARY]
 GO
