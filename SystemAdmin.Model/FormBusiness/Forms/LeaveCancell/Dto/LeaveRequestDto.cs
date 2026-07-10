@@ -40,8 +40,13 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto
         public decimal? LeaveHours { get; set; }
 
         /// <summary>
+        /// 可销假时数（系统计算）
+        /// </summary>
+        public decimal? CancellableHours { get; set; }
+
+        /// <summary>
         /// 申请时间
         /// </summary>
-        public DateTime ApplicantDate { get; set; }
+        public DateOnly ApplicantDate { get; set; }
     }
 }
