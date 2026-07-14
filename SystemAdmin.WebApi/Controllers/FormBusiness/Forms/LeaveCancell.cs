@@ -43,7 +43,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[销假单] 查询登录用户可销假的请假单")]
+        [EndpointSummary("[销假单] 查询可销请假单")]
         public async Task<ResultPaged<LeaveRequestDto>> GetLeaveRequestView([FromBody] GetLeaveRequestPage getPage)
         {
             return await _leaveCancellService.GetLeaveRequestView(getPage);

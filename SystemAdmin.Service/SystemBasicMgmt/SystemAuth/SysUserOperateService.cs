@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
+using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -56,7 +57,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         {
             try
             {
-                var ip = GetLocalIPv4();
+                var ip = GetClientIp();
                 var nowTime = DateTime.Now;
 
                 // 查询用户
@@ -196,7 +197,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 {
                     UserId = user.UserId,
                     LoginType = LoginBehavior.LoggedOut.ToEnumString(),
-                    IP = GetLocalIPv4(),
+                    IP = GetClientIp(),
                     LoginDate = DateTime.Now
                 };
                 var insertLogOutCount = await _sysUserOperateRepo.AddUserLogOutInfo(logOutLog);
@@ -471,26 +472,53 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         }
 
         /// <summary>
-        /// 获取本地IPv4地址
+        /// 获取客户端真实IP地址
         /// </summary>
-        /// <returns></returns>
-        public string GetLocalIPv4()
+        public string GetClientIp()
         {
             var context = _httpContextAccessor.HttpContext;
-            if (context == null) return "127.0.0.1"; // 没有请求上下文
+            if (context == null) return "127.0.0.1";
 
-            // 优先取 X-Forwarded-For，如果不存在则取 RemoteIpAddress
-            var clientIp = context.Request.Headers["X-Forwarded-For"].FirstOrDefault()
-                           ?? context.Connection.RemoteIpAddress?.ToString()
-                           ?? "127.0.0.1";
-
-            // 如果 IP 地址以 "::ffff:" 开头，去除这个前缀
-            if (clientIp.StartsWith("::ffff:"))
+            // 1. 优先取 X-Forwarded-For(可能是多级代理链: "客户端IP, 代理1, 代理2")
+            var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(forwardedFor))
             {
-                clientIp = clientIp.Substring(7);  // 去除 "::ffff:"，只保留纯 IPv4 地址
+                foreach (var segment in forwardedFor.Split(','))
+                {
+                    var candidate = segment.Trim();
+
+                    // 可能带端口,如 "1.2.3.4:5678",去掉端口(仅单冒号时,避免误伤 IPv6)
+                    if (candidate.Count(c => c == ':') == 1)
+                        candidate = candidate.Split(':')[0];
+
+                    if (IPAddress.TryParse(candidate, out var parsed))
+                    {
+                        if (parsed.IsIPv4MappedToIPv6)
+                            parsed = parsed.MapToIPv4();
+                        return parsed.ToString();
+                    }
+                }
             }
 
-            return clientIp;
+            // 2. 其次取 X-Real-IP(Nginx 常用)
+            var realIp = context.Request.Headers["X-Real-IP"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(realIp) && IPAddress.TryParse(realIp.Trim(), out var real))
+            {
+                if (real.IsIPv4MappedToIPv6)
+                    real = real.MapToIPv4();
+                return real.ToString();
+            }
+
+            // 3. 最后回退到 TCP 连接的远端地址
+            var remoteIp = context.Connection.RemoteIpAddress;
+            if (remoteIp != null)
+            {
+                if (remoteIp.IsIPv4MappedToIPv6)
+                    remoteIp = remoteIp.MapToIPv4();
+                return remoteIp.ToString();
+            }
+
+            return "127.0.0.1";
         }
 
         /// <summary>

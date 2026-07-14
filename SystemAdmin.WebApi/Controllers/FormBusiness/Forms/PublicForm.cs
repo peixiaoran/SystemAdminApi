@@ -20,7 +20,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[表单公共接口] 邮件Token验证")]
+        [EndpointSummary("[表单公共接口] 邮件Token")]
         [AllowAnonymous]
         public async Task<Result<FormNotifyReturnDto>> GetFormNotifyToken([FromForm] string token)
         {
