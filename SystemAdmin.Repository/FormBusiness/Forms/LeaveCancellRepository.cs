@@ -142,7 +142,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
             return await _db.Queryable<LeaveCancellEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<FormInstanceEntity>((cancell, instance) => cancell.FormId == instance.FormId)
-                            .Where((cancell, instance) => leaveRequestIds.Contains(cancell.LeaveRequestId)
+                            .Where((cancell, instance) => leaveRequestIds.Contains(cancell.LeaveRequestId!.Value)
                                                        && (instance.FormStatus == FormStatus.UnderReview.ToEnumString()
                                                         || instance.FormStatus == FormStatus.Approved.ToEnumString()))
                             .Select((cancell, instance) => cancell)
@@ -160,6 +160,19 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                             .With(SqlWith.NoLock)
                             .Where(instance => instance.FormId == leaveRequestId)
                             .Select(instance => instance.FormNo)
+                            .FirstAsync();
+        }
+
+        /// <summary>
+        /// 查询请假单实体（用于计算可销除总时数）
+        /// </summary>
+        /// <param name="leaveRequestId"></param>
+        /// <returns></returns>
+        public async Task<LeaveRequestEntity?> GetLeaveRequest(long leaveRequestId)
+        {
+            return await _db.Queryable<LeaveRequestEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(leave => leave.FormId == leaveRequestId)
                             .FirstAsync();
         }
     }

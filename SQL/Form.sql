@@ -12,7 +12,7 @@
  Target Server Version : 17001115 (17.00.1115)
  File Encoding         : 65001
 
- Date: 10/07/2026 16:51:19
+ Date: 14/07/2026 16:56:47
 */
 
 
@@ -502,6 +502,9 @@ GO
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2070475946498068480', N'1987217256446300160', N'LVR-2026060002', N'Voided', N'1903486709602062336', N'2026-06-26', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-26 19:55:07.883', N'1903486709602062336', N'2026-06-26 19:56:38.060')
 GO
 
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2074764225741459456', N'LCF-2026070001', N'Approved', N'1903486709602062336', N'2026-07-14', NULL, NULL, N'1903486709602062336', N'2026-07-14 16:07:09.143', N'1903486709602062336', N'2026-07-14 16:08:30.867')
+GO
+
 
 -- ----------------------------
 -- Table structure for FormNotifyToken
@@ -786,6 +789,9 @@ GO
 -- Records of FormSequence
 -- ----------------------------
 INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'202606', N'2', N'1903486709602062336', N'2026-06-22 19:50:49.603', N'1903486709602062336', N'2026-06-26 19:55:07.883')
+GO
+
+INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2074764225741459456', N'202607', N'1', N'1903486709602062336', N'2026-07-14 13:48:17.913', N'1903486709602062336', N'2026-07-14 16:07:09.143')
 GO
 
 
@@ -1091,11 +1097,11 @@ GO
 
 CREATE TABLE [Form].[LeaveCancell] (
   [FormId] bigint  NOT NULL,
-  [LeaveRequestId] bigint  NOT NULL,
-  [LeaveRequestNo] nvarchar(30) COLLATE Chinese_PRC_CI_AS  NOT NULL,
-  [StartDateTime] datetime2(7)  NOT NULL,
-  [EndDateTime] datetime2(7)  NOT NULL,
-  [CancellHours] decimal(6,2)  NOT NULL,
+  [LeaveRequestId] bigint  NULL,
+  [LeaveRequestNo] nvarchar(30) COLLATE Chinese_PRC_CI_AS  NULL,
+  [StartDateTime] datetime2(7)  NULL,
+  [EndDateTime] datetime2(7)  NULL,
+  [CancellHours] decimal(6,2)  NULL,
   [CreatedBy] bigint  NOT NULL,
   [CreatedDate] datetime2(3)  NOT NULL,
   [ModifiedBy] bigint  NULL,
@@ -1180,6 +1186,9 @@ GO
 -- ----------------------------
 -- Records of LeaveCancell
 -- ----------------------------
+INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-25 08:00:00.0000000', N'2026-06-25 17:00:00.0000000', N'8.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-14 16:08:28.403')
+GO
+
 
 -- ----------------------------
 -- Table structure for LeaveRequest
@@ -1317,7 +1326,7 @@ GO
 
 CREATE TABLE [Form].[PendingReview] (
   [FormId] bigint  NOT NULL,
-  [StepId] bigint  NOT NULL,
+  [StepId] bigint  NULL,
   [AppointmentType] nvarchar(15) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [ReviewUserId] bigint  NULL
 )
@@ -1365,6 +1374,9 @@ GO
 -- Records of PendingReview
 -- ----------------------------
 INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2070475946498068480', N'2009890853346217984', N'Actual', N'1903486709602062336')
+GO
+
+INSERT INTO [Form].[PendingReview] ([FormId], [StepId], [AppointmentType], [ReviewUserId]) VALUES (N'2076941555276582912', NULL, N'Actual', N'1903486709602062336')
 GO
 
 

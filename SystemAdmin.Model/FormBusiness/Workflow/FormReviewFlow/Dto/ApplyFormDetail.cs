@@ -18,7 +18,7 @@
         /// <summary>
         /// 规则Id
         /// </summary>
-        public long RuleId { get; set; }
+        public long? RuleId { get; set; }
 
         /// <summary>
         /// 当前步骤Id

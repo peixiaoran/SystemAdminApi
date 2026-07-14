@@ -42,7 +42,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
         /// <summary>
         /// 所属分支
         /// </summary>
-        public long RuleId { get; set; }
+        public long? RuleId { get; set; }
 
         /// <summary>
         /// 当前步骤Id

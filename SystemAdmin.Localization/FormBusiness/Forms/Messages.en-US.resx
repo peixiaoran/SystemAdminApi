@@ -159,6 +159,9 @@
   <data name="AgentLeaveConflict" xml:space="preserve">
     <value>The selected agent "{0}" already has a pending leave request from {1} to {2}. Please select another agent</value>
   </data>
+  <data name="CancellHoursExceed" xml:space="preserve">
+    <value>This cancellation of {0} hour(s) exceeds the remaining {1} cancellable hour(s) of the leave request</value>
+  </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>Leave Request Form</value>
   </data>

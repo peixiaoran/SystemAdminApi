@@ -16,7 +16,7 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Entity
         /// <summary>
         /// 步骤Id
         /// </summary>
-        public long StepId { get; set; }
+        public long? StepId { get; set; }
 
         /// <summary>
         /// 待审批人身份

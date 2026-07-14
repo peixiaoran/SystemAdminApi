@@ -25,7 +25,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
         /// 所属规则Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long RuleId { get; set; }
+        public long? RuleId { get; set; }
 
         /// <summary>
         /// 当前步骤Id

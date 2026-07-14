@@ -48,5 +48,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         {
             return await _leaveCancellService.GetLeaveRequestView(getPage);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[销假单] 校验绑定请假单剩余可销除时数是否足够")]
+        public async Task<Result<bool>> CheckCancellHours([FromBody] LeaveCancellSave save)
+        {
+            return await _leaveCancellService.CheckCancellHours(save);
+        }
     }
 }

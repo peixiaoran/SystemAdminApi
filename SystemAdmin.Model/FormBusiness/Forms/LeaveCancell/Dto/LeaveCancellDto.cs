@@ -49,12 +49,12 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto
         /// 请假单Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long LeaveRequestId { get; set; }
+        public long? LeaveRequestId { get; set; }
 
         /// <summary>
         /// 请假单号
         /// </summary>
-        public string LeaveRequestNo { get; set; } = string.Empty;
+        public string? LeaveRequestNo { get; set; }
 
         /// <summary>
         /// 请假单开始时间

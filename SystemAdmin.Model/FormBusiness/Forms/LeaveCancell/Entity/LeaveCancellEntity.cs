@@ -17,12 +17,12 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity
         /// <summary>
         /// 请假单Id
         /// </summary>
-        public long LeaveRequestId { get; set; }
+        public long? LeaveRequestId { get; set; }
 
         /// <summary>
         /// 请假单号
         /// </summary>
-        public string LeaveRequestNo { get; set; } = string.Empty;
+        public string? LeaveRequestNo { get; set; }
 
         /// <summary>
         /// 开始时间

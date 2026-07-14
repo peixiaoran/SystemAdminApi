@@ -159,6 +159,9 @@
   <data name="AgentLeaveConflict" xml:space="preserve">
     <value>代理人「{0}」于 {1} 至 {2} 期间有待审批的请假申请，请改选其他代理人</value>
   </data>
+  <data name="CancellHoursExceed" xml:space="preserve">
+    <value>本次销假 {0} 小时，超出该请假单剩余可销除 {1} 小时</value>
+  </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>请假单</value>
   </data>

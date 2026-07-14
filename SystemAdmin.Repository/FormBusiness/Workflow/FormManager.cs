@@ -65,11 +65,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                   .Select(formtype => formtype.Prefix)
                                   .FirstAsync();
 
-            var startStepId = await _db.Queryable<WorkflowStepEntity>()
-                                       .With(SqlWith.NoLock)
-                                       .Where(step => step.FormTypeId == formTypeId && step.IsStartStep == 1)
-                                       .Select(step => step.StepId)
-                                       .FirstAsync();
+            long? startStepId = await _db.Queryable<WorkflowStepEntity>()
+                                         .With(SqlWith.NoLock)
+                                         .Where(step => step.FormTypeId == formTypeId && step.IsStartStep == 1)
+                                         .Select(step => (long?)step.StepId)
+                                         .FirstAsync();
 
             string formNo = string.Empty;
 
@@ -124,7 +124,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     FormStatus = FormStatus.PendingSubmit.ToEnumString(),
                     ApplicantUserId = _loginuser.UserId,
                     ApplicantDate = DateOnly.FromDateTime(now),
-                    RuleId = 0,
+                    RuleId = null,
                     CurrentStepId = startStepId,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = now
@@ -145,7 +145,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 匹配工作流规则
         /// </summary>
-        public async Task<long> MatchWorkflowRule(long formTypeId, long formId, long applicantUserId)
+        public async Task<long?> MatchWorkflowRule(long formTypeId, long formId, long applicantUserId)
         {
             var appPositionId = await _db.Queryable<UserInfoEntity>()
                                          .With(SqlWith.NoLock)
@@ -158,7 +158,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .Where(rule => rule.FormTypeId == formTypeId)
                                     .ToListAsync();
 
-            long ruleId = 0;
+            // 没有匹配到规则时保持 null
+            long? ruleId = null;
 
             foreach (var rule in ruleList)
             {
@@ -171,7 +172,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 默认规则：职位和条件都不限制
                 if (isDefaultRule)
                 {
-                    if (ruleId == 0)
+                    if (ruleId == null)
                     {
                         ruleId = rule.RuleId;
                     }
@@ -195,7 +196,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }
 
                 // 优先级2：职位不限制，只判断条件
-                if (ruleId == 0 && rule.PositionId == null && guidanceMatch)
+                if (ruleId == null && rule.PositionId == null && guidanceMatch)
                 {
                     ruleId = rule.RuleId;
                 }
@@ -330,8 +331,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                          .Select(record => record.StepId)
                                          .ToListAsync();
 
-            // 合并去重，得到该用户在此表单的所有审批步骤
-            var stepIds = pendingStepIds.Concat(recordStepIds).Distinct().ToList();
+            // 合并去重，得到该用户在此表单的所有审批步骤（待审批 StepId 可空，过滤 null 后转 long 再与记录步骤合并）
+            var stepIds = pendingStepIds.Where(stepId => stepId.HasValue)
+                                        .Select(stepId => stepId!.Value)
+                                        .Concat(recordStepIds)
+                                        .Distinct()
+                                        .ToList();
 
             // 3. 取该表单类型下的所有栏位（FormInstance INNER JOIN FormTypeField，一次查询拿到，省一次往返）
             var fields = await _db.Queryable<FormInstanceEntity>()
