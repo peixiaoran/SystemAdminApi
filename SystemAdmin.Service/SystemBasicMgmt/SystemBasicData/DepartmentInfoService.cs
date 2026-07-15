@@ -46,6 +46,24 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
+        /// 厂区下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<FactoryDropDto>>> GetFactoryDrop()
+        {
+            try
+            {
+                var drop = await _deptInfoRepo.GetFactoryDrop();
+                return Result<List<FactoryDropDto>>.Ok(drop, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<FactoryDropDto>>.Failure(500, ex.Message.ToString());
+            }
+        }
+
+        /// <summary>
         /// 部门级别下拉
         /// </summary>
         /// <returns></returns>
@@ -79,6 +97,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     DepartmentNameCn = upsert.DepartmentNameCn,
                     DepartmentNameEn = upsert.DepartmentNameEn,
                     ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
+                    Factory = upsert.Factory,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
                     SortOrder = upsert.SortOrder,
                     Landline = upsert.Landline,
@@ -175,6 +194,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     DepartmentNameCn = upsert.DepartmentNameCn,
                     DepartmentNameEn = upsert.DepartmentNameEn,
                     ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
+                    Factory = upsert.Factory,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
                     SortOrder = upsert.SortOrder,
                     Landline = upsert.Landline,

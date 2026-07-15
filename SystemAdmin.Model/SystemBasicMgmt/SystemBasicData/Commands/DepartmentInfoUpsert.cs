@@ -31,6 +31,11 @@
         public string? ParentId { get; set; }
 
         /// <summary>
+        /// 厂区
+        /// </summary>
+        public string Factory { get; set; } = string.Empty;
+
+        /// <summary>
         /// 部门级别Id
         /// </summary>
         public string DepartmentLevelId { get; set; } = string.Empty;

@@ -35,6 +35,11 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         public long? ParentId { get; set; }
 
         /// <summary>
+        /// 厂区
+        /// </summary>
+        public string Factory { get; set; } = string.Empty;
+
+        /// <summary>
         /// 部门级别Id
         /// </summary>
         public long DepartmentLevelId { get; set; }

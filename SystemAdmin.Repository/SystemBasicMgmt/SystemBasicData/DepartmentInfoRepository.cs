@@ -4,6 +4,7 @@ using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries;
+using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
 {
@@ -36,6 +37,25 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                                  : dept.DepartmentNameEn,
                                 ParentId = dept.ParentId,
                             }).ToTreeAsync(menu => menu.DepartmentChildList, menu => menu.ParentId, null);
+        }
+
+        /// <summary>
+        /// 厂区下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<FactoryDropDto>> GetFactoryDrop()
+        {
+            return await _db.Queryable<DictionaryInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(dic => dic.DicType == "Factorys")
+                            .OrderBy(dic => dic.SortOrder)
+                            .Select(dic => new FactoryDropDto
+                            {
+                                Factory = dic.DicCode,
+                                FactoryName = _lang.Locale == "zh-CN"
+                                              ? dic.DicNameCn
+                                              : dic.DicNameEn
+                            }).ToListAsync();
         }
 
         /// <summary>
@@ -196,6 +216,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                         DepartmentNameCn = dept.DepartmentNameCn,
                                         DepartmentNameEn = dept.DepartmentNameEn,
                                         ParentId = dept.ParentId,
+                                        Factory = dept.Factory,
                                         DepartmentLevelId = dept.DepartmentLevelId,
                                         DepartmentLevelName = _lang.Locale == "zh-CN"
                                                               ? level.DepartmentLevelNameCn

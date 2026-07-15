@@ -37,6 +37,14 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
+        [EndpointSummary("[部门信息] 厂区下拉")]
+        public async Task<Result<List<FactoryDropDto>>> GetFactoryDrop()
+        {
+            return await _departmentInfoService.GetFactoryDrop();
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-基本信息模块")]
         [EndpointSummary("[部门信息] 新增部门信息")]
         public async Task<Result<int>> InsertDepartmentInfo([FromBody] DepartmentInfoUpsert upsert)
         {
