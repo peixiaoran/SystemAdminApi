@@ -3,16 +3,16 @@
 
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
- Source Server Version : 17001115 (17.00.1115)
- Source Host           : 127.0.0.1:1433
+ Source Server Version : 17001125 (17.00.1125)
+ Source Host           : localhost:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Form
 
  Target Server Type    : SQL Server
- Target Server Version : 17001115 (17.00.1115)
+ Target Server Version : 17001125 (17.00.1125)
  File Encoding         : 65001
 
- Date: 14/07/2026 16:56:47
+ Date: 15/07/2026 22:28:05
 */
 
 
@@ -502,7 +502,7 @@ GO
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2070475946498068480', N'1987217256446300160', N'LVR-2026060002', N'Voided', N'1903486709602062336', N'2026-06-26', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-26 19:55:07.883', N'1903486709602062336', N'2026-06-26 19:56:38.060')
 GO
 
-INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2074764225741459456', N'LCF-2026070001', N'Approved', N'1903486709602062336', N'2026-07-14', NULL, NULL, N'1903486709602062336', N'2026-07-14 16:07:09.143', N'1903486709602062336', N'2026-07-14 16:08:30.867')
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2074764225741459456', N'LCF-2026070001', N'UnderReview', N'1903486709602062336', N'2026-07-14', NULL, NULL, N'1903486709602062336', N'2026-07-14 16:07:09.143', N'1903486709602062336', N'2026-07-14 16:08:30.867')
 GO
 
 
@@ -934,7 +934,7 @@ GO
 INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'1987215338470772736', N'请假单', N'Leave Request Form', N'LVR', N'formbusiness/forms/leaverequest/leaverequest_r', N'formbusiness/forms/leaverequest/leaverequest_v', N'1', N'请假单用于员工因个人事由、病假、事假、年假等原因需要离开工作岗位时，向所属部门及管理层提出请假申请、审批与备案的业务单据。该单据记录请假类型、请假时间、时长、事由以及审批流程，用于确保人员安排合理、流程合规与人事数据准确。', N'A Leave Request Form is used when an employee needs to be absent from work due to personal reasons, sickness, annual leave, or other approved leave types. The form is submitted to the employee’s department and management for approval and record-keeping. It captures the leave type, leave period, duration, reason, and approval workflow, ensuring proper staffing, compliance, and accurate HR records.', N'1903486709602062336', N'2025-11-09 01:54:49.000', N'1903486709602062336', N'2026-06-28 17:06:17.340')
 GO
 
-INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2074764225741459456', N'1987215338470772736', N'销假单', N'Leave Cancellation Form', N'LCF', N'formbusiness/forms/leaverequest/leavecancell_r', N'formbusiness/forms/leaverequest/leavecancell_v', N'2', N'销假单用于员工在请假结束、提前返岗或需要取消/终止原请假记录时提交申请。该单据通常关联原请假单，用于确认员工实际返岗时间，并更新请假记录及考勤状态。', N'Leave Cancellation Form is used when an employee ends a leave, returns to work early, or needs to cancel/terminate an existing leave request. This form is usually linked to the original leave request form and is used to confirm the employee’s actual return date and update the leave and attendance records.', N'1903486709602062336', N'2026-07-08 15:55:13.330', NULL, NULL)
+INSERT INTO [Form].[FormType] ([FormTypeId], [FormGroupId], [FormTypeNameCn], [FormTypeNameEn], [Prefix], [ReviewPath], [ViewPath], [SortOrder], [DescriptionCn], [DescriptionEn], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2074764225741459456', N'1987215338470772736', N'销假单', N'Leave Cancellation Form', N'LCF', N'formbusiness/forms/leavecancell/leavecancell_r', N'formbusiness/forms/leavecancell/leavecancell_v', N'2', N'销假单用于员工在请假结束、提前返岗或需要取消/终止原请假记录时提交申请。该单据通常关联原请假单，用于确认员工实际返岗时间，并更新请假记录及考勤状态。', N'Leave Cancellation Form is used when an employee ends a leave, returns to work early, or needs to cancel/terminate an existing leave request. This form is usually linked to the original leave request form and is used to confirm the employee’s actual return date and update the leave and attendance records.', N'1903486709602062336', N'2026-07-08 15:55:13.330', NULL, NULL)
 GO
 
 
