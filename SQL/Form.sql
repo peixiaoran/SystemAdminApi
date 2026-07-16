@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001125 (17.00.1125)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Form
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001125 (17.00.1125)
  File Encoding         : 65001
 
- Date: 15/07/2026 22:28:05
+ Date: 16/07/2026 15:12:35
 */
 
 
@@ -595,7 +595,7 @@ CREATE TABLE [Form].[FormReviewRecord] (
   [StepId] bigint  NOT NULL,
   [ReviewResult] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [RejectStepId] bigint  NULL,
-  [Comment] nvarchar(500) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
+  [Comment] nvarchar(max) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [ReviewType] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [AppointmentType] nvarchar(30) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NOT NULL,
   [OriginalUserId] bigint  NOT NULL,
@@ -695,7 +695,7 @@ GO
 -- ----------------------------
 -- Records of FormReviewRecord
 -- ----------------------------
-INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2069025311722442752', N'2009890853346217984', N'Approve', NULL, N'清晨的阳光洒进窗前，微风轻轻吹动树叶，空气中弥漫着花草的清香。我走在安静的小路上，听见鸟儿欢快地歌唱，心情也变得轻松愉快。新的一天充满希望，只要保持努力与坚持，勇敢面对每一次挑战，就能不断成长，迎接更加美好的未来。', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-22 19:52:18.587', N'1')
+INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2069025311722442752', N'2009890853346217984', N'Approve', NULL, N'	Construction of Mezzanine B8. The budget includes the pneumatic installation. Previously, the cost of the pneumatic installation was not included in the total construction price of the mezzanine in the first purchase order, authorized FAS-PC0005 with the pipe supplier for a total of MXN $1,358,812.00. That order was canceled. The construction will be reduced by half and will include the pipe installation. The budget was updated with the current supplier, CIAT, who offered a better price. CIAT''s initial price was MXN $1,078,798.56, which was negotiated down to MXN $1,020,218.38. Even so, the cost is reduced by MXN $338,593.62 compared to the first order with the pipe supplier versus the current order with CIAT. The investment plan includes pipe installation services, so it was decided to add everything at once to avoid generating two separate orders and to have everything done together. B8夹层建设。预算包含气动装置安装。此前，在与管道供应商签订的第一份采购订单（FAS-PC0005，总金额为1,358,812.00墨西哥比索）中，气动装置安装费用并未计入夹层总建设价格。该订单已被取消。 此次建设成本将减半，并包含管道安装费用。预算已更新，供应商为CIAT，其报价更优惠。CIAT的初始报价为1,078,798.56墨西哥比索，经协商降至1,020,218.38墨西哥比索。 即便如此，与之前与管道供应商签订的订单相比，此次与CIAT签订的订单仍节省了338,593.62墨西哥比索。由于投资计划包含管道安装服务，因此决定将所有费用一次性计入，避免产生两份单独的订单，并确保所有工作同时完成。', N'Manual', N'Actual', N'1903486709602062336', N'1903486709602062336', N'2026-06-22 19:52:18.587', N'1')
 GO
 
 INSERT INTO [Form].[FormReviewRecord] ([FormId], [StepId], [ReviewResult], [RejectStepId], [Comment], [ReviewType], [AppointmentType], [OriginalUserId], [OperationUserId], [ReviewDateTime], [RecordStatus]) VALUES (N'2069025311722442752', N'2009897830268932096', N'Approve', NULL, N'', N'Manual', N'Actual', N'1903486709602062340', N'1903486709602062340', N'2026-06-22 19:55:04.013', N'1')
@@ -789,6 +789,9 @@ GO
 -- Records of FormSequence
 -- ----------------------------
 INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'202606', N'2', N'1903486709602062336', N'2026-06-22 19:50:49.603', N'1903486709602062336', N'2026-06-26 19:55:07.883')
+GO
+
+INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1987217256446300160', N'202607', N'3', N'1903486709602062336', N'2026-07-16 10:40:54.730', N'1903486709602062336', N'2026-07-16 10:49:03.527')
 GO
 
 INSERT INTO [Form].[FormSequence] ([FormTypeId], [Ym], [Total], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2074764225741459456', N'202607', N'1', N'1903486709602062336', N'2026-07-14 13:48:17.913', N'1903486709602062336', N'2026-07-14 16:07:09.143')
@@ -1186,7 +1189,7 @@ GO
 -- ----------------------------
 -- Records of LeaveCancell
 -- ----------------------------
-INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-25 08:00:00.0000000', N'2026-06-25 17:00:00.0000000', N'8.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-14 16:08:28.403')
+INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-22 08:00:00.0000000', N'2026-06-25 17:00:00.0000000', N'32.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-14 16:08:28.403')
 GO
 
 
@@ -1843,6 +1846,9 @@ CREATE TABLE [Form].[WorkflowRule] (
   [FormTypeId] bigint  NOT NULL,
   [PositionId] bigint  NULL,
   [Guidance] nvarchar(20) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
+  [Version] varchar(20) COLLATE Chinese_PRC_CI_AS  NOT NULL,
+  [EffectiveStartTime] datetime2(7)  NOT NULL,
+  [EffectiveEndTime] datetime2(7)  NULL,
   [SortOrder] int  NOT NULL,
   [CreatedBy] bigint  NOT NULL,
   [CreatedDate] datetime2(3)  NOT NULL,
@@ -1897,6 +1903,27 @@ EXEC sp_addextendedproperty
 GO
 
 EXEC sp_addextendedproperty
+'MS_Description', N'版本',
+'SCHEMA', N'Form',
+'TABLE', N'WorkflowRule',
+'COLUMN', N'Version'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'生效时间',
+'SCHEMA', N'Form',
+'TABLE', N'WorkflowRule',
+'COLUMN', N'EffectiveStartTime'
+GO
+
+EXEC sp_addextendedproperty
+'MS_Description', N'失效时间',
+'SCHEMA', N'Form',
+'TABLE', N'WorkflowRule',
+'COLUMN', N'EffectiveEndTime'
+GO
+
+EXEC sp_addextendedproperty
 'MS_Description', N'排序',
 'SCHEMA', N'Form',
 'TABLE', N'WorkflowRule',
@@ -1941,25 +1968,25 @@ GO
 -- ----------------------------
 -- Records of WorkflowRule
 -- ----------------------------
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046850267772751872', N'组长 - 小于3天', N'Team Leader - Less than 3 days', N'1987217256446300160', N'1351602631784529920', N'LessOver3', N'1', N'1903486709602062336', N'2026-04-22 15:15:07.133', N'1903486709602062336', N'2026-05-04 14:19:51.580')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046850267772751872', N'组长 - 小于3天', N'Team Leader - Less than 3 days', N'1987217256446300160', N'1351602631784529920', N'LessOver3', N'1', N'2026-04-22 15:15:07.1330000', NULL, N'1', N'1903486709602062336', N'2026-04-22 15:15:07.133', N'1903486709602062336', N'2026-05-04 14:19:51.580')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046860073602519040', N'其他', N'Other', N'1987217256446300160', NULL, NULL, N'50', N'1903486709602062336', N'2026-04-22 15:54:05.027', N'1903486709602062336', N'2026-06-21 20:15:41.127')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046860073602519040', N'其他', N'Other', N'1987217256446300160', NULL, NULL, N'1', N'2026-04-22 15:54:05.0270000', NULL, N'50', N'1903486709602062336', N'2026-04-22 15:54:05.027', N'1903486709602062336', N'2026-06-21 20:15:41.127')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051185303204532224', N'组长 - 大于3天', N'Team Leader - More than 3 days', N'1987217256446300160', N'1351602631784529920', N'MoreOver3', N'2', N'1903486709602062336', N'2026-05-04 14:21:00.120', NULL, NULL)
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051185303204532224', N'组长 - 大于3天', N'Team Leader - More than 3 days', N'1987217256446300160', N'1351602631784529920', N'MoreOver3', N'1', N'2026-05-04 14:21:00.1200000', NULL, N'2', N'1903486709602062336', N'2026-05-04 14:21:00.120', NULL, NULL)
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186271467999232', N'科长 - 小于3天', N'Section Chief - Less than 3 days', N'1987217256446300160', N'1351600746193223680', N'LessOver3', N'3', N'1903486709602062336', N'2026-05-04 14:24:50.973', N'1903486709602062336', N'2026-05-04 14:32:53.470')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186271467999232', N'科长 - 小于3天', N'Section Chief - Less than 3 days', N'1987217256446300160', N'1351600746193223680', N'LessOver3', N'1', N'2026-05-04 14:24:50.9730000', NULL, N'3', N'1903486709602062336', N'2026-05-04 14:24:50.973', N'1903486709602062336', N'2026-05-04 14:32:53.470')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186400535121920', N'科长 - 大于3天', N'Section Chief - More than 3 days', N'1987217256446300160', N'1351600746193223680', N'MoreOver3', N'4', N'1903486709602062336', N'2026-05-04 14:25:21.747', N'1903486709602062336', N'2026-05-04 19:17:29.790')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186400535121920', N'科长 - 大于3天', N'Section Chief - More than 3 days', N'1987217256446300160', N'1351600746193223680', N'MoreOver3', N'1', N'2026-05-04 14:25:21.7470000', NULL, N'4', N'1903486709602062336', N'2026-05-04 14:25:21.747', N'1903486709602062336', N'2026-05-04 19:17:29.790')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051259795381555200', N'副理 - 小于3天', N'Assistant Manager - Less than 3 days', N'1987217256446300160', N'1351592278136717312', N'LessOver3', N'5', N'1903486709602062336', N'2026-05-04 19:17:00.440', N'1903486709602062336', N'2026-05-04 19:17:17.373')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051259795381555200', N'副理 - 小于3天', N'Assistant Manager - Less than 3 days', N'1987217256446300160', N'1351592278136717312', N'LessOver3', N'1', N'2026-05-04 19:17:00.4400000', NULL, N'5', N'1903486709602062336', N'2026-05-04 19:17:00.440', N'1903486709602062336', N'2026-05-04 19:17:17.373')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051260041411039232', N'副理 - 大于3天', N'Assistant Manager - More than 3 days', N'1987217256446300160', N'1351592278136717312', N'MoreOver3', N'6', N'1903486709602062336', N'2026-05-04 19:17:59.100', NULL, NULL)
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051260041411039232', N'副理 - 大于3天', N'Assistant Manager - More than 3 days', N'1987217256446300160', N'1351592278136717312', N'MoreOver3', N'1', N'2026-05-04 19:17:59.1000000', NULL, N'6', N'1903486709602062336', N'2026-05-04 19:17:59.100', NULL, NULL)
 GO
 
 

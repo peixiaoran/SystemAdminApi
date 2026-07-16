@@ -4,11 +4,13 @@ using SqlSugar;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
+    /// <summary>
+    /// SqlSugar 注册扩展
+    /// </summary>
     public static class SqlSugarExtensions
     {
         /// <summary>
-        /// 注册 SqlSugarScope 到 IServiceCollection
-        /// 优先使用环境变量，找不到再用 appsettings.json 中的配置。
+        /// 注册 SqlSugarScope 单例（含雪花Id、SQL 超时配置）
         /// </summary>
         public static IServiceCollection SqlSugarScopeSetup(this IServiceCollection services, IConfiguration configuration)
         {

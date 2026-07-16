@@ -4,8 +4,14 @@ using Serilog.Events;
 
 namespace SystemAdmin.Hosting.DependencyInjection
 {
+    /// <summary>
+    /// Serilog 日志注册扩展
+    /// </summary>
     public static class SerilogSetupExtensions
     {
+        /// <summary>
+        /// 注册 Serilog（按日期目录、按级别分文件写入日志）
+        /// </summary>
         public static IHostBuilder AddSerilogSetup(this IHostBuilder host)
         {
             host.UseSerilog((context, services, logger) =>

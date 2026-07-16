@@ -6,8 +6,14 @@ using System.Text.Json.Nodes;
 
 namespace SystemAdmin.Hosting.DependencyInjection
 {
+    /// <summary>
+    /// OpenAPI 文档转换器：添加 JWT Bearer 安全方案和 Accept-Language 公共参数
+    /// </summary>
     public class OpenApiTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
     {
+        /// <summary>
+        /// 转换 OpenAPI 文档
+        /// </summary>
         public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
         {
             var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
@@ -58,11 +64,7 @@ namespace SystemAdmin.Hosting.DependencyInjection
                 Schema = new OpenApiSchema
                 {
                     Type = JsonSchemaType.String,
-
-                    // 默认值
                     Default = "zh-CN",
-
-                    // 枚举：zh-CN、en-US
                     Enum = new List<JsonNode>
                     {
                         JsonValue.Create("zh-CN")!,

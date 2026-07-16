@@ -1,13 +1,14 @@
 using SqlSugar;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Forms
 {
@@ -88,7 +89,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询登录用户已批准的请假单（今年之前结束的不能销假）
+        /// 查询登录用户已批准的请假单
         /// </summary>
         /// <param name="getPage"></param>
         /// <param name="userId"></param>
@@ -133,18 +134,34 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询请假单已绑定的销假单（审批中、已批准）
+        /// 查询请假单已绑定的销假单
         /// </summary>
-        /// <param name="leaveRequestIds"></param>
+        /// <param name="leaveRequestId"></param>
         /// <returns></returns>
-        public async Task<List<LeaveCancellEntity>> GetBoundLeaveCancells(List<long> leaveRequestIds)
+        public async Task<List<LeaveCancellEntity>> GetBoundLeaveCancells(long leaveRequestId)
         {
             return await _db.Queryable<LeaveCancellEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<FormInstanceEntity>((cancell, instance) => cancell.FormId == instance.FormId)
-                            .Where((cancell, instance) => leaveRequestIds.Contains(cancell.LeaveRequestId!.Value)
-                                                       && (instance.FormStatus == FormStatus.UnderReview.ToEnumString()
-                                                        || instance.FormStatus == FormStatus.Approved.ToEnumString()))
+                            .Where((cancell, instance) => cancell.LeaveRequestId == leaveRequestId
+                                                       && instance.FormStatus != FormStatus.Voided.ToEnumString())
+                            .Select((cancell, instance) => cancell)
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 查询申请人名下已绑定请假单的销假单
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<List<LeaveCancellEntity>> GetUserBoundLeaveCancells(long userId)
+        {
+            return await _db.Queryable<LeaveCancellEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<FormInstanceEntity>((cancell, instance) => cancell.FormId == instance.FormId)
+                            .Where((cancell, instance) => instance.ApplicantUserId == userId
+                                                       && cancell.LeaveRequestId != null
+                                                       && instance.FormStatus != FormStatus.Voided.ToEnumString())
                             .Select((cancell, instance) => cancell)
                             .ToListAsync();
         }
@@ -164,7 +181,33 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询请假单实体（用于计算可销除总时数）
+        /// 查询请假单明细
+        /// </summary>
+        /// <param name="leaveRequestId"></param>
+        /// <returns></returns>
+        public async Task<LeaveRequestDetailDto?> GetLeaveRequestDetail(long leaveRequestId)
+        {
+            return await _db.Queryable<FormInstanceEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<LeaveRequestEntity>((form, leave) => form.FormId == leave.FormId)
+                            .InnerJoin<DictionaryInfoEntity>((form, leave, dic) => dic.DicType == "LeaveType" && leave.LeaveType == dic.DicCode)
+                            .Where((form, leave, dic) => form.FormId == leaveRequestId)
+                            .Select((form, leave, dic) => new LeaveRequestDetailDto()
+                            {
+                                LeaveRequestId = form.FormId,
+                                LeaveRequestNo = form.FormNo,
+                                LeaveType = leave.LeaveType,
+                                LeaveTypeName = _lang.Locale == "zh-CN"
+                                                ? dic.DicNameCn
+                                                : dic.DicNameEn,
+                                StartDateTime = leave.StartDateTime,
+                                EndDateTime = leave.EndDateTime,
+                                LeaveHours = leave.LeaveHours,
+                            }).FirstAsync();
+        }
+
+        /// <summary>
+        /// 查询请假单实体
         /// </summary>
         /// <param name="leaveRequestId"></param>
         /// <returns></returns>

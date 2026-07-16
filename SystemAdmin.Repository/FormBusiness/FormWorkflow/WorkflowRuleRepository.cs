@@ -1,7 +1,7 @@
 ﻿using Mapster;
 using SqlSugar;
 using System.Data;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Dto;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
@@ -177,8 +177,12 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                 query = query.Where((rule, position) => rule.PositionId == long.Parse(getPage.PositionId));
             }
 
-            // 排序
-            query = query.OrderBy((rule, position) => rule.SortOrder);
+            // 排序：名称（正序）→ 版本（倒序）→ 排序（正序）
+            query = _lang.Locale == "zh-CN"
+                    ? query.OrderBy((rule, position) => rule.RuleNameCn)
+                    : query.OrderBy((rule, position) => rule.RuleNameEn);
+            query = query.OrderBy((rule, position) => rule.Version, OrderByType.Desc)
+                         .OrderBy((rule, position) => rule.SortOrder);
 
             var page = await query.Select((rule, position) => new WorkflowRuleDto
             {
@@ -191,6 +195,9 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                ? position.PositionNameCn
                                : position.PositionNameEn,
                 Guidance = rule.Guidance,
+                Version = rule.Version,
+                EffectiveStartTime = rule.EffectiveStartTime,
+                EffectiveEndTime = rule.EffectiveEndTime,
                 SortOrder = rule.SortOrder,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<WorkflowRuleDto>.Ok(page, totalCount);

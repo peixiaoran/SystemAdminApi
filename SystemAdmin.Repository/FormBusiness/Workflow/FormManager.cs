@@ -2,7 +2,6 @@
 using SqlSugar;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
-using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormAudit.Entity;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
@@ -71,73 +70,62 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                          .Select(step => (long?)step.StepId)
                                          .FirstAsync();
 
-            string formNo = string.Empty;
+            var sequence = await _db.Queryable<FormSequenceEntity>()
+                                    .Where(sequence => sequence.FormTypeId == formTypeId && sequence.Ym == ym)
+                                    .FirstAsync();
 
-            await _db.Ado.UseTranAsync(async () =>
+            int nextNo;
+
+            if (sequence == null)
             {
-                var lockKey = $"FormNo_{formTypeId}_{ym}";
+                nextNo = 1;
 
-                await _db.Ado.ExecuteCommandAsync(
-                    "EXEC sp_getapplock @Resource = @lockKey, @LockMode = 'Exclusive', @LockOwner = 'Transaction', @LockTimeout = 10000",
-                    new { lockKey });
-
-                var sequence = await _db.Queryable<FormSequenceEntity>()
-                                        .Where(sequence => sequence.FormTypeId == formTypeId && sequence.Ym == ym)
-                                        .FirstAsync();
-
-                int nextNo;
-
-                if (sequence == null)
+                await _db.Insertable(new FormSequenceEntity
                 {
-                    nextNo = 1;
-
-                    await _db.Insertable(new FormSequenceEntity
-                    {
-                        FormTypeId = formTypeId,
-                        Ym = ym,
-                        Total = nextNo,
-                        CreatedBy = _loginuser.UserId,
-                        CreatedDate = now
-                    }).ExecuteCommandAsync();
-                }
-                else
-                {
-                    nextNo = sequence.Total + 1;
-
-                    await _db.Updateable<FormSequenceEntity>()
-                             .SetColumns(s => new FormSequenceEntity
-                             {
-                                 Total = nextNo,
-                                 ModifiedBy = _loginuser.UserId,
-                                 ModifiedDate = now
-                             }).Where(s => s.FormTypeId == formTypeId && s.Ym == ym)
-                             .ExecuteCommandAsync();
-                }
-
-                formNo = $"{prefix}-{ym}{nextNo:D4}";
-
-                await _db.Insertable(new FormInstanceEntity
-                {
-                    FormId = formId,
                     FormTypeId = formTypeId,
-                    FormNo = formNo,
-                    FormStatus = FormStatus.PendingSubmit.ToEnumString(),
-                    ApplicantUserId = _loginuser.UserId,
-                    ApplicantDate = DateOnly.FromDateTime(now),
-                    RuleId = null,
-                    CurrentStepId = startStepId,
+                    Ym = ym,
+                    Total = nextNo,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = now
                 }).ExecuteCommandAsync();
+            }
+            else
+            {
+                nextNo = sequence.Total + 1;
 
-                await _db.Insertable(new PendingReviewEntity
-                {
-                    FormId = formId,
-                    StepId = startStepId,
-                    AppointmentType = AppointmentType.Actual.ToEnumString(),
-                    ReviewUserId = _loginuser.UserId
-                }).ExecuteCommandAsync();
-            });
+                await _db.Updateable<FormSequenceEntity>()
+                         .SetColumns(s => new FormSequenceEntity
+                         {
+                             Total = nextNo,
+                             ModifiedBy = _loginuser.UserId,
+                             ModifiedDate = now
+                         }).Where(s => s.FormTypeId == formTypeId && s.Ym == ym)
+                         .ExecuteCommandAsync();
+            }
+
+            var formNo = $"{prefix}-{ym}{nextNo:D4}";
+
+            await _db.Insertable(new FormInstanceEntity
+            {
+                FormId = formId,
+                FormTypeId = formTypeId,
+                FormNo = formNo,
+                FormStatus = FormStatus.PendingSubmit.ToEnumString(),
+                ApplicantUserId = _loginuser.UserId,
+                ApplicantDate = DateOnly.FromDateTime(now),
+                RuleId = null,
+                CurrentStepId = startStepId,
+                CreatedBy = _loginuser.UserId,
+                CreatedDate = now
+            }).ExecuteCommandAsync();
+
+            await _db.Insertable(new PendingReviewEntity
+            {
+                FormId = formId,
+                StepId = startStepId,
+                AppointmentType = AppointmentType.Actual.ToEnumString(),
+                ReviewUserId = _loginuser.UserId
+            }).ExecuteCommandAsync();
 
             return formId.ToString();
         }
@@ -153,9 +141,21 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                          .Select(user => user.PositionId)
                                          .FirstAsync();
 
+            // 申请日期需在规则生效区间内（EffectiveEndTime 为 null 表示无期限）
+            var applicantDate = await _db.Queryable<FormInstanceEntity>()
+                                         .With(SqlWith.NoLock)
+                                         .Where(instance => instance.FormId == formId)
+                                         .Select(instance => instance.ApplicantDate)
+                                         .FirstAsync();
+
+            var applyDate = applicantDate.ToDateTime(TimeOnly.MinValue);
+            var applyDateEnd = applyDate.AddDays(1);
+
             var ruleList = await _db.Queryable<WorkflowRuleEntity>()
                                     .With(SqlWith.NoLock)
-                                    .Where(rule => rule.FormTypeId == formTypeId)
+                                    .Where(rule => rule.FormTypeId == formTypeId
+                                                && rule.EffectiveStartTime < applyDateEnd
+                                                && (rule.EffectiveEndTime == null || rule.EffectiveEndTime >= applyDate))
                                     .ToListAsync();
 
             // 没有匹配到规则时保持 null

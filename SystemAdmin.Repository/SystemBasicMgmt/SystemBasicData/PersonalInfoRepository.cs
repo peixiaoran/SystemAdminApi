@@ -3,7 +3,7 @@ using SqlSugar;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Dto;

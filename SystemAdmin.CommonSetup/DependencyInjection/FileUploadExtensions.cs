@@ -1,12 +1,18 @@
 ﻿using Microsoft.AspNetCore.Http.Features;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
+    /// <summary>
+    /// 文件上传注册扩展
+    /// </summary>
     public static class FileUploadExtensions
     {
+        /// <summary>
+        /// 注册文件上传配置，并同步表单上传大小限制
+        /// </summary>
         public static IServiceCollection AddFileUploadSetup(this IServiceCollection services, IConfiguration configuration)
         {
             // 绑定配置

@@ -2,7 +2,6 @@
 using SqlSugar;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
-using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Commands;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
@@ -97,10 +96,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             // 1. 查询申请人基础余额
             var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), yearList);
 
-            // 2. 查询申请人审批中的请假单
-            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(long.Parse(formId));
+            // 2. 查询申请人占用余额的请假单（除作废、已批准外都计入；已批准的已直接扣减余额表）
+            var applicantUserId = await _leaveRequest.GetApplicantUserId(long.Parse(formId));
+            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(applicantUserId, long.Parse(formId));
 
-            // 3. 计算审批中请假的占用工时（按年份和假别），逐日累计
+            // 3. 计算占用余额请假的占用工时（按年份和假别），逐日累计
             var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
 
             foreach (var leave in pendingLeaves)
@@ -194,7 +194,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// <summary>
         /// 请假单送审验证
         /// </summary>
-        public async Task<Result<bool>> ValidateLeaveInfo(string formId)
+        public async Task<Result<bool>> ValidateLeaveRequest(string formId)
         {
             // 查询当前表单请假信息
             var currentLeave = await _leaveRequest.GetCurrentLeaveRequest(long.Parse(formId));
@@ -227,10 +227,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             // 查询申请人基础余额
             var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
 
-            // 查询其余审批中的请假单
-            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(long.Parse(formId));
+            // 查询其余占用余额的请假单（除作废、已批准外都计入；已批准的已直接扣减余额表）
+            var applicantUserId = await _leaveRequest.GetApplicantUserId(long.Parse(formId));
+            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(applicantUserId, long.Parse(formId));
 
-            // 2. 校验计算其余审批中请假的占用工时（按年份和假别），逐日累计
+            // 2. 校验计算其余占用余额请假的占用工时（按年份和假别），逐日累计
             var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
 
             foreach (var leave in pendingLeaves)

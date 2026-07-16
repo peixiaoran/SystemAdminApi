@@ -19,6 +19,38 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[销假单] 查询可销请假单")]
+        public async Task<ResultPaged<LeaveRequestDto>> GetLeaveRequestView([FromBody] GetLeaveRequestPage getPage)
+        {
+            return await _leaveCancellService.GetLeaveRequestView(getPage);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[销假单] 销假单送审校验")]
+        public async Task<Result<bool>> ValidateLeaveCancell([FromBody] LeaveCancellSave save)
+        {
+            return await _leaveCancellService.ValidateLeaveCancell(save);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[销假单] 查询剩余可销假时数")]
+        public async Task<Result<decimal>> GetRemainingCancellHours([FromForm] string leaveRequestId, [FromForm] string formId)
+        {
+            return await _leaveCancellService.GetRemainingCancellHours(leaveRequestId, formId);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[销假单] 查询请假单明细")]
+        public async Task<Result<LeaveRequestDetailDto>> GetLeaveRequestDetail([FromForm] string leaveRequestId)
+        {
+            return await _leaveCancellService.GetLeaveRequestDetail(leaveRequestId);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[销假单] 初始化销假单")]
         public async Task<Result<LeaveCancellDto>> InitLeaveCancell([FromForm] string formTypeId)
         {
@@ -41,20 +73,6 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
             return await _leaveCancellService.SaveLeaveCancell(save);
         }
 
-        [HttpPost]
-        [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[销假单] 查询可销请假单")]
-        public async Task<ResultPaged<LeaveRequestDto>> GetLeaveRequestView([FromBody] GetLeaveRequestPage getPage)
-        {
-            return await _leaveCancellService.GetLeaveRequestView(getPage);
-        }
-
-        [HttpPost]
-        [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[销假单] 校验绑定请假单剩余可销除时数是否足够")]
-        public async Task<Result<bool>> CheckCancellHours([FromBody] LeaveCancellSave save)
-        {
-            return await _leaveCancellService.CheckCancellHours(save);
-        }
+       
     }
 }

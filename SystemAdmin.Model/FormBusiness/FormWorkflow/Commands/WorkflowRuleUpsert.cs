@@ -36,6 +36,21 @@
         public string? Guidance { get; set; }
 
         /// <summary>
+        /// 版本号
+        /// </summary>
+        public string Version { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 生效开始时间
+        /// </summary>
+        public DateTime EffectiveStartTime { get; set; }
+
+        /// <summary>
+        /// 生效结束时间（null 表示无期限）
+        /// </summary>
+        public DateTime? EffectiveEndTime { get; set; }
+
+        /// <summary>
         /// 排序
         /// </summary>
         public int SortOrder { get; set; }

@@ -2,11 +2,13 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Minio;
-using SystemAdmin.CommonSetup.Options;
 using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
+    /// <summary>
+    /// Minio 注册扩展
+    /// </summary>
     public static class MinioExtensions
     {
         /// <summary>

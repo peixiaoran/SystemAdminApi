@@ -8,10 +8,13 @@ using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
+    /// <summary>
+    /// JWT 认证注册扩展
+    /// </summary>
     public static class JwtExtensions
     {
         /// <summary>
-        /// JWT 注入：绑定配置、注册 Token 服务与当前用户、配置 JwtBearer（支持 Header + Cookie）
+        /// 注册 JWT 认证：绑定配置、注册 Token 服务与当前用户、配置 JwtBearer（支持 Header + Cookie）
         /// </summary>
         public static IServiceCollection AddJwtSetup(this IServiceCollection services, IConfiguration configuration)
         {
@@ -84,6 +87,9 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// 提取 Token：优先 Authorization Header，其次 Cookie
+        /// </summary>
         private static string? ExtractToken(HttpRequest request, string? cookieName)
         {
             var authHeader = request.Headers.Authorization.ToString();

@@ -1,5 +1,5 @@
 ﻿using SqlSugar;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Entity;
 

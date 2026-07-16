@@ -44,10 +44,10 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[请假单] 请假单送审验证")]
-        public async Task<Result<bool>> ValidateLeaveInfo([FromForm] string formId)
+        [EndpointSummary("[请假单] 请假单送审校验")]
+        public async Task<Result<bool>> ValidateLeaveRequest([FromForm] string formId)
         {
-            return await _leaveRequestService.ValidateLeaveInfo(formId);
+            return await _leaveRequestService.ValidateLeaveRequest(formId);
         }
 
         [HttpPost]

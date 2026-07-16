@@ -8,60 +8,46 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
     /// </summary>
     internal enum ReviewUserFilter
     {
-        /// <summary>
-        /// 按组织架构（申请人上级部门链 + 部门级别 + 职级）
-        /// </summary>
+        /// <summary>按组织架构（上级部门链 + 部门级别 + 职级）</summary>
         Org,
 
-        /// <summary>
-        /// 按指定部门 + 职级
-        /// </summary>
+        /// <summary>按指定部门 + 职级</summary>
         Dept,
 
-        /// <summary>
-        /// 按指定人（自定义解析出的人也走此过滤）
-        /// </summary>
+        /// <summary>按指定人</summary>
         User,
     }
 
     /// <summary>
     /// 审批人查询投影
     /// </summary>
-    /// <param name="WithNames">true = UserReview 完整投影（含姓名、身份名称、排序列）；false = UserAppointment 精简投影</param>
-    /// <param name="WithAgent">是否关联代理人（UserAgent）</param>
-    /// <param name="IsChinese">姓名、字典名称取中文列还是英文列（仅 WithNames 时生效）</param>
+    /// <param name="WithNames">是否输出姓名、身份名称、排序列（完整投影）</param>
+    /// <param name="WithAgent">是否关联代理人</param>
+    /// <param name="IsChinese">姓名/字典名称取中文列还是英文列（仅 WithNames 时生效）</param>
     internal sealed record ReviewUserProjection(bool WithNames, bool WithAgent, bool IsChinese)
     {
-        /// <summary>
-        /// FormReviewFlow 使用：姓名 + 代理 + 身份名称
-        /// </summary>
+        /// <summary>完整投影：姓名 + 代理 + 身份名称</summary>
         internal static ReviewUserProjection Named(bool isChinese) => new(true, true, isChinese);
 
-        /// <summary>
-        /// FormReviewAction 使用：身份 + 代理
-        /// </summary>
+        /// <summary>精简投影：身份 + 代理</summary>
         internal static ReviewUserProjection Appointment { get; } = new(false, true, false);
 
-        /// <summary>
-        /// FormReviewAction 使用：仅实/兼身份（初始化待审批人时不关心代理）
-        /// </summary>
+        /// <summary>精简投影：仅身份，不关联代理</summary>
         internal static ReviewUserProjection AppointmentNoAgent { get; } = new(false, false, false);
     }
 
     /// <summary>
-    /// FormReviewFlow / FormReviewAction 共用的审批人查询 SQL 模板。
-    /// 统一结构：专职 UNION ALL 兼职，可选关联生效中的代理人，外层按审批身份优先级 + 入职时间排序。
+    /// 审批人查询 SQL 模板：专职 UNION ALL 兼职，可选关联生效中的代理人，外层按身份优先级 + 入职时间排序。
     /// </summary>
     internal static class ReviewUserSql
     {
         /// <summary>
-        /// 精确匹配查询（按步骤配置的部门级别/职级/指定人查找）。
-        /// 参数约定：Org → @DeptLevelSort、@PositionSort；Dept → @DepartmentId、@PositionSort；User → @UserId；
-        /// 带代理时另需 @Now 及各身份枚举参数。
+        /// 精确匹配查询（按部门级别/职级/指定人查找）。
+        /// 参数：Org → @DeptLevelSort、@PositionSort；Dept → @DepartmentId、@PositionSort；User → @UserId；带代理时另需 @Now 及身份枚举参数。
         /// </summary>
         internal static string ExactSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string topN, string orderBy)
         {
-            // 精简投影按指定人查询时无需组织架构关联；完整投影始终需要（要输出部门级别/职级排序列）
+            // 按指定人的精简投影无需组织架构关联；完整投影要输出排序列，始终关联
             bool joinOrg = filter != ReviewUserFilter.User || projection.WithNames;
 
             string fullTimeWhere = filter switch
@@ -79,7 +65,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 自动降级查询：在申请人（或目标部门）的上级部门链内按 @CurrentPositionSort / @CurrentDeptLevelSort 查找。
+        /// 自动降级查询：在上级部门链内按 @CurrentPositionSort / @CurrentDeptLevelSort 查找。
         /// </summary>
         internal static string AutoSql(ReviewUserProjection projection, string parentDeptIds, string topN, string orderBy)
         {
@@ -91,7 +77,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 排序：单审时按审批身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代）+ 入职时间，其余仅按入职时间
+        /// 排序：单审按身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代）+ 入职时间，其余仅按入职时间
         /// </summary>
         internal static string BuildOrderBy(bool isSingle, bool isAuto)
         {
@@ -115,7 +101,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 一次性取出所有 AppointmentType 枚举字符串
+        /// 取出所有 AppointmentType 枚举字符串
         /// </summary>
         internal static (string actual, string agent, string concurrent, string concurrentAgent, string autoActual, string autoAgent, string autoConcurrent, string autoConcurrentAgent) AppointmentEnumStrings() =>
         (
@@ -155,20 +141,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             SELECT {topN}
                 {outerColumns}
             FROM (
-
-{fullTimeBranch}
-
+                {fullTimeBranch}
                 UNION ALL
-
-{partTimeBranch}
-
+                {partTimeBranch}
             ) t
             {orderBy}";
         }
 
         private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto)
         {
-            // 专职分支记实/代身份，兼职分支记兼/兼代身份；自动降级时换用 Auto 前缀的身份枚举
+            // 专职记实/代身份，兼职记兼/兼代身份；自动降级换用 Auto 前缀枚举
             string actualParam = partTime
                 ? (isAuto ? "@AutoConcurrent" : "@Concurrent")
                 : (isAuto ? "@AutoActual" : "@Actual");

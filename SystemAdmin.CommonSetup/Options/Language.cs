@@ -1,4 +1,4 @@
-﻿namespace SystemAdmin.CommonSetup.Options
+﻿namespace SystemAdmin.CommonSetup.Security
 {
     /// <summary>
     /// 语言配置类

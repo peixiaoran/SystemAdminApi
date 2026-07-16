@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Http;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.Security
 {
     /// <summary>
-    /// 从 HttpContext 中读取 Accept-Language，并生成 RequestLanguage。
+    /// 请求语言访问器：从请求头 Accept-Language 解析当前语言
     /// </summary>
     public class LanguageAccessor
     {
@@ -15,6 +15,9 @@ namespace SystemAdmin.CommonSetup.Security
             _httpContextAccessor = httpContextAccessor;
         }
 
+        /// <summary>
+        /// 获取当前请求的语言（默认 zh-CN）
+        /// </summary>
         public Language GetRequestLanguage()
         {
             var header = _httpContextAccessor.HttpContext?

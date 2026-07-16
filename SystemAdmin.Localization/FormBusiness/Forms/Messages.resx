@@ -162,6 +162,9 @@
   <data name="CancellHoursExceed" xml:space="preserve">
     <value>本次销假 {0} 小时，超出该请假单剩余可销除 {1} 小时</value>
   </data>
+  <data name="LeaveRequestNotFound" xml:space="preserve">
+    <value>请假单不存在</value>
+  </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>请假单</value>
   </data>

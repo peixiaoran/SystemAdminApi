@@ -1,10 +1,13 @@
 ﻿using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.Security
 {
+    /// <summary>
+    /// Minio 对象存储服务
+    /// </summary>
     public class MinioService
     {
         private readonly IMinioClient _client;
@@ -18,11 +21,14 @@ namespace SystemAdmin.CommonSetup.Security
 
         #region 上传 Upload
 
+        /// <summary>
+        /// 上传文件（按日期归档并生成唯一文件名），返回对象路径
+        /// </summary>
         public async Task<string> UploadFile(string objectName, Stream data, string contentType = "application/octet-stream")
         {
             var bucket = _settings.DefaultBucket;
 
-            var ext = Path.GetExtension(objectName); // .jpg .png .pdf
+            var ext = Path.GetExtension(objectName);
             var timestamp = DateTime.Now.ToString("yyyyMMddHHmmssfff");
             var random = Guid.NewGuid().ToString("N")[..8];
 
@@ -46,7 +52,9 @@ namespace SystemAdmin.CommonSetup.Security
 
         #region 下载 Download
 
-        // 下载为流（推荐 WebAPI 使用）
+        /// <summary>
+        /// 下载文件为内存流
+        /// </summary>
         public async Task<MemoryStream> DownloadFile(string objectName)
         {
             var ms = new MemoryStream();
@@ -63,7 +71,9 @@ namespace SystemAdmin.CommonSetup.Security
             return ms;
         }
 
-        // 下载为字节数组
+        /// <summary>
+        /// 下载文件为字节数组
+        /// </summary>
         public async Task<byte[]> DownloadBytesAsync(string objectName)
         {
             using var ms = new MemoryStream();
@@ -76,7 +86,9 @@ namespace SystemAdmin.CommonSetup.Security
             return ms.ToArray();
         }
 
-        // 下载到本地文件
+        /// <summary>
+        /// 下载文件到本地路径
+        /// </summary>
         public async Task DownloadToFileAsync(string objectName, string localFilePath)
         {
             await _client.GetObjectAsync(new GetObjectArgs()
@@ -89,6 +101,9 @@ namespace SystemAdmin.CommonSetup.Security
 
         #region 删除 Delete
 
+        /// <summary>
+        /// 删除文件
+        /// </summary>
         public async Task DeleteFile(string objectName)
         {
             await _client.RemoveObjectAsync(new RemoveObjectArgs()
@@ -96,7 +111,9 @@ namespace SystemAdmin.CommonSetup.Security
                          .WithObject(objectName));
         }
 
-        // 批量删除
+        /// <summary>
+        /// 批量删除文件
+        /// </summary>
         public async Task DeleteManyFile(IEnumerable<string> objectNames)
         {
             foreach (var name in objectNames)

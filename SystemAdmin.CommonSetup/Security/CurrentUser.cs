@@ -10,7 +10,14 @@ namespace SystemAdmin.CommonSetup.Security
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
 
+        /// <summary>
+        /// 用户Id 的 Claim 类型
+        /// </summary>
         public const string ClaimUserId = "uid";
+
+        /// <summary>
+        /// 用户工号的 Claim 类型
+        /// </summary>
         public const string ClaimUserNo = "uno";
 
         public CurrentUser(IHttpContextAccessor httpContextAccessor)
@@ -20,12 +27,24 @@ namespace SystemAdmin.CommonSetup.Security
 
         private ClaimsPrincipal? Principal => _httpContextAccessor.HttpContext?.User;
 
+        /// <summary>
+        /// 是否已登录
+        /// </summary>
         public bool IsAuthenticated => Principal?.Identity?.IsAuthenticated ?? false;
 
+        /// <summary>
+        /// 登录用户Id
+        /// </summary>
         public long UserId => GetLongClaim(ClaimUserId);
 
+        /// <summary>
+        /// 登录用户工号
+        /// </summary>
         public string UserNo => GetStringClaim(ClaimUserNo);
 
+        /// <summary>
+        /// 当前请求的 ClaimsPrincipal
+        /// </summary>
         public ClaimsPrincipal? ClaimsPrincipal => Principal;
 
         private string GetStringClaim(string claimType)

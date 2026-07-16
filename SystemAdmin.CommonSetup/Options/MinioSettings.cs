@@ -1,4 +1,4 @@
-﻿namespace SystemAdmin.CommonSetup.Options
+namespace SystemAdmin.CommonSetup.Security
 {
     /// <summary>
     /// Minio 配置选项
@@ -15,18 +15,18 @@
         /// </summary>
         public string AccessKey { get; set; } = string.Empty;
 
-        /// <summary> 
-        /// 访问密钥 SecretKey 
+        /// <summary>
+        /// 访问密钥 SecretKey
         /// </summary>
         public string SecretKey { get; set; } = string.Empty;
 
-        /// <summary> 
-        /// 默认 Bucket 名称 
+        /// <summary>
+        /// 默认 Bucket 名称
         /// </summary>
         public string DefaultBucket { get; set; } = "systemadmin";
 
-        /// <summary> 
-        /// 是否使用 SSL（https） 
+        /// <summary>
+        /// 是否使用 SSL（https）
         /// </summary>
         public bool UseSSL { get; set; } = false;
     }

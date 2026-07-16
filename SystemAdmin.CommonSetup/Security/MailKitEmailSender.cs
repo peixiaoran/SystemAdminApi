@@ -3,10 +3,13 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.Security
 {
+    /// <summary>
+    /// MailKit 邮件发送服务
+    /// </summary>
     public class MailKitEmailSender
     {
         private readonly EmailOptions _options;
@@ -18,6 +21,9 @@ namespace SystemAdmin.CommonSetup.Security
             _logger = logger;
         }
 
+        /// <summary>
+        /// 发送邮件
+        /// </summary>
         public async Task SendAsync( EmailMessage message, CancellationToken cancellationToken = default)
         {
             var mimeMessage = BuildMimeMessage(message);
@@ -42,6 +48,9 @@ namespace SystemAdmin.CommonSetup.Security
             await client.DisconnectAsync(true, cancellationToken);
         }
 
+        /// <summary>
+        /// 构建 MimeMessage 邮件对象
+        /// </summary>
         private MimeMessage BuildMimeMessage(EmailMessage message)
         {
             var mimeMessage = new MimeMessage();

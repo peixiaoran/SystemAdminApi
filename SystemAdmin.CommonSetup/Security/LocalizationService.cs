@@ -8,11 +8,7 @@ using SystemAdmin.Localization.SystemBasicMgmt.SystemAuth; // 用作定位 Local
 namespace SystemAdmin.CommonSetup.Security
 {
     /// <summary>
-    /// 多语言消息服务：
-    /// - 通过请求头 Accept-Language 获取语言
-    /// - 支持 fullKey：{ModulePath}.{ResxKey}
-    ///   例：SystemBasicMgmt.SystemAuth.LoginSuccess
-    /// - 自动定位：SystemAdmin.Localization.{ModulePath}.Messages(.resx)
+    /// 多语言消息服务：按 fullKey（{ModulePath}.{ResxKey}）定位资源文件并返回对应语言的文案
     /// </summary>
     public class LocalizationService
     {
@@ -81,7 +77,7 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
-        /// 获取多语言文案
+        /// 获取多语言文案（显式指定语言）
         /// </summary>
         /// <param name="fullKey"></param>
         /// <param name="language"></param>
@@ -149,10 +145,7 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
-        /// fullKey -> (modulePath, resxKey)
-        /// 例：SystemBasicMgmt.SystemAuth.LoginSuccess
-        /// modulePath = SystemBasicMgmt.SystemAuth
-        /// resxKey    = LoginSuccess
+        /// 将 fullKey 拆分为模块路径和资源键
         /// </summary>
         private static (string modulePath, string resxKey) ResolveModuleAndResxKey(string fullKey)
         {
@@ -169,9 +162,7 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
-        /// 根据 modulePath 获取 ResourceManager
-        /// modulePath: SystemBasicMgmt.SystemAuth
-        /// baseName : SystemAdmin.Localization.SystemBasicMgmt.SystemAuth.Messages
+        /// 根据模块路径获取对应的 ResourceManager（带缓存）
         /// </summary>
         private static ResourceManager? GetResourceManager(string modulePath)
         {

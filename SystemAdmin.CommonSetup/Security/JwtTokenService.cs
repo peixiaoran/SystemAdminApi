@@ -52,12 +52,11 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
-        ///  登录成功时调用：生成 Token 并写入 HttpOnly Cookie。
+        /// 登录成功时调用：生成 Token 并写入 HttpOnly Cookie
         /// </summary>
         /// <param name="response"></param>
         /// <param name="userId"></param>
         /// <param name="userNo"></param>
-        /// <exception cref="ArgumentNullException"></exception>
         public void SetAuthCookie(HttpResponse response, long userId, string userNo)
         {
             if (response == null) throw new ArgumentNullException(nameof(response));
@@ -73,8 +72,8 @@ namespace SystemAdmin.CommonSetup.Security
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = true,
-                Secure = _settings.CookieSecure,           // 建议生产环境 true
-                SameSite = _settings.CookieSameSite,      // 可以在 JwtSettings 里配置，默认 Lax
+                Secure = _settings.CookieSecure,
+                SameSite = _settings.CookieSameSite,
                 Expires = expires
             };
 
@@ -82,7 +81,7 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
-        /// 需要时仍然可以拿到 Token 字符串（比如给第三方系统用）。
+        /// 生成 Token 字符串（供第三方系统等场景使用）
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="userNo"></param>
@@ -112,7 +111,7 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
-        /// 具体生成 Token 的内部实现。
+        /// 生成 Token 的内部实现
         /// </summary>
         private string GenerateTokenInternal(long userId, string userNo)
         {

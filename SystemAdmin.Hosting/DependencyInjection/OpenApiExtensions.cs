@@ -3,15 +3,16 @@ using Microsoft.OpenApi;
 
 namespace SystemAdmin.Hosting.DependencyInjection
 {
+    /// <summary>
+    /// OpenAPI 注册扩展
+    /// </summary>
     public static class OpenApiExtensions
     {
         /// <summary>
-        /// 注册自定义 OpenAPI 配置（基于 Microsoft.AspNetCore.OpenApi v10）。
+        /// 注册自定义 OpenAPI 配置
         /// </summary>
-        /// <param name="services">DI 容器。</param>
-        /// <param name="documentName">
-        /// OpenAPI 文档名称（对应 /openapi/{documentName}.json），默认 v1。
-        /// </param>
+        /// <param name="services"></param>
+        /// <param name="documentName">文档名称（对应 /openapi/{documentName}.json）</param>
         public static IServiceCollection AddCustomOpenApiAction(this IServiceCollection services, string documentName = "v1")
         {
             ArgumentNullException.ThrowIfNull(services);
@@ -36,13 +37,13 @@ namespace SystemAdmin.Hosting.DependencyInjection
         }
 
         /// <summary>
-        /// OpenAPI 文档元信息配置。
+        /// 配置 OpenAPI 文档元信息
         /// </summary>
         private static void ConfigureDocumentInfo(OpenApiDocument document, string documentName)
         {
             document.Info ??= new OpenApiInfo();
             document.Info.Title = "SystemAdmin";
-            document.Info.Version = documentName; // 与文档名一致，更直观
+            document.Info.Version = documentName;
             document.Info.Description = "SystemAdmin API Documentation";
         }
     }

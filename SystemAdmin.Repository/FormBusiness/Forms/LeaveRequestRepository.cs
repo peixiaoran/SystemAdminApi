@@ -1,7 +1,7 @@
 ﻿using SqlSugar;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Queries;
@@ -140,16 +140,33 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询审批中的请假单
+        /// 查询表单申请人Id
         /// </summary>
-        public async Task<List<LeaveRequestEntity>> GetApplicantPendingLeaves(long formId)
+        public async Task<long> GetApplicantUserId(long formId)
+        {
+            return await _db.Queryable<FormInstanceEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(instance => instance.FormId == formId)
+                            .Select(instance => instance.ApplicantUserId)
+                            .FirstAsync();
+        }
+
+        /// <summary>
+        /// 查询申请人名下占用假期余额的请假单（排除指定表单）
+        /// </summary>
+        public async Task<List<LeaveRequestEntity>> GetApplicantPendingLeaves(long applicantUserId, long formId)
         {
             var list = await _db.Queryable<LeaveRequestEntity>()
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
-                                .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
-                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId && instance.FormId != formId && instance.FormStatus == FormStatus.UnderReview.ToEnumString())
-                                .Select((leave, instance, applicant) => leave)
+                                .Where((leave, instance) => instance.ApplicantUserId == applicantUserId
+                                                         && instance.FormId != formId
+                                                         && instance.FormStatus != FormStatus.Voided.ToEnumString()
+                                                         && instance.FormStatus != FormStatus.Approved.ToEnumString()
+                                                         && leave.StartDateTime != null
+                                                         && leave.EndDateTime != null
+                                                         && leave.LeaveType != null)
+                                .Select((leave, instance) => leave)
                                 .ToListAsync();
             return list;
         }

@@ -1,7 +1,7 @@
 ﻿using SqlSugar;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
@@ -300,84 +300,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 }).ToList();
                 return await _db.Insertable(records).ExecuteCommandAsync();
             }
-        }
-
-        /// <summary>
-        /// 匹配工作流规则
-        /// </summary>
-        public async Task<long> MatchWorkflowRule(long formId, long loginUserId)
-        {
-            var formTypeId = await _db.Queryable<FormInstanceEntity>()
-                                      .With(SqlWith.NoLock)
-                                      .Where(instance => instance.FormId == formId)
-                                      .Select(instance => instance.FormTypeId)
-                                      .FirstAsync();
-
-            var appPositionId = await _db.Queryable<UserInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .Where(user => user.UserId == loginUserId)
-                                         .Select(user => user.PositionId)
-                                         .FirstAsync();
-
-            var ruleList = await _db.Queryable<WorkflowRuleEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(rule => rule.FormTypeId == formTypeId)
-                                    .ToListAsync();
-
-            long ruleId = 0;
-
-            foreach (var rule in ruleList)
-            {
-                string? guidance = rule.Guidance;
-
-                bool hasGuidance = !string.IsNullOrWhiteSpace(guidance);
-                bool positionMatch = rule.PositionId == appPositionId;
-                bool isDefaultRule = rule.PositionId == null && !hasGuidance;
-
-                // 默认规则：职位和条件都不限制
-                if (isDefaultRule)
-                {
-                    if (ruleId == 0)
-                    {
-                        ruleId = rule.RuleId;
-                    }
-
-                    continue;
-                }
-
-                // 非默认规则：Guidance 为空就跳过
-                if (!hasGuidance)
-                {
-                    continue;
-                }
-
-                bool guidanceMatch = await _workflowRuleConditions.Resolve(guidance!, formId);
-
-                // 优先级1：职位匹配，并且条件匹配
-                if (positionMatch && guidanceMatch)
-                {
-                    ruleId = rule.RuleId;
-                    break;
-                }
-
-                // 优先级2：职位不限制，只判断条件
-                if (ruleId == 0 && rule.PositionId == null && guidanceMatch)
-                {
-                    ruleId = rule.RuleId;
-                }
-            }
-
-            await _db.Updateable<FormInstanceEntity>()
-                     .SetColumns(instance => new FormInstanceEntity
-                     {
-                         FormStatus = FormStatus.PendingSubmit.ToEnumString(),
-                         RuleId = ruleId,
-                         ModifiedBy = loginUserId,
-                         ModifiedDate = DateTime.Now,
-                     }).Where(instance => instance.FormId == formId)
-                     .ExecuteCommandAsync();
-
-            return ruleId;
         }
 
         /// <summary>

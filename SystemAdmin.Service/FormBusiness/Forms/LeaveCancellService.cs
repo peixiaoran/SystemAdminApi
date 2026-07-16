@@ -167,10 +167,8 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 // 查询登录用户已批准的请假单
                 var leaveList = await _leaveCancell.GetUserApprovedLeaveRequests(getPage, _loginuser.UserId, yearStart);
 
-                // 查询这些请假单已绑定的销假单（审批中、已批准）
-                var boundCancells = leaveList.Count > 0
-                    ? await _leaveCancell.GetBoundLeaveCancells(leaveList.Select(leave => leave.LeaveRequestId).ToList())
-                    : new List<LeaveCancellEntity>();
+                // 查询登录用户名下已绑定的销假单（除作废外都计入）
+                var boundCancells = await _leaveCancell.GetUserBoundLeaveCancells(_loginuser.UserId);
 
                 var cancellableList = new List<LeaveRequestDto>();
                 foreach (var leave in leaveList)
@@ -184,7 +182,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     // 计算请假单可消除的总时数（午休 12:00-13:00 不计入，去年及更早的部分不能消除）
                     decimal totalHours = CalcWorkingHours(leaveStart, leaveEnd);
 
-                    // 扣除已绑定销假单占用的时数
+                    // 扣除该请假单已绑定销假单占用的时数
                     var occupiedHours = boundCancells
                         .Where(cancell => cancell.LeaveRequestId == leave.LeaveRequestId)
                         .Sum(cancell => cancell.CancellHours ?? 0);
@@ -215,12 +213,71 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 校验绑定请假单的剩余可销除时数是否足够
-        /// （统计该请假单已被审批中、审批完成的销假单占用的时数，扣除后与本次销假时数比较）
+        /// 查询请假单明细（含假别名称）
+        /// </summary>
+        /// <param name="leaveRequestId"></param>
+        /// <returns></returns>
+        public async Task<Result<LeaveRequestDetailDto>> GetLeaveRequestDetail(string leaveRequestId)
+        {
+            try
+            {
+                var detail = await _leaveCancell.GetLeaveRequestDetail(long.Parse(leaveRequestId));
+                if (detail == null)
+                {
+                    return Result<LeaveRequestDetailDto>.Failure(400, _localization.ReturnMsg($"{_form}LeaveRequestNotFound"));
+                }
+                return Result<LeaveRequestDetailDto>.Ok(detail);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<LeaveRequestDetailDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查询请假单的剩余可销假时数
+        /// </summary>
+        /// <param name="leaveRequestId"></param>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<Result<decimal>> GetRemainingCancellHours(string leaveRequestId, string formId)
+        {
+            try
+            {
+                var requestId = long.Parse(leaveRequestId);
+                var cancellFormId = long.Parse(formId);
+
+                // 请假单可销除的总时数（午休 12:00-13:00 不计入，去年及更早的部分不能消除）
+                var leave = await _leaveCancell.GetLeaveRequest(requestId);
+                if (leave == null || leave.StartDateTime == null || leave.EndDateTime == null)
+                {
+                    return Result<decimal>.Failure(400, _localization.ReturnMsg($"{_form}LeaveRequestNotFound"));
+                }
+                var totalHours = CalcWorkingHours((DateTime)leave.StartDateTime, (DateTime)leave.EndDateTime);
+
+                // 已被除作废外的销假单占用的时数（排除本单自身）
+                var boundCancells = await _leaveCancell.GetBoundLeaveCancells(requestId);
+                var occupiedHours = boundCancells
+                    .Where(cancell => cancell.FormId != cancellFormId)
+                    .Sum(cancell => cancell.CancellHours ?? 0);
+
+                var remainingHours = Math.Round(totalHours - occupiedHours, 2);
+                return Result<decimal>.Ok(remainingHours);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<decimal>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 销假单送审校验
         /// </summary>
         /// <param name="save"></param>
         /// <returns></returns>
-        public async Task<Result<bool>> CheckCancellHours(LeaveCancellSave save)
+        public async Task<Result<bool>> ValidateLeaveCancell(LeaveCancellSave save)
         {
             try
             {
@@ -231,8 +288,8 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var leave = await _leaveCancell.GetLeaveRequest(leaveRequestId);
                 var totalHours = CalcWorkingHours((DateTime)leave!.StartDateTime!, (DateTime)leave!.EndDateTime!);
 
-                // 已被审批中、审批完成的销假单占用的时数（排除本单自身）
-                var boundCancells = await _leaveCancell.GetBoundLeaveCancells(new List<long> { leaveRequestId });
+                // 已被除作废外的销假单占用的时数
+                var boundCancells = await _leaveCancell.GetBoundLeaveCancells(leaveRequestId);
                 var occupiedHours = boundCancells
                     .Where(cancell => cancell.FormId != formId)
                     .Sum(cancell => cancell.CancellHours ?? 0);
@@ -243,11 +300,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 if (cancellHours > remainingHours)
                 {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg(
-                        $"{_form}CancellHoursExceed",
+                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_form}CancellHoursExceed", args: new object[]
+                    {
                         cancellHours.ToString("0.##"),
                         remainingHours.ToString("0.##")
-                    ));
+                    }));
                 }
 
                 return Result<bool>.Ok(true);
@@ -260,7 +317,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 计算指定时间段的工作时数（午休 12:00-13:00 不计入，去年及更早的部分不计），返回未四舍五入的原始值
+        /// 计算指定时间段的工作时数
         /// </summary>
         /// <param name="start">开始时间</param>
         /// <param name="end">结束时间</param>

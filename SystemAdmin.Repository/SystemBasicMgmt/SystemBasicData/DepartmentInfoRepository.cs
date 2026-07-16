@@ -1,6 +1,6 @@
 ﻿using Mapster;
 using SqlSugar;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries;

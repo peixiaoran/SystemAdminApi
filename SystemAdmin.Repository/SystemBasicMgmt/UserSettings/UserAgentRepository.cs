@@ -5,7 +5,7 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Queries;
-using SystemAdmin.CommonSetup.Options;
+using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
 {

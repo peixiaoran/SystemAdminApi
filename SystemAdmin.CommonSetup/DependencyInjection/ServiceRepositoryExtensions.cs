@@ -4,8 +4,14 @@ using System.Runtime.CompilerServices;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
+    /// <summary>
+    /// Service / Repository 批量注册扩展
+    /// </summary>
     public static class ServiceRepositoryExtensions
     {
+        /// <summary>
+        /// 批量注册 Service、Repository 程序集中的公共类（Scoped）
+        /// </summary>
         public static IServiceCollection AddProjectClasses(this IServiceCollection services)
         {
             RegisterAllClasses(services, "SystemAdmin.Service");
@@ -14,6 +20,9 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
             return services;
         }
 
+        /// <summary>
+        /// 注册指定程序集中的所有公共类
+        /// </summary>
         private static void RegisterAllClasses(IServiceCollection services, string assemblyName)
         {
             var assembly = Assembly.Load(assemblyName);

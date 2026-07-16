@@ -162,6 +162,9 @@
   <data name="CancellHoursExceed" xml:space="preserve">
     <value>This cancellation of {0} hour(s) exceeds the remaining {1} cancellable hour(s) of the leave request</value>
   </data>
+  <data name="LeaveRequestNotFound" xml:space="preserve">
+    <value>The leave request does not exist</value>
+  </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>Leave Request Form</value>
   </data>

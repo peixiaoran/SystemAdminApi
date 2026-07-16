@@ -1,5 +1,8 @@
-﻿namespace SystemAdmin.CommonSetup.Options
+namespace SystemAdmin.CommonSetup.Security
 {
+    /// <summary>
+    /// 应用地址配置选项
+    /// </summary>
     public class AppUrlOptions
     {
         /// <summary>
