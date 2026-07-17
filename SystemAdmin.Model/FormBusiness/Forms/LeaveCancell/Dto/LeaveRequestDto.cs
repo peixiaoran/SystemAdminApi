@@ -25,6 +25,11 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto
         public string? LeaveType { get; set; }
 
         /// <summary>
+        /// 假别名称
+        /// </summary>
+        public string? LeaveTypeName { get; set; }
+
+        /// <summary>
         /// 开始时间
         /// </summary>
         public DateTime? StartDateTime { get; set; }

@@ -100,32 +100,36 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
             var query = _db.Queryable<FormInstanceEntity>()
                            .With(SqlWith.NoLock)
                            .InnerJoin<LeaveRequestEntity>((form, leave) => form.FormId == leave.FormId)
-                           .Where((form, leave) => form.ApplicantUserId == userId
-                                                && form.FormStatus == FormStatus.Approved.ToEnumString()
-                                                && leave.EndDateTime >= yearStart);
+                           .InnerJoin<DictionaryInfoEntity>((form, leave, dic) => dic.DicType == "LeaveType" && leave.LeaveType == dic.DicCode)
+                           .Where((form, leave, dic) => form.ApplicantUserId == userId
+                                                     && form.FormStatus == FormStatus.Approved.ToEnumString()
+                                                     && leave.EndDateTime >= yearStart);
 
             // 请假单号
             if (!string.IsNullOrEmpty(getPage.LeaveRequestNo))
             {
-                query = query.Where((form, leave) => form.FormNo.Contains(getPage.LeaveRequestNo));
+                query = query.Where((form, leave, dic) => form.FormNo.Contains(getPage.LeaveRequestNo));
             }
             // 开始时间
             if (getPage.StartDate != default)
             {
-                query = query.Where((form, leave) => leave.StartDateTime >= getPage.StartDate);
+                query = query.Where((form, leave, dic) => leave.StartDateTime >= getPage.StartDate);
             }
             // 结束时间
             if (getPage.EndDate != default)
             {
-                query = query.Where((form, leave) => leave.EndDateTime <= getPage.EndDate);
+                query = query.Where((form, leave, dic) => leave.EndDateTime <= getPage.EndDate);
             }
 
-            return await query.OrderByDescending((form, leave) => leave.StartDateTime)
-                              .Select((form, leave) => new LeaveRequestDto()
+            return await query.OrderByDescending((form, leave, dic) => leave.StartDateTime)
+                              .Select((form, leave, dic) => new LeaveRequestDto()
                               {
                                   LeaveRequestId = form.FormId,
                                   LeaveRequestNo = form.FormNo,
                                   LeaveType = leave.LeaveType,
+                                  LeaveTypeName = _lang.Locale == "zh-CN"
+                                                  ? dic.DicNameCn
+                                                  : dic.DicNameEn,
                                   StartDateTime = leave.StartDateTime,
                                   EndDateTime = leave.EndDateTime,
                                   LeaveHours = leave.LeaveHours,
