@@ -141,21 +141,18 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                          .Select(user => user.PositionId)
                                          .FirstAsync();
 
-            // 申请日期需在规则生效区间内（EffectiveEndTime 为 null 表示无期限）
+            // 申请日期需在规则生效区间内（EffectiveEndDate 为 null 表示无期限）
             var applicantDate = await _db.Queryable<FormInstanceEntity>()
                                          .With(SqlWith.NoLock)
                                          .Where(instance => instance.FormId == formId)
                                          .Select(instance => instance.ApplicantDate)
                                          .FirstAsync();
 
-            var applyDate = applicantDate.ToDateTime(TimeOnly.MinValue);
-            var applyDateEnd = applyDate.AddDays(1);
-
             var ruleList = await _db.Queryable<WorkflowRuleEntity>()
                                     .With(SqlWith.NoLock)
                                     .Where(rule => rule.FormTypeId == formTypeId
-                                                && rule.EffectiveStartTime < applyDateEnd
-                                                && (rule.EffectiveEndTime == null || rule.EffectiveEndTime >= applyDate))
+                                                && rule.EffectiveStartDate <= applicantDate
+                                                && (rule.EffectiveEndDate == null || rule.EffectiveEndDate >= applicantDate))
                                     .ToListAsync();
 
             // 没有匹配到规则时保持 null

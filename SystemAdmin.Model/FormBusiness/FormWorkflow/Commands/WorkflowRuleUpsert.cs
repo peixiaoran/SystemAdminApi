@@ -41,14 +41,14 @@
         public string Version { get; set; } = string.Empty;
 
         /// <summary>
-        /// 生效开始时间
+        /// 生效开始日期
         /// </summary>
-        public DateTime EffectiveStartTime { get; set; }
+        public DateOnly EffectiveStartDate { get; set; }
 
         /// <summary>
-        /// 生效结束时间（null 表示无期限）
+        /// 生效结束日期（null 表示无期限）
         /// </summary>
-        public DateTime? EffectiveEndTime { get; set; }
+        public DateOnly? EffectiveEndDate { get; set; }
 
         /// <summary>
         /// 排序

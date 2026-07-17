@@ -22,7 +22,7 @@ builder.Services.SqlSugarScopeSetup(builder.Configuration); // SqlSugar
 builder.Services.AddProjectClasses();                       // 业务服务与仓储
 builder.Services.AddCache();                                // HybridCache
 builder.Services.AddForwardedHeadersSetup();                // Nginx 转发请求头
-builder.Services.Configure<ScalarOptions>(builder.Configuration.GetSection("Scalar")); // Scalar 界面
+builder.Services.AddScalarSetup(builder.Configuration);     // Scalar 界面
 
 // 配置 Kestrel
 builder.WebHost.ConfigureKestrel((context, options) =>

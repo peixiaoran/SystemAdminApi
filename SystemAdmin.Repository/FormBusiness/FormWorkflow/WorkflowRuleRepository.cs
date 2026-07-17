@@ -196,8 +196,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                : position.PositionNameEn,
                 Guidance = rule.Guidance,
                 Version = rule.Version,
-                EffectiveStartTime = rule.EffectiveStartTime,
-                EffectiveEndTime = rule.EffectiveEndTime,
+                EffectiveStartDate = rule.EffectiveStartDate,
+                EffectiveEndDate = rule.EffectiveEndDate,
                 SortOrder = rule.SortOrder,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<WorkflowRuleDto>.Ok(page, totalCount);
