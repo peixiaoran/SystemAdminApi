@@ -72,7 +72,5 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         {
             return await _leaveCancellService.SaveLeaveCancell(save);
         }
-
-       
     }
 }

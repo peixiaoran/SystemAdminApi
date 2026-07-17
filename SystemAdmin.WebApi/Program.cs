@@ -1,68 +1,51 @@
-﻿using Scalar.AspNetCore;
+using Scalar.AspNetCore;
 using SystemAdmin.CommonSetup.DependencyInjection;
 using SystemAdmin.Hosting.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 注入 Serilog
-builder.Host.AddSerilogSetup();
-
-// 添加控制器
-builder.Services.AddControllers();
-
-// 注入 HttpContextAccessor
-builder.Services.AddHttpContextAccessor();
-
-// 注入 Cors
-builder.Services.AddCorsSetup(builder.Configuration);
-
-// 注入 OpenApi
-builder.Services.AddOpenApi();
-
-// 注入 OpenApi规范
-builder.Services.AddCustomOpenApiAction();
-
-// 注入 Jwt
-builder.Services.AddJwtSetup(builder.Configuration);
-
-// 注入 Minio
-builder.Services.AddMinioSetup(builder.Configuration);
-
-// 注入 文件上传设置
-builder.Services.AddFileUploadSetup(builder.Configuration);
-
-// 注入 前端相关配置
-builder.Services.AddAppUrlSetup(builder.Configuration);
-
-// 注入 MailKit
-builder.Services.AddMailKitSetup(builder.Configuration);
-
-// 注入 获取语言服务
-builder.Services.AddLocalizationSetup();
-
-// 注入 全局语言中间件
-builder.Services.AddLanguage();
-
-// 注入 SqlSugar
-builder.Services.SqlSugarScopeSetup(builder.Configuration);
-
-// 注入 业务服务和仓储
-builder.Services.AddProjectClasses();
-
-// 注入 AddHybridCache缓存服务
-builder.Services.AddCache();
+// 主机及基础服务
+builder.Host.AddSerilogSetup();                             // 日志
+builder.Services.AddControllers();                          // 控制器
+builder.Services.AddHttpContextAccessor();                  // HttpContext 访问器
+builder.Services.AddCorsSetup(builder.Configuration);       // 跨域
+builder.Services.AddOpenApi();                              // OpenAPI
+builder.Services.AddCustomOpenApiAction();                  // 自定义 OpenAPI 规范
+builder.Services.AddJwtSetup(builder.Configuration);        // JWT 认证
+builder.Services.AddMinioSetup(builder.Configuration);      // MinIO 对象存储
+builder.Services.AddFileUploadSetup(builder.Configuration); // 文件上传
+builder.Services.AddAppUrlSetup(builder.Configuration);     // 前端地址
+builder.Services.AddMailKitSetup(builder.Configuration);    // 邮件
+builder.Services.AddLocalizationSetup();                    // 本地化
+builder.Services.AddLanguage();                             // 全局语言中间件
+builder.Services.SqlSugarScopeSetup(builder.Configuration); // SqlSugar
+builder.Services.AddProjectClasses();                       // 业务服务与仓储
+builder.Services.AddCache();                                // HybridCache
+builder.Services.AddForwardedHeadersSetup();                // Nginx 转发请求头
 
 // 配置 Kestrel
 builder.WebHost.ConfigureKestrel((context, options) =>
 {
-    context.Configuration.GetSection("Kestrel").Bind(options);
+    context.Configuration
+        .GetSection("Kestrel")
+        .Bind(options);
 });
 
 var app = builder.Build();
 
+// HTTP 请求管道，还原 Scheme / Host，必须放在最前面
+app.UseForwardedHeaders();
+
 app.MapScalarApiReference("/systemadmin");
 app.MapOpenApi();
-app.UseHttpsRedirection();
+
+/*
+ * Nginx 已经负责公网 HTTPS。
+ * 正确配置 UseForwardedHeaders 后，可以保留。
+ * 如果服务器上仍出现循环重定向，可以先注释掉，
+ * 因为 Kestrel 只允许本机访问，外部无法绕过 Nginx。
+ */
+// app.UseHttpsRedirection();
 
 app.UseRouting();
 app.UseCorsSetup(builder.Configuration);

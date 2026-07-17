@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using SqlSugar;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
@@ -11,12 +12,14 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly CurrentUser _loginuser;
         private readonly ILogger<VoidedFormService> _logger;
         private readonly VoidedFormRepository _voidedFormRepo;
+        private readonly SqlSugarScope _db;
 
-        public VoidedFormService(CurrentUser loginuser, ILogger<VoidedFormService> logger, VoidedFormRepository voidedFormRepo)
+        public VoidedFormService(CurrentUser loginuser, ILogger<VoidedFormService> logger, VoidedFormRepository voidedFormRepo, SqlSugarScope db)
         {
             _loginuser = loginuser;
             _logger = logger;
             _voidedFormRepo = voidedFormRepo;
+            _db = db;
         }
 
         /// <summary>
@@ -87,6 +90,28 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             {
                 _logger.LogError(ex, ex.Message);
                 return ResultPaged<VoidedFormDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 删除表单
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<Result<bool>> DeleteForm(string formId)
+        {
+            try
+            {
+                await _db.BeginTranAsync();
+                await _voidedFormRepo.DeleteForm(long.Parse(formId));
+                await _db.CommitTranAsync();
+                return Result<bool>.Ok(true);
+            }
+            catch (Exception ex)
+            {
+                await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<bool>.Failure(500, ex.Message);
             }
         }
     }

@@ -49,5 +49,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         {
             return await _voidedFormService.GetVoidedFormsPage(getpage);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单作业模块")]
+        [EndpointSummary("[作废表单列表] 删除表单")]
+        public async Task<Result<bool>> DeleteForm([FromForm] string formId)
+        {
+            return await _voidedFormService.DeleteForm(formId);
+        }
     }
 }

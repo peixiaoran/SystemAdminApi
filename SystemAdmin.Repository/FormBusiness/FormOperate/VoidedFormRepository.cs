@@ -9,6 +9,8 @@ using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
@@ -132,6 +134,33 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<VoidedFormDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 删除表单（基础表 + 表单前缀对应的业务表）
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteForm(long formId)
+        {
+            // 先取前缀，FormInstance 删除后就查不到了
+            var prefix = await _db.Queryable<FormInstanceEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                                  .Where((instance, formtype) => instance.FormId == formId)
+                                  .Select((instance, formtype) => formtype.Prefix)
+                                  .FirstAsync();
+
+            await _db.Deleteable<FormInstanceEntity>().Where(instance => instance.FormId == formId).ExecuteCommandAsync();
+            await _db.Deleteable<PendingReviewEntity>().Where(pending => pending.FormId == formId).ExecuteCommandAsync();
+            await _db.Deleteable<FormReviewRecordEntity>().Where(record => record.FormId == formId).ExecuteCommandAsync();
+
+            return prefix switch
+            {
+                "LCF" => await _db.Deleteable<LeaveCancellEntity>().Where(cancell => cancell.FormId == formId).ExecuteCommandAsync(),
+                "LVR" => await _db.Deleteable<LeaveRequestEntity>().Where(leave => leave.FormId == formId).ExecuteCommandAsync(),
+                _ => 0,
+            };
         }
     }
 }
