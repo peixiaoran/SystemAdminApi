@@ -11,7 +11,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity
         /// <summary>
         /// 登录账号Id
         /// </summary>
-        public long UserId { get; set; }
+        public long? UserId { get; set; }
 
         /// <summary>
         /// 来源IP

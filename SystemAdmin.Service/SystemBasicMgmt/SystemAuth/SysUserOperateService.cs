@@ -68,7 +68,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     // 用户不存在
                     await _sysUserOperateRepo.AddUserLoginLogInfo(new UserLogOutEntity
                     {
-                        UserId = 0,
+                        UserId = null,
                         LoginType = LoginBehavior.AccountNotExist.ToEnumString(),
                         IP = ip,
                         LoginDate = nowTime

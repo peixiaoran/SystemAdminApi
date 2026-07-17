@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001125 (17.00.1125)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Form
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001125 (17.00.1125)
  File Encoding         : 65001
 
- Date: 16/07/2026 21:35:16
+ Date: 17/07/2026 13:40:16
 */
 
 
@@ -1192,7 +1192,7 @@ GO
 -- ----------------------------
 -- Records of LeaveCancell
 -- ----------------------------
-INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-22 08:00:00.0000000', N'2026-06-25 17:00:00.0000000', N'32.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-14 16:08:28.403')
+INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-22 08:00:00.0000000', N'2026-06-23 17:00:00.0000000', N'16.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-14 16:08:28.403')
 GO
 
 

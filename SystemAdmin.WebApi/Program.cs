@@ -22,6 +22,7 @@ builder.Services.SqlSugarScopeSetup(builder.Configuration); // SqlSugar
 builder.Services.AddProjectClasses();                       // 业务服务与仓储
 builder.Services.AddCache();                                // HybridCache
 builder.Services.AddForwardedHeadersSetup();                // Nginx 转发请求头
+builder.Services.Configure<ScalarOptions>(builder.Configuration.GetSection("Scalar")); // Scalar 界面
 
 // 配置 Kestrel
 builder.WebHost.ConfigureKestrel((context, options) =>
@@ -36,7 +37,7 @@ var app = builder.Build();
 // HTTP 请求管道，还原 Scheme / Host，必须放在最前面
 app.UseForwardedHeaders();
 
-app.MapScalarApiReference("/systemadmin");
+app.MapScalarApiReference("/systemadminapi");
 app.MapOpenApi();
 
 /*
