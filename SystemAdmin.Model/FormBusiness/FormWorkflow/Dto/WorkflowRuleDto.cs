@@ -57,7 +57,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         public DateOnly EffectiveStartDate { get; set; }
 
         /// <summary>
-        /// 生效结束日期（null 表示无期限）
+        /// 生效结束日期
         /// </summary>
         public DateOnly? EffectiveEndDate { get; set; }
 

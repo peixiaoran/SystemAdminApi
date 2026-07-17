@@ -141,7 +141,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                          .Select(user => user.PositionId)
                                          .FirstAsync();
 
-            // 申请日期需在规则生效区间内（EffectiveEndDate 为 null 表示无期限）
+            // 申请日期需在规则生效区间内
             var applicantDate = await _db.Queryable<FormInstanceEntity>()
                                          .With(SqlWith.NoLock)
                                          .Where(instance => instance.FormId == formId)
