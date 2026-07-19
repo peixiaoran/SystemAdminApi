@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001125 (17.00.1125)
- Source Host           : 127.0.0.1:1433
+ Source Host           : localhost:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Form
 
@@ -12,7 +12,7 @@
  Target Server Version : 17001125 (17.00.1125)
  File Encoding         : 65001
 
- Date: 17/07/2026 13:40:16
+ Date: 19/07/2026 23:24:56
 */
 
 
@@ -232,6 +232,9 @@ INSERT INTO [Form].[FormAttachment] ([AttachmentId], [FormId], [AttachmentName],
 GO
 
 INSERT INTO [Form].[FormAttachment] ([AttachmentId], [FormId], [AttachmentName], [AttachmentPath], [AttachmentSize], [CreatedBy], [CreatedDate]) VALUES (N'2070476072683704320', N'2070475946498068480', N'PO FAS-PC0015  updated.pdf', N'/20260626/20260626195537816_b353b3d8.pdf', N'80', N'1903486709602062336', N'2026-06-26 19:55:37.970')
+GO
+
+INSERT INTO [Form].[FormAttachment] ([AttachmentId], [FormId], [AttachmentName], [AttachmentPath], [AttachmentSize], [CreatedBy], [CreatedDate]) VALUES (N'2078179135376723968', N'2077748583611895808', N'FOUpdate20260311114210.xls', N'/20260718/20260718020451089_bb63ce5f.xls', N'110', N'1903486709602062336', N'2026-07-18 02:04:51.233')
 GO
 
 
@@ -502,10 +505,10 @@ GO
 INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2070475946498068480', N'1987217256446300160', N'LVR-2026060002', N'Voided', N'1903486709602062336', N'2026-06-26', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-06-26 19:55:07.883', N'1903486709602062336', N'2026-06-26 19:56:38.060')
 GO
 
-INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2074764225741459456', N'LCF-2026070001', N'UnderReview', N'1903486709602062336', N'2026-07-14', NULL, NULL, N'1903486709602062336', N'2026-07-14 16:07:09.143', N'1903486709602062336', N'2026-07-14 16:08:30.867')
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2074764225741459456', N'LCF-2026070001', N'PendingSubmit', N'1903486709602062336', N'2026-07-14', NULL, NULL, N'1903486709602062336', N'2026-07-14 16:07:09.143', N'1903486709602062336', N'2026-07-18 01:04:49.020')
 GO
 
-INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2077748583611895808', N'1987217256446300160', N'LVR-2026070004', N'PendingSubmit', N'1903486709602062336', N'2026-07-16', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-07-16 21:33:59.690', NULL, NULL)
+INSERT INTO [Form].[FormInstance] ([FormId], [FormTypeId], [FormNo], [FormStatus], [ApplicantUserId], [ApplicantDate], [RuleId], [CurrentStepId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2077748583611895808', N'1987217256446300160', N'LVR-2026070004', N'PendingSubmit', N'1903486709602062336', N'2026-07-16', N'2046850267772751872', N'2009890853346217984', N'1903486709602062336', N'2026-07-16 21:33:59.690', N'1903486709602062336', N'2026-07-18 01:20:34.673')
 GO
 
 
@@ -1192,7 +1195,7 @@ GO
 -- ----------------------------
 -- Records of LeaveCancell
 -- ----------------------------
-INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-22 08:00:00.0000000', N'2026-06-23 17:00:00.0000000', N'16.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-14 16:08:28.403')
+INSERT INTO [Form].[LeaveCancell] ([FormId], [LeaveRequestId], [LeaveRequestNo], [StartDateTime], [EndDateTime], [CancellHours], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2076941555276582912', N'2069025311722442752', N'LVR-2026060001', N'2026-06-22 08:00:00.0000000', N'2026-06-23 16:00:00.0000000', N'15.00', N'1903486709602062336', N'2026-07-14 16:07:09.383', N'1903486709602062336', N'2026-07-18 01:04:49.007')
 GO
 
 
@@ -1322,7 +1325,7 @@ GO
 INSERT INTO [Form].[LeaveRequest] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2070475946498068480', N'Sick', N'生病请假2天', N'2026-06-26 08:00:00.0000000', N'2026-06-27 17:00:00.0000000', N'16.00', N'2050600734554198016', N'E346899 / Zhehao Gong', N'1903486709602062336', N'2026-06-26 19:55:08.033', N'1903486709602062336', N'2026-06-26 19:56:18.330')
 GO
 
-INSERT INTO [Form].[LeaveRequest] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2077748583611895808', NULL, NULL, NULL, NULL, N'0.00', NULL, NULL, N'1903486709602062336', N'2026-07-16 21:33:59.753', NULL, NULL)
+INSERT INTO [Form].[LeaveRequest] ([FormId], [LeaveType], [LeaveReason], [StartDateTime], [EndDateTime], [LeaveHours], [AgentUserId], [AgentUserName], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2077748583611895808', N'Annual', N'123', N'2026-07-17 08:00:00.0000000', N'2026-07-18 17:00:00.0000000', N'16.00', N'2050596970468347904', N'E215396 / Tsai', N'1903486709602062336', N'2026-07-16 21:33:59.753', N'1903486709602062336', N'2026-07-18 01:20:34.637')
 GO
 
 
@@ -1856,8 +1859,8 @@ CREATE TABLE [Form].[WorkflowRule] (
   [PositionId] bigint  NULL,
   [Guidance] nvarchar(20) COLLATE Chinese_PRC_90_CI_AS_SC_UTF8  NULL,
   [Version] varchar(20) COLLATE Chinese_PRC_CI_AS  NOT NULL,
-  [EffectiveStartTime] datetime2(7)  NOT NULL,
-  [EffectiveEndTime] datetime2(7)  NULL,
+  [EffectiveStartDate] date  NOT NULL,
+  [EffectiveEndDate] date  NULL,
   [SortOrder] int  NOT NULL,
   [CreatedBy] bigint  NOT NULL,
   [CreatedDate] datetime2(3)  NOT NULL,
@@ -1919,17 +1922,17 @@ EXEC sp_addextendedproperty
 GO
 
 EXEC sp_addextendedproperty
-'MS_Description', N'生效时间',
+'MS_Description', N'生效日期',
 'SCHEMA', N'Form',
 'TABLE', N'WorkflowRule',
-'COLUMN', N'EffectiveStartTime'
+'COLUMN', N'EffectiveStartDate'
 GO
 
 EXEC sp_addextendedproperty
-'MS_Description', N'失效时间',
+'MS_Description', N'失效日期',
 'SCHEMA', N'Form',
 'TABLE', N'WorkflowRule',
-'COLUMN', N'EffectiveEndTime'
+'COLUMN', N'EffectiveEndDate'
 GO
 
 EXEC sp_addextendedproperty
@@ -1977,25 +1980,25 @@ GO
 -- ----------------------------
 -- Records of WorkflowRule
 -- ----------------------------
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046850267772751872', N'组长 - 小于3天', N'Team Leader - Less than 3 days', N'1987217256446300160', N'1351602631784529920', N'LessOver3', N'1', N'2026-04-22 15:15:07.1333333', NULL, N'1', N'1903486709602062336', N'2026-04-22 15:15:07.133', N'1903486709602062336', N'2026-07-16 18:31:54.670')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046850267772751872', N'组长 - 小于3天', N'Team Leader - Less than 3 days', N'1987217256446300160', N'1351602631784529920', N'LessOver3', N'1', N'2026-04-22', NULL, N'1', N'1903486709602062336', N'2026-04-22 15:15:07.133', N'1903486709602062336', N'2026-07-16 18:31:54.670')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046860073602519040', N'其他', N'Other', N'1987217256446300160', NULL, NULL, N'1', N'2026-04-22 15:54:05.0266667', NULL, N'50', N'1903486709602062336', N'2026-04-22 15:54:05.027', N'1903486709602062336', N'2026-07-16 18:45:36.410')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2046860073602519040', N'其他', N'Other', N'1987217256446300160', NULL, NULL, N'1', N'2026-04-22', NULL, N'50', N'1903486709602062336', N'2026-04-22 15:54:05.027', N'1903486709602062336', N'2026-07-16 18:45:36.410')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051185303204532224', N'组长 - 大于3天', N'Team Leader - More than 3 days', N'1987217256446300160', N'1351602631784529920', N'MoreOver3', N'1', N'2026-05-04 14:21:00.1200000', NULL, N'2', N'1903486709602062336', N'2026-05-04 14:21:00.120', NULL, NULL)
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051185303204532224', N'组长 - 大于3天', N'Team Leader - More than 3 days', N'1987217256446300160', N'1351602631784529920', N'MoreOver3', N'1', N'2026-05-04', NULL, N'2', N'1903486709602062336', N'2026-05-04 14:21:00.120', NULL, NULL)
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186271467999232', N'科长 - 小于3天', N'Section Chief - Less than 3 days', N'1987217256446300160', N'1351600746193223680', N'LessOver3', N'1', N'2026-05-04 14:24:50.9730000', NULL, N'3', N'1903486709602062336', N'2026-05-04 14:24:50.973', N'1903486709602062336', N'2026-05-04 14:32:53.470')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186271467999232', N'科长 - 小于3天', N'Section Chief - Less than 3 days', N'1987217256446300160', N'1351600746193223680', N'LessOver3', N'1', N'2026-05-04', NULL, N'3', N'1903486709602062336', N'2026-05-04 14:24:50.973', N'1903486709602062336', N'2026-05-04 14:32:53.470')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186400535121920', N'科长 - 大于3天', N'Section Chief - More than 3 days', N'1987217256446300160', N'1351600746193223680', N'MoreOver3', N'1', N'2026-05-04 14:25:21.7466667', NULL, N'4', N'1903486709602062336', N'2026-05-04 14:25:21.747', N'1903486709602062336', N'2026-07-16 18:44:24.993')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051186400535121920', N'科长 - 大于3天', N'Section Chief - More than 3 days', N'1987217256446300160', N'1351600746193223680', N'MoreOver3', N'1', N'2026-05-04', NULL, N'4', N'1903486709602062336', N'2026-05-04 14:25:21.747', N'1903486709602062336', N'2026-07-16 18:44:24.993')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051259795381555200', N'副理 - 小于3天', N'Assistant Manager - Less than 3 days', N'1987217256446300160', N'1351592278136717312', N'LessOver3', N'1', N'2026-07-16 18:48:45.0000000', NULL, N'5', N'1903486709602062336', N'2026-05-04 19:17:00.440', N'1903486709602062336', N'2026-07-16 18:48:46.573')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051259795381555200', N'副理 - 小于3天', N'Assistant Manager - Less than 3 days', N'1987217256446300160', N'1351592278136717312', N'LessOver3', N'1', N'2026-07-16', NULL, N'5', N'1903486709602062336', N'2026-05-04 19:17:00.440', N'1903486709602062336', N'2026-07-16 18:48:46.573')
 GO
 
-INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartTime], [EffectiveEndTime], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051260041411039232', N'副理 - 大于3天', N'Assistant Manager - More than 3 days', N'1987217256446300160', N'1351592278136717312', N'MoreOver3', N'1', N'2026-05-04 19:17:59.1000000', NULL, N'6', N'1903486709602062336', N'2026-05-04 19:17:59.100', N'1903486709602062336', N'2026-07-16 18:42:45.703')
+INSERT INTO [Form].[WorkflowRule] ([RuleId], [RuleNameCn], [RuleNameEn], [FormTypeId], [PositionId], [Guidance], [Version], [EffectiveStartDate], [EffectiveEndDate], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2051260041411039232', N'副理 - 大于3天', N'Assistant Manager - More than 3 days', N'1987217256446300160', N'1351592278136717312', N'MoreOver3', N'1', N'2026-05-04', NULL, N'6', N'1903486709602062336', N'2026-05-04 19:17:59.100', N'1903486709602062336', N'2026-07-16 18:42:45.703')
 GO
 
 
@@ -2699,7 +2702,7 @@ GO
 -- ----------------------------
 -- Primary Key structure for table WorkflowRule
 -- ----------------------------
-ALTER TABLE [Form].[WorkflowRule] ADD CONSTRAINT [PK__Workflow__110458E282CDD336] PRIMARY KEY CLUSTERED ([RuleId])
+ALTER TABLE [Form].[WorkflowRule] ADD CONSTRAINT [PK__Workflow__110458E273BDF6E9] PRIMARY KEY CLUSTERED ([RuleId])
 WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON)  
 ON [PRIMARY]
 GO
