@@ -4,7 +4,7 @@
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
  Source Server Version : 17001125 (17.00.1125)
- Source Host           : localhost:1433
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Basic
 
@@ -12,11 +12,7 @@
  Target Server Version : 17001125 (17.00.1125)
  File Encoding         : 65001
 
-<<<<<<< HEAD
- Date: 21/07/2026 16:55:18
-=======
- Date: 19/07/2026 23:25:18
->>>>>>> 41b52dce8af4cba06ba2424ce8848242a2ead23a
+ Date: 21/07/2026 17:01:29
 */
 
 
@@ -1391,25 +1387,25 @@ GO
 INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821896', N'1968271760889614336', N'ReviewResult', N'Withdraw', N'撤回', N'Withdraw', N'3', N'1903486709602062336', N'2026-03-05 09:12:20.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821897', N'1350161679034934501', N'Factorys', N'ESK', N'昆山', N'Kunshan', N'1', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821897', N'1350161679034934501', N'Factorys', N'ESK', N'Kunshan', N'昆山', N'1', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821898', N'1350161679034934501', N'Factorys', N'ESC', N'烟台', N'Yantai', N'2', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821898', N'1350161679034934501', N'Factorys', N'ESC', N'Yantai', N'烟台', N'2', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821899', N'1350161679034934501', N'Factorys', N'ETW', N'台湾', N'Taiwan', N'3', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821899', N'1350161679034934501', N'Factorys', N'ETW', N'Taiwan', N'台湾', N'3', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821900', N'1350161679034934501', N'Factorys', N'ESV', N'越南', N'Vietnam', N'4', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821900', N'1350161679034934501', N'Factorys', N'ESV', N'Vietnam', N'越南', N'4', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821901', N'1350161679034934501', N'Factorys', N'EMJ', N'马来西亚', N'Malaysia', N'5', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821901', N'1350161679034934501', N'Factorys', N'EMJ', N'Malaysia', N'马来西亚', N'5', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821902', N'1350161679034934501', N'Factorys', N'ESH', N'蒂华纳', N'Tijuana', N'6', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821902', N'1350161679034934501', N'Factorys', N'ESH', N'Tijuana', N'蒂华纳', N'6', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
-INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821903', N'1350161679034934501', N'Factorys', N'MTY', N'蒙特雷', N'Monterrey', N'7', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
+INSERT INTO [Basic].[DictionaryInfo] ([DicId], [ModuleId], [DicType], [DicCode], [DicNameCn], [DicNameEn], [SortOrder], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1990313509094821903', N'1350161679034934501', N'Factorys', N'MTY', N'Monterrey', N'蒙特雷', N'7', N'1903486709602062336', N'2026-07-15 00:00:00.000', NULL, NULL)
 GO
 
 
@@ -2987,45 +2983,6 @@ INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [Creat
 GO
 
 INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062342', N'1987217256446300160', N'1903486709602062336', N'2026-05-31 00:30:10.367', N'1903486709602062336', N'2026-05-31 00:30:10.367')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969052085492256768', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969053776929230848', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969054482025287680', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969054690842906624', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969054813085896704', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969055160932110336', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969055351626141696', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969055451307970560', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969055549681176576', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969055723409248256', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1969055819815325696', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1987215338470772736', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
-GO
-
-INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'1987217256446300160', N'1903486709602062336', N'2026-05-31 00:29:53.013', N'1903486709602062336', N'2026-05-31 00:29:53.013')
 GO
 
 INSERT INTO [Basic].[UserForm] ([UserId], [FormGroupTypeId], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050597318784323584', N'1969052085492256768', N'1903486709602062336', N'2026-05-31 00:29:10.451', N'1903486709602062336', N'2026-05-31 00:29:10.451')
@@ -6134,7 +6091,6 @@ GO
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'10.112.142.23', N'LoginSuccessful', N'2026-07-17 13:34:28.850')
 GO
 
-<<<<<<< HEAD
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'153.34.174.6', N'LoginSuccessful', N'2026-07-17 23:34:35.530')
 GO
 
@@ -6274,30 +6230,9 @@ INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALU
 GO
 
 INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062342', N'::1', N'LoginSuccessful', N'2026-07-21 16:52:50.167')
-=======
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-18 02:03:33.993')
 GO
 
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-19 04:19:04.887')
-GO
-
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-17 23:15:28.210')
-GO
-
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-17 23:42:09.597')
-GO
-
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoggedOut', N'2026-07-19 04:42:12.513')
-GO
-
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-19 04:43:09.410')
-GO
-
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoggedOut', N'2026-07-19 04:46:51.427')
-GO
-
-INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'::1', N'LoginSuccessful', N'2026-07-19 04:50:16.753')
->>>>>>> 41b52dce8af4cba06ba2424ce8848242a2ead23a
+INSERT INTO [Basic].[UserLogOut] ([UserId], [IP], [LoginType], [LoginDate]) VALUES (N'1903486709602062336', N'10.112.142.23', N'LoginSuccessful', N'2026-07-21 16:57:19.500')
 GO
 
 
