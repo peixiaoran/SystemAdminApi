@@ -50,6 +50,19 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
+        /// 查询表单前缀（表单类别上的前缀，用于分发到对应业务表单）
+        /// </summary>
+        public async Task<string> GetFormPrefix(long formId)
+        {
+            return await _db.Queryable<FormInstanceEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<FormTypeEntity>((instance, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                            .Where((instance, formtype) => instance.FormId == formId)
+                            .Select((instance, formtype) => formtype.Prefix)
+                            .FirstAsync();
+        }
+
+        /// <summary>
         /// 初始化表单
         /// </summary>
         public async Task<string> InitFormInstance(long formTypeId)

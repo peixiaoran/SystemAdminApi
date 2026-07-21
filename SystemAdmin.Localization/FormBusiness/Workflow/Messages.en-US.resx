@@ -183,6 +183,9 @@
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>Approved</value>
   </data>
+  <data name="GuidanceHandlerNotFound" xml:space="preserve">
+    <value>Form completion guide is not defined</value>
+  </data>
   <data name="InsufficientLeaveBalance" xml:space="preserve">
     <value>{0} does not have enough「 {2}  」days for {1}. Available: {3} days; Requested: {4} days</value>
   </data>

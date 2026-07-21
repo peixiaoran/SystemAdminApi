@@ -183,6 +183,9 @@
   <data name="EmailNoticeSubjectApproved" xml:space="preserve">
     <value>核准完成</value>
   </data>
+  <data name="GuidanceHandlerNotFound" xml:space="preserve">
+    <value>表单完成导向未定义</value>
+  </data>
   <data name="InsufficientLeaveBalance" xml:space="preserve">
     <value>{0} 在 {1} 年的「 {2} 」不足，剩余 {3} 天，申请 {4} 天</value>
   </data>

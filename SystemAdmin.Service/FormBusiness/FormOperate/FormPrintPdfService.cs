@@ -50,13 +50,16 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// <summary>
         /// 打印PDF（根据表单前缀分发，LVR=请假单）
         /// </summary>
-        public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, string prefix)
+        public async Task<Result<FormPdfDto>> PrintFormPdf(string formId)
         {
             try
             {
+                var id = long.Parse(formId);
+                var prefix = await _formmanger.GetFormPrefix(id);
+
                 return prefix switch
                 {
-                    "LVR" => await PrintLeaveRequestPdf(long.Parse(formId)),
+                    "LVR" => await PrintLeaveRequestPdf(id),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -107,7 +110,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             var show = BuildFieldVisibility(form.StepFieldPermission);
 
             var leavePeriod = form.StartDateTime.HasValue && form.EndDateTime.HasValue
-                ? $"{form.StartDateTime:yyyy-MM-dd HH:mm:ss}  -  {form.EndDateTime:yyyy-MM-dd HH:mm:ss}"
+                ? $"{form.StartDateTime:yyyy-MM-dd  HH:mm}  ~  {form.EndDateTime:yyyy-MM-dd  HH:mm}"
                 : string.Empty;
 
             var document = Document.Create(container =>
@@ -123,7 +126,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
                         // 表单编号 / 申请日期
                         var row1 = new List<PdfField>();
-                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo));
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
                         if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
                         ComposeFieldRow(column, row1);
 
@@ -134,15 +137,15 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                         if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
                         ComposeFieldRow(column, row2);
 
-                        // 请假类型 / 请假时间
+                        // 请假类型 / 代理人
                         var row3 = new List<PdfField>();
-                        if (show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty));
-                        if (show("LeavePeriod")) row3.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod));
+                        if (show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty, Width: FirstValueCellWidth, Required: true));
+                        if (show("SelectAgent")) row3.Add(new PdfField(Msg("PdfAgentUser"), form.AgentUserName ?? string.Empty));
                         ComposeFieldRow(column, row3);
 
-                        // 代理人 / 请假总时数
+                        // 请假时间 / 请假总时数
                         var row4 = new List<PdfField>();
-                        if (show("SelectAgent")) row4.Add(new PdfField(Msg("PdfAgentUser"), form.AgentUserName ?? string.Empty));
+                        if (show("LeavePeriod")) row4.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod, Weight: 3f, Required: true));
                         if (show("LeaveHours")) row4.Add(new PdfField(Msg("PdfLeaveHours"), (form.LeaveHours ?? 0).ToString("0.00"), Emphasized: true));
                         ComposeFieldRow(column, row4);
 
@@ -151,7 +154,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                         {
                             ComposeFieldRow(column, new List<PdfField>
                             {
-                                new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f)
+                                new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f, Required: true)
                             });
                         }
 
@@ -190,8 +193,9 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         /// <summary>
         /// 表单栏位（标签+值）
+        /// Width 大于 0 时值格固定宽度（用于跨行对齐），否则按 Weight 分配剩余宽度
         /// </summary>
-        private sealed record PdfField(string Label, string Value, float Weight = 1f, bool Emphasized = false, float MinHeight = 0f);
+        private sealed record PdfField(string Label, string Value, float Weight = 1f, bool Emphasized = false, float MinHeight = 0f, float Width = 0f, bool Required = false);
 
         /// <summary>
         /// 读取表单多语言文案
@@ -245,14 +249,21 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
             column.Item().PaddingBottom(10).Row(row =>
             {
-                for (var index = 0; index < fields.Count; index++)
+                foreach (var field in fields)
                 {
-                    var field = fields[index];
-                    row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(field.Label).FontColor(LabelTextColor);
+                    // 标签：必填栏位前置红色星号
+                    row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(label =>
+                    {
+                        if (field.Required)
+                        {
+                            label.Span("* ").FontColor(EmphasizedColor);
+                        }
+                        label.Span(field.Label).FontColor(LabelTextColor);
+                    });
 
-                    // 多栏位行的第一个值格固定宽度，使每行第二个栏位从相同位置开始
-                    var valueItem = index == 0 && fields.Count > 1
-                        ? row.ConstantItem(FirstValueCellWidth)
+                    // 指定宽度的值格用于跨行对齐（如表单编号、请假类型），其余按权重分配
+                    var valueItem = field.Width > 0
+                        ? row.ConstantItem(field.Width)
                         : row.RelativeItem(field.Weight);
 
                     var text = valueItem.Element(container => ValueCell(container, field.MinHeight))
@@ -346,16 +357,26 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 {
                     table.Cell().Element(BodyCell).Text(index++.ToString());
                     table.Cell().Element(BodyCell).Text(record.StepName);
-                    table.Cell().Element(BodyCell).Text(record.OperationUserName);
-                    table.Cell().Element(BodyCell).AlignCenter().Text(record.ReviewResultName);
+
+                    // 审批人：非本人审批（兼、代、自动指派）时在姓名下方补充审批身份
+                    table.Cell().Element(BodyCell).Column(user =>
+                    {
+                        user.Item().Text(record.OperationUserName);
+                        if (record.AppointmentType != AppointmentType.Actual.ToEnumString() && !string.IsNullOrWhiteSpace(record.AppointmentTypeName))
+                        {
+                            user.Item().Text(record.AppointmentTypeName).FontSize(7.5f).FontColor(MutedTextColor);
+                        }
+                    });
+
+                    table.Cell().Element(BodyCell).Text(record.ReviewResultName);
                     table.Cell().Element(BodyCell).Text(record.Comment);
-                    table.Cell().Element(BodyCell).AlignCenter().Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
+                    table.Cell().Element(BodyCell).Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
                 }
             });
         }
 
         /// <summary>
-        /// 组装审批完成印章（仅已批准状态加盖；页面前景层右上角，覆盖在所有内容之上）
+        /// 组装审批完成印章（仅已批准状态加盖；页面前景层右下角，避开表头栏位）
         /// </summary>
         private void ComposeApprovalStamp(PageDescriptor page, string formStatus, List<FormReviewRecordDto> reviewRecords)
         {
@@ -374,9 +395,9 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 approvedDateTime?.ToString("yyyy-MM-dd") ?? string.Empty);
 
             page.Foreground()
-                .AlignTop()
+                .AlignBottom()
                 .AlignRight()
-                .PaddingTop(68)
+                .PaddingBottom(24)
                 .PaddingRight(18)
                 .Width(118)
                 .Height(118)

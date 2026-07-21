@@ -259,6 +259,15 @@ namespace SystemAdmin.Localization.FormBusiness.Workflow {
         }
         
         /// <summary>
+        ///   查找类似 表单完成导向未定义 的本地化字符串。
+        /// </summary>
+        internal static string GuidanceHandlerNotFound {
+            get {
+                return ResourceManager.GetString("GuidanceHandlerNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 {0} 在 {1} 年的「 {2} 」不足，剩余 {3} 天，申请 {4} 天 的本地化字符串。
         /// </summary>
         internal static string InsufficientLeaveBalance {

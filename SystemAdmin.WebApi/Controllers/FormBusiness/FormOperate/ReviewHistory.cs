@@ -63,9 +63,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[审批历史记录] 打印PDF")]
-        public async Task<IActionResult> PrintFormPdf([FromForm] string formId, [FromForm] string prefix)
+        public async Task<IActionResult> PrintFormPdf([FromForm] string formId)
         {
-            var result = await _formPrintPdfService.PrintFormPdf(formId, prefix);
+            var result = await _formPrintPdfService.PrintFormPdf(formId);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);
