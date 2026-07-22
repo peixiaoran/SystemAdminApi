@@ -64,7 +64,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     };
 
                     await _leaveCancell.InitLeaveCancell(leaveCancell);
-                    await _formmanger.MatchWorkflowRule(long.Parse(formTypeId), long.Parse(formId), _loginuser.UserId);
+                    await _formmanger.MatchWorkflowRule(long.Parse(formId));
                     await _db.CommitTranAsync();
 
                     var leaveCancellDto = await _leaveCancell.GetLeaveCancell(long.Parse(formId));

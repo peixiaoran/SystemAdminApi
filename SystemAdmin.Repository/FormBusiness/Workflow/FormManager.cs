@@ -146,70 +146,60 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 匹配工作流规则
         /// </summary>
-        public async Task<long?> MatchWorkflowRule(long formTypeId, long formId, long applicantUserId)
+        public async Task<long?> MatchWorkflowRule(long formId)
         {
-            var appPositionId = await _db.Queryable<UserInfoEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .Where(user => user.UserId == applicantUserId)
-                                         .Select(user => user.PositionId)
-                                         .FirstAsync();
+            // 表单类别、申请人职级、申请日期（申请日期需在规则生效区间内）
+            var formInfo = await _db.Queryable<FormInstanceEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .InnerJoin<UserInfoEntity>((instance, user) => instance.ApplicantUserId == user.UserId)
+                                    .Where((instance, user) => instance.FormId == formId)
+                                    .Select((instance, user) => new
+                                    {
+                                        instance.FormTypeId,
+                                        instance.ApplicantDate,
+                                        user.PositionId
+                                    }).FirstAsync();
 
-            // 申请日期需在规则生效区间内
-            var applicantDate = await _db.Queryable<FormInstanceEntity>()
-                                         .With(SqlWith.NoLock)
-                                         .Where(instance => instance.FormId == formId)
-                                         .Select(instance => instance.ApplicantDate)
-                                         .FirstAsync();
+            var formTypeId = formInfo.FormTypeId;
+            var applicantDate = formInfo.ApplicantDate;
+            var appPositionId = formInfo.PositionId;
 
             var ruleList = await _db.Queryable<WorkflowRuleEntity>()
                                     .With(SqlWith.NoLock)
                                     .Where(rule => rule.FormTypeId == formTypeId
                                                 && rule.EffectiveStartDate <= applicantDate
                                                 && (rule.EffectiveEndDate == null || rule.EffectiveEndDate >= applicantDate))
+                                    .OrderBy(rule => rule.SortOrder)
                                     .ToListAsync();
 
             // 没有匹配到规则时保持 null
             long? ruleId = null;
 
-            foreach (var rule in ruleList)
+            // 优先级1：职级Id、导向都不为 null —— 职级要匹配，导向条件也要成立
+            foreach (var rule in ruleList.Where(rule => rule.PositionId != null
+                                                     && !string.IsNullOrWhiteSpace(rule.Guidance)
+                                                     && rule.PositionId == appPositionId))
             {
-                string? guidance = rule.Guidance;
-
-                bool hasGuidance = !string.IsNullOrWhiteSpace(guidance);
-                bool positionMatch = rule.PositionId == appPositionId;
-                bool isDefaultRule = rule.PositionId == null && !hasGuidance;
-
-                // 默认规则：职位和条件都不限制
-                if (isDefaultRule)
-                {
-                    if (ruleId == null)
-                    {
-                        ruleId = rule.RuleId;
-                    }
-
-                    continue;
-                }
-
-                // 非默认规则：Guidance 为空就跳过
-                if (!hasGuidance)
-                {
-                    continue;
-                }
-
-                bool guidanceMatch = await _workflowRuleConditions.Resolve(guidance!, formId);
-
-                // 优先级1：职位匹配，并且条件匹配
-                if (positionMatch && guidanceMatch)
+                if (await _workflowRuleConditions.Resolve(rule.Guidance!, formId))
                 {
                     ruleId = rule.RuleId;
                     break;
                 }
+            }
 
-                // 优先级2：职位不限制，只判断条件
-                if (ruleId == null && rule.PositionId == null && guidanceMatch)
-                {
-                    ruleId = rule.RuleId;
-                }
+            // 优先级2：职级Id 不为 null、导向为 null —— 只判断职级
+            if (ruleId == null)
+            {
+                ruleId = ruleList.FirstOrDefault(rule => rule.PositionId != null
+                                                      && string.IsNullOrWhiteSpace(rule.Guidance)
+                                                      && rule.PositionId == appPositionId)?.RuleId;
+            }
+
+            // 优先级3：职级Id、导向都为 null —— 默认规则
+            if (ruleId == null)
+            {
+                ruleId = ruleList.FirstOrDefault(rule => rule.PositionId == null
+                                                      && string.IsNullOrWhiteSpace(rule.Guidance))?.RuleId;
             }
 
             await _db.Updateable<FormInstanceEntity>()
@@ -227,13 +217,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> SaveFormInstance(long formId)
         {
-            var formInstance = await _db.Queryable<FormInstanceEntity>()
-                                        .With(SqlWith.NoLock)
-                                        .Where(instance => instance.FormId == formId)
-                                        .FirstAsync();
-
             // 每次保存都重新匹配工作流规则
-            await MatchWorkflowRule(formInstance.FormTypeId, formId, formInstance.ApplicantUserId);
+            await MatchWorkflowRule(formId);
 
             return await _db.Updateable<FormInstanceEntity>()
                             .SetColumns(f => new FormInstanceEntity

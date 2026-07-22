@@ -4,6 +4,7 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Dto;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
 {
@@ -65,9 +66,13 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         {
             return await _db.Queryable<WorkflowRuleEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(rule => rule.FormTypeId == formTypeId)
-                            .OrderBy(rule => rule.SortOrder)
-                            .Select(rule => new WorkflowRuleDropDto
+                            .LeftJoin<PositionInfoEntity>((rule, position) => rule.PositionId == position.PositionId)
+                            .Where((rule, position) => rule.FormTypeId == formTypeId)
+                            .OrderBy((rule, position) => position.SortOrder, OrderByType.Desc)
+                            .OrderBy((rule, position) => _lang.Locale == "zh-CN"
+                                                         ? rule.RuleNameCn
+                                                         : rule.RuleNameEn)
+                            .Select((rule, position) => new WorkflowRuleDropDto
                             {
                                 RuleId = rule.RuleId,
                                 RuleName = _lang.Locale == "zh-CN"

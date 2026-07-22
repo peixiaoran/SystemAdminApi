@@ -3,16 +3,16 @@
 
  Source Server         : 127.0.0.1
  Source Server Type    : SQL Server
- Source Server Version : 17001115 (17.00.1115)
- Source Host           : localhost:1433
+ Source Server Version : 17001125 (17.00.1125)
+ Source Host           : 127.0.0.1:1433
  Source Catalog        : SystemAdmin
  Source Schema         : Hr
 
  Target Server Type    : SQL Server
- Target Server Version : 17001115 (17.00.1115)
+ Target Server Version : 17001125 (17.00.1125)
  File Encoding         : 65001
 
- Date: 22/06/2026 20:08:47
+ Date: 22/07/2026 16:57:40
 */
 
 
@@ -116,5 +116,221 @@ INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays]
 GO
 
 INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062336', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062336', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062338', N'2026', N'Annual', N'15.00', N'11.00', N'1903486709602062338', N'2026-06-11 15:02:30.000', N'1903486709602062338', N'2026-07-21 11:34:48.890')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062338', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062338', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062338', N'2027', N'Annual', N'15.00', N'15.00', N'1903486709602062338', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062338', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062338', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2026', N'Annual', N'15.00', N'11.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', N'2050599625240481792', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2026', N'Sick', N'20.00', N'20.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2027', N'Annual', N'15.00', N'15.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2027', N'Sick', N'20.00', N'20.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062337', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062337', N'2026-06-11 15:02:30.000', N'1903486709602062337', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062337', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062337', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062337', N'2027', N'Annual', N'15.00', N'15.00', N'1903486709602062337', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062337', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062337', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062340', N'2026-06-11 15:02:30.000', N'1903486709602062340', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062340', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2027', N'Annual', N'15.00', N'15.00', N'1903486709602062340', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062340', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062340', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062341', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062341', N'2026-06-11 15:02:30.000', N'1903486709602062341', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062341', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062341', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062341', N'2027', N'Annual', N'15.00', N'15.00', N'1903486709602062341', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062341', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062341', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062342', N'2026', N'Annual', N'15.00', N'15.00', N'1903486709602062342', N'2026-06-11 15:02:30.000', N'1903486709602062342', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062342', N'2026', N'Sick', N'20.00', N'20.00', N'1903486709602062342', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062342', N'2027', N'Annual', N'15.00', N'15.00', N'1903486709602062342', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'1903486709602062342', N'2027', N'Sick', N'20.00', N'20.00', N'1903486709602062342', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'2026', N'Annual', N'15.00', N'15.00', N'2050596970468347904', N'2026-06-11 15:02:30.000', N'2050596970468347904', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'2026', N'Sick', N'20.00', N'20.00', N'2050596970468347904', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'2027', N'Annual', N'15.00', N'15.00', N'2050596970468347904', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050596970468347904', N'2027', N'Sick', N'20.00', N'20.00', N'2050596970468347904', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050597318784323584', N'2026', N'Annual', N'15.00', N'15.00', N'2050597318784323584', N'2026-06-11 15:02:30.000', N'2050597318784323584', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050597318784323584', N'2026', N'Sick', N'20.00', N'20.00', N'2050597318784323584', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050597318784323584', N'2027', N'Annual', N'15.00', N'15.00', N'2050597318784323584', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050597318784323584', N'2027', N'Sick', N'20.00', N'20.00', N'2050597318784323584', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050598466639499264', N'2026', N'Annual', N'15.00', N'15.00', N'2050598466639499264', N'2026-06-11 15:02:30.000', N'2050598466639499264', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050598466639499264', N'2026', N'Sick', N'20.00', N'20.00', N'2050598466639499264', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050598466639499264', N'2027', N'Annual', N'15.00', N'15.00', N'2050598466639499264', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050598466639499264', N'2027', N'Sick', N'20.00', N'20.00', N'2050598466639499264', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599298114129920', N'2026', N'Annual', N'15.00', N'15.00', N'2050599298114129920', N'2026-06-11 15:02:30.000', N'2050599298114129920', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599298114129920', N'2026', N'Sick', N'20.00', N'20.00', N'2050599298114129920', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599298114129920', N'2027', N'Annual', N'15.00', N'15.00', N'2050599298114129920', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599298114129920', N'2027', N'Sick', N'20.00', N'20.00', N'2050599298114129920', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2026', N'Annual', N'15.00', N'15.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', N'2050599625240481792', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2026', N'Sick', N'20.00', N'20.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2027', N'Annual', N'15.00', N'15.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599625240481792', N'2027', N'Sick', N'20.00', N'20.00', N'2050599625240481792', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599950684917760', N'2026', N'Annual', N'15.00', N'15.00', N'2050599950684917760', N'2026-06-11 15:02:30.000', N'2050599950684917760', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599950684917760', N'2026', N'Sick', N'20.00', N'20.00', N'2050599950684917760', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599950684917760', N'2027', N'Annual', N'15.00', N'15.00', N'2050599950684917760', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050599950684917760', N'2027', N'Sick', N'20.00', N'20.00', N'2050599950684917760', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600303354580992', N'2026', N'Annual', N'15.00', N'15.00', N'2050600303354580992', N'2026-06-11 15:02:30.000', N'2050600303354580992', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600303354580992', N'2026', N'Sick', N'20.00', N'20.00', N'2050600303354580992', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600303354580992', N'2027', N'Annual', N'15.00', N'15.00', N'2050600303354580992', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600303354580992', N'2027', N'Sick', N'20.00', N'20.00', N'2050600303354580992', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600734554198016', N'2026', N'Annual', N'15.00', N'15.00', N'2050600734554198016', N'2026-06-11 15:02:30.000', N'2050600734554198016', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600734554198016', N'2026', N'Sick', N'20.00', N'20.00', N'2050600734554198016', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600734554198016', N'2027', N'Annual', N'15.00', N'15.00', N'2050600734554198016', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050600734554198016', N'2027', N'Sick', N'20.00', N'20.00', N'2050600734554198016', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601504599052288', N'2026', N'Annual', N'15.00', N'15.00', N'2050601504599052288', N'2026-06-11 15:02:30.000', N'2050601504599052288', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601504599052288', N'2026', N'Sick', N'20.00', N'20.00', N'2050601504599052288', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601504599052288', N'2027', N'Annual', N'15.00', N'15.00', N'2050601504599052288', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601504599052288', N'2027', N'Sick', N'20.00', N'20.00', N'2050601504599052288', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601857436487680', N'2026', N'Annual', N'15.00', N'15.00', N'2050601857436487680', N'2026-06-11 15:02:30.000', N'2050601857436487680', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601857436487680', N'2026', N'Sick', N'20.00', N'20.00', N'2050601857436487680', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601857436487680', N'2027', N'Annual', N'15.00', N'15.00', N'2050601857436487680', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050601857436487680', N'2027', N'Sick', N'20.00', N'20.00', N'2050601857436487680', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050602218733834240', N'2026', N'Annual', N'15.00', N'15.00', N'2050602218733834240', N'2026-06-11 15:02:30.000', N'2050602218733834240', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050602218733834240', N'2026', N'Sick', N'20.00', N'20.00', N'2050602218733834240', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050602218733834240', N'2027', N'Annual', N'15.00', N'15.00', N'2050602218733834240', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050602218733834240', N'2027', N'Sick', N'20.00', N'20.00', N'2050602218733834240', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050603324033601536', N'2026', N'Annual', N'15.00', N'15.00', N'2050603324033601536', N'2026-06-11 15:02:30.000', N'2050603324033601536', N'2026-07-21 16:54:25.687')
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050603324033601536', N'2026', N'Sick', N'20.00', N'20.00', N'2050603324033601536', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050603324033601536', N'2027', N'Annual', N'15.00', N'15.00', N'2050603324033601536', N'2026-06-11 15:02:30.000', NULL, NULL)
+GO
+
+INSERT INTO [Hr].[UserLeaveBalance] ([UserId], [Year], [LeaveType], [RenderDays], [RemainingDays], [CreatedBy], [CreatedDate], [ModifiedBy], [ModifiedDate]) VALUES (N'2050603324033601536', N'2027', N'Sick', N'20.00', N'20.00', N'2050603324033601536', N'2026-06-11 15:02:30.000', NULL, NULL)
 GO
 

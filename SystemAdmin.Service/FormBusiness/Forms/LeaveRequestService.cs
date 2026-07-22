@@ -224,6 +224,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 ));
             }
 
+            // 只有 Annual、Sick 假别需要校验余额，其余假别直接通过
+            var leaveType = currentLeave.LeaveType;
+            if (leaveType != LeaveType.Annual.ToEnumString() && leaveType != LeaveType.Sick.ToEnumString())
+                return Result<bool>.Ok(true);
+
             // 查询申请人基础余额
             var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
 
@@ -419,7 +424,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     };
 
                     await _leaveRequest.InitLeaveRequest(leaveRequest);
-                    await _formmanger.MatchWorkflowRule(long.Parse(formTypeId), long.Parse(formId), _loginuser.UserId);
+                    await _formmanger.MatchWorkflowRule(long.Parse(formId));
                     await _db.CommitTranAsync();
 
                     var leaveRequestDto = await _leaveRequest.GetLeaveRequest(long.Parse(formId));

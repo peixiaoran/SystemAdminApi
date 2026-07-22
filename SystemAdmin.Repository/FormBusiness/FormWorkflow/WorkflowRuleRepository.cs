@@ -68,7 +68,10 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         {
             return await _db.Queryable<PositionInfoEntity>()
                             .With(SqlWith.NoLock)
-                            .OrderBy(position => position.CreatedDate)
+                            .OrderBy(position => position.SortOrder, OrderByType.Desc)
+                            .OrderBy(position => _lang.Locale == "zh-CN"
+                                                 ? position.PositionNameCn
+                                                 : position.PositionNameEn)
                             .Select((position) => new PositionDropDto
                             {
                                 PositionId = position.PositionId,
@@ -177,7 +180,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                 query = query.Where((rule, position) => rule.PositionId == long.Parse(getPage.PositionId));
             }
 
-            // 排序：名称（正序）→ 版本（倒序）→ 排序（正序）
+            // 排序：职级（倒序，职级越大数字越小，即职级从小到大）→ 名称（正序）→ 版本（倒序）→ 排序（正序）
+            query = query.OrderBy((rule, position) => position.SortOrder, OrderByType.Desc);
             query = _lang.Locale == "zh-CN"
                     ? query.OrderBy((rule, position) => rule.RuleNameCn)
                     : query.OrderBy((rule, position) => rule.RuleNameEn);
