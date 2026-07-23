@@ -149,7 +149,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
                 ModuleNameCn = module.ModuleNameCn,
                 ModuleNameEn = module.ModuleNameEn,
                 ModuleIcon = module.ModuleIcon,
-                IsVisible = module.IsVisible,
                 Path = module.Path,
                 RemarkCh = module.RemarkCh,
                 RemarkEn = module.RemarkEn,

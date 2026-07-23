@@ -20,17 +20,6 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         public string ReviewUserName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 审批人员Id - 历史
-        /// </summary>
-        [JsonConverter(typeof(LongToStringConverter))]
-        public long? HistoryUserId { get; set; }
-
-        /// <summary>
-        /// 审批人员姓名 - 历史
-        /// </summary>
-        public string? HistoryUserName { get; set; } = string.Empty;
-
-        /// <summary>
         /// 审批人员Id - 代
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]

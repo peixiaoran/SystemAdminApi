@@ -36,11 +36,6 @@
         public int SortOrder { get; set; }
 
         /// <summary>
-        /// 是否启动
-        /// </summary>
-        public int IsVisible { get; set; }
-
-        /// <summary>
         /// 模块层级
         /// </summary>
         public int Level { get; set; }

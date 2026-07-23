@@ -26,7 +26,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
                                  .LeftJoin<SysRoleInfoEntity>((user, userrole, role) => userrole.RoleId ==     role.RoleId)
                                  .LeftJoin<SysRoleMenuEntity>((user, userrole, role, rolemenu) => role.RoleId == rolemenu.RoleId)
                                  .LeftJoin<SysMenuInfoEntity>((user, userrole, role, rolemenu, menu) => rolemenu.MenuId == menu.MenuId)
-                                 .Where((user, userrole, role, rolemenu, menu) => user.UserId == loginUserId && menu.RoutePath == routePath && menu.IsVisible == 1)
+                                 .Where((user, userrole, role, rolemenu, menu) => user.UserId == loginUserId && menu.RoutePath == routePath)
                                  .AnyAsync();
             return isHas;
         }

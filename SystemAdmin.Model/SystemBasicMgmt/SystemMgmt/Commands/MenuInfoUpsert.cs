@@ -51,11 +51,6 @@
         public int SortOrder { get; set; }
 
         /// <summary>
-        /// 是否可见
-        /// </summary>
-        public int IsVisible { get; set; }
-
-        /// <summary>
         /// 菜单路径
         /// </summary>
         public string Path { get; set; } = string.Empty;

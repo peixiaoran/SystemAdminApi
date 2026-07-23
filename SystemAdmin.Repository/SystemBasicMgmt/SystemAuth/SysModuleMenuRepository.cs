@@ -28,7 +28,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
                                 .InnerJoin<SysUserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
                                 .InnerJoin<SysRoleInfoEntity>((user, userrole, role) => userrole.RoleId == role.RoleId)
                                 .InnerJoin<SysRoleModuleEntity>((user, userrole, role, rolemodule) => role.RoleId == rolemodule.RoleId)
-                                .InnerJoin<SysModuleInfoEntity>((user, userrole, role, rolemodule, module) => rolemodule.ModuleId == module.ModuleId && module.IsVisible == 1)
+                                .InnerJoin<SysModuleInfoEntity>((user, userrole, role, rolemodule, module) => rolemodule.ModuleId == module.ModuleId)
                                  .Where((user, userrole, role, rolemodule, module) => user.UserId == loginUserId)
                                  .OrderBy((user, userrole, role, rolemodule, module) => module.SortOrder)
                                  .Select((user, userrole, role, rolemodule, module) => new SysModuleInfoDto
@@ -58,7 +58,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
                             .LeftJoin<SysRoleInfoEntity>((user, userrole, role) => userrole.RoleId == role.RoleId)
                             .InnerJoin<SysRoleMenuEntity>((user, userrole, role, rolemenu) => role.RoleId == rolemenu.RoleId)
                             .InnerJoin<SysMenuInfoEntity>((user, userrole, role, rolemenu, menu) => rolemenu.MenuId == menu.MenuId)
-                            .Where((user, userrole, role, rolemenu, menu) => user.UserId == userId && menu.ModuleId == moduleId && menu.IsVisible == 1)
+                            .Where((user, userrole, role, rolemenu, menu) => user.UserId == userId && menu.ModuleId == moduleId)
                             .OrderBy((user, userrole, role, rolemenu, menu) => menu.SortOrder)
                             .Select((user, userrole, role, rolemenu, menu) => new SysMenuInfoDto
                             {

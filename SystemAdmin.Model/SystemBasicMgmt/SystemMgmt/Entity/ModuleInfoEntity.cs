@@ -40,11 +40,6 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Entity
         public int SortOrder { get; set; }
 
         /// <summary>
-        /// 是否可见
-        /// </summary>
-        public int IsVisible { get; set; }
-
-        /// <summary>
         /// 模块路径
         /// </summary>
         public string Path { get; set; } = string.Empty;

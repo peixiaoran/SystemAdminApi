@@ -190,7 +190,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
                                : dic.DicNameEn,
                 MenuIcon = pmenu.MenuIcon,
                 SortOrder = pmenu.SortOrder,
-                IsVisible = pmenu.IsVisible,
                 Path = pmenu.Path,
                 Remark = pmenu.Remark,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
