@@ -628,7 +628,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                  .Where(record => record.ReviewResult == ReviewResult.Approve.ToEnumString())
                                  .ToList();
 
-            // 5. 逐步骤填充状态
+            // 5. 预先取出核准记录中签核人的姓名，供人员变动时回填历史签核人
+            var historyUserNameMap = await GetReviewRecordUserNames(approveRecords);
+
+            // 6. 逐步骤填充状态
             foreach (var flow in reviewFlow)
             {
                 if (flow.Skip == 1)
@@ -657,8 +660,18 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 bool isCurrentStep = currentStepId == flow.StepId;
 
+                // 该步骤在有效时间后的核准记录
+                var stepApproveRecords = approveRecords
+                                         .Where(record => record.StepId == flow.StepId && (validAfter == null || record.ReviewDateTime > validAfter.Value))
+                                         .OrderBy(record => record.ReviewDateTime)
+                                         .ToList();
+
                 // 该步骤只要有人在有效时间后核准过，就认为该步骤已核准
-                bool stepHasApprove = approveRecords.Any(record => record.StepId == flow.StepId && (validAfter == null || record.ReviewDateTime > validAfter.Value));
+                bool stepHasApprove = stepApproveRecords.Any();
+
+                // 流程未变动但人员变动：签核记录里的人已不在当前解析出的审批人中；同一步骤有多笔时取最近的一笔
+                var changedRecord = stepApproveRecords
+                                    .LastOrDefault(record => !flow.StepReviewUser.Any(user => IsSameReviewer(user, record)));
 
                 foreach (var user in flow.StepReviewUser)
                 {
@@ -672,10 +685,52 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             ? ReviewStatus.UnderReview.ToEnumString()
                             : ReviewStatus.Unsigned.ToEnumString();
                     }
+
+                    // 该审批人自己没有签核记录，且该步骤存在他人的签核记录时，显示之前签核的人
+                    bool selfSigned = stepApproveRecords.Any(record => IsSameReviewer(user, record));
+                    if (!selfSigned && changedRecord != null)
+                    {
+                        user.HistoryUserId = changedRecord.OriginalUserId;
+                        user.HistoryUserName = historyUserNameMap.TryGetValue(changedRecord.OriginalUserId, out var historyUserName)
+                            ? historyUserName
+                            : string.Empty;
+                    }
                 }
             }
 
             return reviewFlow;
+        }
+
+        /// <summary>
+        /// 判断审批记录是否由该审批人（实或兼 / 代）签核
+        /// </summary>
+        private static bool IsSameReviewer(UserReview user, FormReviewRecordEntity record)
+        {
+            return record.OriginalUserId == user.ReviewUserId
+                   || record.OperationUserId == user.ReviewUserId
+                   || (user.AgentUserId.HasValue && (record.OriginalUserId == user.AgentUserId.Value || record.OperationUserId == user.AgentUserId.Value));
+        }
+
+        /// <summary>
+        /// 查询审批记录中签核人的姓名（UserId -&gt; 姓名）
+        /// </summary>
+        private async Task<Dictionary<long, string>> GetReviewRecordUserNames(List<FormReviewRecordEntity> records)
+        {
+            var userIds = records.Select(record => record.OriginalUserId).Distinct().ToList();
+
+            if (userIds.Count == 0)
+            {
+                return new Dictionary<long, string>();
+            }
+
+            bool isChinese = _lang.Locale == "zh-CN";
+
+            var users = await _db.Queryable<UserInfoEntity>()
+                                 .With(SqlWith.NoLock)
+                                 .Where(user => userIds.Contains(user.UserId))
+                                 .ToListAsync();
+
+            return users.ToDictionary(user => user.UserId, user => isChinese ? user.UserNameCn : user.UserNameEn);
         }
 
         /// <summary>

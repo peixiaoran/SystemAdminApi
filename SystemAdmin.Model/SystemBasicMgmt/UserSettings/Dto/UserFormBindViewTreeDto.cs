@@ -31,11 +31,6 @@ namespace SystemAdmin.Model.SystemBasicMgmt.UserSettings.Dto
         public string Description { get; set; } = string.Empty;
 
         /// <summary>
-        /// 是否启用（1、是 0、否）
-        /// </summary>
-        public int Disabled { get; set; }
-
-        /// <summary>
         /// 是否绑定
         /// </summary>
         public int IsChecked { get; set; }

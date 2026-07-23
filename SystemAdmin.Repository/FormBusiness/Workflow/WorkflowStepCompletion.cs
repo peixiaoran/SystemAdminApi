@@ -1,4 +1,6 @@
 ﻿using SqlSugar;
+using SystemAdmin.Common.Enums.FormBusiness;
+using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
@@ -64,64 +66,70 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                         .Select((instance, leave) => leave)
                                         .FirstAsync();
 
-            var startTime = leaveRequest.StartDateTime!.Value;
-            var endTime = leaveRequest.EndDateTime!.Value;
-
-            // 按年度拆分请假工时（上午 8-12、下午 13-17，跨年按自然年归集）
-            var leaveHoursByYear = CalcHoursByYear(startTime, endTime);
-
             var formInstance = await _db.Queryable<FormInstanceEntity>()
                                         .FirstAsync(instance => instance.FormId == formId);
 
-            var userInfo = await _db.Queryable<UserInfoEntity>()
-                                    .FirstAsync(user => user.UserId == formInstance.ApplicantUserId);
-
-            var isChinese = _lang.Locale == "zh-CN";
-            var userName = isChinese ? userInfo.UserNameCn : userInfo.UserNameEn;
-
-            var leaveInfo = await _db.Queryable<DictionaryInfoEntity>()
-                                     .Where(dic => dic.DicType == "LeaveType" && dic.DicCode == leaveRequest.LeaveType)
-                                     .FirstAsync();
-            var leaveName = isChinese ? leaveInfo.DicNameCn : leaveInfo.DicNameEn;
+            // 仅 Annual、Sick 占用余额
+            var needBalance = leaveRequest.LeaveType == LeaveType.Annual.ToEnumString() || leaveRequest.LeaveType == LeaveType.Sick.ToEnumString();
 
             var updateBlance = 0;
-            foreach (var (year, hours) in leaveHoursByYear)
+            if (needBalance)
             {
-                var days = Math.Ceiling(hours / 8);
-                var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
-                                           .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType);
+                var startTime = leaveRequest.StartDateTime!.Value;
+                var endTime = leaveRequest.EndDateTime!.Value;
 
-                if (leaveAnnual == null)
+                // 按年度拆分请假工时（上午 8-12、下午 13-17，跨年按自然年归集）
+                var leaveHoursByYear = CalcHoursByYear(startTime, endTime);
+
+                var userInfo = await _db.Queryable<UserInfoEntity>()
+                                        .FirstAsync(user => user.UserId == formInstance.ApplicantUserId);
+
+                var isChinese = _lang.Locale == "zh-CN";
+                var userName = isChinese ? userInfo.UserNameCn : userInfo.UserNameEn;
+
+                var leaveInfo = await _db.Queryable<DictionaryInfoEntity>()
+                                         .Where(dic => dic.DicType == "LeaveType" && dic.DicCode == leaveRequest.LeaveType)
+                                         .FirstAsync();
+                var leaveName = isChinese ? leaveInfo.DicNameCn : leaveInfo.DicNameEn;
+
+                foreach (var (year, hours) in leaveHoursByYear)
                 {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
-                    {
-                        userName ?? formInstance.ApplicantUserId.ToString(),
-                        year,
-                        leaveName
-                    }));
-                }
+                    var days = Math.Ceiling(hours / 8);
+                    var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
+                                               .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType);
 
-                var newRemainingDays = leaveAnnual.RemainingDays - (decimal)days;
-                if (newRemainingDays < 0)
-                {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance", args: new object[]
+                    if (leaveAnnual == null)
                     {
-                        userName ?? formInstance.ApplicantUserId.ToString(),
-                        year,
-                        leaveName,
-                        leaveAnnual.RemainingDays,
-                        days
-                    }));
-                }
+                        return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
+                        {
+                            userName ?? formInstance.ApplicantUserId.ToString(),
+                            year,
+                            leaveName
+                        }));
+                    }
 
-                updateBlance = await _db.Updateable<UserLeaveBalanceEntity>()
-                                        .SetColumns(annual => new UserLeaveBalanceEntity
-                                        {
-                                            RemainingDays = newRemainingDays,
-                                            ModifiedBy = formInstance.CreatedBy,
-                                            ModifiedDate = DateTime.Now
-                                        }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType)
-                                        .ExecuteCommandAsync();
+                    var newRemainingDays = leaveAnnual.RemainingDays - (decimal)days;
+                    if (newRemainingDays < 0)
+                    {
+                        return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance", args: new object[]
+                        {
+                            userName ?? formInstance.ApplicantUserId.ToString(),
+                            year,
+                            leaveName,
+                            leaveAnnual.RemainingDays,
+                            days
+                        }));
+                    }
+
+                    updateBlance = await _db.Updateable<UserLeaveBalanceEntity>()
+                                            .SetColumns(annual => new UserLeaveBalanceEntity
+                                            {
+                                                RemainingDays = newRemainingDays,
+                                                ModifiedBy = formInstance.CreatedBy,
+                                                ModifiedDate = DateTime.Now
+                                            }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType)
+                                            .ExecuteCommandAsync();
+                }
             }
 
             // 记录代理人信息
@@ -144,7 +152,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             }).Where(user => user.UserId == leaveRequest.AgentUserId)
                                             .ExecuteCommandAsync();
 
-            return Result<bool>.Ok(updateBlance>=1 && insertAgentCount >= 1 && updateAgentCount >= 1);
+            return Result<bool>.Ok((!needBalance || updateBlance >= 1) && insertAgentCount >= 1 && updateAgentCount >= 1);
         }
 
         #endregion
@@ -167,6 +175,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(leave => leave.FormId == cancell.LeaveRequestId)
                                      .Select(leave => leave.LeaveType)
                                      .FirstAsync();
+
+            // 仅 Annual、Sick 占用余额，其余假别无需加回
+            if (leaveType != LeaveType.Annual.ToEnumString() && leaveType != LeaveType.Sick.ToEnumString())
+            {
+                return Result<bool>.Ok(true);
+            }
 
             var startTime = cancell.StartDateTime!.Value;
             var endTime = cancell.EndDateTime!.Value;

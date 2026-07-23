@@ -38,7 +38,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.UserSettings
 
         [HttpPost]
         [Tags("系统基础管理-用户相关配置")]
-        [EndpointSummary("[用户表单绑定] 查询用户表单绑定树")]
+        [EndpointSummary("[用户表单绑定] 查询表单绑定")]
         public async Task<Result<List<UserFormViewTreeDto>>> GetUserFormViewTree([FromForm] string userId)
         {
             return await _userFormBindService.GetUserFormViewTree(userId);
@@ -46,7 +46,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.UserSettings
 
         [HttpPost]
         [Tags("系统基础管理-用户相关配置")]
-        [EndpointSummary("[用户表单绑定] 更新用户表单绑定")]
+        [EndpointSummary("[用户表单绑定] 更新表单绑定")]
         public async Task<Result<int>> UpdateUserForm([FromBody] UserFormUpsert upsert)
         {
             return await _userFormBindService.UpdateUserForm(upsert);

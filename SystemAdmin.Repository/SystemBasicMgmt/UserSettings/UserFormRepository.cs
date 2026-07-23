@@ -124,7 +124,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                                          Description = _lang.Locale == "zh-CN"
                                                              ? formgroup.DescriptionCn
                                                              : formgroup.DescriptionEn,
-                                         Disabled = 1,
                                          IsChecked = SqlFunc.IsNull(userform.UserId, 0) > 0 ? 1 : 0,
                                          FormTypeChildren = new List<UserFormViewTreeDto>()
                                      }).ToListAsync();
