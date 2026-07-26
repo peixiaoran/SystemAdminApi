@@ -78,6 +78,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                 RuleName = _lang.Locale == "zh-CN"
                                            ? rule.RuleNameCn
                                            : rule.RuleNameEn,
+                                Version = rule.Version,
                             }).ToListAsync();
         }
 

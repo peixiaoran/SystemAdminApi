@@ -18,5 +18,10 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// 规则名称
         /// </summary>
         public string RuleName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 版本号
+        /// </summary>
+        public string Version { get; set; } = string.Empty;
     }
 }
