@@ -231,4 +231,22 @@
   <data name="PdfStampApproved" xml:space="preserve">
     <value>审批完成</value>
   </data>
+  <data name="PdfLeaveCancellTitle" xml:space="preserve">
+    <value>销假单</value>
+  </data>
+  <data name="PdfOriginalLeaveRequest" xml:space="preserve">
+    <value>原请假单</value>
+  </data>
+  <data name="PdfLeaveRequestNo" xml:space="preserve">
+    <value>请假单号</value>
+  </data>
+  <data name="PdfLeaveRequestHours" xml:space="preserve">
+    <value>请假时数</value>
+  </data>
+  <data name="PdfCancellPeriod" xml:space="preserve">
+    <value>销假时间</value>
+  </data>
+  <data name="PdfCancellHours" xml:space="preserve">
+    <value>时数</value>
+  </data>
 </root>

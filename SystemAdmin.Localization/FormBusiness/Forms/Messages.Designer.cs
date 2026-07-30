@@ -205,6 +205,24 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 时数 的本地化字符串。
+        /// </summary>
+        internal static string PdfCancellHours {
+            get {
+                return ResourceManager.GetString("PdfCancellHours", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 销假时间 的本地化字符串。
+        /// </summary>
+        internal static string PdfCancellPeriod {
+            get {
+                return ResourceManager.GetString("PdfCancellPeriod", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 意见 的本地化字符串。
         /// </summary>
         internal static string PdfComment {
@@ -231,6 +249,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
             }
         }
         
+        /// <summary>
+        ///   查找类似 销假单 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveCancellTitle {
+            get {
+                return ResourceManager.GetString("PdfLeaveCancellTitle", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 请假总时数 的本地化字符串。
         /// </summary>
@@ -259,6 +286,24 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 请假时数 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveRequestHours {
+            get {
+                return ResourceManager.GetString("PdfLeaveRequestHours", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 请假单号 的本地化字符串。
+        /// </summary>
+        internal static string PdfLeaveRequestNo {
+            get {
+                return ResourceManager.GetString("PdfLeaveRequestNo", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 请假单 的本地化字符串。
         /// </summary>
         internal static string PdfLeaveRequestTitle {
@@ -285,6 +330,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
             }
         }
         
+        /// <summary>
+        ///   查找类似 原请假单 的本地化字符串。
+        /// </summary>
+        internal static string PdfOriginalLeaveRequest {
+            get {
+                return ResourceManager.GetString("PdfOriginalLeaveRequest", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 审批记录 的本地化字符串。
         /// </summary>

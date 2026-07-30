@@ -175,7 +175,7 @@
     <value>Apply Date</value>
   </data>
   <data name="PdfUserNo" xml:space="preserve">
-    <value>User No</value>
+    <value>User No.</value>
   </data>
   <data name="PdfUserName" xml:space="preserve">
     <value>User Name</value>
@@ -190,10 +190,10 @@
     <value>Leave Time</value>
   </data>
   <data name="PdfAgentUser" xml:space="preserve">
-    <value>Agent</value>
+    <value>Agent User</value>
   </data>
   <data name="PdfLeaveHours" xml:space="preserve">
-    <value>Total Hours</value>
+    <value>Hours</value>
   </data>
   <data name="PdfLeaveReason" xml:space="preserve">
     <value>Reason</value>
@@ -214,7 +214,7 @@
     <value>Step</value>
   </data>
   <data name="PdfReviewUser" xml:space="preserve">
-    <value>Approver</value>
+    <value>User</value>
   </data>
   <data name="PdfReviewResult" xml:space="preserve">
     <value>Result</value>
@@ -223,12 +223,30 @@
     <value>Comment</value>
   </data>
   <data name="PdfReviewTime" xml:space="preserve">
-    <value>Time</value>
+    <value>Review Time</value>
   </data>
   <data name="PdfNoData" xml:space="preserve">
     <value>No Data</value>
   </data>
   <data name="PdfStampApproved" xml:space="preserve">
     <value>APPROVED</value>
+  </data>
+  <data name="PdfLeaveCancellTitle" xml:space="preserve">
+    <value>Leave Cancellation</value>
+  </data>
+  <data name="PdfOriginalLeaveRequest" xml:space="preserve">
+    <value>Request</value>
+  </data>
+  <data name="PdfLeaveRequestNo" xml:space="preserve">
+    <value>Leave No.</value>
+  </data>
+  <data name="PdfLeaveRequestHours" xml:space="preserve">
+    <value>Hours</value>
+  </data>
+  <data name="PdfCancellPeriod" xml:space="preserve">
+    <value>Time</value>
+  </data>
+  <data name="PdfCancellHours" xml:space="preserve">
+    <value>Hours</value>
   </data>
 </root>

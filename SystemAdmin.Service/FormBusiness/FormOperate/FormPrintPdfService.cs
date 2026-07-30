@@ -8,6 +8,9 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
+// 销假单Dto按类型引入，避免与请假单Dto命名空间下的同名类型冲突
+using LeaveCancellDto = SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto.LeaveCancellDto;
+using LeaveRequestDetailDto = SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto.LeaveRequestDetailDto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 
@@ -25,6 +28,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
         private readonly LeaveRequestRepository _leaveRequestRepo;
+        private readonly LeaveCancellRepository _leaveCancellRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
@@ -36,19 +40,20 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
         }
 
-        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _lang = lang;
             _formChecker = formChecker;
             _leaveRequestRepo = leaveRequestRepo;
+            _leaveCancellRepo = leaveCancellRepo;
             _formmanger = formmanger;
             _localization = localization;
         }
 
         /// <summary>
-        /// 打印PDF（根据表单前缀分发，LVR=请假单）
+        /// 打印PDF（根据表单前缀分发，LVR=请假单，LCF=销假单）
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId)
         {
@@ -60,6 +65,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 return prefix switch
                 {
                     "LVR" => await PrintLeaveRequestPdf(id),
+                    "LCF" => await PrintLeaveCancellPdf(id),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -83,13 +89,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
             }
 
-            // 表头、附件、审批记录、栏位权限（按当前登录用户，仅判断是否显示）
             var form = await _leaveRequestRepo.GetLeaveRequest(formId);
             form.Attachment = await _formmanger.GetAttachmentList(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
             form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
 
-            // 假别名称（按当前语言取字典）
             var leaveTypeDics = await _leaveRequestRepo.GetLeaveTypeDictionary();
             var leaveTypeDic = leaveTypeDics.FirstOrDefault(dic => dic.DicCode == form.LeaveType);
             var leaveTypeName = _lang.Locale == "zh-CN" ? leaveTypeDic?.DicNameCn : leaveTypeDic?.DicNameEn;
@@ -124,47 +128,40 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                     {
                         ComposeTitle(column, Msg("PdfLeaveRequestTitle"));
 
-                        // 表单编号 / 申请日期
                         var row1 = new List<PdfField>();
                         if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
                         if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
                         ComposeFieldRow(column, row1);
 
-                        // 用户工号 / 用户姓名 / 用户部门
                         var row2 = new List<PdfField>();
                         if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
                         if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
                         if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
                         ComposeFieldRow(column, row2);
 
-                        // 请假类型 / 代理人
                         var row3 = new List<PdfField>();
-                        if (show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty, Width: FirstValueCellWidth, Required: true));
+                        if (show("LeaveType")) row3.Add(new PdfField(Msg("PdfLeaveType"), leaveTypeName ?? string.Empty, Width: FirstValueCellWidth));
                         if (show("SelectAgent")) row3.Add(new PdfField(Msg("PdfAgentUser"), form.AgentUserName ?? string.Empty));
                         ComposeFieldRow(column, row3);
 
-                        // 请假时间 / 请假总时数
                         var row4 = new List<PdfField>();
-                        if (show("LeavePeriod")) row4.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod, Weight: 3f, Required: true));
+                        if (show("LeavePeriod")) row4.Add(new PdfField(Msg("PdfLeavePeriod"), leavePeriod, Weight: 3f));
                         if (show("LeaveHours")) row4.Add(new PdfField(Msg("PdfLeaveHours"), (form.LeaveHours ?? 0).ToString("0.00"), Emphasized: true));
                         ComposeFieldRow(column, row4);
 
-                        // 请假事由
                         if (show("LeaveReason"))
                         {
                             ComposeFieldRow(column, new List<PdfField>
                             {
-                                new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f, Required: true)
+                                new PdfField(Msg("PdfLeaveReason"), form.LeaveReason ?? string.Empty, MinHeight: 44f)
                             });
                         }
 
-                        // 附件
                         if (show("Upload"))
                         {
                             ComposeAttachmentTable(column, form.Attachment);
                         }
 
-                        // 审批记录
                         ComposeReviewRecordTable(column, form.ReviewRecord);
                     });
                 });
@@ -175,9 +172,134 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         #endregion
 
+        #region 销假单PDF
+
+        /// <summary>
+        /// 生成销假单PDF（权限校验+取数）
+        /// </summary>
+        private async Task<Result<FormPdfDto>> PrintLeaveCancellPdf(long formId)
+        {
+            var isCan = await _formChecker.CanView(formId, "View");
+            if (!isCan)
+            {
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
+            }
+
+            var form = await _leaveCancellRepo.GetLeaveCancell(formId);
+            form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
+            form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
+
+            var leaveRequest = form.LeaveRequestId.HasValue
+                ? await _leaveCancellRepo.GetLeaveRequestDetail(form.LeaveRequestId.Value)
+                : null;
+
+            var pdf = new FormPdfDto
+            {
+                FileName = $"{Msg("PdfLeaveCancellTitle")}_{form.FormNo}.pdf",
+                FileStream = BuildLeaveCancellPdf(form, leaveRequest)
+            };
+            return Result<FormPdfDto>.Ok(pdf);
+        }
+
+        /// <summary>
+        /// 组装销假单PDF文档（仅负责销假单版面，通用部分调用「PDF通用组件」）
+        /// </summary>
+        private MemoryStream BuildLeaveCancellPdf(LeaveCancellDto form, LeaveRequestDetailDto? leaveRequest)
+        {
+            var show = BuildFieldVisibility(form.StepFieldPermission);
+
+            var cancellPeriod = form.StartDateTime.HasValue && form.EndDateTime.HasValue
+                ? $"{form.StartDateTime:yyyy-MM-dd  HH:mm}  ~  {form.EndDateTime:yyyy-MM-dd  HH:mm}"
+                : string.Empty;
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    ConfigurePage(page);
+                    ComposeApprovalStamp(page, form.FormStatus, form.ReviewRecord);
+
+                    page.Content().Column(column =>
+                    {
+                        ComposeTitle(column, Msg("PdfLeaveCancellTitle"));
+
+                        var row1 = new List<PdfField>();
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
+                        if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
+                        ComposeFieldRow(column, row1);
+
+                        var row2 = new List<PdfField>();
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
+                        ComposeFieldRow(column, row2);
+
+                        if (show("LeaveRequestTable"))
+                        {
+                            ComposeLeaveRequestTable(column, leaveRequest);
+                        }
+
+                        var row3 = new List<PdfField>();
+                        if (show("TimePeriod")) row3.Add(new PdfField(Msg("PdfCancellPeriod"), cancellPeriod, Weight: 3f));
+                        if (show("Hour")) row3.Add(new PdfField(Msg("PdfCancellHours"), (form.CancellHours ?? 0).ToString("0.00"), Emphasized: true, ValueColor: HighlightColor));
+                        ComposeFieldRow(column, row3);
+
+                        ComposeReviewRecordTable(column, form.ReviewRecord);
+                    });
+                });
+            });
+
+            return GeneratePdfStream(document);
+        }
+
+        /// <summary>
+        /// 组装原请假单表格（左侧标签+右侧表格，仅一行请假单明细）
+        /// </summary>
+        private void ComposeLeaveRequestTable(ColumnDescriptor column, LeaveRequestDetailDto? leaveRequest)
+        {
+            column.Item().PaddingBottom(10).Row(row =>
+            {
+                row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfOriginalLeaveRequest")).FontColor(LabelTextColor);
+                row.RelativeItem().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.RelativeColumn(2f);
+                        columns.RelativeColumn(1.6f);
+                        columns.RelativeColumn(4f);
+                        columns.RelativeColumn(1.4f);
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfLeaveRequestNo")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfLeaveType")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfLeavePeriod")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfLeaveRequestHours")).FontColor(LabelTextColor);
+                    });
+
+                    if (leaveRequest == null)
+                    {
+                        table.Cell().ColumnSpan(4).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
+                        return;
+                    }
+
+                    var leavePeriod = leaveRequest.StartDateTime.HasValue && leaveRequest.EndDateTime.HasValue
+                        ? $"{leaveRequest.StartDateTime:yyyy-MM-dd  HH:mm}  ~  {leaveRequest.EndDateTime:yyyy-MM-dd  HH:mm}"
+                        : string.Empty;
+
+                    table.Cell().Element(BodyCell).AlignCenter().Text(leaveRequest.LeaveRequestNo);
+                    table.Cell().Element(BodyCell).AlignCenter().Text(leaveRequest.LeaveTypeName ?? string.Empty);
+                    table.Cell().Element(BodyCell).AlignCenter().Text(leavePeriod);
+                    table.Cell().Element(BodyCell).AlignCenter().Text((leaveRequest.LeaveHours ?? 0).ToString("0.00")).FontColor(EmphasizedColor).SemiBold();
+                });
+            });
+        }
+
+        #endregion
+
         #region PDF通用组件（多表单共用：样式、页面、标题、栏位行、表格、印章）
 
-        // 通用样式
         private const string FontFamilyName = "Microsoft YaHei";
         private const string BorderColor = "#DCDFE6";
         private const string LabelBgColor = "#F5F7FA";
@@ -185,6 +307,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private const string BodyTextColor = "#303133";
         private const string MutedTextColor = "#909399";
         private const string EmphasizedColor = "#F56C6C";
+        private const string HighlightColor = "#409EFF";
         private const string StampColor = "#1F9254";
 
         // 标签格宽度 / 每行第一个值格的固定宽度（保证各行第二个栏位起始位置对齐）
@@ -195,7 +318,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// 表单栏位（标签+值）
         /// Width 大于 0 时值格固定宽度（用于跨行对齐），否则按 Weight 分配剩余宽度
         /// </summary>
-        private sealed record PdfField(string Label, string Value, float Weight = 1f, bool Emphasized = false, float MinHeight = 0f, float Width = 0f, bool Required = false);
+        private sealed record PdfField(string Label, string Value, float Weight = 1f, bool Emphasized = false, float MinHeight = 0f, float Width = 0f, string? ValueColor = null);
 
         /// <summary>
         /// 读取表单多语言文案
@@ -251,15 +374,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             {
                 foreach (var field in fields)
                 {
-                    // 标签：必填栏位前置红色星号
-                    row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(label =>
-                    {
-                        if (field.Required)
-                        {
-                            label.Span("* ").FontColor(EmphasizedColor);
-                        }
-                        label.Span(field.Label).FontColor(LabelTextColor);
-                    });
+                    row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(field.Label).FontColor(LabelTextColor);
 
                     // 指定宽度的值格用于跨行对齐（如表单编号、请假类型），其余按权重分配
                     var valueItem = field.Width > 0
@@ -270,7 +385,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                                         .Text(field.Value);
                     if (field.Emphasized)
                     {
-                        text.FontColor(EmphasizedColor).SemiBold();
+                        text.FontColor(field.ValueColor ?? EmphasizedColor).SemiBold();
                     }
                 }
             });
@@ -311,7 +426,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                     {
                         table.Cell().Element(BodyCell).Text(index++.ToString());
                         table.Cell().Element(BodyCell).Text(attachment.AttachmentName);
-                        table.Cell().Element(BodyCell).AlignRight().Text($"{attachment.AttachmentSize} KB");
+                        table.Cell().Element(BodyCell).AlignCenter().Text($"{attachment.AttachmentSize} KB");
                     }
                 });
             });
@@ -329,11 +444,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 table.ColumnsDefinition(columns =>
                 {
                     columns.ConstantColumn(30);
-                    columns.RelativeColumn(2f);    // 审批步骤
-                    columns.RelativeColumn(2f);    // 审批人
-                    columns.RelativeColumn(1.2f);  // 审批结果
-                    columns.RelativeColumn(4f);    // 意见
-                    columns.RelativeColumn(2.4f);  // 审批时间
+                    columns.RelativeColumn(2f);
+                    columns.RelativeColumn(2f);
+                    columns.RelativeColumn(1.2f);
+                    columns.RelativeColumn(4f);
+                    columns.RelativeColumn(2.4f);
                 });
 
                 table.Header(header =>
@@ -358,17 +473,25 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                     table.Cell().Element(BodyCell).Text(index++.ToString());
                     table.Cell().Element(BodyCell).Text(record.StepName);
 
-                    // 审批人：非本人审批（兼、代、自动指派）时在姓名下方补充审批身份
-                    table.Cell().Element(BodyCell).Column(user =>
+                    // 审批人：非本人审批（兼、代、自动指派）时在姓名右侧标注审批身份
+                    table.Cell().Element(BodyCell).Row(user =>
                     {
-                        user.Item().Text(record.OperationUserName);
+                        user.RelativeItem().Text(record.OperationUserName);
                         if (record.AppointmentType != AppointmentType.Actual.ToEnumString() && !string.IsNullOrWhiteSpace(record.AppointmentTypeName))
                         {
-                            user.Item().Text(record.AppointmentTypeName).FontSize(7.5f).FontColor(MutedTextColor);
+                            user.AutoItem().PaddingLeft(4).Text(record.AppointmentTypeName).FontSize(7f).FontColor(MutedTextColor);
                         }
                     });
 
-                    table.Cell().Element(BodyCell).Text(record.ReviewResultName);
+                    // 审批结果：驳回时在结果下方补充驳回至的步骤
+                    table.Cell().Element(BodyCell).Column(result =>
+                    {
+                        result.Item().Text(record.ReviewResultName);
+                        if (record.ReviewResult == ReviewResult.Reject.ToEnumString() && !string.IsNullOrWhiteSpace(record.RejectStepName))
+                        {
+                            result.Item().Text($"({record.RejectStepName})").FontSize(7.5f).FontColor(MutedTextColor);
+                        }
+                    });
                     table.Cell().Element(BodyCell).Text(record.Comment);
                     table.Cell().Element(BodyCell).Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
                 }
