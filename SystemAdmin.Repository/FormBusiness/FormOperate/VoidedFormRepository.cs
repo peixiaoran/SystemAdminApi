@@ -67,25 +67,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 表单状态下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<List<FormStatusDropDto>> GetFormStatusDrop()
-        {
-            return await _db.Queryable<DictionaryInfoEntity>()
-                            .With(SqlWith.NoLock)
-                            .Where(dic => dic.DicType == "FormStatus")
-                            .OrderBy(dic => dic.SortOrder)
-                            .Select(dic => new FormStatusDropDto
-                            {
-                                FormStatusCode = dic.DicCode,
-                                FormStatusName = _lang.Locale == "zh-CN"
-                                                 ? dic.DicNameCn
-                                                 : dic.DicNameEn,
-                            }).ToListAsync();
-        }
-
-        /// <summary>
         /// 查询待送审分页
         /// </summary>
         /// <param name="getPage"></param>

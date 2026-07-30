@@ -69,24 +69,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 表单状态下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Result<List<FormStatusDropDto>>> GetFormStatusDrop()
-        {
-            try
-            {
-                var drop = await _applyHistoryRepo.GetFormStatusDrop();
-                return Result<List<FormStatusDropDto>>.Ok(drop);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<List<FormStatusDropDto>>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
         /// 查询申请记录分页
         /// </summary>
         /// <returns></returns>

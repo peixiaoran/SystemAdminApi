@@ -746,49 +746,43 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 自动降级查询审批人身份：职级自高向低、部门级别自内向外逐一尝试，取第一个命中的组合
+        /// 自动降级查询审批人身份：职级自高向低、部门级别自内向外取第一个有人的组合。
+        /// 由数据库一次排名取回，无需逐组合往返
         /// </summary>
         private async Task<List<UserAppointment>> FindDowngradeAppointments(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isSingle, bool withAgent)
         {
+            // 降级从低于当前职级一级开始；无可降级范围或无部门链时直接结束
+            int maxPositionSort = fromPositionSort - 1;
+            if (maxPositionSort < 1 || fromDeptLevelSort < 1 || string.IsNullOrEmpty(parentDeptIds))
+            {
+                return new List<UserAppointment>();
+            }
+
             var (_, _, _, _, autoActual, autoAgent, autoConcurrent, autoConcurrentAgent) = ReviewUserSql.AppointmentEnumStrings();
             var projection = withAgent ? ReviewUserProjection.Appointment : ReviewUserProjection.AppointmentNoAgent;
 
-            string sql = ReviewUserSql.AutoSql(
+            string sql = ReviewUserSql.AutoRankedSql(
                 projection,
                 parentDeptIds,
                 topN: isSingle ? "TOP 1" : "",
                 orderBy: ReviewUserSql.BuildOrderBy(isSingle, isAuto: true));
 
-            var now = DateTime.Now;
-
-            for (int positionSort = fromPositionSort - 1; positionSort >= 1; positionSort--)
+            var parameters = new List<SugarParameter>
             {
-                for (int deptLevelSort = fromDeptLevelSort; deptLevelSort >= 1; deptLevelSort--)
-                {
-                    var parameters = new List<SugarParameter>
-                    {
-                        new SugarParameter("@CurrentPositionSort", positionSort),
-                        new SugarParameter("@CurrentDeptLevelSort", deptLevelSort),
-                        new SugarParameter("@AutoActual", autoActual),
-                        new SugarParameter("@AutoConcurrent", autoConcurrent),
-                    };
-                    if (withAgent)
-                    {
-                        parameters.Add(new SugarParameter("@Now", now));
-                        parameters.Add(new SugarParameter("@AutoAgent", autoAgent));
-                        parameters.Add(new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent));
-                    }
-
-                    var result = await _db.Ado.SqlQueryAsync<UserAppointment>(sql, parameters.ToArray());
-
-                    if (result.Any())
-                    {
-                        return result;
-                    }
-                }
+                new SugarParameter("@MaxPositionSort", maxPositionSort),
+                new SugarParameter("@MaxDeptLevelSort", fromDeptLevelSort),
+                new SugarParameter("@AutoActual", autoActual),
+                new SugarParameter("@AutoConcurrent", autoConcurrent),
+            };
+            if (withAgent)
+            {
+                parameters.Add(new SugarParameter("@Now", DateTime.Now));
+                parameters.Add(new SugarParameter("@AutoAgent", autoAgent));
+                parameters.Add(new SugarParameter("@AutoConcurrentAgent", autoConcurrentAgent));
             }
 
-            return new List<UserAppointment>();
+            var result = await _db.Ado.SqlQueryAsync<UserAppointment>(sql, parameters.ToArray());
+            return result ?? new List<UserAppointment>();
         }
 
         #endregion

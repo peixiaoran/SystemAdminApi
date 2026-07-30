@@ -38,14 +38,6 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[申请历史记录] 表单状态下拉")]
-        public async Task<Result<List<FormStatusDropDto>>> GetFormStatusDrop()
-        {
-            return await _appHistoryService.GetFormStatusDrop();
-        }
-
-        [HttpPost]
-        [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[申请历史记录] 查询申请记录分页")]
         public async Task<ResultPaged<FormHistoryDto>> GetApplyHistoryPage([FromBody] GetFormHistoryPage getpage)
         {

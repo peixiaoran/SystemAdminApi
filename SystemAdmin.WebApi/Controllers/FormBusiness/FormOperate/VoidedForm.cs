@@ -36,14 +36,6 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
 
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
-        [EndpointSummary("[作废表单列表] 表单状态下拉")]
-        public async Task<Result<List<FormStatusDropDto>>> GetFormStatusDrop()
-        {
-            return await _voidedFormService.GetFormStatusDrop();
-        }
-
-        [HttpPost]
-        [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[作废表单列表] 查询作废表单分页")]
         public async Task<ResultPaged<VoidedFormDto>> GetVoidedFormsPage([FromBody] GetVoidedFormPage getpage)
         {

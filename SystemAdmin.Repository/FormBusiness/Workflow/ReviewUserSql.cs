@@ -61,19 +61,38 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             };
             string partTimeWhere = filter == ReviewUserFilter.User ? "partime.UserId = @UserId" : fullTimeWhere;
 
-            return Compose(projection, joinOrg, fullTimeWhere, partTimeWhere, isAuto: false, topN, orderBy);
+            return Compose(projection, joinOrg, fullTimeWhere, partTimeWhere, topN, orderBy);
         }
 
         /// <summary>
-        /// 自动降级查询：在上级部门链内按 @CurrentPositionSort / @CurrentDeptLevelSort 查找。
+        /// 自动降级查询（单次往返）：在上级部门链内一次取回「职级最高、同职级下部门级别最内」的那一组人。
+        /// 等价于职级自高向低、部门级别自内向外逐组合尝试并取第一个命中的组合，但只需一次查询。
+        /// 参数：@MaxPositionSort、@MaxDeptLevelSort，带代理时另需 @Now 及 Auto 身份枚举参数。
         /// </summary>
-        internal static string AutoSql(ReviewUserProjection projection, string parentDeptIds, string topN, string orderBy)
+        internal static string AutoRankedSql(ReviewUserProjection projection, string parentDeptIds, string topN, string orderBy)
         {
             string where = $@"dept.DepartmentId IN ({parentDeptIds})
-                  AND position.SortOrder = @CurrentPositionSort
-                  AND deptlevel.SortOrder = @CurrentDeptLevelSort";
+                  AND position.SortOrder BETWEEN 1 AND @MaxPositionSort
+                  AND deptlevel.SortOrder BETWEEN 1 AND @MaxDeptLevelSort";
 
-            return Compose(projection, joinOrg: true, where, where, isAuto: true, topN, orderBy);
+            string fullTimeBranch = Branch(projection, partTime: false, joinOrg: true, where, isAuto: true, withSortColumns: true);
+            string partTimeBranch = Branch(projection, partTime: true, joinOrg: true, where, isAuto: true, withSortColumns: true);
+
+            // DENSE_RANK 取排名第一的组合，即逐组合尝试时第一个能命中的 (职级, 部门级别)
+            return $@"
+            SELECT {topN}
+                {OuterColumns(projection)}
+            FROM (
+                SELECT candidate.*,
+                       DENSE_RANK() OVER (ORDER BY candidate.PositionSort DESC, candidate.DeptLevelSort DESC) AS DowngradeRank
+                FROM (
+                    {fullTimeBranch}
+                    UNION ALL
+                    {partTimeBranch}
+                ) candidate
+            ) t
+            WHERE t.DowngradeRank = 1
+            {orderBy}";
         }
 
         /// <summary>
@@ -115,9 +134,25 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             AppointmentType.AutoConcurrentAgent.ToEnumString()
         );
 
-        private static string Compose(ReviewUserProjection projection, bool joinOrg, string fullTimeWhere, string partTimeWhere, bool isAuto, string topN, string orderBy)
+        private static string Compose(ReviewUserProjection projection, bool joinOrg, string fullTimeWhere, string partTimeWhere, string topN, string orderBy)
         {
-            string outerColumns = projection.WithNames
+            string fullTimeBranch = Branch(projection, partTime: false, joinOrg, fullTimeWhere, isAuto: false);
+            string partTimeBranch = Branch(projection, partTime: true, joinOrg, partTimeWhere, isAuto: false);
+
+            return $@"
+            SELECT {topN}
+                {OuterColumns(projection)}
+            FROM (
+                {fullTimeBranch}
+                UNION ALL
+                {partTimeBranch}
+            ) t
+            {orderBy}";
+        }
+
+        private static string OuterColumns(ReviewUserProjection projection)
+        {
+            return projection.WithNames
                 ? @"ReviewUserId,
                 ReviewUserName,
                 AgentUserId,
@@ -133,22 +168,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 t.AppointmentType"
                     : @"t.ReviewUserId,
                 t.AppointmentType";
-
-            string fullTimeBranch = Branch(projection, partTime: false, joinOrg, fullTimeWhere, isAuto);
-            string partTimeBranch = Branch(projection, partTime: true, joinOrg, partTimeWhere, isAuto);
-
-            return $@"
-            SELECT {topN}
-                {outerColumns}
-            FROM (
-                {fullTimeBranch}
-                UNION ALL
-                {partTimeBranch}
-            ) t
-            {orderBy}";
         }
 
-        private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto)
+        private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto, bool withSortColumns = false)
         {
             // 专职记实/代身份，兼职记兼/兼代身份；自动降级换用 Auto 前缀枚举
             string actualParam = partTime
@@ -205,6 +227,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                               AND dic.DicCode = {actualParam}
                         )
                     END AS AppointmentTypeName");
+                columns.Add("deptlevel.SortOrder AS DeptLevelSort");
+                columns.Add("position.SortOrder AS PositionSort");
+            }
+            else if (withSortColumns)
+            {
+                // 精简投影下降级排名仍需排序列参与内层计算
                 columns.Add("deptlevel.SortOrder AS DeptLevelSort");
                 columns.Add("position.SortOrder AS PositionSort");
             }
