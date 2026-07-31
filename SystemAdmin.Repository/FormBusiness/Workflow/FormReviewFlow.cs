@@ -28,36 +28,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             _personResolver = personResolver;
         }
 
-        /// <summary>
-        /// 步骤审批信息 + 步骤排序（GetFullReviewFlow / GetRejectStepDrop 共用）
-        /// </summary>
-        private sealed record StepFlowItem(StepReview Review, int SortOrder, int IsStartStep);
-
-        /// <summary>
-        /// 一次流程构建所需的步骤链、步骤配置与组织架构基础资料。
-        /// 在进入步骤循环前批量载入，循环内仅保留每个步骤必需的审批人查询
-        /// </summary>
-        private sealed class FlowContext
-        {
-            public Dictionary<long, WorkflowStepEntity> StepInfoMap { get; set; } = new Dictionary<long, WorkflowStepEntity>();
-            public Dictionary<long, long?> NextStepMap { get; set; } = new Dictionary<long, long?>();
-            public Dictionary<long, int> RuleStepSortMap { get; set; } = new Dictionary<long, int>();
-            public long? FirstStepId { get; set; }
-            public List<DepartmentInfoEntity> ApplyParentDept { get; set; } = new List<DepartmentInfoEntity>();
-            public Dictionary<long, WorkflowStepOrgEntity> OrgConfigMap { get; set; } = new Dictionary<long, WorkflowStepOrgEntity>();
-            public Dictionary<long, WorkflowStepDeptUserEntity> DeptUserConfigMap { get; set; } = new Dictionary<long, WorkflowStepDeptUserEntity>();
-            public Dictionary<long, WorkflowStepUserEntity> UserConfigMap { get; set; } = new Dictionary<long, WorkflowStepUserEntity>();
-            public Dictionary<long, WorkflowStepCustomEntity> CustomConfigMap { get; set; } = new Dictionary<long, WorkflowStepCustomEntity>();
-            public Dictionary<long, DepartmentInfoEntity> DeptMap { get; set; } = new Dictionary<long, DepartmentInfoEntity>();
-            public Dictionary<long, UserInfoEntity> UserMap { get; set; } = new Dictionary<long, UserInfoEntity>();
-            public Dictionary<long, int> DeptLevelSortMap { get; set; } = new Dictionary<long, int>();
-            public Dictionary<long, int> PositionSortMap { get; set; } = new Dictionary<long, int>();
-
-            public int DeptLevelSort(long deptLevelId) => DeptLevelSortMap.TryGetValue(deptLevelId, out var sortOrder) ? sortOrder : 0;
-
-            public int PositionSort(long positionId) => PositionSortMap.TryGetValue(positionId, out var sortOrder) ? sortOrder : 0;
-        }
-
         private ReviewUserProjection Projection => ReviewUserProjection.Named(_lang.Locale == "zh-CN");
 
         #region 查询表单审批流程
@@ -65,8 +35,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询表单审批流程
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<FormReview> GetFullReviewFlow(long formId)
         {
             var formDetail = await GetApplyFormDetail(formId);
@@ -98,8 +66,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询可驳回步骤
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<List<RejectStepDrop>> GetRejectStepDrop(long formId)
         {
             var currentStepIsStart = await _db.Queryable<FormInstanceEntity>()
@@ -128,9 +94,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 {
                     currentSortOrder = currentStep.SortOrder;
                 }
+                // 当前步骤未出现在步骤链上（如被跳过），退回规则内步骤资料取排序
                 else if (context.StepInfoMap.TryGetValue(currentStepId, out var currentStepInfo))
                 {
-                    // 当前步骤未出现在步骤链上（如被跳过），仍可由规则内的步骤资料取排序
                     currentSortOrder = currentStepInfo.SortOrder;
                 }
                 else
@@ -190,9 +156,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 预载步骤链、各指派类型的步骤配置与组织架构基础资料。
-        /// 步骤配置与部门/人员按 Id 集合批量取回，部门级别与职级为小型基础资料整表缓存，
-        /// 使步骤循环内不再逐步骤往返数据库
+        /// 预载步骤链、步骤配置与组织架构资料：配置与部门/人员按 Id 集合批量取回，
+        /// 部门级别与职级为小型基础资料整表缓存，使步骤循环内不再往返数据库
         /// </summary>
         private async Task<FlowContext> BuildFlowContext(ApplyFormDetail formDetail)
         {
@@ -326,7 +291,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var userReview = await ResolveStepReviewUsers(formDetail, context, stepInfo, stepReview);
                 stepReview.StepReviewUser.AddRange(userReview);
 
-                result.Add(new StepFlowItem(stepReview, stepInfo.SortOrder, stepInfo.IsStartStep));
+                result.Add(new StepFlowItem
+                {
+                    Review = stepReview,
+                    SortOrder = stepInfo.SortOrder,
+                    IsStartStep = stepInfo.IsStartStep,
+                });
 
                 currentStepId = context.NextStepMap.TryGetValue(currentStepId.Value, out var nextStepId) ? nextStepId : null;
             }
@@ -422,8 +392,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询起始步骤审批人员
         /// </summary>
-        /// <param name="applicantUserId"></param>
-        /// <returns></returns>
         public async Task<List<UserReview>> GetStartReviewUser(long applicantUserId)
         {
             bool isChinese = _lang.Locale == "zh-CN";
@@ -647,13 +615,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 按审批记录填充各步骤人员的审批状态（纯内存计算，记录与步骤排序由调用方一次取回）
         /// </summary>
-        /// <param name="currentStepId">表单当前所在步骤</param>
-        /// <param name="stepOrderMap">规则内步骤排序号 (StepId -> SortOrder)</param>
-        /// <param name="reviewFlow">待填充的步骤列表</param>
-        /// <param name="reviewRecords">该表单的全部审批记录（含已失效记录）</param>
         private static void FillUserReviewResult(long? currentStepId, Dictionary<long, int> stepOrderMap, List<StepReview> reviewFlow, List<FormReviewRecordEntity> reviewRecords)
         {
-            // 步骤状态只认有效记录；驳回记录取最近优先，核准记录按步骤分组便于逐步骤判断
+            // 步骤状态只认有效记录；驳回取最近优先，核准按步骤分组便于逐步骤判断
             var validRecords = reviewRecords.Where(record => record.RecordStatus == 1).ToList();
 
             var rejectRecords = validRecords

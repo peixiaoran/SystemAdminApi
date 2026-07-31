@@ -4,46 +4,13 @@ using SystemAdmin.Common.Utilities;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 审批人查询过滤方式
-    /// </summary>
-    internal enum ReviewUserFilter
-    {
-        /// <summary>按组织架构（上级部门链 + 部门级别 + 职级）</summary>
-        Org,
-
-        /// <summary>按指定部门 + 职级</summary>
-        Dept,
-
-        /// <summary>按指定人</summary>
-        User,
-    }
-
-    /// <summary>
-    /// 审批人查询投影
-    /// </summary>
-    /// <param name="WithNames">是否输出姓名、身份名称、排序列（完整投影）</param>
-    /// <param name="WithAgent">是否关联代理人</param>
-    /// <param name="IsChinese">姓名/字典名称取中文列还是英文列（仅 WithNames 时生效）</param>
-    internal sealed record ReviewUserProjection(bool WithNames, bool WithAgent, bool IsChinese)
-    {
-        /// <summary>完整投影：姓名 + 代理 + 身份名称</summary>
-        internal static ReviewUserProjection Named(bool isChinese) => new(true, true, isChinese);
-
-        /// <summary>精简投影：身份 + 代理</summary>
-        internal static ReviewUserProjection Appointment { get; } = new(false, true, false);
-
-        /// <summary>精简投影：仅身份，不关联代理</summary>
-        internal static ReviewUserProjection AppointmentNoAgent { get; } = new(false, false, false);
-    }
-
-    /// <summary>
-    /// 审批人查询 SQL 模板：专职 UNION ALL 兼职，可选关联生效中的代理人，外层按身份优先级 + 入职时间排序。
+    /// 审批人查询 SQL 模板：专职 UNION ALL 兼职，可选关联生效中的代理人，外层按身份优先级 + 入职时间排序
     /// </summary>
     internal static class ReviewUserSql
     {
         /// <summary>
-        /// 精确匹配查询（按部门级别/职级/指定人查找）。
-        /// 参数：Org → @DeptLevelSort、@PositionSort；Dept → @DepartmentId、@PositionSort；User → @UserId；带代理时另需 @Now 及身份枚举参数。
+        /// 精确匹配查询。参数：Org → @DeptLevelSort、@PositionSort；Dept → @DepartmentId、@PositionSort；
+        /// User → @UserId；带代理时另需 @Now 及身份枚举参数
         /// </summary>
         internal static string ExactSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string topN, string orderBy)
         {
@@ -65,9 +32,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 自动降级查询（单次往返）：在上级部门链内一次取回「职级最高、同职级下部门级别最内」的那一组人。
-        /// 等价于职级自高向低、部门级别自内向外逐组合尝试并取第一个命中的组合，但只需一次查询。
-        /// 参数：@MaxPositionSort、@MaxDeptLevelSort，带代理时另需 @Now 及 Auto 身份枚举参数。
+        /// 自动降级查询（单次往返）：取上级部门链内「职级最高、同职级下部门级别最内」的一组人，
+        /// 等价于逐组合尝试取第一个命中。参数：@MaxPositionSort、@MaxDeptLevelSort，带代理时另需 @Now 及 Auto 身份枚举参数
         /// </summary>
         internal static string AutoRankedSql(ReviewUserProjection projection, string parentDeptIds, string topN, string orderBy)
         {
@@ -78,7 +44,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string fullTimeBranch = Branch(projection, partTime: false, joinOrg: true, where, isAuto: true, withSortColumns: true);
             string partTimeBranch = Branch(projection, partTime: true, joinOrg: true, where, isAuto: true, withSortColumns: true);
 
-            // DENSE_RANK 取排名第一的组合，即逐组合尝试时第一个能命中的 (职级, 部门级别)
+            // 排名第一即逐组合尝试时第一个能命中的 (职级, 部门级别)
             return $@"
             SELECT {topN}
                 {OuterColumns(projection)}
@@ -230,9 +196,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 columns.Add("deptlevel.SortOrder AS DeptLevelSort");
                 columns.Add("position.SortOrder AS PositionSort");
             }
+            // 精简投影下降级排名仍需排序列参与内层计算
             else if (withSortColumns)
             {
-                // 精简投影下降级排名仍需排序列参与内层计算
                 columns.Add("deptlevel.SortOrder AS DeptLevelSort");
                 columns.Add("position.SortOrder AS PositionSort");
             }
