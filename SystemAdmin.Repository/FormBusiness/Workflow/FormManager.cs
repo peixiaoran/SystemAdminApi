@@ -8,8 +8,10 @@ using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Queries;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
@@ -257,6 +259,152 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         {
             return await _db.Deleteable<FormAttachmentEntity>()
                             .Where(attach => attach.AttachmentId == attachmentId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 部门树下拉
+        /// </summary>
+        public async Task<List<DepartmentDropDto>> GetDepartmentDrop()
+        {
+            return await _db.Queryable<DepartmentInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<DepartmentLevelEntity>((dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
+                            .OrderBy(dept => dept.SortOrder)
+                            .Select((dept, deptlevel) => new DepartmentDropDto
+                            {
+                                DepartmentId = dept.DepartmentId,
+                                DepartmentName = _lang.Locale == "zh-CN"
+                                                 ? dept.DepartmentNameCn
+                                                 : dept.DepartmentNameEn,
+                                ParentId = dept.ParentId,
+                            }).ToTreeAsync(dept => dept.DepartmentChildList, dept => dept.ParentId, null);
+        }
+
+        /// <summary>
+        /// 查询加审用户分页
+        /// </summary>
+        public async Task<ResultPaged<AddReviewUserDto>> GetAddReviewUserPage(GetAddReviewUserPage getPage)
+        {
+            RefAsync<int> totalCount = 0;
+            var query = _db.Queryable<UserInfoEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<DepartmentInfoEntity>((user, dept) => user.DepartmentId == dept.DepartmentId)
+                           .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
+                           .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
+                           .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) =>
+                            user.Nationality == nation.NationId)
+                           .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
+
+            // 用户工号
+            if (!string.IsNullOrEmpty(getPage.UserNo))
+            {
+                query = query.Where((user, dept, position, labor, nation) => user.UserNo.Contains(getPage.UserNo));
+            }
+            // 用户姓名
+            if (!string.IsNullOrEmpty(getPage.UserName))
+            {
+                query = query.Where((user, dept, position, labor, nation) =>
+                    user.UserNameCn.Contains(getPage.UserName) ||
+                    user.UserNameEn.Contains(getPage.UserName));
+            }
+            // 部门Id
+            if (!string.IsNullOrEmpty(getPage.DepartmentId) && long.Parse(getPage.DepartmentId) > -1)
+            {
+                query = query.Where((user, dept, position, labor, nation) =>
+                    user.DepartmentId == long.Parse(getPage.DepartmentId));
+            }
+
+            // 排序
+            query = query.OrderBy((user, dept, position, labor, nation) => new { position.SortOrder, user.HireDate });
+
+            var page = await query.Select((user, dept, position, labor, nation) => new AddReviewUserDto
+            {
+                UserId = user.UserId,
+                UserNo = user.UserNo,
+                UserName = _lang.Locale == "zh-CN"
+                           ? user.UserNameCn
+                           : user.UserNameEn,
+                DepartmentName = _lang.Locale == "zh-CN"
+                           ? dept.DepartmentNameCn
+                           : dept.DepartmentNameEn,
+                PositionName = _lang.Locale == "zh-CN"
+                           ? position.PositionNameCn
+                           : position.PositionNameEn,
+                LaborName = _lang.Locale == "zh-CN"
+                           ? labor.LaborNameCn
+                           : labor.LaborNameEn,
+                NationalityName = _lang.Locale == "zh-CN"
+                           ? nation.NationNameCn
+                           : nation.NationNameEn,
+                IsAgent = user.IsAgent,
+                IsReview = user.IsReview,
+            }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
+
+            return ResultPaged<AddReviewUserDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 查询表单加审人列表
+        /// </summary>
+        public async Task<List<FormAddReviewDto>> GetAddReviewList(long formId)
+        {
+            var list = await _db.Queryable<FormAddReviewEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(addreview => addreview.FormId == formId)
+                                .OrderBy(addreview => addreview.SortOrder)
+                                .ToListAsync();
+
+            return list.Adapt<List<FormAddReviewDto>>();
+        }
+
+        /// <summary>
+        /// 查询该表单是否已加审过此人
+        /// </summary>
+        public async Task<bool> IsAddReviewExist(long formId, long userId)
+        {
+            return await _db.Queryable<FormAddReviewEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(addReview => addReview.FormId == formId && addReview.UserId == userId)
+                            .AnyAsync();
+        }
+
+        /// <summary>
+        /// 新增加审人
+        /// </summary>
+        public async Task<int> InsertAddReview(FormAddReviewEntity entity)
+        {
+            return await _db.Insertable(entity).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 删除加审人
+        /// </summary>
+        public async Task<int> DeleteAddReview(long formId, long userId, int sortOrder)
+        {
+            return await _db.Deleteable<FormAddReviewEntity>()
+                            .Where(addreview => addreview.FormId == formId
+                                             && addreview.UserId == userId
+                                             && addreview.SortOrder == sortOrder)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 修改加审人
+        /// </summary>
+        public async Task<int> UpdateAddReview(FormAddReviewEntity entity)
+        {
+            return await _db.Updateable<FormAddReviewEntity>()
+                            .SetColumns(addReview => new FormAddReviewEntity
+                            {
+                                DeptName = entity.DeptName,
+                                UserId = entity.UserId,
+                                UserNo = entity.UserNo,
+                                UserName = entity.UserName,
+                                SortOrder = entity.SortOrder,
+                                ModifiedBy = entity.ModifiedBy,
+                                ModifiedDate = entity.ModifiedDate
+                            }).Where(addReview => addReview.FormId == entity.FormId && addReview.SortOrder == entity.SortOrder)
                             .ExecuteCommandAsync();
         }
 

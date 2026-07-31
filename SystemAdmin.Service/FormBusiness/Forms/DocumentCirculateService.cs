@@ -69,6 +69,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                     var documentCirculateDto = await _documentCirculate.GetDocumentCirculate(long.Parse(formId));
                     documentCirculateDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                    documentCirculateDto.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                     documentCirculateDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
                     documentCirculateDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
                     return Result<DocumentCirculateDto>.Ok(documentCirculateDto);
@@ -100,6 +101,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 var form = await _documentCirculate.GetDocumentCirculate(long.Parse(formId));
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                form.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
                 form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
                 return Result<DocumentCirculateDto>.Ok(form);

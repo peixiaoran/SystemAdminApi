@@ -89,6 +89,11 @@ namespace SystemAdmin.Model.FormBusiness.Forms.DocumentCirculate.Dto
         public List<FormAttachmentDto> Attachment { get; set; } = new List<FormAttachmentDto>();
 
         /// <summary>
+        /// 加审人列表
+        /// </summary>
+        public List<FormAddReviewDto> AddReview { get; set; } = new List<FormAddReviewDto>();
+
+        /// <summary>
         /// 审批记录
         /// </summary>
         public List<FormReviewRecordDto> ReviewRecord { get; set; } = new List<FormReviewRecordDto>();

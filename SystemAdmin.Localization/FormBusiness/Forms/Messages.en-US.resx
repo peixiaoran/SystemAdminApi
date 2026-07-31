@@ -249,4 +249,28 @@
   <data name="PdfCancellHours" xml:space="preserve">
     <value>Hours</value>
   </data>
+  <data name="AddReviewExist" xml:space="preserve">
+    <value>This user has already been added as an additional reviewer for this form.</value>
+  </data>
+  <data name="AddReviewNotFound" xml:space="preserve">
+    <value>Additional reviewer not found.</value>
+  </data>
+  <data name="AddReviewInsertSuccess" xml:space="preserve">
+    <value>Additional reviewer added successfully.</value>
+  </data>
+  <data name="AddReviewInsertFailed" xml:space="preserve">
+    <value>Failed to add additional reviewer.</value>
+  </data>
+  <data name="AddReviewUpdateSuccess" xml:space="preserve">
+    <value>Additional reviewer updated successfully.</value>
+  </data>
+  <data name="AddReviewUpdateFailed" xml:space="preserve">
+    <value>Failed to update additional reviewer.</value>
+  </data>
+  <data name="AddReviewDeleteSuccess" xml:space="preserve">
+    <value>Additional reviewer removed successfully.</value>
+  </data>
+  <data name="AddReviewDeleteFailed" xml:space="preserve">
+    <value>Failed to remove additional reviewer.</value>
+  </data>
 </root>

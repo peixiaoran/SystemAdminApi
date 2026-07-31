@@ -12,11 +12,13 @@ using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Upsert;
 using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 using SystemAdmin.Repository.FormBusiness.Workflow;
@@ -187,6 +189,166 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 return Result<int>.Failure(500, _localization.ReturnMsg($"{_form}.DeleteAttachmentFailed"));
             }
         }
+
+        #region 加审
+
+        /// <summary>
+        /// 部门树下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
+        {
+            try
+            {
+                var drop = await _formmanger.GetDepartmentDrop();
+                return Result<List<DepartmentDropDto>>.Ok(drop, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<DepartmentDropDto>>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查询加审用户分页
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <returns></returns>
+        public async Task<ResultPaged<AddReviewUserDto>> GetAddReviewUserPage(GetAddReviewUserPage getPage)
+        {
+            try
+            {
+                return await _formmanger.GetAddReviewUserPage(getPage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return ResultPaged<AddReviewUserDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 新增加审人
+        /// </summary>
+        /// <param name="upsert"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> InsertFormAddReview(FormAddReviewUpsert upsert)
+        {
+            try
+            {
+                long formId = long.Parse(upsert.FormId);
+                long userId = long.Parse(upsert.UserId);
+
+                if (await _formmanger.IsAddReviewExist(formId, userId))
+                {
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_form}.AddReviewExist"));
+                }
+
+                var entity = new FormAddReviewEntity
+                {
+                    FormId = formId,
+                    DeptName = upsert.DeptName,
+                    UserId = userId,
+                    UserNo = upsert.UserNo,
+                    UserName = upsert.UserName,
+                    SortOrder = upsert.SortOrder,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                };
+
+                await _db.BeginTranAsync();
+                int count = await _formmanger.InsertAddReview(entity);
+                await _db.CommitTranAsync();
+
+                return count >= 1
+                        ? Result<int>.Ok(count, _localization.ReturnMsg($"{_form}.AddReviewInsertSuccess"))
+                        : Result<int>.Failure(500, _localization.ReturnMsg($"{_form}.AddReviewInsertFailed"));
+            }
+            catch (Exception ex)
+            {
+                await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 修改加审人的加审位置
+        /// </summary>
+        /// <param name="upsert"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> UpdateFormAddReview(FormAddReviewUpsert upsert)
+        {
+            try
+            {
+                long formId = long.Parse(upsert.FormId);
+                long userId = long.Parse(upsert.UserId);
+
+                var entity = new FormAddReviewEntity
+                {
+                    FormId = formId,
+                    DeptName = upsert.DeptName,
+                    UserId = userId,
+                    UserNo = upsert.UserNo,
+                    UserName = upsert.UserName,
+                    SortOrder = upsert.SortOrder,
+                    ModifiedBy = _loginuser.UserId,
+                    ModifiedDate = DateTime.Now
+                };
+
+                await _db.BeginTranAsync();
+                int count = await _formmanger.UpdateAddReview(entity);
+                await _db.CommitTranAsync();
+
+                return count >= 1
+                        ? Result<int>.Ok(count, _localization.ReturnMsg($"{_form}.AddReviewUpdateSuccess"))
+                        : Result<int>.Failure(500, _localization.ReturnMsg($"{_form}.AddReviewUpdateFailed"));
+            }
+            catch (Exception ex)
+            {
+                await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 删除加审人
+        /// </summary>
+        /// <param name="formId"></param>
+        /// <param name="userId"></param>
+        /// <param name="sortOrder"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> DeleteFormAddReview(string formId, string userId, int sortOrder)
+        {
+            try
+            {
+                long formIdValue = long.Parse(formId);
+                long userIdValue = long.Parse(userId);
+
+                await _db.BeginTranAsync();
+                int count = await _formmanger.DeleteAddReview(formIdValue, userIdValue, sortOrder);
+
+                if (count == 0)
+                {
+                    await _db.RollbackTranAsync();
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_form}.AddReviewNotFound"));
+                }
+
+                await _db.CommitTranAsync();
+
+                return Result<int>.Ok(count, _localization.ReturnMsg($"{_form}.AddReviewDeleteSuccess"));
+            }
+            catch (Exception ex)
+            {
+                await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// 查询驳回步骤下拉

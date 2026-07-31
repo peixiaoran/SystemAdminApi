@@ -64,6 +64,16 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         public Dictionary<long, UserInfoEntity> UserMap { get; set; } = new Dictionary<long, UserInfoEntity>();
 
         /// <summary>
+        /// 加审指派配置 (StepId -&gt; 配置)
+        /// </summary>
+        public Dictionary<long, WorkflowStepAddReviewEntity> AddReviewConfigMap { get; set; } = new Dictionary<long, WorkflowStepAddReviewEntity>();
+
+        /// <summary>
+        /// 表单加审人 (加审SortOrder -&gt; 加审人Id列表)
+        /// </summary>
+        public Dictionary<int, List<long>> FormAddReviewMap { get; set; } = new Dictionary<int, List<long>>();
+
+        /// <summary>
         /// 部门级别排序 (DepartmentLevelId -&gt; SortOrder)
         /// </summary>
         public Dictionary<long, int> DeptLevelSortMap { get; set; } = new Dictionary<long, int>();
@@ -82,5 +92,10 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         /// 取职级排序，取不到返回 0（该步骤后续查不到审批人）
         /// </summary>
         public int PositionSort(long positionId) => PositionSortMap.TryGetValue(positionId, out var sortOrder) ? sortOrder : 0;
+
+        /// <summary>
+        /// 取该加审顺序上的加审人Id，没有则返回空列表
+        /// </summary>
+        public List<long> AddReviewUserIds(int addReviewSortOrder) => FormAddReviewMap.TryGetValue(addReviewSortOrder, out var userIds) ? userIds : new List<long>();
     }
 }

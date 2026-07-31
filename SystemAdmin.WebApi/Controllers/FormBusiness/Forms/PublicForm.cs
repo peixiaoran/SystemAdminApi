@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Queries;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Upsert;
 using SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Service.FormBusiness.Forms;
 
 namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
@@ -41,6 +43,46 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         public async Task<Result<int>> DeleteAttachment([FromForm] string attachmentId, [FromForm] string attachmentPath)
         {
             return await _publicFormService.DeleteAttachment(attachmentId, attachmentPath);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[表单公共接口] 部门树下拉")]
+        public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
+        {
+            return await _publicFormService.GetDepartmentDrop();
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[表单公共接口] 查询加审用户分页")]
+        public async Task<ResultPaged<AddReviewUserDto>> GetAddReviewUserPage([FromBody] GetAddReviewUserPage getPage)
+        {
+            return await _publicFormService.GetAddReviewUserPage(getPage);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[表单公共接口] 新增加审")]
+        public async Task<Result<int>> InsertFormAddReview([FromBody] FormAddReviewUpsert upsert)
+        {
+            return await _publicFormService.InsertFormAddReview(upsert);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[表单公共接口] 修改加审")]
+        public async Task<Result<int>> UpdateFormAddReview([FromBody] FormAddReviewUpsert upsert)
+        {
+            return await _publicFormService.UpdateFormAddReview(upsert);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[表单公共接口] 删除加审")]
+        public async Task<Result<int>> DeleteFormAddReview([FromForm] string formId, [FromForm] string userId, [FromForm] int sortOrder)
+        {
+            return await _publicFormService.DeleteFormAddReview(formId, userId, sortOrder);
         }
 
         [HttpPost]

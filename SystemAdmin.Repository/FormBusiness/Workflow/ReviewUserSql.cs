@@ -64,9 +64,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 排序：单审按身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代）+ 入职时间，其余仅按入职时间
         /// </summary>
-        internal static string BuildOrderBy(bool isSingle, bool isAuto)
+        internal static string BuildOrderBy(bool isApproved, bool isAuto)
         {
-            if (!isSingle)
+            if (!isApproved)
             {
                 return "ORDER BY t.HireDate DESC";
             }

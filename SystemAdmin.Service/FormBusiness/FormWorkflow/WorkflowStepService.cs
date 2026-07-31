@@ -191,6 +191,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                 int insertDeptUserCount = 0;
                 int insertUserCount = 0;
                 int insertCustomCount = 0;
+                int insertAddReviewCount = 0;
 
                 var stepEntity = new WorkflowStepEntity
                 {
@@ -271,9 +272,20 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                         };
                         insertCustomCount = await _workflowStepRepo.InsertWorkflowStepCustom(customEntity);
                     }
+                    else if (upsert.Assignment.MatchEnum(Assignment.AddReview))
+                    {
+                        var addReviewEntity = new WorkflowStepAddReviewEntity()
+                        {
+                            StepId = stepId,
+                            SortOrder = upsert.stepAddReviewUpsert.SortOrder,
+                            CreatedBy = _loginuser.UserId,
+                            CreatedDate = DateTime.Now
+                        };
+                        insertAddReviewCount = await _workflowStepRepo.InsertWorkflowStepAddReview(addReviewEntity);
+                    }
                     await _db.CommitTranAsync();
 
-                    return insertStepCount >= 1 && (insertOrgCount >= 1 || insertDeptUserCount >= 1 || insertUserCount >= 1 || insertCustomCount >= 1)    
+                    return insertStepCount >= 1 && (insertOrgCount >= 1 || insertDeptUserCount >= 1 || insertUserCount >= 1 || insertCustomCount >= 1 || insertAddReviewCount >= 1)
                             ? Result<int>.Ok(insertStepCount, _localization.ReturnMsg($"{_this}InsertSuccess"))
                             : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}InsertFailed"));
                 }
@@ -308,9 +320,10 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     int delDeptUserCount = await _workflowStepRepo.DeleteWorkflowStepDeptUser(long.Parse(stepId));
                     int delUserCount = await _workflowStepRepo.DeleteWorkflowStepUser(long.Parse(stepId));
                     int delCustomCount = await _workflowStepRepo.DeleteWorkflowStepCustom(long.Parse(stepId));
+                    int delAddReviewCount = await _workflowStepRepo.DeleteWorkflowStepAddReview(long.Parse(stepId));
                     int delFieldPermissionCount = await _workflowStepRepo.DeleteStepFieldPermission(long.Parse(stepId));
 
-                    return delStepCount >= 1 && (delOrgCount >= 1 || delDeptUserCount >= 1 || delUserCount >= 1 || delCustomCount >= 1 || delFieldPermissionCount >= 1)
+                    return delStepCount >= 1 && (delOrgCount >= 1 || delDeptUserCount >= 1 || delUserCount >= 1 || delCustomCount >= 1 || delAddReviewCount >= 1 || delFieldPermissionCount >= 1)
                             ? Result<int>.Ok(delStepCount, _localization.ReturnMsg($"{_this}DeleteSuccess"))
                             : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}DeleteFailed"));
                 }
@@ -337,6 +350,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                 int insertStepDeptUserCount = 0;
                 int insertStepUserCount = 0;
                 int insertStepCustomCount = 0;
+                int insertStepAddReviewCount = 0;
 
                 var stepEntity = new WorkflowStepEntity
                 {
@@ -360,6 +374,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                 await _workflowStepRepo.DeleteWorkflowStepDeptUser(long.Parse(upsert.StepId));
                 await _workflowStepRepo.DeleteWorkflowStepUser(long.Parse(upsert.StepId));
                 await _workflowStepRepo.DeleteWorkflowStepCustom(long.Parse(upsert.StepId));
+                await _workflowStepRepo.DeleteWorkflowStepAddReview(long.Parse(upsert.StepId));
                 // 如果时开始步骤，则只修改步骤信息
                 if (upsert.IsStartStep == 1)
                 {
@@ -418,9 +433,20 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     };
                     insertStepCustomCount = await _workflowStepRepo.InsertWorkflowStepCustom(stepCustomEntity);
                 }
+                else if (upsert.Assignment.MatchEnum(Assignment.AddReview))
+                {
+                    var stepAddReviewEntity = new WorkflowStepAddReviewEntity()
+                    {
+                        StepId = long.Parse(upsert.StepId),
+                        SortOrder = upsert.stepAddReviewUpsert.SortOrder,
+                        CreatedBy = _loginuser.UserId,
+                        CreatedDate = DateTime.Now
+                    };
+                    insertStepAddReviewCount = await _workflowStepRepo.InsertWorkflowStepAddReview(stepAddReviewEntity);
+                }
                 await _db.CommitTranAsync();
 
-                return updateStepCount >= 1 && (insertStepOrgCount >= 1 || insertStepDeptUserCount >= 1 || insertStepUserCount >= 1 || insertStepCustomCount >= 1)
+                return updateStepCount >= 1 && (insertStepOrgCount >= 1 || insertStepDeptUserCount >= 1 || insertStepUserCount >= 1 || insertStepCustomCount >= 1 || insertStepAddReviewCount >= 1)
                         ? Result<int>.Ok(updateStepCount, _localization.ReturnMsg($"{_this}UpdateSuccess"))
                         : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}UpdateFailed"));
             }
@@ -465,6 +491,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                 entity.workflowStepDeptUser = await _workflowStepRepo.GetWorkflowStepDeptUserEntity(long.Parse(stepId));
                 entity.workflowStepUser = await _workflowStepRepo.GetWorkflowStepUserEntity(long.Parse(stepId));
                 entity.workflowStepCustom = await _workflowStepRepo.GetWorkflowStepCustomEntity(long.Parse(stepId));
+                entity.workflowStepAddReview = await _workflowStepRepo.GetWorkflowStepAddReviewEntity(long.Parse(stepId));
 
                 return Result<WorkflowStepDto>.Ok(entity);
             }

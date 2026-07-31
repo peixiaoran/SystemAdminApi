@@ -249,4 +249,28 @@
   <data name="PdfCancellHours" xml:space="preserve">
     <value>时数</value>
   </data>
+  <data name="AddReviewExist" xml:space="preserve">
+    <value>该表单已加审过此人员</value>
+  </data>
+  <data name="AddReviewNotFound" xml:space="preserve">
+    <value>找不到该加审人员</value>
+  </data>
+  <data name="AddReviewInsertSuccess" xml:space="preserve">
+    <value>加审新增成功</value>
+  </data>
+  <data name="AddReviewInsertFailed" xml:space="preserve">
+    <value>加审新增失败</value>
+  </data>
+  <data name="AddReviewUpdateSuccess" xml:space="preserve">
+    <value>加审修改成功</value>
+  </data>
+  <data name="AddReviewUpdateFailed" xml:space="preserve">
+    <value>加审修改失败</value>
+  </data>
+  <data name="AddReviewDeleteSuccess" xml:space="preserve">
+    <value>加审删除成功</value>
+  </data>
+  <data name="AddReviewDeleteFailed" xml:space="preserve">
+    <value>加审删除失败</value>
+  </data>
 </root>

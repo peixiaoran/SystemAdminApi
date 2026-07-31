@@ -186,6 +186,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var deptUserStepIds = AssignedStepIds(assignStepIds, Assignment.DeptUser);
             var userStepIds = AssignedStepIds(assignStepIds, Assignment.User);
             var customStepIds = AssignedStepIds(assignStepIds, Assignment.Custom);
+            var addReviewStepIds = AssignedStepIds(assignStepIds, Assignment.AddReview);
 
             var orgConfigs = orgStepIds.Count == 0
                 ? new List<WorkflowStepOrgEntity>()
@@ -242,6 +243,21 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .With(SqlWith.NoLock)
                                      .ToListAsync();
 
+            // 步骤规则给出加审顺序，实际人员来自表单上的加审设定
+            var addReviewConfigs = addReviewStepIds.Count == 0
+                ? new List<WorkflowStepAddReviewEntity>()
+                : await _db.Queryable<WorkflowStepAddReviewEntity>()
+                           .With(SqlWith.NoLock)
+                           .Where(stepaddreview => addReviewStepIds.Contains(stepaddreview.StepId))
+                           .ToListAsync();
+
+            var formAddReviews = addReviewConfigs.Count == 0
+                ? new List<FormAddReviewEntity>()
+                : await _db.Queryable<FormAddReviewEntity>()
+                           .With(SqlWith.NoLock)
+                           .Where(addreview => addreview.FormId == formDetail.FormId)
+                           .ToListAsync();
+
             return new FlowContext
             {
                 StepInfoMap = stepInfos.ToDictionary(step => step.StepId),
@@ -257,6 +273,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 UserMap = users.ToDictionary(user => user.UserId),
                 DeptLevelSortMap = deptLevels.ToDictionary(level => level.DepartmentLevelId, level => level.SortOrder),
                 PositionSortMap = positions.ToDictionary(position => position.PositionId, position => position.SortOrder),
+                AddReviewConfigMap = addReviewConfigs.ToDictionary(config => config.StepId),
+                FormAddReviewMap = formAddReviews.GroupBy(addreview => addreview.SortOrder)
+                                                 .ToDictionary(group => group.Key,
+                                                               group => group.Select(addreview => addreview.UserId).Distinct().ToList()),
             };
         }
 
@@ -314,7 +334,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return await GetStartReviewUser(formDetail.UserId);
             }
 
-            bool isSingle = stepInfo.ReviewMode == ReviewMode.Review.ToEnumString();
+            bool isApproved = stepInfo.ReviewMode == ReviewMode.Review.ToEnumString();
 
             if (stepInfo.Assignment == Assignment.Org.ToEnumString())
             {
@@ -332,7 +352,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     return new List<UserReview>();
                 }
 
-                return await GetOrgReviewUser(context.ApplyParentDept, deptLevelSort, positionSort, isSingle);
+                return await GetOrgReviewUser(context.ApplyParentDept, deptLevelSort, positionSort, isApproved);
             }
 
             if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
@@ -346,7 +366,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return await GetDeptUserReviewUser(deptUserInfo.DepartmentId,
                                                    context.PositionSort(deptUserInfo.PositionId),
                                                    context.DeptLevelSort(targetDept.DepartmentLevelId),
-                                                   isSingle);
+                                                   isApproved);
             }
 
             if (stepInfo.Assignment == Assignment.User.ToEnumString())
@@ -362,7 +382,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                                targetDept.DepartmentId,
                                                context.PositionSort(targetUser.PositionId),
                                                context.DeptLevelSort(targetDept.DepartmentLevelId),
-                                               isSingle);
+                                               isApproved);
             }
 
             if (stepInfo.Assignment == Assignment.Custom.ToEnumString())
@@ -373,7 +393,24 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     return new List<UserReview>();
                 }
 
-                var userReview = await GetCustomReviewUser(formDetail.FormId, customInfo.Guidance, context, isSingle);
+                var userReview = await GetCustomReviewUser(formDetail.FormId, customInfo.Guidance, context, isApproved);
+                if (userReview.Count == 0)
+                {
+                    stepReview.Skip = 1;
+                }
+
+                return userReview;
+            }
+
+            if (stepInfo.Assignment == Assignment.AddReview.ToEnumString())
+            {
+                if (!context.AddReviewConfigMap.TryGetValue(stepInfo.StepId, out var addReviewInfo))
+                {
+                    stepReview.Skip = 1;
+                    return new List<UserReview>();
+                }
+
+                var userReview = await GetAddReviewUser(context, addReviewInfo.SortOrder);
                 if (userReview.Count == 0)
                 {
                     stepReview.Skip = 1;
@@ -455,11 +492,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询审批人身份 - 按组织架构（降级沿申请人上级部门链查找）
         /// </summary>
-        private async Task<List<UserReview>> GetOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, int deptLevelSort, int positionSort, bool isSingle)
+        private async Task<List<UserReview>> GetOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, int deptLevelSort, int positionSort, bool isApproved)
         {
             string parentDeptIds = JoinDeptIds(applyParentDept.Select(dept => dept.DepartmentId));
 
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.Org, parentDeptIds, isSingle,
+            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.Org, parentDeptIds, isApproved,
                 new SugarParameter("@DeptLevelSort", deptLevelSort),
                 new SugarParameter("@PositionSort", positionSort));
 
@@ -468,15 +505,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return exactResult;
             }
 
-            return await FindDowngradeReviewUsers(parentDeptIds, positionSort, deptLevelSort, isSingle);
+            return await FindDowngradeReviewUsers(parentDeptIds, positionSort, deptLevelSort, isApproved);
         }
 
         /// <summary>
         /// 查询审批人身份 - 按指定部门职级
         /// </summary>
-        private async Task<List<UserReview>> GetDeptUserReviewUser(long departmentId, int positionSort, int deptLevelSort, bool isSingle)
+        private async Task<List<UserReview>> GetDeptUserReviewUser(long departmentId, int positionSort, int deptLevelSort, bool isApproved)
         {
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.Dept, parentDeptIds: string.Empty, isSingle,
+            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.Dept, parentDeptIds: string.Empty, isApproved,
                 new SugarParameter("@DepartmentId", departmentId),
                 new SugarParameter("@PositionSort", positionSort));
 
@@ -485,15 +522,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return exactResult;
             }
 
-            return await FindDowngradeFromDept(departmentId, positionSort, deptLevelSort, isSingle);
+            return await FindDowngradeFromDept(departmentId, positionSort, deptLevelSort, isApproved);
         }
 
         /// <summary>
         /// 查询审批人身份 - 按指定人
         /// </summary>
-        private async Task<List<UserReview>> GetUserReviewUser(long userId, long departmentId, int positionSort, int deptLevelSort, bool isSingle)
+        private async Task<List<UserReview>> GetUserReviewUser(long userId, long departmentId, int positionSort, int deptLevelSort, bool isApproved)
         {
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isSingle,
+            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved,
                 new SugarParameter("@UserId", userId));
 
             if (exactResult.Count > 0)
@@ -501,13 +538,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return exactResult;
             }
 
-            return await FindDowngradeFromDept(departmentId, positionSort, deptLevelSort, isSingle);
+            return await FindDowngradeFromDept(departmentId, positionSort, deptLevelSort, isApproved);
         }
 
         /// <summary>
         /// 查询审批人身份 - 按自定义
         /// </summary>
-        private async Task<List<UserReview>> GetCustomReviewUser(long formId, string guidance, FlowContext context, bool isSingle)
+        private async Task<List<UserReview>> GetCustomReviewUser(long formId, string guidance, FlowContext context, bool isApproved)
         {
             var custom = await _personResolver.Resolve(guidance, formId);
 
@@ -516,7 +553,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new List<UserReview>();
             }
 
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isSingle,
+            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved,
                 new SugarParameter("@UserId", custom.UserId));
 
             if (exactResult.Count > 0)
@@ -527,20 +564,39 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             return await FindDowngradeFromDept(custom.DepartmentId,
                                                context.PositionSort(custom.PositionId),
                                                context.DeptLevelSort(custom.DepartmentLevelId),
-                                               isSingle);
+                                               isApproved);
+        }
+
+        /// <summary>
+        /// 查询审批人身份 - 加审（点名的人，查不到即略过，不做自动降级）
+        /// </summary>
+        private async Task<List<UserReview>> GetAddReviewUser(FlowContext context, int addReviewSortOrder)
+        {
+            var result = new List<UserReview>();
+
+            foreach (long addReviewUserId in context.AddReviewUserIds(addReviewSortOrder))
+            {
+                // isApproved 取身份优先级最高的一笔，避免专兼职并存时同一人重复
+                var userReview = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved: true,
+                    new SugarParameter("@UserId", addReviewUserId));
+
+                result.AddRange(userReview);
+            }
+
+            return result;
         }
 
         /// <summary>
         /// 降级沿目标部门的上级部门链查找
         /// </summary>
-        private async Task<List<UserReview>> FindDowngradeFromDept(long departmentId, int positionSort, int deptLevelSort, bool isSingle)
+        private async Task<List<UserReview>> FindDowngradeFromDept(long departmentId, int positionSort, int deptLevelSort, bool isApproved)
         {
             var targetParentDept = await _db.Queryable<DepartmentInfoEntity>()
                                             .With(SqlWith.NoLock)
                                             .ToParentListAsync(parent => parent.ParentId, departmentId);
 
             return await FindDowngradeReviewUsers(JoinDeptIds(targetParentDept.Select(parent => parent.DepartmentId)),
-                                                  positionSort, deptLevelSort, isSingle);
+                                                  positionSort, deptLevelSort, isApproved);
         }
 
         private static string JoinDeptIds(IEnumerable<long> deptIds) => string.Join(",", deptIds);
@@ -548,7 +604,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 精确匹配查询审批人
         /// </summary>
-        private async Task<List<UserReview>> QueryExactReviewUsers(ReviewUserFilter filter, string parentDeptIds, bool isSingle, params SugarParameter[] filterParams)
+        private async Task<List<UserReview>> QueryExactReviewUsers(ReviewUserFilter filter, string parentDeptIds, bool isApproved, params SugarParameter[] filterParams)
         {
             var (actual, agent, concurrent, concurrentAgent, _, _, _, _) = ReviewUserSql.AppointmentEnumStrings();
 
@@ -556,8 +612,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 Projection,
                 filter,
                 parentDeptIds,
-                topN: isSingle ? "TOP 1" : "",
-                orderBy: ReviewUserSql.BuildOrderBy(isSingle, isAuto: false));
+                topN: isApproved ? "TOP 1" : "",
+                orderBy: ReviewUserSql.BuildOrderBy(isApproved, isAuto: false));
 
             var parameters = new List<SugarParameter>
             {
@@ -577,7 +633,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 自动降级查询审批人：职级自高向低、部门级别自内向外取第一个有人的组合。
         /// 由数据库一次排名取回，无需逐组合往返
         /// </summary>
-        private async Task<List<UserReview>> FindDowngradeReviewUsers(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isSingle)
+        private async Task<List<UserReview>> FindDowngradeReviewUsers(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isApproved)
         {
             // 降级从低于当前职级一级开始；无可降级范围或无部门链时直接结束
             int maxPositionSort = fromPositionSort - 1;
@@ -591,8 +647,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string sql = ReviewUserSql.AutoRankedSql(
                 Projection,
                 parentDeptIds,
-                topN: isSingle ? "TOP 1" : "",
-                orderBy: ReviewUserSql.BuildOrderBy(isSingle, isAuto: true));
+                topN: isApproved ? "TOP 1" : "",
+                orderBy: ReviewUserSql.BuildOrderBy(isApproved, isAuto: true));
 
             var result = await _db.Ado.SqlQueryAsync<UserReview>(sql, new[]
             {

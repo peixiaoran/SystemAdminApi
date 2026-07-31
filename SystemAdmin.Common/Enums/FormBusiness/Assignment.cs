@@ -24,5 +24,10 @@
         /// 自定义规则
         /// </summary>
         Custom = 4,
+
+        /// <summary>
+        /// 加审
+        /// </summary>
+        AddReview = 5,
     }
 }

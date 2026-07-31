@@ -31,7 +31,7 @@
         public int IsStartStep { get; set; }
 
         /// <summary>
-        /// 步骤指派规则（依组织架构、指定部门用户级别、指定用户、自定义）
+        /// 步骤指派规则（依组织架构、指定部门用户级别、指定用户、自定义、加审）
         /// </summary>
         public string Assignment { get; set; } = string.Empty;
 
@@ -74,5 +74,10 @@
         /// 步骤自定义新增/修改类
         /// </summary>
         public WorkflowStepCustomUpsert stepCustomUpsert { get; set; } = new WorkflowStepCustomUpsert();
+
+        /// <summary>
+        /// 步骤加审规则新增/修改类
+        /// </summary>
+        public WorkflowStepAddReviewUpsert stepAddReviewUpsert { get; set; } = new WorkflowStepAddReviewUpsert();
     }
 }

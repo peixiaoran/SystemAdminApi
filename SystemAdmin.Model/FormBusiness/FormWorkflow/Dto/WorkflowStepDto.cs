@@ -42,7 +42,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         public int IsStartStep { get; set; }
 
         /// <summary>
-        /// 步骤指派规则（依组织架构、指定部门用户级别、指定用户、自定义）
+        /// 步骤指派规则（依组织架构、指定部门用户级别、指定用户、自定义、加审）
         /// </summary>
         public string Assignment { get; set; } = string.Empty;
 
@@ -85,5 +85,10 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// 审批步骤自定义来源实体
         /// </summary>
         public WorkflowStepCustomDto workflowStepCustom { get; set; } = new WorkflowStepCustomDto();
+
+        /// <summary>
+        /// 审批步骤加审规则实体
+        /// </summary>
+        public WorkflowStepAddReviewDto workflowStepAddReview { get; set; } = new WorkflowStepAddReviewDto();
     }
 }

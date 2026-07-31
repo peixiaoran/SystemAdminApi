@@ -69,6 +69,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
             return await _db.Queryable<DictionaryInfoEntity>()
                             .With(SqlWith.NoLock)
                             .Where(dic => dic.DicType == "Assignment")
+                            .OrderBy(dic => dic.SortOrder)
                             .Select(dic => new AssignmentDropDto
                             {
                                 AssignmentCode = dic.DicCode,
@@ -268,6 +269,16 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
+        /// 新增步骤-加审规则
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public async Task<int> InsertWorkflowStepAddReview(WorkflowStepAddReviewEntity entity)
+        {
+            return await _db.Insertable(entity).ExecuteCommandAsync();
+        }
+
+        /// <summary>
         /// 查询步骤是否有规则配置
         /// </summary>
         /// <param name="stepId"></param>
@@ -337,6 +348,18 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         {
             return await _db.Deleteable<WorkflowStepCustomEntity>()
                             .Where(stepcustom => stepcustom.StepId == stepId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 删除步骤-加审规则
+        /// </summary>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteWorkflowStepAddReview(long stepId)
+        {
+            return await _db.Deleteable<WorkflowStepAddReviewEntity>()
+                            .Where(stepaddreview => stepaddreview.StepId == stepId)
                             .ExecuteCommandAsync();
         }
 
@@ -466,6 +489,20 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                   .Where(stepcustom => stepcustom.StepId == stepId)
                                   .FirstAsync();
             return entity.Adapt<WorkflowStepCustomDto>();
+        }
+
+        /// <summary>
+        /// 查询步骤-加审规则实体
+        /// </summary>
+        /// <param name="stepId"></param>
+        /// <returns></returns>
+        public async Task<WorkflowStepAddReviewDto> GetWorkflowStepAddReviewEntity(long stepId)
+        {
+            var entity = await _db.Queryable<WorkflowStepAddReviewEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(stepaddreview => stepaddreview.StepId == stepId)
+                                  .FirstAsync();
+            return entity.Adapt<WorkflowStepAddReviewDto>();
         }
 
         /// <summary>
