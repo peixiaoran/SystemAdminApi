@@ -32,6 +32,80 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
+        /// 批量精确匹配查询（单次往返）：一次为多组条件取回审批人，各行以 ComboKey 归属回所属条件组。
+        /// comboValues 为 (ComboKey, 条件...) 的值列表，列顺序依 filter 而定：
+        /// Org → (ComboKey, 部门级别排序, 职级排序)；Dept → (ComboKey, 部门Id, 职级排序)；User → (ComboKey, 人员Id)。
+        /// isApproved 时按 ComboKey 分区取第一笔，等价于逐组各取 TOP 1
+        /// </summary>
+        internal static string ExactBatchSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string comboValues, bool isApproved)
+        {
+            bool joinOrg = filter != ReviewUserFilter.User || projection.WithNames;
+
+            string where = filter == ReviewUserFilter.Org
+                ? $"dept.DepartmentId IN ({parentDeptIds})"
+                : "1 = 1";
+
+            string fullTimeBranch = Branch(projection, partTime: false, joinOrg, where, isAuto: false,
+                                           comboJoin: ComboJoin(filter, comboValues, partTime: false));
+            string partTimeBranch = Branch(projection, partTime: true, joinOrg, where, isAuto: false,
+                                           comboJoin: ComboJoin(filter, comboValues, partTime: true));
+
+            string orderCore = BuildOrderCore(isApproved, isAuto: false);
+            string candidates = $@"
+                {fullTimeBranch}
+                UNION ALL
+                {partTimeBranch}";
+
+            if (!isApproved)
+            {
+                return $@"
+            SELECT
+                {OuterColumns(projection)},
+                t.ComboKey
+            FROM (
+                {candidates}
+            ) t
+            ORDER BY {orderCore}";
+            }
+
+            // 单审：每组只留排序第一笔
+            return $@"
+            SELECT
+                {OuterColumns(projection)},
+                t.ComboKey
+            FROM (
+                SELECT t.*,
+                       ROW_NUMBER() OVER (PARTITION BY t.ComboKey ORDER BY {orderCore}) AS ComboRank
+                FROM (
+                    {candidates}
+                ) t
+            ) t
+            WHERE t.ComboRank = 1
+            ORDER BY {orderCore}";
+        }
+
+        /// <summary>
+        /// 批量条件表：以值列表与候选人关联，同时把 ComboKey 带进结果
+        /// </summary>
+        private static string ComboJoin(ReviewUserFilter filter, string comboValues, bool partTime)
+        {
+            var (columns, on) = filter switch
+            {
+                ReviewUserFilter.Org => ("ComboKey, DeptLevelSort, PositionSort",
+                                         @"combo.DeptLevelSort = deptlevel.SortOrder
+                   AND combo.PositionSort = position.SortOrder"),
+                ReviewUserFilter.Dept => ("ComboKey, DepartmentId, PositionSort",
+                                          @"combo.DepartmentId = dept.DepartmentId
+                   AND combo.PositionSort = position.SortOrder"),
+                _ => ("ComboKey, UserId", partTime ? "combo.UserId = partime.UserId" : "combo.UserId = [user].UserId"),
+            };
+
+            return $@"
+                INNER JOIN (VALUES {comboValues}) AS combo({columns})
+                    ON {on}";
+        }
+
+        /// <summary>
         /// 自动降级查询（单次往返）：取上级部门链内「职级最高、同职级下部门级别最内」的一组人，
         /// 等价于逐组合尝试取第一个命中。参数：@MaxPositionSort、@MaxDeptLevelSort，带代理时另需 @Now 及 Auto 身份枚举参数
         /// </summary>
@@ -64,11 +138,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 排序：单审按身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代）+ 入职时间，其余仅按入职时间
         /// </summary>
-        internal static string BuildOrderBy(bool isApproved, bool isAuto)
+        internal static string BuildOrderBy(bool isApproved, bool isAuto) => $"ORDER BY {BuildOrderCore(isApproved, isAuto)}";
+
+        /// <summary>
+        /// 排序表达式本体（不含 ORDER BY），供窗口函数 OVER 子句复用
+        /// </summary>
+        internal static string BuildOrderCore(bool isApproved, bool isAuto)
         {
             if (!isApproved)
             {
-                return "ORDER BY t.HireDate DESC";
+                return "t.HireDate DESC";
             }
 
             string c0 = (isAuto ? AppointmentType.AutoActual : AppointmentType.Actual).ToEnumString();
@@ -76,7 +155,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string c2 = (isAuto ? AppointmentType.AutoConcurrent : AppointmentType.Concurrent).ToEnumString();
             string c3 = (isAuto ? AppointmentType.AutoConcurrentAgent : AppointmentType.ConcurrentAgent).ToEnumString();
 
-            return $@"ORDER BY CASE t.AppointmentType
+            return $@"CASE t.AppointmentType
                         WHEN '{c0}' THEN 0
                         WHEN '{c1}' THEN 1
                         WHEN '{c2}' THEN 2
@@ -136,7 +215,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 t.AppointmentType";
         }
 
-        private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto, bool withSortColumns = false)
+        private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto, bool withSortColumns = false, string comboJoin = "")
         {
             // 专职记实/代身份，兼职记兼/兼代身份；自动降级换用 Auto 前缀枚举
             string actualParam = partTime
@@ -205,6 +284,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             columns.Add("[user].HireDate AS HireDate");
 
+            // 批量查询时带出条件组标识，供调用方归属回各步骤
+            if (!string.IsNullOrEmpty(comboJoin))
+            {
+                columns.Add("combo.ComboKey AS ComboKey");
+            }
+
             string from = partTime
                 ? @"Basic.UserPartTime partime
                 INNER JOIN Basic.UserInfo [user]
@@ -236,6 +321,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 LEFT JOIN Basic.UserInfo agentusers
                     ON agent.AgentUserId = agentusers.UserId";
             }
+
+            // 条件表放在最后关联，可引用前面所有关联表
+            joins += comboJoin;
 
             return $@"                SELECT
                     {string.Join(@",

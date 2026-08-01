@@ -1,5 +1,18 @@
+using SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto;
+
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
+    /// <summary>
+    /// 批量查询审批人的结果行：ComboKey 标示所属条件组（实体映射需公开类型）
+    /// </summary>
+    public class BatchUserReview : UserReview
+    {
+        /// <summary>
+        /// 条件组标识
+        /// </summary>
+        public int ComboKey { get; set; }
+    }
+
     /// <summary>
     /// 审批人查询过滤方式
     /// </summary>

@@ -68,46 +68,33 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<List<RejectStepDrop>> GetRejectStepDrop(long formId)
         {
-            var currentStepIsStart = await _db.Queryable<FormInstanceEntity>()
-                                              .With(SqlWith.NoLock)
-                                              .InnerJoin<WorkflowStepEntity>((instance, step) => instance.CurrentStepId == step.StepId)
-                                              .Where((instance, step) => instance.FormId == formId)
-                                              .Select((instance, step) => step.IsStartStep)
-                                              .FirstAsync();
-
-            if (currentStepIsStart == 1)
+            var formDetail = await GetApplyFormDetail(formId);
+            if (formDetail == null)
             {
                 return new List<RejectStepDrop>();
             }
 
-            var formDetail = await GetApplyFormDetail(formId);
-            var context = await BuildFlowContext(formDetail);
-            var flowSteps = await BuildStepReviewList(formDetail, context);
-
+            // 先取当前步骤资料：起始步骤无可驳回步骤，其排序同时作为后续只解析前置步骤的上限
             int currentSortOrder = int.MaxValue;
             if (formDetail.CurrentStepId.HasValue)
             {
                 long currentStepId = formDetail.CurrentStepId.Value;
-                var currentStep = flowSteps.FirstOrDefault(step => step.Review.StepId == currentStepId);
+                var currentStep = await _db.Queryable<WorkflowStepEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .Where(step => step.StepId == currentStepId)
+                                           .FirstAsync();
 
-                if (currentStep != null)
+                if (currentStep?.IsStartStep == 1)
                 {
-                    currentSortOrder = currentStep.SortOrder;
+                    return new List<RejectStepDrop>();
                 }
-                // 当前步骤未出现在步骤链上（如被跳过），退回规则内步骤资料取排序
-                else if (context.StepInfoMap.TryGetValue(currentStepId, out var currentStepInfo))
-                {
-                    currentSortOrder = currentStepInfo.SortOrder;
-                }
-                else
-                {
-                    var offRuleStep = await _db.Queryable<WorkflowStepEntity>()
-                                               .With(SqlWith.NoLock)
-                                               .Where(step => step.StepId == currentStepId)
-                                               .FirstAsync();
-                    currentSortOrder = offRuleStep?.SortOrder ?? int.MaxValue;
-                }
+
+                currentSortOrder = currentStep?.SortOrder ?? int.MaxValue;
             }
+
+            // 下拉只显示当前步骤之前的步骤，其后步骤不预载指派配置、也不查审批人
+            var context = await BuildFlowContext(formDetail, currentSortOrder);
+            var flowSteps = await BuildStepReviewList(formDetail, context, currentSortOrder);
 
             // 可驳回：起始步骤始终保留；其余需位于当前步骤之前，且当前操作人不在该步骤审批人中
             return flowSteps
@@ -157,9 +144,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         /// <summary>
         /// 预载步骤链、步骤配置与组织架构资料：配置与部门/人员按 Id 集合批量取回，
-        /// 部门级别与职级为小型基础资料整表缓存，使步骤循环内不再往返数据库
+        /// 部门级别与职级为小型基础资料整表缓存，使步骤循环内不再往返数据库。
+        /// maxSortOrder 用于只需要部分步骤的场景（如可驳回下拉），限定后不再预载其余步骤的指派配置
         /// </summary>
-        private async Task<FlowContext> BuildFlowContext(ApplyFormDetail formDetail)
+        private async Task<FlowContext> BuildFlowContext(ApplyFormDetail formDetail, int? maxSortOrder = null)
         {
             var ruleSteps = await _db.Queryable<WorkflowRuleStepEntity>()
                                      .With(SqlWith.NoLock)
@@ -172,13 +160,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(step => stepIds.Contains(step.StepId))
                                      .ToListAsync();
 
-            // 申请人上级部门列表（包含申请人所在部门）
-            var applyParentDept = await _db.Queryable<DepartmentInfoEntity>()
-                                           .With(SqlWith.NoLock)
-                                           .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
-
-            // 仅查询流程中实际出现的指派类型
-            var assignStepIds = stepInfos.Where(step => step.IsStartStep != 1)
+            // 仅查询需要解析审批人的步骤上实际出现的指派类型
+            var assignStepIds = stepInfos.Where(step => step.IsStartStep != 1 && NeedResolveStep(step, maxSortOrder))
                                          .GroupBy(step => step.Assignment)
                                          .ToDictionary(group => group.Key, group => group.Select(step => step.StepId).ToList());
 
@@ -187,6 +170,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var userStepIds = AssignedStepIds(assignStepIds, Assignment.User);
             var customStepIds = AssignedStepIds(assignStepIds, Assignment.Custom);
             var addReviewStepIds = AssignedStepIds(assignStepIds, Assignment.AddReview);
+
+            // 申请人上级部门列表（包含申请人所在部门），仅组织架构指派步骤会用到
+            var applyParentDept = orgStepIds.Count == 0
+                ? new List<DepartmentInfoEntity>()
+                : await _db.Queryable<DepartmentInfoEntity>()
+                           .With(SqlWith.NoLock)
+                           .ToParentListAsync(dept => dept.ParentId, formDetail.DeptId);
 
             var orgConfigs = orgStepIds.Count == 0
                 ? new List<WorkflowStepOrgEntity>()
@@ -286,12 +276,33 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 沿规则步骤链构建各步骤的审批人列表
+        /// 判断步骤是否需要解析审批人：未限定排序上限时全部解析；
+        /// 限定时只解析起始步骤与排序在上限之前的步骤
         /// </summary>
-        private async Task<List<StepFlowItem>> BuildStepReviewList(ApplyFormDetail formDetail, FlowContext context)
+        private static bool NeedResolveStep(WorkflowStepEntity stepInfo, int? maxSortOrder)
+        {
+            return maxSortOrder == null || stepInfo.IsStartStep == 1 || stepInfo.SortOrder < maxSortOrder.Value;
+        }
+
+        /// <summary>
+        /// 沿规则步骤链构建各步骤的审批人列表；
+        /// maxSortOrder 限定时，排序在其之后的步骤直接略过，不再查询审批人
+        /// </summary>
+        private async Task<List<StepFlowItem>> BuildStepReviewList(ApplyFormDetail formDetail, FlowContext context, int? maxSortOrder = null)
+        {
+            var requests = await CollectStepUserRequests(formDetail, context, maxSortOrder);
+            await FillStepReviewUsers(formDetail, context, requests);
+
+            return requests.Select(request => request.Item).ToList();
+        }
+
+        /// <summary>
+        /// 沿步骤链收集各步骤的取人条件（此阶段不查审批人）
+        /// </summary>
+        private async Task<List<StepUserRequest>> CollectStepUserRequests(ApplyFormDetail formDetail, FlowContext context, int? maxSortOrder)
         {
             bool isChinese = _lang.Locale == "zh-CN";
-            var result = new List<StepFlowItem>();
+            var requests = new List<StepUserRequest>();
             var visited = new HashSet<long>();
 
             long? currentStepId = context.FirstStepId;
@@ -302,45 +313,51 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     break;
                 }
 
-                var stepReview = new StepReview
+                if (NeedResolveStep(stepInfo, maxSortOrder))
                 {
-                    StepId = stepInfo.StepId,
-                    StepName = isChinese ? stepInfo.StepNameCn : stepInfo.StepNameEn,
-                };
+                    var stepReview = new StepReview
+                    {
+                        StepId = stepInfo.StepId,
+                        StepName = isChinese ? stepInfo.StepNameCn : stepInfo.StepNameEn,
+                    };
 
-                var userReview = await ResolveStepReviewUsers(formDetail, context, stepInfo, stepReview);
-                stepReview.StepReviewUser.AddRange(userReview);
+                    var request = await BuildStepUserRequest(formDetail, context, stepInfo, stepReview);
+                    request.Item = new StepFlowItem
+                    {
+                        Review = stepReview,
+                        SortOrder = stepInfo.SortOrder,
+                        IsStartStep = stepInfo.IsStartStep,
+                    };
 
-                result.Add(new StepFlowItem
-                {
-                    Review = stepReview,
-                    SortOrder = stepInfo.SortOrder,
-                    IsStartStep = stepInfo.IsStartStep,
-                });
+                    requests.Add(request);
+                }
 
                 currentStepId = context.NextStepMap.TryGetValue(currentStepId.Value, out var nextStepId) ? nextStepId : null;
             }
 
-            return result;
+            return requests;
         }
 
         /// <summary>
-        /// 按步骤指派类型解析审批人；组织架构级别不足或自定义找不到人时标记步骤跳过
+        /// 按步骤指派类型确定取人条件；组织架构级别不足或指派配置缺失时直接标记步骤跳过
         /// </summary>
-        private async Task<List<UserReview>> ResolveStepReviewUsers(ApplyFormDetail formDetail, FlowContext context, WorkflowStepEntity stepInfo, StepReview stepReview)
+        private async Task<StepUserRequest> BuildStepUserRequest(ApplyFormDetail formDetail, FlowContext context, WorkflowStepEntity stepInfo, StepReview stepReview)
         {
+            var request = new StepUserRequest();
+
             if (stepInfo.IsStartStep == 1)
             {
-                return await GetStartReviewUser(formDetail.UserId);
+                request.IsStart = true;
+                return request;
             }
 
-            bool isApproved = stepInfo.ReviewMode == ReviewMode.Review.ToEnumString();
+            request.IsApproved = stepInfo.ReviewMode == ReviewMode.Review.ToEnumString();
 
             if (stepInfo.Assignment == Assignment.Org.ToEnumString())
             {
                 if (!context.OrgConfigMap.TryGetValue(stepInfo.StepId, out var orgInfo))
                 {
-                    return new List<UserReview>();
+                    return request;
                 }
 
                 int deptLevelSort = context.DeptLevelSort(orgInfo.DeptLeaveId);
@@ -349,10 +366,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 if (formDetail.DeptLevelSort < deptLevelSort || formDetail.PositionSort <= positionSort)
                 {
                     stepReview.Skip = 1;
-                    return new List<UserReview>();
+                    return request;
                 }
 
-                return await GetOrgReviewUser(context.ApplyParentDept, deptLevelSort, positionSort, isApproved);
+                request.Filter = ReviewUserFilter.Org;
+                request.DeptLevelSort = deptLevelSort;
+                request.PositionSort = positionSort;
+                request.DowngradeFromApplicant = true;
+                return request;
             }
 
             if (stepInfo.Assignment == Assignment.DeptUser.ToEnumString())
@@ -360,13 +381,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 if (!context.DeptUserConfigMap.TryGetValue(stepInfo.StepId, out var deptUserInfo)
                     || !context.DeptMap.TryGetValue(deptUserInfo.DepartmentId, out var targetDept))
                 {
-                    return new List<UserReview>();
+                    return request;
                 }
 
-                return await GetDeptUserReviewUser(deptUserInfo.DepartmentId,
-                                                   context.PositionSort(deptUserInfo.PositionId),
-                                                   context.DeptLevelSort(targetDept.DepartmentLevelId),
-                                                   isApproved);
+                request.Filter = ReviewUserFilter.Dept;
+                request.DepartmentId = deptUserInfo.DepartmentId;
+                request.PositionSort = context.PositionSort(deptUserInfo.PositionId);
+                request.DeptLevelSort = context.DeptLevelSort(targetDept.DepartmentLevelId);
+                return request;
             }
 
             if (stepInfo.Assignment == Assignment.User.ToEnumString())
@@ -375,14 +397,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     || !context.UserMap.TryGetValue(userInfo.UserId, out var targetUser)
                     || !context.DeptMap.TryGetValue(targetUser.DepartmentId, out var targetDept))
                 {
-                    return new List<UserReview>();
+                    return request;
                 }
 
-                return await GetUserReviewUser(targetUser.UserId,
-                                               targetDept.DepartmentId,
-                                               context.PositionSort(targetUser.PositionId),
-                                               context.DeptLevelSort(targetDept.DepartmentLevelId),
-                                               isApproved);
+                request.Filter = ReviewUserFilter.User;
+                request.UserIds.Add(targetUser.UserId);
+                request.DepartmentId = targetDept.DepartmentId;
+                request.PositionSort = context.PositionSort(targetUser.PositionId);
+                request.DeptLevelSort = context.DeptLevelSort(targetDept.DepartmentLevelId);
+                return request;
             }
 
             if (stepInfo.Assignment == Assignment.Custom.ToEnumString())
@@ -390,16 +413,23 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 if (!context.CustomConfigMap.TryGetValue(stepInfo.StepId, out var customInfo))
                 {
                     stepReview.Skip = 1;
-                    return new List<UserReview>();
+                    return request;
                 }
 
-                var userReview = await GetCustomReviewUser(formDetail.FormId, customInfo.Guidance, context, isApproved);
-                if (userReview.Count == 0)
+                request.SkipWhenEmpty = true;
+
+                var custom = await _personResolver.Resolve(customInfo.Guidance, formDetail.FormId);
+                if (custom == null)
                 {
-                    stepReview.Skip = 1;
+                    return request;
                 }
 
-                return userReview;
+                request.Filter = ReviewUserFilter.User;
+                request.UserIds.Add(custom.UserId);
+                request.DepartmentId = custom.DepartmentId;
+                request.PositionSort = context.PositionSort(custom.PositionId);
+                request.DeptLevelSort = context.DeptLevelSort(custom.DepartmentLevelId);
+                return request;
             }
 
             if (stepInfo.Assignment == Assignment.AddReview.ToEnumString())
@@ -407,19 +437,278 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 if (!context.AddReviewConfigMap.TryGetValue(stepInfo.StepId, out var addReviewInfo))
                 {
                     stepReview.Skip = 1;
-                    return new List<UserReview>();
+                    return request;
                 }
 
-                var userReview = await GetAddReviewUser(context, addReviewInfo.SortOrder);
-                if (userReview.Count == 0)
-                {
-                    stepReview.Skip = 1;
-                }
-
-                return userReview;
+                // 加审是点名的人，查不到即略过，不做自动降级；身份优先级取最高一笔，避免专兼职并存时重复
+                request.SkipWhenEmpty = true;
+                request.AllowDowngrade = false;
+                request.IsApproved = true;
+                request.Filter = ReviewUserFilter.User;
+                request.UserIds.AddRange(context.AddReviewUserIds(addReviewInfo.SortOrder));
+                return request;
             }
 
-            return new List<UserReview>();
+            return request;
+        }
+
+        #endregion
+
+        #region 批量取回步骤审批人员
+
+        /// <summary>
+        /// 取回并回填各步骤审批人：按指派类型分批一次查回，精确匹配落空的步骤再兜底降级
+        /// </summary>
+        private async Task FillStepReviewUsers(ApplyFormDetail formDetail, FlowContext context, List<StepUserRequest> requests)
+        {
+            await FillStartRequests(formDetail, requests);
+            await FillOrgRequests(context, requests);
+            await FillDeptRequests(requests);
+            await FillUserRequests(requests);
+            await FillDowngradeRequests(context, requests);
+
+            // 自定义 / 加审步骤查不到人即跳过
+            foreach (var request in requests.Where(request => request.SkipWhenEmpty && request.Item.Review.StepReviewUser.Count == 0))
+            {
+                request.Item.Review.Skip = 1;
+            }
+        }
+
+        /// <summary>
+        /// 起始步骤：全流程共用申请人一次查询结果
+        /// </summary>
+        private async Task FillStartRequests(ApplyFormDetail formDetail, List<StepUserRequest> requests)
+        {
+            var startRequests = requests.Where(request => request.IsStart).ToList();
+            if (startRequests.Count == 0)
+            {
+                return;
+            }
+
+            var startUsers = await GetStartReviewUser(formDetail.UserId);
+
+            foreach (var request in startRequests)
+            {
+                AppendReviewUsers(request, startUsers);
+            }
+        }
+
+        /// <summary>
+        /// 组织架构指派：上级部门链全流程共用，仅 (部门级别, 职级) 组合因步骤而异，一次取回
+        /// </summary>
+        private async Task FillOrgRequests(FlowContext context, List<StepUserRequest> requests)
+        {
+            var orgRequests = requests.Where(request => request.Filter == ReviewUserFilter.Org).ToList();
+            if (orgRequests.Count == 0)
+            {
+                return;
+            }
+
+            string parentDeptIds = JoinDeptIds(context.ApplyParentDept.Select(dept => dept.DepartmentId));
+            if (string.IsNullOrEmpty(parentDeptIds))
+            {
+                return;
+            }
+
+            // 单审只取一笔、会审取全部，两种语义分批查询
+            foreach (var group in orgRequests.GroupBy(request => request.IsApproved))
+            {
+                var comboKeys = BuildComboKeys(group, request => (request.DeptLevelSort, request.PositionSort));
+                string comboValues = string.Join(",", comboKeys.Select(combo => $"({combo.Value},{combo.Key.Item1},{combo.Key.Item2})"));
+
+                var batch = await QueryExactReviewUsersBatch(ReviewUserFilter.Org, parentDeptIds, group.Key, comboValues);
+
+                foreach (var request in group)
+                {
+                    AppendReviewUsers(request, batch, comboKeys[(request.DeptLevelSort, request.PositionSort)]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 指定部门职级指派：(部门, 职级) 组合一次取回
+        /// </summary>
+        private async Task FillDeptRequests(List<StepUserRequest> requests)
+        {
+            var deptRequests = requests.Where(request => request.Filter == ReviewUserFilter.Dept).ToList();
+            if (deptRequests.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var group in deptRequests.GroupBy(request => request.IsApproved))
+            {
+                var comboKeys = BuildComboKeys(group, request => (request.DepartmentId, request.PositionSort));
+                string comboValues = string.Join(",", comboKeys.Select(combo => $"({combo.Value},{AsBigInt(combo.Key.Item1)},{combo.Key.Item2})"));
+
+                var batch = await QueryExactReviewUsersBatch(ReviewUserFilter.Dept, parentDeptIds: string.Empty, group.Key, comboValues);
+
+                foreach (var request in group)
+                {
+                    AppendReviewUsers(request, batch, comboKeys[(request.DepartmentId, request.PositionSort)]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 指定人指派（含自定义、加审）：所有点名人员一次取回
+        /// </summary>
+        private async Task FillUserRequests(List<StepUserRequest> requests)
+        {
+            var userRequests = requests.Where(request => request.Filter == ReviewUserFilter.User && request.UserIds.Count > 0).ToList();
+            if (userRequests.Count == 0)
+            {
+                return;
+            }
+
+            foreach (var group in userRequests.GroupBy(request => request.IsApproved))
+            {
+                var userIds = group.SelectMany(request => request.UserIds).Distinct().ToList();
+                var comboKeys = userIds.Select((userId, index) => (userId, index))
+                                       .ToDictionary(pair => pair.userId, pair => pair.index);
+                string comboValues = string.Join(",", comboKeys.Select(combo => $"({combo.Value},{AsBigInt(combo.Key)})"));
+
+                var batch = await QueryExactReviewUsersBatch(ReviewUserFilter.User, parentDeptIds: string.Empty, group.Key, comboValues);
+
+                foreach (var request in group)
+                {
+                    // 加审步骤有多人，按配置顺序回填
+                    foreach (long userId in request.UserIds)
+                    {
+                        AppendReviewUsers(request, batch, comboKeys[userId]);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// 精确匹配落空的步骤逐一降级兜底：部门链与相同降级条件只查一次
+        /// </summary>
+        private async Task FillDowngradeRequests(FlowContext context, List<StepUserRequest> requests)
+        {
+            var pending = requests.Where(request => request.Filter.HasValue
+                                                    && request.AllowDowngrade
+                                                    && request.Item.Review.StepReviewUser.Count == 0)
+                                  .ToList();
+            if (pending.Count == 0)
+            {
+                return;
+            }
+
+            string applicantDeptIds = JoinDeptIds(context.ApplyParentDept.Select(dept => dept.DepartmentId));
+            var deptChainCache = new Dictionary<long, string>();
+            var downgradeCache = new Dictionary<string, List<UserReview>>();
+
+            foreach (var request in pending)
+            {
+                string parentDeptIds = request.DowngradeFromApplicant
+                    ? applicantDeptIds
+                    : await GetParentDeptIds(request.DepartmentId, deptChainCache);
+
+                string cacheKey = $"{parentDeptIds}|{request.PositionSort}|{request.DeptLevelSort}|{request.IsApproved}";
+                if (!downgradeCache.TryGetValue(cacheKey, out var downgradeUsers))
+                {
+                    downgradeUsers = await FindDowngradeReviewUsers(parentDeptIds, request.PositionSort, request.DeptLevelSort, request.IsApproved);
+                    downgradeCache[cacheKey] = downgradeUsers;
+                }
+
+                AppendReviewUsers(request, downgradeUsers);
+            }
+        }
+
+        /// <summary>
+        /// 为去重后的条件组合编号，编号即 SQL 中带回的 ComboKey
+        /// </summary>
+        private static Dictionary<TCombo, int> BuildComboKeys<TCombo>(IEnumerable<StepUserRequest> requests, Func<StepUserRequest, TCombo> selector) where TCombo : notnull
+        {
+            return requests.Select(selector)
+                           .Distinct()
+                           .Select((combo, index) => (combo, index))
+                           .ToDictionary(pair => pair.combo, pair => pair.index);
+        }
+
+        private static void AppendReviewUsers(StepUserRequest request, Dictionary<int, List<UserReview>> batch, int comboKey)
+        {
+            if (batch.TryGetValue(comboKey, out var userReview))
+            {
+                AppendReviewUsers(request, userReview);
+            }
+        }
+
+        /// <summary>
+        /// 同一批查询结果可能落在多个步骤上，回填时复制一份，避免步骤间审批状态互相覆盖
+        /// </summary>
+        private static void AppendReviewUsers(StepUserRequest request, List<UserReview> userReview)
+        {
+            request.Item.Review.StepReviewUser.AddRange(userReview.Select(user => new UserReview
+            {
+                ReviewUserId = user.ReviewUserId,
+                ReviewUserName = user.ReviewUserName,
+                AgentUserId = user.AgentUserId,
+                AgentUserName = user.AgentUserName,
+                AppointmentType = user.AppointmentType,
+                AppointmentTypeName = user.AppointmentTypeName,
+                Result = user.Result,
+            }));
+        }
+
+        /// <summary>
+        /// 取目标部门的上级部门链（含自身），同一部门只查一次
+        /// </summary>
+        private async Task<string> GetParentDeptIds(long departmentId, Dictionary<long, string> cache)
+        {
+            if (cache.TryGetValue(departmentId, out var cached))
+            {
+                return cached;
+            }
+
+            var parentDept = await _db.Queryable<DepartmentInfoEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .ToParentListAsync(parent => parent.ParentId, departmentId);
+
+            string parentDeptIds = JoinDeptIds(parentDept.Select(parent => parent.DepartmentId));
+            cache[departmentId] = parentDeptIds;
+
+            return parentDeptIds;
+        }
+
+        /// <summary>
+        /// 步骤取人条件：批量查询前按步骤收集，查回后回填到对应步骤
+        /// </summary>
+        private sealed class StepUserRequest
+        {
+            /// <summary>步骤审批信息（审批人待回填）</summary>
+            public StepFlowItem Item { get; set; } = new StepFlowItem();
+
+            /// <summary>是否起始步骤（取申请人本人）</summary>
+            public bool IsStart { get; set; }
+
+            /// <summary>取人过滤方式，为空表示该步骤无需查询</summary>
+            public ReviewUserFilter? Filter { get; set; }
+
+            /// <summary>是否单审（只取身份优先级最高的一笔）</summary>
+            public bool IsApproved { get; set; }
+
+            /// <summary>查不到人时是否标记步骤跳过</summary>
+            public bool SkipWhenEmpty { get; set; }
+
+            /// <summary>精确匹配落空时是否自动降级</summary>
+            public bool AllowDowngrade { get; set; } = true;
+
+            /// <summary>降级沿申请人部门链查找（组织架构指派）</summary>
+            public bool DowngradeFromApplicant { get; set; }
+
+            /// <summary>点名的审批人（指定人 / 自定义 / 加审）</summary>
+            public List<long> UserIds { get; set; } = new List<long>();
+
+            /// <summary>目标部门（指定部门职级过滤 / 降级起点）</summary>
+            public long DepartmentId { get; set; }
+
+            /// <summary>目标职级排序（过滤 / 降级起点）</summary>
+            public int PositionSort { get; set; }
+
+            /// <summary>目标部门级别排序（过滤 / 降级起点）</summary>
+            public int DeptLevelSort { get; set; }
         }
 
         #endregion
@@ -490,143 +779,33 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询审批人身份 - 按组织架构（降级沿申请人上级部门链查找）
+        /// 拼接部门Id 列表；雪花 Id 字面量在 T-SQL 中会被当成 numeric，需显式转 bigint 才不致比较列被隐式转换、走不了索引
         /// </summary>
-        private async Task<List<UserReview>> GetOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, int deptLevelSort, int positionSort, bool isApproved)
-        {
-            string parentDeptIds = JoinDeptIds(applyParentDept.Select(dept => dept.DepartmentId));
+        private static string JoinDeptIds(IEnumerable<long> deptIds) => string.Join(",", deptIds.Select(AsBigInt));
 
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.Org, parentDeptIds, isApproved,
-                new SugarParameter("@DeptLevelSort", deptLevelSort),
-                new SugarParameter("@PositionSort", positionSort));
-
-            if (exactResult.Count > 0)
-            {
-                return exactResult;
-            }
-
-            return await FindDowngradeReviewUsers(parentDeptIds, positionSort, deptLevelSort, isApproved);
-        }
+        private static string AsBigInt(long value) => $"CAST({value} AS BIGINT)";
 
         /// <summary>
-        /// 查询审批人身份 - 按指定部门职级
+        /// 批量精确匹配查询审批人：一次取回多组条件的结果，按 ComboKey 归属回各条件组
         /// </summary>
-        private async Task<List<UserReview>> GetDeptUserReviewUser(long departmentId, int positionSort, int deptLevelSort, bool isApproved)
-        {
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.Dept, parentDeptIds: string.Empty, isApproved,
-                new SugarParameter("@DepartmentId", departmentId),
-                new SugarParameter("@PositionSort", positionSort));
-
-            if (exactResult.Count > 0)
-            {
-                return exactResult;
-            }
-
-            return await FindDowngradeFromDept(departmentId, positionSort, deptLevelSort, isApproved);
-        }
-
-        /// <summary>
-        /// 查询审批人身份 - 按指定人
-        /// </summary>
-        private async Task<List<UserReview>> GetUserReviewUser(long userId, long departmentId, int positionSort, int deptLevelSort, bool isApproved)
-        {
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved,
-                new SugarParameter("@UserId", userId));
-
-            if (exactResult.Count > 0)
-            {
-                return exactResult;
-            }
-
-            return await FindDowngradeFromDept(departmentId, positionSort, deptLevelSort, isApproved);
-        }
-
-        /// <summary>
-        /// 查询审批人身份 - 按自定义
-        /// </summary>
-        private async Task<List<UserReview>> GetCustomReviewUser(long formId, string guidance, FlowContext context, bool isApproved)
-        {
-            var custom = await _personResolver.Resolve(guidance, formId);
-
-            if (custom == null)
-            {
-                return new List<UserReview>();
-            }
-
-            var exactResult = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved,
-                new SugarParameter("@UserId", custom.UserId));
-
-            if (exactResult.Count > 0)
-            {
-                return exactResult;
-            }
-
-            return await FindDowngradeFromDept(custom.DepartmentId,
-                                               context.PositionSort(custom.PositionId),
-                                               context.DeptLevelSort(custom.DepartmentLevelId),
-                                               isApproved);
-        }
-
-        /// <summary>
-        /// 查询审批人身份 - 加审（点名的人，查不到即略过，不做自动降级）
-        /// </summary>
-        private async Task<List<UserReview>> GetAddReviewUser(FlowContext context, int addReviewSortOrder)
-        {
-            var result = new List<UserReview>();
-
-            foreach (long addReviewUserId in context.AddReviewUserIds(addReviewSortOrder))
-            {
-                // isApproved 取身份优先级最高的一笔，避免专兼职并存时同一人重复
-                var userReview = await QueryExactReviewUsers(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved: true,
-                    new SugarParameter("@UserId", addReviewUserId));
-
-                result.AddRange(userReview);
-            }
-
-            return result;
-        }
-
-        /// <summary>
-        /// 降级沿目标部门的上级部门链查找
-        /// </summary>
-        private async Task<List<UserReview>> FindDowngradeFromDept(long departmentId, int positionSort, int deptLevelSort, bool isApproved)
-        {
-            var targetParentDept = await _db.Queryable<DepartmentInfoEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .ToParentListAsync(parent => parent.ParentId, departmentId);
-
-            return await FindDowngradeReviewUsers(JoinDeptIds(targetParentDept.Select(parent => parent.DepartmentId)),
-                                                  positionSort, deptLevelSort, isApproved);
-        }
-
-        private static string JoinDeptIds(IEnumerable<long> deptIds) => string.Join(",", deptIds);
-
-        /// <summary>
-        /// 精确匹配查询审批人
-        /// </summary>
-        private async Task<List<UserReview>> QueryExactReviewUsers(ReviewUserFilter filter, string parentDeptIds, bool isApproved, params SugarParameter[] filterParams)
+        private async Task<Dictionary<int, List<UserReview>>> QueryExactReviewUsersBatch(ReviewUserFilter filter, string parentDeptIds, bool isApproved, string comboValues)
         {
             var (actual, agent, concurrent, concurrentAgent, _, _, _, _) = ReviewUserSql.AppointmentEnumStrings();
 
-            string sql = ReviewUserSql.ExactSql(
-                Projection,
-                filter,
-                parentDeptIds,
-                topN: isApproved ? "TOP 1" : "",
-                orderBy: ReviewUserSql.BuildOrderBy(isApproved, isAuto: false));
+            string sql = ReviewUserSql.ExactBatchSql(Projection, filter, parentDeptIds, comboValues, isApproved);
 
-            var parameters = new List<SugarParameter>
+            var result = await _db.Ado.SqlQueryAsync<BatchUserReview>(sql, new[]
             {
                 new SugarParameter("@Now", DateTime.Now),
                 new SugarParameter("@Actual", actual),
                 new SugarParameter("@Agent", agent),
                 new SugarParameter("@Concurrent", concurrent),
                 new SugarParameter("@ConcurrentAgent", concurrentAgent),
-            };
-            parameters.AddRange(filterParams);
+            });
 
-            var result = await _db.Ado.SqlQueryAsync<UserReview>(sql, parameters.ToArray());
-            return result ?? new List<UserReview>();
+            return (result ?? new List<BatchUserReview>())
+                   .GroupBy(user => user.ComboKey)
+                   .ToDictionary(group => group.Key, group => group.Cast<UserReview>().ToList());
         }
 
         /// <summary>
