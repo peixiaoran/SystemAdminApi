@@ -208,7 +208,7 @@
     <value>File Size</value>
   </data>
   <data name="PdfReviewRecord" xml:space="preserve">
-    <value>Approval Records</value>
+    <value>Review Records</value>
   </data>
   <data name="PdfReviewStep" xml:space="preserve">
     <value>Step</value>
@@ -272,5 +272,26 @@
   </data>
   <data name="AddReviewDeleteFailed" xml:space="preserve">
     <value>Failed to remove additional reviewer.</value>
+  </data>
+  <data name="PdfDocumentCirculateTitle" xml:space="preserve">
+    <value>Document Circulate</value>
+  </data>
+  <data name="PdfIssueDept" xml:space="preserve">
+    <value>Issuing Dept</value>
+  </data>
+  <data name="PdfCirculationPurpose" xml:space="preserve">
+    <value>Circulation Purpose</value>
+  </data>
+  <data name="PdfContentSummary" xml:space="preserve">
+    <value>Content Summary</value>
+  </data>
+  <data name="PdfAddReview" xml:space="preserve">
+    <value>Add-Review</value>
+  </data>
+  <data name="PdfAddReviewOrder" xml:space="preserve">
+    <value>Order</value>
+  </data>
+  <data name="PdfAddReviewDept" xml:space="preserve">
+    <value>Department</value>
   </data>
 </root>

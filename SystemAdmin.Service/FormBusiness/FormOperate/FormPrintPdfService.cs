@@ -6,11 +6,9 @@ using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
-using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.DocumentCirculate.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
-// 销假单Dto按类型引入，避免与请假单Dto命名空间下的同名类型冲突
-using LeaveCancellDto = SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto.LeaveCancellDto;
-using LeaveRequestDetailDto = SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto.LeaveRequestDetailDto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 
@@ -21,7 +19,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
     /// 根据表单前缀分发到对应的打印方法，新表单在 PrintFormPdf 的 switch 中登记，
     /// 并复用「PDF通用组件」region 内的页面设置、标题、栏位行、附件/审批记录表格、印章与单元格样式
     /// </summary>
-    public class FormPrintPdfService
+    public partial class FormPrintPdfService
     {
         private readonly CurrentUser _loginuser;
         private readonly ILogger<FormPrintPdfService> _logger;
@@ -29,6 +27,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly FormPermissionChecker _formChecker;
         private readonly LeaveRequestRepository _leaveRequestRepo;
         private readonly LeaveCancellRepository _leaveCancellRepo;
+        private readonly DocumentCirculateRepository _documentCirculateRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
@@ -40,7 +39,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
         }
 
-        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -48,12 +47,13 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             _formChecker = formChecker;
             _leaveRequestRepo = leaveRequestRepo;
             _leaveCancellRepo = leaveCancellRepo;
+            _documentCirculateRepo = documentCirculateRepo;
             _formmanger = formmanger;
             _localization = localization;
         }
 
         /// <summary>
-        /// 打印PDF（根据表单前缀分发，LVR=请假单，LCF=销假单）
+        /// 打印PDF（根据表单前缀分发，LVR=请假单，LCF=销假单，DCS=传签单）
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId)
         {
@@ -66,6 +66,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 {
                     "LVR" => await PrintLeaveRequestPdf(id),
                     "LCF" => await PrintLeaveCancellPdf(id),
+                    "DCS" => await PrintDocumentCirculatePdf(id),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -109,7 +110,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// <summary>
         /// 组装请假单PDF文档（仅负责请假单版面，通用部分调用「PDF通用组件」）
         /// </summary>
-        private MemoryStream BuildLeaveRequestPdf(LeaveRequestDto form, string? leaveTypeName)
+        private MemoryStream BuildLeaveRequestPdf(Model.FormBusiness.Forms.LeaveRequest.Dto.LeaveRequestDto form, string? leaveTypeName)
         {
             var show = BuildFieldVisibility(form.StepFieldPermission);
 
@@ -292,6 +293,148 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                     table.Cell().Element(BodyCell).AlignCenter().Text(leaveRequest.LeaveTypeName ?? string.Empty);
                     table.Cell().Element(BodyCell).AlignCenter().Text(leavePeriod);
                     table.Cell().Element(BodyCell).AlignCenter().Text((leaveRequest.LeaveHours ?? 0).ToString("0.00")).FontColor(EmphasizedColor).SemiBold();
+                });
+            });
+        }
+
+        #endregion
+
+        #region 传签单PDF
+
+        /// <summary>
+        /// 生成传签单PDF
+        /// </summary>
+        private async Task<Result<FormPdfDto>> PrintDocumentCirculatePdf(long formId)
+        {
+            var isCan = await _formChecker.CanView(formId, "View");
+            if (!isCan)
+            {
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
+            }
+
+            var form = await _documentCirculateRepo.GetDocumentCirculate(formId);
+            form.Attachment = await _formmanger.GetAttachmentList(formId);
+            form.AddReview = await _formmanger.GetAddReviewList(formId);
+            form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
+            form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
+
+            var pdf = new FormPdfDto
+            {
+                FileName = $"{Msg("PdfDocumentCirculateTitle")}_{form.FormNo}.pdf",
+                FileStream = BuildDocumentCirculatePdf(form)
+            };
+            return Result<FormPdfDto>.Ok(pdf);
+        }
+
+        /// <summary>
+        /// 组装传签单PDF文档
+        /// </summary>
+        private MemoryStream BuildDocumentCirculatePdf(DocumentCirculateDto form)
+        {
+            var show = BuildFieldVisibility(form.StepFieldPermission);
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    ConfigurePage(page);
+                    ComposeApprovalStamp(page, form.FormStatus, form.ReviewRecord);
+
+                    page.Content().Column(column =>
+                    {
+                        ComposeTitle(column, Msg("PdfDocumentCirculateTitle"));
+
+                        var row1 = new List<PdfField>();
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
+                        if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
+                        ComposeFieldRow(column, row1);
+
+                        var row2 = new List<PdfField>();
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
+                        ComposeFieldRow(column, row2);
+
+                        if (show("IssueDept"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfIssueDept"), form.IssueDept ?? string.Empty)
+                            });
+                        }
+
+                        if (show("CirculationPurpose"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfCirculationPurpose"), form.CirculationPurpose ?? string.Empty, MinHeight: 44f)
+                            });
+                        }
+
+                        // 内容摘要为富文本编辑器产生的HTML
+                        if (show("ContentSummary"))
+                        {
+                            ComposeHtmlFieldRow(column, Msg("PdfContentSummary"), form.ContentSummary, 66f);
+                        }
+
+                        if (show("Upload"))
+                        {
+                            ComposeAttachmentTable(column, form.Attachment);
+                        }
+
+                        // AddReivew 为表单栏位配置中的原始拼写
+                        if (show("AddReivew"))
+                        {
+                            ComposeAddReviewTable(column, form.AddReview);
+                        }
+
+                        ComposeReviewRecordTable(column, form.ReviewRecord);
+                    });
+                });
+            });
+
+            return GeneratePdfStream(document);
+        }
+
+        /// <summary>
+        /// 组装加审人表格
+        /// </summary>
+        private void ComposeAddReviewTable(ColumnDescriptor column, List<FormAddReviewDto> addReviews)
+        {
+            column.Item().PaddingBottom(10).Row(row =>
+            {
+                row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfAddReview")).FontColor(LabelTextColor);
+                row.RelativeItem().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(40);
+                        columns.RelativeColumn(4f);
+                        columns.RelativeColumn(2f);
+                        columns.RelativeColumn(2.4f);
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfAddReviewOrder")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).Text(Msg("PdfAddReviewDept")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).Text(Msg("PdfUserNo")).FontColor(LabelTextColor);
+                        header.Cell().Element(HeaderCell).Text(Msg("PdfUserName")).FontColor(LabelTextColor);
+                    });
+
+                    if (addReviews.Count == 0)
+                    {
+                        table.Cell().ColumnSpan(4).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
+                        return;
+                    }
+
+                    foreach (var addReview in addReviews)
+                    {
+                        table.Cell().Element(BodyCell).AlignCenter().Text(addReview.SortOrder.ToString());
+                        table.Cell().Element(BodyCell).Text(addReview.DeptName);
+                        table.Cell().Element(BodyCell).Text(addReview.UserNo);
+                        table.Cell().Element(BodyCell).Text(addReview.UserName);
+                    }
                 });
             });
         }

@@ -273,4 +273,25 @@
   <data name="AddReviewDeleteFailed" xml:space="preserve">
     <value>加审删除失败</value>
   </data>
+  <data name="PdfDocumentCirculateTitle" xml:space="preserve">
+    <value>传签单</value>
+  </data>
+  <data name="PdfIssueDept" xml:space="preserve">
+    <value>发文单位</value>
+  </data>
+  <data name="PdfCirculationPurpose" xml:space="preserve">
+    <value>传签目的</value>
+  </data>
+  <data name="PdfContentSummary" xml:space="preserve">
+    <value>内容摘要</value>
+  </data>
+  <data name="PdfAddReview" xml:space="preserve">
+    <value>加审</value>
+  </data>
+  <data name="PdfAddReviewOrder" xml:space="preserve">
+    <value>顺序</value>
+  </data>
+  <data name="PdfAddReviewDept" xml:space="preserve">
+    <value>部门</value>
+  </data>
 </root>

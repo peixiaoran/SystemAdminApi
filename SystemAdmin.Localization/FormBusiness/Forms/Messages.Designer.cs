@@ -61,6 +61,78 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 加审删除失败 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewDeleteFailed {
+            get {
+                return ResourceManager.GetString("AddReviewDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 加审删除成功 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewDeleteSuccess {
+            get {
+                return ResourceManager.GetString("AddReviewDeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 该表单已加审过此人员 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewExist {
+            get {
+                return ResourceManager.GetString("AddReviewExist", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 加审新增失败 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewInsertFailed {
+            get {
+                return ResourceManager.GetString("AddReviewInsertFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 加审新增成功 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewInsertSuccess {
+            get {
+                return ResourceManager.GetString("AddReviewInsertSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 找不到该加审人员 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewNotFound {
+            get {
+                return ResourceManager.GetString("AddReviewNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 加审修改失败 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewUpdateFailed {
+            get {
+                return ResourceManager.GetString("AddReviewUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 加审修改成功 的本地化字符串。
+        /// </summary>
+        internal static string AddReviewUpdateSuccess {
+            get {
+                return ResourceManager.GetString("AddReviewUpdateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 代理人「{0}」于 {1} 至 {2} 期间有待审批的请假申请，请改选其他代理人 的本地化字符串。
         /// </summary>
         internal static string AgentLeaveConflict {
@@ -106,6 +178,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 本次销假 {0} 小时，超出该请假单剩余可销除 {1} 小时 的本地化字符串。
+        /// </summary>
+        internal static string CancellHoursExceed {
+            get {
+                return ResourceManager.GetString("CancellHoursExceed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 附件删除失败 的本地化字符串。
         /// </summary>
         internal static string DeleteAttachmentFailed {
@@ -120,6 +201,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         internal static string LeaveBalanceNotEnough {
             get {
                 return ResourceManager.GetString("LeaveBalanceNotEnough", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请假单不存在 的本地化字符串。
+        /// </summary>
+        internal static string LeaveRequestNotFound {
+            get {
+                return ResourceManager.GetString("LeaveRequestNotFound", resourceCulture);
             }
         }
         
@@ -159,6 +249,33 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
             }
         }
         
+        /// <summary>
+        ///   查找类似 加审 的本地化字符串。
+        /// </summary>
+        internal static string PdfAddReview {
+            get {
+                return ResourceManager.GetString("PdfAddReview", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 部门 的本地化字符串。
+        /// </summary>
+        internal static string PdfAddReviewDept {
+            get {
+                return ResourceManager.GetString("PdfAddReviewDept", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   查找类似 顺序 的本地化字符串。
+        /// </summary>
+        internal static string PdfAddReviewOrder {
+            get {
+                return ResourceManager.GetString("PdfAddReviewOrder", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 代理人 的本地化字符串。
         /// </summary>
@@ -212,13 +329,22 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfCancellHours", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 销假时间 的本地化字符串。
         /// </summary>
         internal static string PdfCancellPeriod {
             get {
                 return ResourceManager.GetString("PdfCancellPeriod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 传签目的 的本地化字符串。
+        /// </summary>
+        internal static string PdfCirculationPurpose {
+            get {
+                return ResourceManager.GetString("PdfCirculationPurpose", resourceCulture);
             }
         }
 
@@ -232,6 +358,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 内容摘要 的本地化字符串。
+        /// </summary>
+        internal static string PdfContentSummary {
+            get {
+                return ResourceManager.GetString("PdfContentSummary", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 用户部门 的本地化字符串。
         /// </summary>
         internal static string PdfDepartment {
@@ -239,7 +374,16 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfDepartment", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   查找类似 传签单 的本地化字符串。
+        /// </summary>
+        internal static string PdfDocumentCirculateTitle {
+            get {
+                return ResourceManager.GetString("PdfDocumentCirculateTitle", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 表单编号 的本地化字符串。
         /// </summary>
@@ -250,6 +394,15 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
         }
         
         /// <summary>
+        ///   查找类似 发文单位 的本地化字符串。
+        /// </summary>
+        internal static string PdfIssueDept {
+            get {
+                return ResourceManager.GetString("PdfIssueDept", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 销假单 的本地化字符串。
         /// </summary>
         internal static string PdfLeaveCancellTitle {
@@ -257,7 +410,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfLeaveCancellTitle", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 请假总时数 的本地化字符串。
         /// </summary>
@@ -293,7 +446,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfLeaveRequestHours", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 请假单号 的本地化字符串。
         /// </summary>
@@ -302,7 +455,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfLeaveRequestNo", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 请假单 的本地化字符串。
         /// </summary>
@@ -338,7 +491,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfOriginalLeaveRequest", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 审批记录 的本地化字符串。
         /// </summary>
@@ -383,7 +536,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfReviewUser", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 审批完成 的本地化字符串。
         /// </summary>
@@ -392,7 +545,7 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("PdfStampApproved", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   查找类似 用户姓名 的本地化字符串。
         /// </summary>
