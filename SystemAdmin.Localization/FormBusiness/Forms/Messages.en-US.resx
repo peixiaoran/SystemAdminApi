@@ -297,4 +297,7 @@
   <data name="PdfAddReviewDept" xml:space="preserve">
     <value>Department</value>
   </data>
+  <data name="PdfBatchPrintFileName" xml:space="preserve">
+    <value>BatchPrint</value>
+  </data>
 </root>

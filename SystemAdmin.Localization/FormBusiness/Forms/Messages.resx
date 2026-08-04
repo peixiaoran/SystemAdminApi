@@ -297,4 +297,7 @@
   <data name="PdfAddReviewDept" xml:space="preserve">
     <value>部门</value>
   </data>
+  <data name="PdfBatchPrintFileName" xml:space="preserve">
+    <value>批量打印</value>
+  </data>
 </root>

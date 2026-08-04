@@ -64,5 +64,18 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
             }
             return File(result.Data!.FileStream, "application/pdf", result.Data.FileName);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单作业模块")]
+        [EndpointSummary("[审批历史记录] 批量打印PDF")]
+        public async Task<IActionResult> PrintFormPdfBatch([FromBody] List<string> formIds)
+        {
+            var result = await _formPrintPdfService.PrintFormPdfBatch(formIds);
+            if (result.Code != 200)
+            {
+                return StatusCode(result.Code, result);
+            }
+            return File(result.Data!.FileStream, "application/zip", result.Data.FileName);
+        }
     }
 }

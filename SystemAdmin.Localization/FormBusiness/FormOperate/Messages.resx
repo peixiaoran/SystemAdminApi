@@ -138,4 +138,10 @@
   <data name="FormPendingPrintNotSupport" xml:space="preserve">
     <value>该表单类型暂不支持打印PDF</value>
   </data>
+  <data name="FormPendingBatchPrintNoFormIds" xml:space="preserve">
+    <value>请至少选择一个表单</value>
+  </data>
+  <data name="FormPendingBatchPrintAllFailed" xml:space="preserve">
+    <value>所选表单均无法生成PDF</value>
+  </data>
 </root>

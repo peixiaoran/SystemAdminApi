@@ -138,4 +138,10 @@
   <data name="FormPendingPrintNotSupport" xml:space="preserve">
     <value>Printing PDF is not supported for this form type</value>
   </data>
+  <data name="FormPendingBatchPrintNoFormIds" xml:space="preserve">
+    <value>Please select at least one form</value>
+  </data>
+  <data name="FormPendingBatchPrintAllFailed" xml:space="preserve">
+    <value>Unable to generate PDF for any of the selected forms</value>
+  </data>
 </root>

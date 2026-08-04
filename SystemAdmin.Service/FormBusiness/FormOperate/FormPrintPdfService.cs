@@ -11,13 +11,12 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
+using System.IO.Compression;
 
 namespace SystemAdmin.Service.FormBusiness.FormOperate
 {
     /// <summary>
-    /// 表单打印PDF服务（QuestPDF）
-    /// 根据表单前缀分发到对应的打印方法，新表单在 PrintFormPdf 的 switch 中登记，
-    /// 并复用「PDF通用组件」region 内的页面设置、标题、栏位行、附件/审批记录表格、印章与单元格样式
+    /// 新表单需在 PrintFormPdf 的 switch 中按前缀登记
     /// </summary>
     public partial class FormPrintPdfService
     {
@@ -53,7 +52,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 打印PDF（根据表单前缀分发，LVR=请假单，LCF=销假单，DCS=传签单）
+        /// LVR=请假单，LCF=销假单，DCS=传签单
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId)
         {
@@ -77,11 +76,70 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             }
         }
 
+        /// <summary>
+        /// 单个表单失败会跳过，不影响其余表单；全部失败才返回错误
+        /// </summary>
+        public async Task<Result<FormPdfDto>> PrintFormPdfBatch(List<string> formIds)
+        {
+            if (formIds is not { Count: > 0 })
+            {
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}BatchPrintNoFormIds"));
+            }
+
+            var zipStream = new MemoryStream();
+            var successCount = 0;
+            var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            {
+                foreach (var formId in formIds)
+                {
+                    var result = await PrintFormPdf(formId);
+                    if (result.Code != 200 || result.Data is null)
+                    {
+                        _logger.LogWarning("批量打印PDF跳过，FormId={FormId}，Code={Code}", formId, result.Code);
+                        continue;
+                    }
+
+                    using var pdfStream = result.Data.FileStream;
+                    var entryName = GetUniqueZipEntryName(usedNames, result.Data.FileName);
+                    var entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+                    using var entryStream = entry.Open();
+                    await pdfStream.CopyToAsync(entryStream);
+                    successCount++;
+                }
+            }
+
+            if (successCount == 0)
+            {
+                await zipStream.DisposeAsync();
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}BatchPrintAllFailed"));
+            }
+
+            zipStream.Position = 0;
+            var pdf = new FormPdfDto
+            {
+                FileName = $"{Msg("PdfBatchPrintFileName")}_{DateTime.Now:yyyyMMddHHmmss}.zip",
+                FileStream = zipStream
+            };
+            return Result<FormPdfDto>.Ok(pdf);
+        }
+
+        private static string GetUniqueZipEntryName(HashSet<string> usedNames, string fileName)
+        {
+            var name = fileName;
+            var baseName = Path.GetFileNameWithoutExtension(fileName);
+            var extension = Path.GetExtension(fileName);
+            var index = 1;
+            while (!usedNames.Add(name))
+            {
+                name = $"{baseName}({index++}){extension}";
+            }
+            return name;
+        }
+
         #region 请假单PDF
 
-        /// <summary>
-        /// 生成请假单PDF（权限校验+取数）
-        /// </summary>
         private async Task<Result<FormPdfDto>> PrintLeaveRequestPdf(long formId)
         {
             var isCan = await _formChecker.CanView(formId, "View");
@@ -107,9 +165,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return Result<FormPdfDto>.Ok(pdf);
         }
 
-        /// <summary>
-        /// 组装请假单PDF文档（仅负责请假单版面，通用部分调用「PDF通用组件」）
-        /// </summary>
         private MemoryStream BuildLeaveRequestPdf(Model.FormBusiness.Forms.LeaveRequest.Dto.LeaveRequestDto form, string? leaveTypeName)
         {
             var show = BuildFieldVisibility(form.StepFieldPermission);
@@ -175,9 +230,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         #region 销假单PDF
 
-        /// <summary>
-        /// 生成销假单PDF（权限校验+取数）
-        /// </summary>
         private async Task<Result<FormPdfDto>> PrintLeaveCancellPdf(long formId)
         {
             var isCan = await _formChecker.CanView(formId, "View");
@@ -202,9 +254,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return Result<FormPdfDto>.Ok(pdf);
         }
 
-        /// <summary>
-        /// 组装销假单PDF文档（仅负责销假单版面，通用部分调用「PDF通用组件」）
-        /// </summary>
         private MemoryStream BuildLeaveCancellPdf(LeaveCancellDto form, LeaveRequestDetailDto? leaveRequest)
         {
             var show = BuildFieldVisibility(form.StepFieldPermission);
@@ -253,9 +302,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return GeneratePdfStream(document);
         }
 
-        /// <summary>
-        /// 组装原请假单表格（左侧标签+右侧表格，仅一行请假单明细）
-        /// </summary>
         private void ComposeLeaveRequestTable(ColumnDescriptor column, LeaveRequestDetailDto? leaveRequest)
         {
             column.Item().PaddingBottom(10).Row(row =>
@@ -301,9 +347,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         #region 传签单PDF
 
-        /// <summary>
-        /// 生成传签单PDF
-        /// </summary>
         private async Task<Result<FormPdfDto>> PrintDocumentCirculatePdf(long formId)
         {
             var isCan = await _formChecker.CanView(formId, "View");
@@ -326,9 +369,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return Result<FormPdfDto>.Ok(pdf);
         }
 
-        /// <summary>
-        /// 组装传签单PDF文档
-        /// </summary>
         private MemoryStream BuildDocumentCirculatePdf(DocumentCirculateDto form)
         {
             var show = BuildFieldVisibility(form.StepFieldPermission);
@@ -396,9 +436,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return GeneratePdfStream(document);
         }
 
-        /// <summary>
-        /// 组装加审人表格
-        /// </summary>
         private void ComposeAddReviewTable(ColumnDescriptor column, List<FormAddReviewDto> addReviews)
         {
             column.Item().PaddingBottom(10).Row(row =>
@@ -457,23 +494,14 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private const float LabelCellWidth = 66f;
         private const float FirstValueCellWidth = 136f;
 
-        /// <summary>
-        /// 表单栏位（标签+值）
-        /// Width 大于 0 时值格固定宽度（用于跨行对齐），否则按 Weight 分配剩余宽度
-        /// </summary>
+        // Width 大于 0 时值格固定宽度（用于跨行对齐），否则按 Weight 分配剩余宽度
         private sealed record PdfField(string Label, string Value, float Weight = 1f, bool Emphasized = false, float MinHeight = 0f, float Width = 0f, string? ValueColor = null);
 
-        /// <summary>
-        /// 读取表单多语言文案
-        /// </summary>
         private string Msg(string key)
         {
             return _localization.ReturnMsg($"{_forms}{key}");
         }
 
-        /// <summary>
-        /// 页面通用设置（A4、边距、默认字体）
-        /// </summary>
         private static void ConfigurePage(PageDescriptor page)
         {
             page.Size(PageSizes.A4);
@@ -481,9 +509,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             page.DefaultTextStyle(style => style.FontSize(9).FontFamily(FontFamilyName).FontColor(BodyTextColor));
         }
 
-        /// <summary>
-        /// 表单标题（居中标题+分隔线）
-        /// </summary>
         private static void ComposeTitle(ColumnDescriptor column, string title)
         {
             column.Item().AlignCenter().Text(title).FontSize(14).SemiBold();
@@ -491,9 +516,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             column.Item().PaddingTop(14);
         }
 
-        /// <summary>
-        /// 构建栏位可见性判断（按当前登录用户的栏位权限，未配置的栏位默认显示）
-        /// </summary>
+        // 未配置的栏位默认显示
         private static Func<string, bool> BuildFieldVisibility(List<StepFieldPermissionDto> permissions)
         {
             var fieldVisible = permissions
@@ -503,9 +526,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return fieldKey => !fieldVisible.TryGetValue(fieldKey, out var isVisible) || isVisible;
         }
 
-        /// <summary>
-        /// 组装一行表单栏位（不可见的栏位不传入即可）
-        /// </summary>
         private static void ComposeFieldRow(ColumnDescriptor column, List<PdfField> fields)
         {
             if (fields.Count == 0)
@@ -534,9 +554,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             });
         }
 
-        /// <summary>
-        /// 组装附件表格（左侧标签+右侧表格）
-        /// </summary>
         private void ComposeAttachmentTable(ColumnDescriptor column, List<FormAttachmentDto> attachments)
         {
             column.Item().PaddingBottom(10).Row(row =>
@@ -575,9 +592,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             });
         }
 
-        /// <summary>
-        /// 组装审批记录表格（小标题+表格）
-        /// </summary>
         private void ComposeReviewRecordTable(ColumnDescriptor column, List<FormReviewRecordDto> reviewRecords)
         {
             column.Item().PaddingTop(6).Text(Msg("PdfReviewRecord")).FontSize(11).SemiBold();
@@ -641,9 +655,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             });
         }
 
-        /// <summary>
-        /// 组装审批完成印章（仅已批准状态加盖；页面前景层右下角，避开表头栏位）
-        /// </summary>
         private void ComposeApprovalStamp(PageDescriptor page, string formStatus, List<FormReviewRecordDto> reviewRecords)
         {
             if (formStatus != FormStatus.Approved.ToEnumString())
@@ -670,14 +681,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 .Svg(svg);
         }
 
-        /// <summary>
-        /// 生成审批完成印章SVG（双环+五角星+主文字+副文字+日期，微倾斜盖章效果）
-        /// </summary>
         private static string BuildApprovalStampSvg(string mainText, string subText, string dateText)
         {
             static string Escape(string value) => value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
 
-            // 主文字自适应：中文短文字用大号字，英文长文字缩小并加字距
+            // 中文短文字用大号字，英文长文字缩小并加字距
             var mainFontSize = mainText.Length > 6 ? 15 : 21;
             var mainLetterSpacing = mainText.Length > 6 ? 1 : 2;
 
@@ -705,9 +713,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 """;
         }
 
-        /// <summary>
-        /// 文档生成PDF流
-        /// </summary>
         private static MemoryStream GeneratePdfStream(Document document)
         {
             var stream = new MemoryStream();
@@ -718,9 +723,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 
         #region 单元格样式
 
-        /// <summary>
-        /// 标签单元格样式
-        /// </summary>
         private static IContainer LabelCell(IContainer container)
         {
             return container.Border(0.5f)
@@ -731,9 +733,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                             .AlignMiddle();
         }
 
-        /// <summary>
-        /// 值单元格样式（minHeight 大于 0 时为多行文本区域）
-        /// </summary>
+        // minHeight 大于 0 时为多行文本区域
         private static IContainer ValueCell(IContainer container, float minHeight = 0f)
         {
             container = container.Border(0.5f)
@@ -743,9 +743,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             return minHeight > 0 ? container.MinHeight(minHeight) : container.AlignMiddle();
         }
 
-        /// <summary>
-        /// 表格表头单元格样式
-        /// </summary>
         private static IContainer HeaderCell(IContainer container)
         {
             return container.Border(0.5f)
@@ -756,9 +753,6 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                             .AlignMiddle();
         }
 
-        /// <summary>
-        /// 表格内容单元格样式（垂直居中，行内某列换行时其余列保持居中）
-        /// </summary>
         private static IContainer BodyCell(IContainer container)
         {
             return container.Border(0.5f)
