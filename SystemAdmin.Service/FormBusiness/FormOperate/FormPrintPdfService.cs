@@ -87,42 +87,50 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
             }
 
             var zipStream = new MemoryStream();
-            var successCount = 0;
-            var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-
-            using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
+            try
             {
-                foreach (var formId in formIds)
+                var successCount = 0;
+                var usedNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+                using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, leaveOpen: true))
                 {
-                    var result = await PrintFormPdf(formId);
-                    if (result.Code != 200 || result.Data is null)
+                    foreach (var formId in formIds)
                     {
-                        _logger.LogWarning("批量打印PDF跳过，FormId={FormId}，Code={Code}", formId, result.Code);
-                        continue;
+                        var result = await PrintFormPdf(formId);
+                        if (result.Code != 200 || result.Data is null)
+                        {
+                            continue;
+                        }
+
+                        using var pdfStream = result.Data.FileStream;
+                        var entryName = GetUniqueZipEntryName(usedNames, result.Data.FileName);
+                        var entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
+                        using var entryStream = entry.Open();
+                        await pdfStream.CopyToAsync(entryStream);
+                        successCount++;
                     }
-
-                    using var pdfStream = result.Data.FileStream;
-                    var entryName = GetUniqueZipEntryName(usedNames, result.Data.FileName);
-                    var entry = archive.CreateEntry(entryName, CompressionLevel.Optimal);
-                    using var entryStream = entry.Open();
-                    await pdfStream.CopyToAsync(entryStream);
-                    successCount++;
                 }
-            }
 
-            if (successCount == 0)
+                if (successCount == 0)
+                {
+                    await zipStream.DisposeAsync();
+                    return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}BatchPrintAllFailed"));
+                }
+
+                zipStream.Position = 0;
+                var pdf = new FormPdfDto
+                {
+                    FileName = $"{Msg("PdfBatchPrintFileName")}_{DateTime.Now:yyyyMMddHHmmss}.zip",
+                    FileStream = zipStream
+                };
+                return Result<FormPdfDto>.Ok(pdf);
+            }
+            catch (Exception ex)
             {
                 await zipStream.DisposeAsync();
-                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}BatchPrintAllFailed"));
+                _logger.LogError(ex, ex.Message);
+                return Result<FormPdfDto>.Failure(500, ex.Message);
             }
-
-            zipStream.Position = 0;
-            var pdf = new FormPdfDto
-            {
-                FileName = $"{Msg("PdfBatchPrintFileName")}_{DateTime.Now:yyyyMMddHHmmss}.zip",
-                FileStream = zipStream
-            };
-            return Result<FormPdfDto>.Ok(pdf);
         }
 
         private static string GetUniqueZipEntryName(HashSet<string> usedNames, string fileName)
