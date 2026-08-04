@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
     /// <summary>
     /// 表单审批记录实体类
     /// </summary>
-    [SugarTable("[Form].[FormReviewRecord]")]
+    [SugarTable("[Forms].[FormReviewRecord]")]
     public class FormReviewRecordEntity
     {
         /// <summary>

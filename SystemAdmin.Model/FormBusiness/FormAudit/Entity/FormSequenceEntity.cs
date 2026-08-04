@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormAudit.Entity
     /// <summary>
     /// 表单年月单号计数实体类
     /// </summary>
-    [SugarTable("[Form].[FormSequence]")]
+    [SugarTable("[Workflow].[FormSequence]")]
     public class FormSequenceEntity
     {
         /// <summary>

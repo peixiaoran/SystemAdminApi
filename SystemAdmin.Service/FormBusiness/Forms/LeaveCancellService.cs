@@ -111,15 +111,20 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             try
             {
                 // 计算销假时数（午休 12:00-13:00 不计入，去年及更早的部分不能消除）
-                var cancellHours = Math.Round(CalcWorkingHours(save.StartDateTime, save.EndDateTime), 2);
+                var cancellHours = save.StartDateTime == null || save.EndDateTime == null
+                    ? 0m
+                    : Math.Round(CalcWorkingHours((DateTime)save.StartDateTime, (DateTime)save.EndDateTime), 2);
+
+                // 前端"删除绑定的请假单"按钮会把 LeaveRequestId 传空字符串，视为解绑
+                long? leaveRequestId = string.IsNullOrEmpty(save.LeaveRequestId) ? null : long.Parse(save.LeaveRequestId);
 
                 // 查询绑定请假单的单号
-                var leaveRequestNo = await _leaveCancell.GetLeaveRequestNo(long.Parse(save.LeaveRequestId));
+                var leaveRequestNo = leaveRequestId == null ? null : await _leaveCancell.GetLeaveRequestNo(leaveRequestId.Value);
 
                 var entity = new LeaveCancellEntity()
                 {
                     FormId = long.Parse(save.FormId),
-                    LeaveRequestId = long.Parse(save.LeaveRequestId),
+                    LeaveRequestId = leaveRequestId,
                     LeaveRequestNo = leaveRequestNo,
                     StartDateTime = save.StartDateTime,
                     EndDateTime = save.EndDateTime,
@@ -205,7 +210,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询请假单明细（含假别名称）
+        /// 查询请假单明细
         /// </summary>
         /// <param name="leaveRequestId"></param>
         /// <returns></returns>
@@ -228,43 +233,6 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询请假单的剩余可销假时数
-        /// </summary>
-        /// <param name="leaveRequestId"></param>
-        /// <param name="formId"></param>
-        /// <returns></returns>
-        public async Task<Result<decimal>> GetRemainingCancellHours(string leaveRequestId, string formId)
-        {
-            try
-            {
-                var requestId = long.Parse(leaveRequestId);
-                var cancellFormId = long.Parse(formId);
-
-                // 请假单可销除的总时数（午休 12:00-13:00 不计入，去年及更早的部分不能消除）
-                var leave = await _leaveCancell.GetLeaveRequest(requestId);
-                if (leave == null || leave.StartDateTime == null || leave.EndDateTime == null)
-                {
-                    return Result<decimal>.Failure(400, _localization.ReturnMsg($"{_form}LeaveRequestNotFound"));
-                }
-                var totalHours = CalcWorkingHours((DateTime)leave.StartDateTime, (DateTime)leave.EndDateTime);
-
-                // 已被除作废外的销假单占用的时数（排除本单自身）
-                var boundCancells = await _leaveCancell.GetBoundLeaveCancells(requestId);
-                var occupiedHours = boundCancells
-                    .Where(cancell => cancell.FormId != cancellFormId)
-                    .Sum(cancell => cancell.CancellHours ?? 0);
-
-                var remainingHours = Math.Round(totalHours - occupiedHours, 2);
-                return Result<decimal>.Ok(remainingHours);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<decimal>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
         /// 销假单送审校验
         /// </summary>
         /// <param name="save"></param>
@@ -280,14 +248,32 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var leave = await _leaveCancell.GetLeaveRequest(leaveRequestId);
                 var totalHours = CalcWorkingHours((DateTime)leave!.StartDateTime!, (DateTime)leave!.EndDateTime!);
 
-                // 已被除作废外的销假单占用的时数
+                // 已被除作废外的销假单占用的时数（排除本单自身）
                 var boundCancells = await _leaveCancell.GetBoundLeaveCancells(leaveRequestId);
-                var occupiedHours = boundCancells
-                    .Where(cancell => cancell.FormId != formId)
-                    .Sum(cancell => cancell.CancellHours ?? 0);
+                var otherCancells = boundCancells.Where(cancell => cancell.FormId != formId).ToList();
+                var occupiedHours = otherCancells.Sum(cancell => cancell.CancellHours ?? 0);
+
+                // 校验销假时间段是否与其他销假单重叠
+                if (save.StartDateTime != null && save.EndDateTime != null)
+                {
+                    var overlapped = otherCancells.FirstOrDefault(cancell =>
+                        cancell.StartDateTime != null && cancell.EndDateTime != null
+                        && cancell.StartDateTime < save.EndDateTime && save.StartDateTime < cancell.EndDateTime);
+
+                    if (overlapped != null)
+                    {
+                        return Result<bool>.Failure(402, _localization.ReturnMsg($"{_form}CancellPeriodOverlap", args: new object[]
+                        {
+                            overlapped.StartDateTime!.Value.ToString("yyyy-MM-dd HH:mm"),
+                            overlapped.EndDateTime!.Value.ToString("yyyy-MM-dd HH:mm")
+                        }));
+                    }
+                }
 
                 // 本次销假时数与剩余可销除时数比较
-                var cancellHours = Math.Round(CalcWorkingHours(save.StartDateTime, save.EndDateTime), 2);
+                var cancellHours = save.StartDateTime == null || save.EndDateTime == null
+                    ? 0m
+                    : Math.Round(CalcWorkingHours((DateTime)save.StartDateTime, (DateTime)save.EndDateTime), 2);
                 var remainingHours = Math.Round(totalHours - occupiedHours, 2);
 
                 if (cancellHours > remainingHours)

@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity
     /// <summary>
     /// 表单邮件链接Token实体
     /// </summary>
-    [SugarTable("[Form].[FormNotifyToken]")]
+    [SugarTable("[Forms].[FormNotifyToken]")]
     public class FormNotifyTokenEntity
     {
         /// <summary>

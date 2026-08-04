@@ -162,6 +162,9 @@
   <data name="CancellHoursExceed" xml:space="preserve">
     <value>This cancellation of {0} hour(s) exceeds the remaining {1} cancellable hour(s) of the leave request</value>
   </data>
+  <data name="CancellPeriodOverlap" xml:space="preserve">
+    <value>This cancellation period overlaps with an existing cancellation record ({0} to {1}) for this leave request. Please choose another period</value>
+  </data>
   <data name="LeaveRequestNotFound" xml:space="preserve">
     <value>The leave request does not exist</value>
   </data>

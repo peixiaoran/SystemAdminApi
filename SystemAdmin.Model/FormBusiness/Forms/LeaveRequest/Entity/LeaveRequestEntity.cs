@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity
     /// <summary>
     /// 请假单基础信息实体
     /// </summary>
-    [SugarTable("[Form].[LeaveRequest]")]
+    [SugarTable("[Forms].[LeaveRequest]")]
     public class LeaveRequestEntity
     {
         /// <summary>

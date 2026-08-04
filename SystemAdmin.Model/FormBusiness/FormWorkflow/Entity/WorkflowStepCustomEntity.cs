@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
     /// <summary>
     /// 步骤自定义来源表
     /// </summary>
-    [SugarTable("[Form].[WorkflowStepCustom]")]
+    [SugarTable("[Workflow].[WorkflowStepCustom]")]
     public class WorkflowStepCustomEntity
     {
         /// <summary>

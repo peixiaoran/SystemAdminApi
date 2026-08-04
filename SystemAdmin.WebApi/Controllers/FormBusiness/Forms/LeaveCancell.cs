@@ -35,14 +35,6 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[销假单] 查询剩余可销假时数")]
-        public async Task<Result<decimal>> GetRemainingCancellHours([FromForm] string leaveRequestId, [FromForm] string formId)
-        {
-            return await _leaveCancellService.GetRemainingCancellHours(leaveRequestId, formId);
-        }
-
-        [HttpPost]
-        [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[销假单] 查询请假单明细")]
         public async Task<Result<LeaveRequestDetailDto>> GetLeaveRequestDetail([FromForm] string leaveRequestId)
         {

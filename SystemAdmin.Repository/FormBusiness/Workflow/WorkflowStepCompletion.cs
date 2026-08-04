@@ -205,7 +205,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var updateBalance = 0;
             foreach (var (year, hours) in cancellHoursByYear)
             {
-                var days = Math.Ceiling(hours / 8);
+                // 按天数加回，保留两位小数（如 4 小时 = 0.5 天，1 小时 = 0.13 天）
+                var days = Math.Round((decimal)hours / 8, 2, MidpointRounding.AwayFromZero);
                 var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
                                            .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveType);
 
@@ -219,11 +220,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     }));
                 }
 
-                // 销假：把之前扣掉的额度加回去
+                // 销假：把之前扣掉的额度加回去，最多不超过给予天数
+                var restoredDays = Math.Min(leaveAnnual.RemainingDays + days, leaveAnnual.RenderDays);
                 updateBalance = await _db.Updateable<UserLeaveBalanceEntity>()
                                          .SetColumns(annual => new UserLeaveBalanceEntity
                                          {
-                                             RemainingDays = leaveAnnual.RemainingDays + (decimal)days,
+                                             RemainingDays = restoredDays,
                                              ModifiedBy = formInstance.CreatedBy,
                                              ModifiedDate = DateTime.Now
                                          }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveType)

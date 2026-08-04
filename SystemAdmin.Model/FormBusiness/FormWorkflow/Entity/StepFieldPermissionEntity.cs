@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
     /// <summary>
     /// 表单栏位权限实体
     /// </summary>
-    [SugarTable("[Form].[StepFieldPermission]")]
+    [SugarTable("[Workflow].[StepFieldPermission]")]
     public class StepFieldPermissionEntity
     {
         /// <summary>

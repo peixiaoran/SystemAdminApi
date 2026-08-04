@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.DocumentCirculate.Entity
     /// <summary>
     /// 传签单基础信息实体
     /// </summary>
-    [SugarTable("[Form].[DocumentCirculate]")]
+    [SugarTable("[Forms].[DocumentCirculate]")]
     public class DocumentCirculateEntity
     {
         /// <summary>

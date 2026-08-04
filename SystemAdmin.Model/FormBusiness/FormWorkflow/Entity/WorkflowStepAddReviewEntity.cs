@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Entity
     /// <summary>
     /// 步骤加审规则表
     /// </summary>
-    [SugarTable("[Form].[WorkflowStepAddReview]")]
+    [SugarTable("[Workflow].[WorkflowStepAddReview]")]
     public class WorkflowStepAddReviewEntity
     {
         /// <summary>

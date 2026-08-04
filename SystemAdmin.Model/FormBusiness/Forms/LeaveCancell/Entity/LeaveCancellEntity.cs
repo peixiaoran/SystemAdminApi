@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity
     /// <summary>
     /// 请假单基础信息实体
     /// </summary>
-    [SugarTable("[Form].[LeaveCancell]")]
+    [SugarTable("[Forms].[LeaveCancell]")]
     public class LeaveCancellEntity
     {
         /// <summary>

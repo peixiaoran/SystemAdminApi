@@ -42,7 +42,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 bool isApplicant = await _db.Queryable<FormInstanceEntity>()
                                             .With(SqlWith.NoLock)
-                                            .Where(instance => instance.FormId == formId && instance.ApplicantUserId == _loginuser.UserId)
+                                            .LeftJoin<UserAgentEntity>((instance, useragent) => instance.ApplicantUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                            .Where((instance, useragent) => instance.FormId == formId && (instance.ApplicantUserId == _loginuser.UserId || useragent.AgentUserId == _loginuser.UserId))
                                             .AnyAsync();
 
                 if (isApplicant)
@@ -51,7 +52,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 检查当前用户是否曾经参与过审批
                 bool hasReviewRecord = await _db.Queryable<FormReviewRecordEntity>()
                                                 .With(SqlWith.NoLock)
-                                                .Where(record => record.FormId == formId && (record.OperationUserId == _loginuser.UserId || record.OriginalUserId == _loginuser.UserId))
+                                                .LeftJoin<UserAgentEntity>((record, useragent) => record.OriginalUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                                .Where((record, useragent) => record.FormId == formId && (record.OperationUserId == _loginuser.UserId || record.OriginalUserId == _loginuser.UserId || useragent.AgentUserId == _loginuser.UserId))
                                                 .AnyAsync();
 
                 if (hasReviewRecord)

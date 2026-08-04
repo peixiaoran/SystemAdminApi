@@ -14,6 +14,7 @@ using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
@@ -462,16 +463,18 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formId, long loginUserId)
         {
-            // 1. 该用户在「待审批」中所属的步骤
+            // 1. 该用户在「待审批」中所属的步骤（含代理：当前用户是待审批人的代理人）
             var pendingStepIds = await _db.Queryable<PendingReviewEntity>()
-                                          .Where(pending => pending.FormId == formId && pending.ReviewUserId == loginUserId)
-                                          .Select(pending => pending.StepId)
+                                          .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                          .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == loginUserId || useragent.AgentUserId == loginUserId))
+                                          .Select((pending, useragent) => pending.StepId)
                                           .ToListAsync();
 
-            // 2. 该用户在「审批记录」中所属的步骤（原始指派人 / 实际操作人）
+            // 2. 该用户在「审批记录」中所属的步骤（原始指派人 / 实际操作人 / 原始指派人的代理人）
             var recordStepIds = await _db.Queryable<FormReviewRecordEntity>()
-                                         .Where(record => record.FormId == formId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId))
-                                         .Select(record => record.StepId)
+                                         .LeftJoin<UserAgentEntity>((record, useragent) => record.OriginalUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                         .Where((record, useragent) => record.FormId == formId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId || useragent.AgentUserId == loginUserId))
+                                         .Select((record, useragent) => record.StepId)
                                          .ToListAsync();
 
             // 合并去重，得到该用户在此表单的所有审批步骤（待审批 StepId 可空，过滤 null 后转 long 再与记录步骤合并）

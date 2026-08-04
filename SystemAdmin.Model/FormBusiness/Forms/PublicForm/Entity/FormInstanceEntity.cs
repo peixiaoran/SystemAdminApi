@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
     /// <summary>
     /// 表单信息实体类
     /// </summary>
-    [SugarTable("[Form].[FormInstance]")]
+    [SugarTable("[Forms].[FormInstance]")]
     public class FormInstanceEntity
     {
         /// <summary>

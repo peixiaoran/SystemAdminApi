@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity
     /// <summary>
     /// 表单组别实体类
     /// </summary>
-    [SugarTable("[Form].[FormGroup]")]
+    [SugarTable("[Workflow].[FormGroup]")]
     public class FormGroupEntity
     {
         /// <summary>

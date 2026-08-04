@@ -89,7 +89,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询登录用户已批准的请假单
+        /// 查询用户已审批请假单
         /// </summary>
         /// <param name="getPage"></param>
         /// <param name="userId"></param>
@@ -120,6 +120,8 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
             {
                 query = query.Where((form, leave, dic) => leave.EndDateTime <= getPage.EndDate);
             }
+
+            string sql = query.ToSqlString();
 
             return await query.OrderByDescending((form, leave, dic) => leave.StartDateTime)
                               .Select((form, leave, dic) => new LeaveRequestDto()
