@@ -4,7 +4,6 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Queries;
-using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
 {
@@ -50,43 +49,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         {
             return await _db.Deleteable<FormTypeEntity>()
                             .Where(formgroup => formgroup.FormGroupId == formGroupId)
-                            .ExecuteCommandAsync();
-        }
-
-        /// <summary>
-        /// 删除用户表单类别绑定
-        /// </summary>
-        /// <param name="formGroupId"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteUserFormTypeBind(long formGroupId)
-        {
-            return await _db.Deleteable<UserFormEntity>()
-                            .Where(userform => userform.FormGroupTypeId == formGroupId)
-                            .ExecuteCommandAsync();
-        }
-
-        /// <summary>
-        /// 删除表单组别下的表单类别
-        /// </summary>
-        /// <param name="formGroupId"></param>
-        /// <returns></returns>
-        public async Task<List<long>> GetFormTypeIds(long formGroupId)
-        {
-            return await _db.Queryable<FormTypeEntity>()
-                            .Where(formtype => formtype.FormGroupId == formGroupId)
-                            .Select(formtype => formtype.FormTypeId)
-                            .ToListAsync();
-        }
-
-        /// <summary>
-        /// 删除表单组别下的表单类别
-        /// </summary>
-        /// <param name="formTypeIds"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteUserFromType(List<long> formTypeIds)
-        {
-            return await _db.Updateable<UserFormEntity>()
-                            .Where(formtype => formTypeIds.Contains(formtype.FormGroupTypeId))
                             .ExecuteCommandAsync();
         }
 

@@ -324,8 +324,6 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                 int delUserAgentCount = await _userInfoRepo.DeleteUserAgent(long.Parse(userId));
                 // 删除用户兼任
                 int delUserPartTimeCount = await _userInfoRepo.DeleteUserPartTime(long.Parse(userId));
-                // 删除用户表单绑定
-                int delUserFormCount = await _userInfoRepo.DeleteUserForm(long.Parse(userId));
                 // 删除用户账号锁定记录
                 int delUserLockCount = await _userInfoRepo.DeleteUserLock(long.Parse(userId));
                 await _db.CommitTranAsync();

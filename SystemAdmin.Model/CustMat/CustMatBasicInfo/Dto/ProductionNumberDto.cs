@@ -1,4 +1,4 @@
-﻿using System.Text.Json.Serialization;
+using System.Text.Json.Serialization;
 using SystemAdmin.Model.ModelHelper.ModelConverter;
 
 namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
@@ -6,23 +6,13 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
     /// <summary>
     /// 料号信息Dto
     /// </summary>
-    public class PartNumberInfoDto
+    public class ProductionNumberDto
     {
         /// <summary>
         /// 料号Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
         public long PartNumberId { get; set; }
-
-        /// <summary>
-        /// 所属厂商Id
-        /// </summary>
-        public long ManufacturerId { get; set; }
-
-        /// <summary>
-        /// 所属厂商名称
-        /// </summary>
-        public long ManufacturerName { get; set; }
 
         /// <summary>
         /// 料号

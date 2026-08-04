@@ -1,8 +1,8 @@
-﻿using SqlSugar;
+using SqlSugar;
 
 namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries
 {
-    public class GetPartNumberInfoPage : PageModel
+    public class GetProductionNumberPage : PageModel
     {
         /// <summary>
         /// 料号编码

@@ -23,19 +23,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 验证是否可以申请
-        /// </summary>
-        /// <param name="formTypeId"></param>
-        /// <returns></returns>
-        public async Task<bool> CanApply(long formTypeId)
-        {
-            return await _db.Queryable<UserFormEntity>()
-                            .With(SqlWith.NoLock)
-                            .Where(userform => userform.FormGroupTypeId == formTypeId && userform.UserId == _loginuser.UserId)
-                            .AnyAsync();
-        }
-
-        /// <summary>
         /// 验证是否可以查看/审批
         /// </summary>
         /// <param name="formId"></param>

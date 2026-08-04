@@ -4,7 +4,6 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Queries;
-using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
 {
@@ -56,18 +55,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         {
             return await _db.Deleteable<FormTypeEntity>()
                             .Where(formtype => formtype.FormTypeId == formTypeId)
-                            .ExecuteCommandAsync();
-        }
-
-        /// <summary>
-        /// 删除用户表单类别绑定
-        /// </summary>
-        /// <param name="formTypeId"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteUserFormTypeBind(long formTypeId)
-        {
-            return await _db.Deleteable<UserFormEntity>()
-                            .Where(userform => userform.FormGroupTypeId == formTypeId)
                             .ExecuteCommandAsync();
         }
 

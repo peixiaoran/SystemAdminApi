@@ -41,37 +41,29 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                var isCan = await _formChecker.CanApply(long.Parse(formTypeId));
-                if (!isCan)
+                await _db.BeginTranAsync();
+                var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
+
+                var leaveCancell = new LeaveCancellEntity()
                 {
-                    return Result<LeaveCancellDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanApply"));
-                }
-                else
-                {
-                    await _db.BeginTranAsync();
-                    var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
+                    FormId = long.Parse(formId),
+                    LeaveRequestId = null,
+                    LeaveRequestNo = null,
+                    StartDateTime = null,
+                    EndDateTime = null,
+                    CancellHours = 0.00m,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                };
 
-                    var leaveCancell = new LeaveCancellEntity()
-                    {
-                        FormId = long.Parse(formId),
-                        LeaveRequestId = null,
-                        LeaveRequestNo = null,
-                        StartDateTime = null,
-                        EndDateTime = null,
-                        CancellHours = 0.00m,
-                        CreatedBy = _loginuser.UserId,
-                        CreatedDate = DateTime.Now
-                    };
+                await _leaveCancell.InitLeaveCancell(leaveCancell);
+                await _formmanger.MatchWorkflowRule(long.Parse(formId));
+                await _db.CommitTranAsync();
 
-                    await _leaveCancell.InitLeaveCancell(leaveCancell);
-                    await _formmanger.MatchWorkflowRule(long.Parse(formId));
-                    await _db.CommitTranAsync();
-
-                    var leaveCancellDto = await _leaveCancell.GetLeaveCancell(long.Parse(formId));
-                    leaveCancellDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                    leaveCancellDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
-                    return Result<LeaveCancellDto>.Ok(leaveCancellDto);
-                }
+                var leaveCancellDto = await _leaveCancell.GetLeaveCancell(long.Parse(formId));
+                leaveCancellDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                leaveCancellDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                return Result<LeaveCancellDto>.Ok(leaveCancellDto);
             }
             catch (Exception ex)
             {

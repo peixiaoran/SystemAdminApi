@@ -150,9 +150,6 @@
   <data name="UserPartTimeUpdateFailed" xml:space="preserve">
     <value>Failed to update part-time assignment</value>
   </data>
-  <data name="UserFormUpdateSuccess" xml:space="preserve">
-    <value>Configuration successful</value>
-  </data>
   <data name="UserAgentSameUser" xml:space="preserve">
     <value>The agent and the target user cannot be the same person</value>
   </data>
@@ -167,8 +164,5 @@
   </data>
   <data name="HasMultipleTargets" xml:space="preserve">
     <value>The agent user already delegates another user. Multiple delegations are not allowed</value>
-  </data>
-  <data name="UserFormUpdateFailed" xml:space="preserve">
-    <value>Configuration failed</value>
   </data>
 </root>

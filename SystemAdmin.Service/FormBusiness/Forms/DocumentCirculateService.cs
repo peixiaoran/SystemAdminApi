@@ -43,37 +43,29 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                var isCan = await _formChecker.CanApply(long.Parse(formTypeId));
-                if (!isCan)
+                await _db.BeginTranAsync();
+                var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
+
+                var documentCirculate = new DocumentCirculateEntity()
                 {
-                    return Result<DocumentCirculateDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanApply"));
-                }
-                else
-                {
-                    await _db.BeginTranAsync();
-                    var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
+                    FormId = long.Parse(formId),
+                    IssueDept = null,
+                    CirculationPurpose = null,
+                    ContentSummary = null,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                };
 
-                    var documentCirculate = new DocumentCirculateEntity()
-                    {
-                        FormId = long.Parse(formId),
-                        IssueDept = null,
-                        CirculationPurpose = null,
-                        ContentSummary = null,
-                        CreatedBy = _loginuser.UserId,
-                        CreatedDate = DateTime.Now
-                    };
+                await _documentCirculate.InitDocumentCirculate(documentCirculate);
+                await _formmanger.MatchWorkflowRule(long.Parse(formId));
+                await _db.CommitTranAsync();
 
-                    await _documentCirculate.InitDocumentCirculate(documentCirculate);
-                    await _formmanger.MatchWorkflowRule(long.Parse(formId));
-                    await _db.CommitTranAsync();
-
-                    var documentCirculateDto = await _documentCirculate.GetDocumentCirculate(long.Parse(formId));
-                    documentCirculateDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
-                    documentCirculateDto.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
-                    documentCirculateDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                    documentCirculateDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
-                    return Result<DocumentCirculateDto>.Ok(documentCirculateDto);
-                }
+                var documentCirculateDto = await _documentCirculate.GetDocumentCirculate(long.Parse(formId));
+                documentCirculateDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                documentCirculateDto.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
+                documentCirculateDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                documentCirculateDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                return Result<DocumentCirculateDto>.Ok(documentCirculateDto);
             }
             catch (Exception ex)
             {

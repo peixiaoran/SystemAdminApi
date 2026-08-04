@@ -1,5 +1,4 @@
 ﻿using Microsoft.Extensions.Logging;
-using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
 using SystemAdmin.Repository.FormBusiness.FormOperate;
@@ -8,13 +7,11 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
 {
     public class ApplyFormService
     {
-        private readonly CurrentUser _loginuser;
         private readonly ILogger<ApplyFormService> _logger;
         private readonly ApplyFormRepository applyFormRepo;
 
-        public ApplyFormService(CurrentUser loginuser, ILogger<ApplyFormService> logger, ApplyFormRepository applyFormRepo)
+        public ApplyFormService(ILogger<ApplyFormService> logger, ApplyFormRepository applyFormRepo)
         {
-            _loginuser = loginuser;
             _logger = logger;
             this.applyFormRepo = applyFormRepo;
         }
@@ -46,7 +43,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         {
             try
             {
-                return await applyFormRepo.GetApplyFormPage(getPage, _loginuser.UserId);
+                return await applyFormRepo.GetApplyFormPage(getPage);
             }
             catch (Exception ex)
             {

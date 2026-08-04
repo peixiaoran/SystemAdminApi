@@ -3,7 +3,6 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
-using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
 {
@@ -40,17 +39,15 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// 查询申请表单分页
         /// </summary>
         /// <param name="getPage"></param>
-        /// <param name="loginUserId"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<ApplyFormInfoDto>> GetApplyFormPage(getPage getPage, long loginUserId)
+        public async Task<ResultPaged<ApplyFormInfoDto>> GetApplyFormPage(getPage getPage)
         {
             RefAsync<int> totalCount = 0;
-            var page = await _db.Queryable<UserFormEntity>()
+            var page = await _db.Queryable<FormTypeEntity>()
                                 .With(SqlWith.NoLock)
-                                .InnerJoin<FormTypeEntity>((userform, formtype) => userform.FormGroupTypeId == formtype.FormTypeId)
-                                .Where((userform, formtype) => userform.UserId == loginUserId && formtype.FormGroupId == long.Parse(getPage.FormGroupId))
-                                .OrderBy((userform, formtype) => formtype.SortOrder)
-                                .Select((userform, formtype) => new ApplyFormInfoDto()
+                                .Where(formtype => formtype.FormGroupId == long.Parse(getPage.FormGroupId))
+                                .OrderBy(formtype => formtype.SortOrder)
+                                .Select(formtype => new ApplyFormInfoDto()
                                 {
                                     FormTypeId = formtype.FormTypeId,
                                     FormTypeName = _lang.Locale == "zh-CN"

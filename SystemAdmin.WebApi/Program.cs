@@ -37,8 +37,12 @@ var app = builder.Build();
 // HTTP 请求管道，还原 Scheme / Host，必须放在最前面
 app.UseForwardedHeaders();
 
-app.MapScalarApiReference("/systemadminapi");
-app.MapOpenApi();
+// 仅在生产环境显示 Scalar API
+if (app.Environment.IsDevelopment())
+{
+    app.MapScalarApiReference("/systemadminapi");
+    app.MapOpenApi();
+}
 
 /*
  * Nginx 已经负责公网 HTTPS。

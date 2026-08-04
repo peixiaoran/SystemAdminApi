@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using SystemAdmin.CommonSetup.Security;
@@ -10,42 +10,42 @@ using SystemAdmin.Repository.CustMat.CustMatBasicInfo;
 
 namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
 {
-    public class PartNumberInfoService
+    public class ProductionNumberService
     {
         private readonly CurrentUser _loginuser;
-        private readonly ILogger<PartNumberInfoService> _logger;
+        private readonly ILogger<ProductionNumberService> _logger;
         private readonly SqlSugarScope _db;
-        private readonly PartNumberInfoRepository _partNumberInfoRepository;
+        private readonly ProductionNumberRepository _productionNumberRepository;
         private readonly LocalizationService _localization;
         private readonly string _this = "CustMat_CustMatBasicInfo_PartNumberInfo_";
 
-        public PartNumberInfoService(CurrentUser loginuser, ILogger<PartNumberInfoService> logger, SqlSugarScope db, PartNumberInfoRepository partNumberInfoRepository, LocalizationService localization)
+        public ProductionNumberService(CurrentUser loginuser, ILogger<ProductionNumberService> logger, SqlSugarScope db, ProductionNumberRepository productionNumberRepository, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
-            _partNumberInfoRepository = partNumberInfoRepository;
+            _productionNumberRepository = productionNumberRepository;
             _localization = localization;
         }
 
         /// <summary>
         /// 新增料号信息
         /// </summary>
-        /// <param name="partNumberInfoUpsert"></param>
+        /// <param name="productionNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> InsertPartNumberInfo(PartNumberInfoUpsert partNumberInfoUpsert)
+        public async Task<Result<int>> InsertPartNumberInfo(ProductionNumberUpsert productionNumberUpsert)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var entity = new PartNumberInfoEntity()
+                var entity = new ProductionNumberEntity()
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
-                    PartNumberNo = partNumberInfoUpsert.PartNumberNo,
+                    PartNumberNo = productionNumberUpsert.PartNumberNo,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _partNumberInfoRepository.InsertPartNumberInfo(entity);
+                var count = await _productionNumberRepository.InsertPartNumberInfo(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -63,14 +63,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 删除料号信息
         /// </summary>
-        /// <param name="partNumberInfoUpsert"></param>
+        /// <param name="productionNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> DeletePartNumberInfo(PartNumberInfoUpsert partNumberInfoUpsert)
+        public async Task<Result<int>> DeletePartNumberInfo(ProductionNumberUpsert productionNumberUpsert)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var delPartNumberCount = await _partNumberInfoRepository.DeletePartNumberInfo(long.Parse(partNumberInfoUpsert.PartNumberId));
+                var delPartNumberCount = await _productionNumberRepository.DeletePartNumberInfo(long.Parse(productionNumberUpsert.PartNumberId));
                 await _db.CommitTranAsync();
 
                 return delPartNumberCount >= 1
@@ -88,24 +88,23 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 修改料号信息
         /// </summary>
-        /// <param name="partNumberInfoUpsert"></param>
+        /// <param name="productionNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdatePartNumberInfo(PartNumberInfoUpsert partNumberInfoUpsert)
+        public async Task<Result<int>> UpdatePartNumberInfo(ProductionNumberUpsert productionNumberUpsert)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var entity = new PartNumberInfoEntity()
+                var entity = new ProductionNumberEntity()
                 {
-                    PartNumberId = long.Parse(partNumberInfoUpsert.PartNumberId),
-                    ManufacturerId = partNumberInfoUpsert.ManufacturerId,
-                    PartNumberNo = partNumberInfoUpsert.PartNumberNo,
-                    ProductName = partNumberInfoUpsert.ProductName,
-                    Specifications = partNumberInfoUpsert.Specifications,
+                    PartNumberId = long.Parse(productionNumberUpsert.PartNumberId),
+                    PartNumberNo = productionNumberUpsert.PartNumberNo,
+                    ProductName = productionNumberUpsert.ProductName,
+                    Specifications = productionNumberUpsert.Specifications,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _partNumberInfoRepository.UpdatePartNumberInfo(entity);
+                var count = await _productionNumberRepository.UpdatePartNumberInfo(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -125,17 +124,17 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getEntity"></param>
         /// <returns></returns>
-        public async Task<Result<PartNumberInfoDto>> GetPartNumberInfoEntity(GetPartNumberInfoEntity getEntity)
+        public async Task<Result<ProductionNumberDto>> GetPartNumberInfoEntity(GetProductionNumberEntity getEntity)
         {
             try
             {
-                var partNumberInfoEntity = await _partNumberInfoRepository.GetPartNumberInfoEntity(long.Parse(getEntity.PartNumberId));
-                return Result<PartNumberInfoDto>.Ok(partNumberInfoEntity, "");
+                var productionNumberEntity = await _productionNumberRepository.GetPartNumberInfoEntity(long.Parse(getEntity.PartNumberId));
+                return Result<ProductionNumberDto>.Ok(productionNumberEntity, "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<PartNumberInfoDto>.Failure(500, ex.Message);
+                return Result<ProductionNumberDto>.Failure(500, ex.Message);
             }
         }
 
@@ -144,16 +143,16 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<PartNumberInfoDto>> GetPartNumberInfoPage(GetPartNumberInfoPage getPage)
+        public async Task<ResultPaged<ProductionNumberDto>> GetPartNumberInfoPage(GetProductionNumberPage getPage)
         {
             try
             {
-                return await _partNumberInfoRepository.GetPartNumberInfoPage(getPage);
+                return await _productionNumberRepository.GetPartNumberInfoPage(getPage);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return ResultPaged<PartNumberInfoDto>.Failure(500, ex.Message);
+                return ResultPaged<ProductionNumberDto>.Failure(500, ex.Message);
             }
         }
     }

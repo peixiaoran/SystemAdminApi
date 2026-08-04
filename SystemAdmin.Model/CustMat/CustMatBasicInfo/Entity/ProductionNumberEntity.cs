@@ -1,23 +1,18 @@
-﻿using SqlSugar;
+using SqlSugar;
 
 namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity
 {
     /// <summary>
-    /// 料号信息实体类
+    /// 生产料号信息实体类
     /// </summary>
-    [SugarTable("[CustMat].[PartNumberInfo]")]
-    public class PartNumberInfoEntity
+    [SugarTable("[CustMat].[ProductionNumber]")]
+    public class ProductionNumberEntity
     {
         /// <summary>
         /// 料号Id
         /// </summary>
         [SugarColumn(IsPrimaryKey = true, ColumnDescription = "Primary Key")]
         public long PartNumberId { get; set; }
-
-        /// <summary>
-        /// 所属厂商Id
-        /// </summary>
-        public long ManufacturerId { get; set; }
 
         /// <summary>
         /// 料号

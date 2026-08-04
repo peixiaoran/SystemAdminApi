@@ -399,40 +399,32 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                var isCan = await _formChecker.CanApply(long.Parse(formTypeId));
-                if (!isCan)
+                await _db.BeginTranAsync();
+                var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
+
+                var leaveRequest = new LeaveRequestEntity()
                 {
-                    return Result<LeaveRequestDto>.Failure(400, _localization.ReturnMsg($"{_form}NotCanApply"));
-                }
-                else
-                {
-                    await _db.BeginTranAsync();
-                    var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
+                    FormId = long.Parse(formId),
+                    LeaveType = null,
+                    LeaveReason = null,
+                    StartDateTime = null,
+                    EndDateTime = null,
+                    LeaveHours = 0.00m,
+                    AgentUserId = null,
+                    AgentUserName = null,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                };
 
-                    var leaveRequest = new LeaveRequestEntity()
-                    {
-                        FormId = long.Parse(formId),
-                        LeaveType = null,
-                        LeaveReason = null,
-                        StartDateTime = null,
-                        EndDateTime = null,
-                        LeaveHours = 0.00m,
-                        AgentUserId = null,
-                        AgentUserName = null,
-                        CreatedBy = _loginuser.UserId,
-                        CreatedDate = DateTime.Now
-                    };
+                await _leaveRequest.InitLeaveRequest(leaveRequest);
+                await _formmanger.MatchWorkflowRule(long.Parse(formId));
+                await _db.CommitTranAsync();
 
-                    await _leaveRequest.InitLeaveRequest(leaveRequest);
-                    await _formmanger.MatchWorkflowRule(long.Parse(formId));
-                    await _db.CommitTranAsync();
-
-                    var leaveRequestDto = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
-                    leaveRequestDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
-                    leaveRequestDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                    leaveRequestDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
-                    return Result<LeaveRequestDto>.Ok(leaveRequestDto);
-                }
+                var leaveRequestDto = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
+                leaveRequestDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
+                leaveRequestDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
+                leaveRequestDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                return Result<LeaveRequestDto>.Ok(leaveRequestDto);
             }
             catch (Exception ex)
             {

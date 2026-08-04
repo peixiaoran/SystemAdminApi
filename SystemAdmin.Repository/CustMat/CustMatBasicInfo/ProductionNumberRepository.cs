@@ -1,4 +1,4 @@
-﻿using Mapster;
+using Mapster;
 using SqlSugar;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity;
@@ -6,11 +6,11 @@ using SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries;
 
 namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
 {
-    public class PartNumberInfoRepository
+    public class ProductionNumberRepository
     {
         private readonly SqlSugarScope _db;
 
-        public PartNumberInfoRepository(SqlSugarScope db)
+        public ProductionNumberRepository(SqlSugarScope db)
         {
             _db = db;
         }
@@ -20,7 +20,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberEntity"></param>
         /// <returns></returns>
-        public async Task<int> InsertPartNumberInfo(PartNumberInfoEntity partNumberEntity)
+        public async Task<int> InsertPartNumberInfo(ProductionNumberEntity partNumberEntity)
         {
             return await _db.Insertable(partNumberEntity).ExecuteCommandAsync();
         }
@@ -32,7 +32,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <returns></returns>
         public async Task<int> DeletePartNumberInfo(long partNumberId)
         {
-            return await _db.Deleteable<PartNumberInfoEntity>()
+            return await _db.Deleteable<ProductionNumberEntity>()
                             .Where(partNumber => partNumber.PartNumberId == partNumberId)
                             .ExecuteCommandAsync();
         }
@@ -42,7 +42,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberEntity"></param>
         /// <returns></returns>
-        public async Task<int> UpdatePartNumberInfo(PartNumberInfoEntity partNumberEntity)
+        public async Task<int> UpdatePartNumberInfo(ProductionNumberEntity partNumberEntity)
         {
             return await _db.Updateable(partNumberEntity)
                             .IgnoreColumns(partNumber => new
@@ -59,13 +59,13 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<PartNumberInfoDto> GetPartNumberInfoEntity(long partNumberId)
+        public async Task<ProductionNumberDto> GetPartNumberInfoEntity(long partNumberId)
         {
-            var partNumberEntity = await _db.Queryable<PartNumberInfoEntity>()
+            var partNumberEntity = await _db.Queryable<ProductionNumberEntity>()
                                             .With(SqlWith.NoLock)
                                             .Where(partNumber => partNumber.PartNumberId == partNumberId)
                                             .FirstAsync();
-            return partNumberEntity.Adapt<PartNumberInfoDto>();
+            return partNumberEntity.Adapt<ProductionNumberDto>();
         }
 
         /// <summary>
@@ -73,10 +73,10 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPartNumberPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<PartNumberInfoDto>> GetPartNumberInfoPage(GetPartNumberInfoPage getPartNumberPage)
+        public async Task<ResultPaged<ProductionNumberDto>> GetPartNumberInfoPage(GetProductionNumberPage getPartNumberPage)
         {
             RefAsync<int> totalCount = 0;
-            var query = _db.Queryable<PartNumberInfoEntity>()
+            var query = _db.Queryable<ProductionNumberEntity>()
                            .With(SqlWith.NoLock);
 
             // 料号
@@ -89,7 +89,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
             query = query.OrderBy(partNumber => partNumber.CreatedDate);
 
             var partNumberPage = await query.ToPageListAsync(getPartNumberPage.PageIndex, getPartNumberPage.PageSize, totalCount);
-            return ResultPaged<PartNumberInfoDto>.Ok(partNumberPage.Adapt<List<PartNumberInfoDto>>(), totalCount, "");
+            return ResultPaged<ProductionNumberDto>.Ok(partNumberPage.Adapt<List<ProductionNumberDto>>(), totalCount, "");
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberInfoList"></param>
         /// <returns></returns>
-        public async Task<int> InsertPartNumberInfoList(List<PartNumberInfoEntity> partNumberInfoList)
+        public async Task<int> InsertPartNumberInfoList(List<ProductionNumberEntity> partNumberInfoList)
         {
             return await _db.Insertable(partNumberInfoList).ExecuteCommandAsync();
         }

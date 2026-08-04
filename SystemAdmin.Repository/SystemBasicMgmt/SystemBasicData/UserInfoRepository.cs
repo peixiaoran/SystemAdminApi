@@ -192,18 +192,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
-        /// 删除用户表单绑定
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteUserForm(long userId)
-        {
-            return await _db.Deleteable<UserFormEntity>()
-                            .Where(formbind => formbind.UserId == userId)
-                            .ExecuteCommandAsync();
-        }
-
-        /// <summary>
         /// 删除用户账号锁定记录
         /// </summary>
         /// <param name="userId"></param>

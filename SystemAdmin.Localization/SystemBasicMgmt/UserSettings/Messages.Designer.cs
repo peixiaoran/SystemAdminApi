@@ -142,24 +142,6 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.UserSettings {
         }
         
         /// <summary>
-        ///   查找类似 配置失败 的本地化字符串。
-        /// </summary>
-        internal static string UserFormUpdateFailed {
-            get {
-                return ResourceManager.GetString("UserFormUpdateFailed", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 配置成功 的本地化字符串。
-        /// </summary>
-        internal static string UserFormUpdateSuccess {
-            get {
-                return ResourceManager.GetString("UserFormUpdateSuccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 用户兼任删除失败 的本地化字符串。
         /// </summary>
         internal static string UserPartTimeDeleteFailed {
