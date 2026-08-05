@@ -30,7 +30,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <returns></returns>
         public async Task<bool> CanView(long formId, string permissionType)
         {
-            if (permissionType == "Review")
+            if (permissionType == "Verification")
+            {
+                return true;
+            }
+            else if (permissionType == "Review")
             {
                 return await _db.Queryable<PendingReviewEntity>()
                                 .With(SqlWith.NoLock)

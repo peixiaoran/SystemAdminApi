@@ -489,7 +489,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var form = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type == "Verification");
                 return Result<LeaveRequestDto>.Ok(form);
             }
             catch (Exception ex)

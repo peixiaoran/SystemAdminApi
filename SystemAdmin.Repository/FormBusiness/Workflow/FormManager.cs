@@ -461,8 +461,25 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询步骤栏位权限列表
         /// </summary>
-        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formId, long loginUserId)
+        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formId, long loginUserId, bool isVerification = false)
         {
+            if (isVerification)
+            {
+                var verificationFields = await _db.Queryable<FormInstanceEntity>()
+                                      .InnerJoin<FormTypeFieldEntity>((formInstance, formTypeField) => formInstance.FormTypeId == formTypeField.FormTypeId)
+                                      .Where((formInstance, formTypeField) => formInstance.FormId == formId)
+                                      .OrderBy((formInstance, formTypeField) => formTypeField.SortOrder)
+                                      .Select((formInstance, formTypeField) => formTypeField)
+                                      .ToListAsync();
+
+                return verificationFields.Select(field => new StepFieldPermissionDto
+                {
+                    FieldKey = field.FieldKey,
+                    IsVisible = 1,
+                    IsDisabled = 1
+                }).ToList();
+            }
+
             // 1. 该用户在「待审批」中所属的步骤（含代理：当前用户是待审批人的代理人）
             var pendingStepIds = await _db.Queryable<PendingReviewEntity>()
                                           .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)

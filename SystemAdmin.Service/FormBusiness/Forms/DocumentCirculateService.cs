@@ -93,7 +93,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId);
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type == "Verification");
                 return Result<DocumentCirculateDto>.Ok(form);
             }
             catch (Exception ex)
