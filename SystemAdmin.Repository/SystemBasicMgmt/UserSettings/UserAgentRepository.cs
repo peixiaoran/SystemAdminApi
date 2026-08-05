@@ -1,5 +1,9 @@
 ﻿using Mapster;
 using SqlSugar;
+using SystemAdmin.Common.Enums.FormBusiness;
+using SystemAdmin.Common.Utilities;
+using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
@@ -106,11 +110,12 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询可代理其他用户分页
+        /// 查询可代理其他用户分页（occupiedUserIds 为代理时间段内已有请假或代理安排的用户，需排除）
         /// </summary>
         /// <param name="getPage"></param>
+        /// <param name="occupiedUserIds"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<UserAgentViewDto>> GetUserInfoAgentView(GetUserAgentViewPage getPage)
+        public async Task<ResultPaged<UserAgentViewDto>> GetUserInfoAgentView(GetUserAgentViewPage getPage, List<long> occupiedUserIds)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<UserInfoEntity>()
@@ -119,7 +124,8 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationId)
-                           .Where((user, dept, position, labor, nation) => user.IsAgent == 0 && user.UserId != long.Parse(getPage.SubstituteUserId) && user.IsFreeze == 0);
+                           .Where((user, dept, position, labor, nation) => user.UserId != long.Parse(getPage.SubstituteUserId) && user.IsFreeze == 0)
+                           .WhereIF(occupiedUserIds.Count > 0, (user, dept, position, labor, nation) => !occupiedUserIds.Contains(user.UserId));
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
@@ -256,51 +262,64 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
         }
 
         /// <summary>
-        /// 查询被代理用户是否代理了其他用户
+        /// 查询与指定时间段重叠、且涉及指定用户（申请人或代理人任一角色）的审批中、已驳回请假单
+        /// 已批准的请假单在审批完成时已写入代理关系表，由 GetOverlappingUserAgents 覆盖
+        /// userIds 传 null 表示不限用户，用于取该时间段内全部被占用的人
         /// </summary>
-        /// <param name="substituteUserId"></param>
-        /// <returns></returns>
-        public async Task<bool> GetSubAgentIsAgent(long substituteUserId)
+        public async Task<List<UserTimeConflictDto>> GetOverlappingPendingLeaves(List<long?>? userIds, long? excludeFormId, DateTime startTime, DateTime endTime)
         {
-            return await _db.Queryable<UserAgentEntity>()
-                            .With(SqlWith.NoLock)
-                            .AnyAsync(useragent => useragent.AgentUserId == substituteUserId);
+            var list = await _db.Queryable<LeaveRequestEntity>()
+                                .With(SqlWith.NoLock)
+                                .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
+                                .Where((leave, instance) => (instance.FormStatus == FormStatus.UnderReview.ToEnumString() || instance.FormStatus == FormStatus.Rejected.ToEnumString())
+                                                         && leave.StartDateTime < endTime
+                                                         && startTime < leave.EndDateTime)
+                                .WhereIF(userIds != null, (leave, instance) => userIds!.Contains(instance.ApplicantUserId) || userIds!.Contains(leave.AgentUserId))
+                                .WhereIF(excludeFormId.HasValue, (leave, instance) => instance.FormId != excludeFormId)
+                                .Select((leave, instance) => new UserTimeConflictDto
+                                {
+                                    SubstituteUserId = instance.ApplicantUserId,
+                                    AgentUserId = leave.AgentUserId,
+                                    StartTime = leave.StartDateTime!.Value,
+                                    EndTime = leave.EndDateTime!.Value
+                                }).ToListAsync();
+            return list;
         }
 
         /// <summary>
-        /// 查询被代理用户是否被代理
+        /// 查询与指定时间段重叠、且涉及指定用户（被代理人或代理人任一角色）的代理关系
+        /// userIds 传 null 表示不限用户，用于取该时间段内全部被占用的人
         /// </summary>
-        /// <param name="substituteUserId"></param>
-        /// <returns></returns>
-        public async Task<bool> GetSubAgentIsSubAgent(long substituteUserId)
+        public async Task<List<UserTimeConflictDto>> GetOverlappingUserAgents(List<long?>? userIds, DateTime startTime, DateTime endTime)
         {
-            return await _db.Queryable<UserAgentEntity>()
-                            .With(SqlWith.NoLock)
-                            .AnyAsync(useragent => useragent.SubstituteUserId == substituteUserId);
+            var list = await _db.Queryable<UserAgentEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(useragent => useragent.StartTime < endTime && startTime < useragent.EndTime)
+                                .WhereIF(userIds != null, useragent => userIds!.Contains(useragent.SubstituteUserId) || userIds!.Contains(useragent.AgentUserId))
+                                .Select(useragent => new UserTimeConflictDto
+                                {
+                                    SubstituteUserId = useragent.SubstituteUserId,
+                                    AgentUserId = useragent.AgentUserId,
+                                    StartTime = useragent.StartTime,
+                                    EndTime = useragent.EndTime
+                                }).ToListAsync();
+            return list;
         }
 
         /// <summary>
-        /// 查询代理用户是否被代理
+        /// 查询指定时间段内已被占用（有请假单或代理安排）的用户Id，用于筛掉不可选的代理人
         /// </summary>
-        /// <param name="agentUserId"></param>
-        /// <returns></returns>
-        public async Task<bool> GetAgentIsSubAgent(long agentUserId)
+        public async Task<List<long>> GetOccupiedUserIds(DateTime startTime, DateTime endTime, long? excludeFormId)
         {
-            return await _db.Queryable<UserAgentEntity>()
-                            .With(SqlWith.NoLock)
-                            .AnyAsync(useragent => useragent.SubstituteUserId == agentUserId);
-        }
+            var pendingConflicts = await GetOverlappingPendingLeaves(null, excludeFormId, startTime, endTime);
+            var agentConflicts = await GetOverlappingUserAgents(null, startTime, endTime);
 
-        /// <summary>
-        /// 查询代理用户是否代理了其他用户
-        /// </summary>
-        /// <param name="agentUserId"></param>
-        /// <returns></returns>
-        public async Task<bool> GetAgentIsAgent(long agentUserId)
-        {
-            return await _db.Queryable<UserAgentEntity>()
-                            .With(SqlWith.NoLock)
-                            .AnyAsync(useragent => useragent.AgentUserId == agentUserId);
+            return pendingConflicts.Concat(agentConflicts)
+                                   .SelectMany(conflict => conflict.AgentUserId.HasValue
+                                       ? new[] { conflict.SubstituteUserId, conflict.AgentUserId.Value }
+                                       : new[] { conflict.SubstituteUserId })
+                                   .Distinct()
+                                   .ToList();
         }
     }
 }

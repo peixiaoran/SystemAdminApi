@@ -153,16 +153,10 @@
   <data name="UserAgentSameUser" xml:space="preserve">
     <value>被代理用户与代理用户不能为同一人</value>
   </data>
-  <data name="UserAgentTargetHasAgentRole" xml:space="preserve">
-    <value>被代理用户已代理其他用户，不能嵌套代理</value>
+  <data name="UserAgentSubstituteTimeConflict" xml:space="preserve">
+    <value>被代理用户于 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突</value>
   </data>
-  <data name="UserAgentTargetAlreadyAgented" xml:space="preserve">
-    <value>被代理用户已被其他用户代理，不可多人员代理</value>
-  </data>
-  <data name="UserAgentAlreadyAgented" xml:space="preserve">
-    <value>代理用户已被其他用户代理，不能作为代理用户</value>
-  </data>
-  <data name="HasMultipleTargets" xml:space="preserve">
-    <value>代理用户已代理其他用户，不可多人员代理</value>
+  <data name="UserAgentAgentTimeConflict" xml:space="preserve">
+    <value>代理用户于 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突</value>
   </data>
 </root>

@@ -153,16 +153,10 @@
   <data name="UserAgentSameUser" xml:space="preserve">
     <value>The agent and the target user cannot be the same person</value>
   </data>
-  <data name="UserAgentTargetHasAgentRole" xml:space="preserve">
-    <value>The target user already acts as an agent for another user. Nested delegation is not allowed</value>
+  <data name="UserAgentSubstituteTimeConflict" xml:space="preserve">
+    <value>The target user already has a leave request or agent arrangement from {0} to {1}, which overlaps with this delegation period</value>
   </data>
-  <data name="UserAgentTargetAlreadyAgented" xml:space="preserve">
-    <value>The target user is already delegated by another user. Multiple delegations are not allowed</value>
-  </data>
-  <data name="UserAgentAlreadyAgented" xml:space="preserve">
-    <value>The agent user is already delegated by another user and cannot act as an agent.</value>
-  </data>
-  <data name="HasMultipleTargets" xml:space="preserve">
-    <value>The agent user already delegates another user. Multiple delegations are not allowed</value>
+  <data name="UserAgentAgentTimeConflict" xml:space="preserve">
+    <value>The agent user already has a leave request or agent arrangement from {0} to {1}, which overlaps with this delegation period</value>
   </data>
 </root>

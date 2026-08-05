@@ -123,7 +123,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                         await _sysUserOperateRepo.UpdateUserFreeze(user.UserId);
                         await _db.CommitTranAsync();
 
-                        return Result<SysUserLoginReturnDto>.Failure(402, _localization.ReturnMsg($"{_this}LoginLock"));
+                        return Result<SysUserLoginReturnDto>.Failure(400, _localization.ReturnMsg($"{_this}LoginLock"));
                     }
 
                     // 未达阈值

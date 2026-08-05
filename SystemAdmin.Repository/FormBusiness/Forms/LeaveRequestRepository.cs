@@ -62,11 +62,12 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询可代理用户
+        /// 查询可代理用户（occupiedUserIds 为请假时间段内已有请假或代理安排的用户，需排除）
         /// </summary>
         /// <param name="getPage"></param>
+        /// <param name="occupiedUserIds"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage)
+        public async Task<ResultPaged<AgentUserInfoDto>> GetUserInfoAgentView(GetAgentUserPage getPage, List<long> occupiedUserIds)
         {
             var applyUserId = _db.Queryable<FormInstanceEntity>()
                                  .With(SqlWith.NoLock)
@@ -81,7 +82,8 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationId)
-                           .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsAgent == 0 && user.IsFreeze == 0 && user.UserId != applyUserId);
+                           .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0 && user.UserId != applyUserId)
+                           .WhereIF(occupiedUserIds.Count > 0, (user, dept, position, labor, nation) => !occupiedUserIds.Contains(user.UserId));
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
@@ -167,21 +169,6 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                                          && leave.EndDateTime != null
                                                          && leave.LeaveType != null)
                                 .Select((leave, instance) => leave)
-                                .ToListAsync();
-            return list;
-        }
-
-        /// <summary>
-        /// 查询审批中、已驳回的请假单
-        /// </summary>
-        public async Task<List<LeaveRequestEntity>> GetAppRejectPendingLeaves(long formId)
-        {
-            var list = await _db.Queryable<LeaveRequestEntity>()
-                                .With(SqlWith.NoLock)
-                                .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
-                                .InnerJoin<FormInstanceEntity>((leave, instance, applicant) => applicant.FormId == formId)
-                                .Where((leave, instance, applicant) => instance.ApplicantUserId == applicant.ApplicantUserId && instance.FormId != formId && (instance.FormStatus == FormStatus.UnderReview.ToEnumString() || instance.FormStatus == FormStatus.Rejected.ToEnumString()))
-                                .Select((leave, instance, applicant) => leave)
                                 .ToListAsync();
             return list;
         }

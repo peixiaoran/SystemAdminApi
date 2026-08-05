@@ -262,7 +262,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                     if (overlapped != null)
                     {
-                        return Result<bool>.Failure(402, _localization.ReturnMsg($"{_form}CancellPeriodOverlap", args: new object[]
+                        return Result<bool>.Failure(400, _localization.ReturnMsg($"{_form}CancellPeriodOverlap", args: new object[]
                         {
                             overlapped.StartDateTime!.Value.ToString("yyyy-MM-dd HH:mm"),
                             overlapped.EndDateTime!.Value.ToString("yyyy-MM-dd HH:mm")
@@ -278,7 +278,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 if (cancellHours > remainingHours)
                 {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_form}CancellHoursExceed", args: new object[]
+                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_form}CancellHoursExceed", args: new object[]
                     {
                         cancellHours.ToString("0.##"),
                         remainingHours.ToString("0.##")

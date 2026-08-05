@@ -10,6 +10,7 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
+using SystemAdmin.Repository.SystemBasicMgmt.UserSettings;
 
 namespace SystemAdmin.Service.FormBusiness.Forms
 {
@@ -21,17 +22,19 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
         private readonly LeaveRequestRepository _leaveRequest;
+        private readonly UserAgentRepository _userAgentRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public LeaveRequestService(CurrentUser loginuser, ILogger<LeaveRequestService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveRequestRepository leaveRequest, FormManager formmanger, LocalizationService localization)
+        public LeaveRequestService(CurrentUser loginuser, ILogger<LeaveRequestService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveRequestRepository leaveRequest, UserAgentRepository userAgentRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _lang = lang;
             _leaveRequest = leaveRequest;
+            _userAgentRepo = userAgentRepo;
             _formChecker = formchecker;
             _formmanger = formmanger;
             _localization = localization;
@@ -74,7 +77,13 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                return await _leaveRequest.GetUserInfoAgentView(getPage);
+                // 按当前表单的请假时间段，筛掉该时段内已有请假或代理安排的用户；表单未填时间时不筛，由送审校验兜底
+                var currentLeave = await _leaveRequest.GetCurrentLeaveRequest(long.Parse(getPage.FormId));
+                var occupiedUserIds = currentLeave.StartDateTime.HasValue && currentLeave.EndDateTime.HasValue
+                    ? await _userAgentRepo.GetOccupiedUserIds(currentLeave.StartDateTime.Value, currentLeave.EndDateTime.Value, long.Parse(getPage.FormId))
+                    : new List<long>();
+
+                return await _leaveRequest.GetUserInfoAgentView(getPage, occupiedUserIds);
             }
             catch (Exception ex)
             {
@@ -204,22 +213,51 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             var currentEnd = (DateTime)currentLeave.EndDateTime!;
             var involvedYears = Enumerable.Range(currentStart.Year, currentEnd.Year - currentStart.Year + 1).ToList();
 
-            // 1. 校验代理人在本次请假期间是否已有审批中的请假（代理人本人不能同时也在请假）
-            var agentPendingLeaves = await _leaveRequest.GetAppRejectPendingLeaves(long.Parse(formId));
+            var applicantUserId = await _leaveRequest.GetApplicantUserId(long.Parse(formId));
 
-            var conflictLeave = agentPendingLeaves.FirstOrDefault(agentPendingLeave =>
-                currentStart < (DateTime)agentPendingLeave.EndDateTime!
-                && (DateTime)agentPendingLeave.StartDateTime! < currentEnd);
-            
-            if (conflictLeave != null)
+            // 1. 校验申请人、代理人在本次请假期间是否已有请假单或代理关系
+            //    两人中任意一人，以申请人/被代理人或代理人任一角色出现，时间重叠即算冲突
+            var involvedUserIds = new List<long?> { applicantUserId, currentLeave.AgentUserId };
+
+            // 审批中、已驳回的请假单（已批准的请假单已写入代理关系表，由下方一并覆盖）
+            var pendingConflicts = await _userAgentRepo.GetOverlappingPendingLeaves(involvedUserIds, long.Parse(formId), currentStart, currentEnd);
+
+            // 已生效的代理关系
+            var agentConflicts = await _userAgentRepo.GetOverlappingUserAgents(involvedUserIds, currentStart, currentEnd);
+
+            var conflicts = pendingConflicts.Concat(agentConflicts).ToList();
+
+            // 申请人自身时间冲突：已有重叠的请假，或正代理他人（代理职责在身）
+            var applicantConflict = conflicts.FirstOrDefault(conflict =>
+                conflict.SubstituteUserId == applicantUserId || conflict.AgentUserId == applicantUserId);
+
+            if (applicantConflict != null)
             {
-                return Result<bool>.Failure(402, _localization.ReturnMsg(
-                    $"{_form}AgentLeaveConflict",
+                return Result<bool>.Failure(400, _localization.ReturnMsg(
+                    $"{_form}ApplicantTimeConflict",
+                    args: new object[]
+                    {
+                        applicantConflict.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                        applicantConflict.EndTime.ToString("yyyy-MM-dd HH:mm")
+                    }
+                ));
+            }
+
+            // 代理人时间冲突：本人也在请假/被代理，或已代理他人（一人同时只能代理一个人）
+            var agentConflict = currentLeave.AgentUserId.HasValue
+                ? conflicts.FirstOrDefault(conflict =>
+                    conflict.SubstituteUserId == currentLeave.AgentUserId || conflict.AgentUserId == currentLeave.AgentUserId)
+                : null;
+
+            if (agentConflict != null)
+            {
+                return Result<bool>.Failure(400, _localization.ReturnMsg(
+                    $"{_form}AgentUserTimeConflict",
                     args: new object[]
                     {
                         currentLeave.AgentUserName!,
-                        ((DateTime)conflictLeave.StartDateTime!).ToString("yyyy-MM-dd HH:mm"),
-                        ((DateTime)conflictLeave.EndDateTime!).ToString("yyyy-MM-dd HH:mm")
+                        agentConflict.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                        agentConflict.EndTime.ToString("yyyy-MM-dd HH:mm")
                     }
                 ));
             }
@@ -233,10 +271,9 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
 
             // 查询其余占用余额的请假单（除作废、已批准外都计入；已批准的已直接扣减余额表）
-            var applicantUserId = await _leaveRequest.GetApplicantUserId(long.Parse(formId));
             var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(applicantUserId, long.Parse(formId));
 
-            // 2. 校验计算其余占用余额请假的占用工时（按年份和假别），逐日累计
+            // 3. 校验计算其余占用余额请假的占用工时（按年份和假别），逐日累计
             var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
 
             foreach (var leave in pendingLeaves)
@@ -345,7 +382,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             // 查询假别字典
             var leaveTypeDics = await _leaveRequest.GetLeaveTypeDictionary();
 
-            // 8. 按年份逐一校验余额（天数，1天=8小时），遇到第一个不符合立即返回
+            // 4. 按年份逐一校验余额（天数，1天=8小时），遇到第一个不符合立即返回
             foreach (var year in involvedYears)
             {
                 var yearKey = year.ToString();
@@ -377,7 +414,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     var leaveTypeDic = leaveTypeDics.FirstOrDefault(d => d.DicCode == currentLeave.LeaveType);
                     var leaveTypeName = _lang.Locale == "zh-CN" ? leaveTypeDic?.DicNameCn : leaveTypeDic?.DicNameEn;
 
-                    return Result<bool>.Failure(402, _localization.ReturnMsg(
+                    return Result<bool>.Failure(400, _localization.ReturnMsg(
                         $"{_form}LeaveBalanceNotEnough",
                         year,
                         leaveTypeName,

@@ -73,7 +73,10 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
         {
             try
             {
-                return await _userAgentRepo.GetUserInfoAgentView(getPage);
+                // 筛掉本次代理时间段内已有请假或代理安排的用户
+                var occupiedUserIds = await _userAgentRepo.GetOccupiedUserIds(getPage.StartTime, getPage.EndTime, null);
+
+                return await _userAgentRepo.GetUserInfoAgentView(getPage, occupiedUserIds);
             }
             catch (Exception ex)
             {
@@ -95,63 +98,76 @@ namespace SystemAdmin.Service.SystemBasicMgmt.UserSettings
                 if (upsert.SubstituteUserId == upsert.AgentUserId)
                 {
                     // 被代理用户不能和代理用户相同
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}AgentSameUser"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}AgentSameUser"));
                 }
 
-                // 查询被代理用户已代理其他用户
-                bool subAgentIsAgent = await _userAgentRepo.GetSubAgentIsAgent(long.Parse(upsert.SubstituteUserId));
-                if (subAgentIsAgent)
+                var substituteUserId = long.Parse(upsert.SubstituteUserId);
+                var agentUserId = long.Parse(upsert.AgentUserId);
+
+                // 校验被代理人、代理人在本次代理期间是否已有请假单或代理关系
+                // 两人中任意一人，以申请人/被代理人或代理人任一角色出现，时间重叠即算冲突
+                var involvedUserIds = new List<long?> { substituteUserId, agentUserId };
+
+                // 审批中、已驳回的请假单（已批准的请假单已写入代理关系表，由下方一并覆盖）
+                var pendingConflicts = await _userAgentRepo.GetOverlappingPendingLeaves(involvedUserIds, null, upsert.StartTime, upsert.EndTime);
+
+                // 已生效的代理关系
+                var agentConflicts = await _userAgentRepo.GetOverlappingUserAgents(involvedUserIds, upsert.StartTime, upsert.EndTime);
+
+                var conflicts = pendingConflicts.Concat(agentConflicts).ToList();
+
+                // 被代理人时间冲突：已有重叠的请假/被代理，或正代理他人（代理职责在身）
+                var substituteConflict = conflicts.FirstOrDefault(conflict =>
+                    conflict.SubstituteUserId == substituteUserId || conflict.AgentUserId == substituteUserId);
+
+                if (substituteConflict != null)
                 {
-                    // 被代理用户已代理其他用户，不能嵌套代理
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}TargetHasAgentRole"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg(
+                        $"{_this}SubstituteTimeConflict",
+                        args: new object[]
+                        {
+                            substituteConflict.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                            substituteConflict.EndTime.ToString("yyyy-MM-dd HH:mm")
+                        }
+                    ));
                 }
 
-                // 查询被代理用户已被其他用户代理
-                bool subAgentIsSubAgent = await _userAgentRepo.GetSubAgentIsSubAgent(long.Parse(upsert.SubstituteUserId));
-                if (subAgentIsSubAgent)
+                // 代理人时间冲突：本人也在请假/被代理，或已代理他人（一人同时只能代理一个人）
+                var agentConflict = conflicts.FirstOrDefault(conflict =>
+                    conflict.SubstituteUserId == agentUserId || conflict.AgentUserId == agentUserId);
+
+                if (agentConflict != null)
                 {
-                    // 被代理用户已被其他用户代理，不可多人员代理
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}TargetAlreadyAgented"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg(
+                        $"{_this}AgentTimeConflict",
+                        args: new object[]
+                        {
+                            agentConflict.StartTime.ToString("yyyy-MM-dd HH:mm"),
+                            agentConflict.EndTime.ToString("yyyy-MM-dd HH:mm")
+                        }
+                    ));
                 }
 
-                // 查询代理用户已被其他用户代理
-                bool agentIsSubAgent = await _userAgentRepo.GetAgentIsSubAgent(long.Parse(upsert.AgentUserId));
-                if (agentIsSubAgent)
+                var insertUserAgent = new UserAgentEntity
                 {
-                    // 代理用户已被其他用户代理，不能作为代理用户
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}AlreadyAgented"));
-                }
-                // 查询代理用户已代理其他用户
-                bool agentIsAgent = await _userAgentRepo.GetAgentIsAgent(long.Parse(upsert.AgentUserId));
-                if (agentIsAgent)
-                {
-                    // 代理用户已代理其他用户，不可多人员代理
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}HasMultipleTargets"));
-                }
-                else
-                {
-                    // 重新配置代理人
-                    var insertUserAgent = new UserAgentEntity
-                    {
-                        SubstituteUserId = long.Parse(upsert.SubstituteUserId),
-                        AgentUserId = long.Parse(upsert.AgentUserId),
-                        StartTime = upsert.StartTime,
-                        EndTime = upsert.EndTime,
-                        CreatedBy = _loginuser.UserId,
-                        CreatedDate = DateTime.Now,
-                    };
+                    SubstituteUserId = substituteUserId,
+                    AgentUserId = agentUserId,
+                    StartTime = upsert.StartTime,
+                    EndTime = upsert.EndTime,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now,
+                };
 
-                    await _db.BeginTranAsync();
-                    // 新增用户代理人配置
-                    int insertUserAgentCount = await _userAgentRepo.InsertUserAgent(insertUserAgent);
-                    // 更新用户代理状态
-                    var updateUserAgentCount = await _userAgentRepo.UpdateUserAgent(long.Parse(upsert.AgentUserId), 1);
-                    await _db.CommitTranAsync();
+                await _db.BeginTranAsync();
+                // 新增用户代理人配置
+                int insertUserAgentCount = await _userAgentRepo.InsertUserAgent(insertUserAgent);
+                // 更新用户代理状态
+                var updateUserAgentCount = await _userAgentRepo.UpdateUserAgent(agentUserId, 1);
+                await _db.CommitTranAsync();
 
-                    return insertUserAgentCount >= 1 && updateUserAgentCount >= 1
-                            ? Result<int>.Ok(insertUserAgentCount, _localization.ReturnMsg($"{_this}InsertSuccess"))
-                            : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}InsertFailed"));
-                }
+                return insertUserAgentCount >= 1 && updateUserAgentCount >= 1
+                        ? Result<int>.Ok(insertUserAgentCount, _localization.ReturnMsg($"{_this}InsertSuccess"))
+                        : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}InsertFailed"));
             }
             catch (Exception ex)
             {

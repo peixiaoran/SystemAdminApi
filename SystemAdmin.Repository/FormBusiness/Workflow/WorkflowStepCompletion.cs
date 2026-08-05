@@ -100,7 +100,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                     if (leaveAnnual == null)
                     {
-                        return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
+                        return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
                         {
                             userName ?? formInstance.ApplicantUserId.ToString(),
                             year,
@@ -111,7 +111,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     var newRemainingDays = leaveAnnual.RemainingDays - (decimal)days;
                     if (newRemainingDays < 0)
                     {
-                        return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance", args: new object[]
+                        return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance", args: new object[]
                         {
                             userName ?? formInstance.ApplicantUserId.ToString(),
                             year,
@@ -212,7 +212,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 if (leaveAnnual == null)
                 {
-                    return Result<bool>.Failure(402, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
+                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
                     {
                         userName ?? formInstance.ApplicantUserId.ToString(),
                         year,

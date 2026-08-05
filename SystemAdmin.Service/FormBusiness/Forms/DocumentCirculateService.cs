@@ -15,19 +15,17 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly CurrentUser _loginuser;
         private readonly ILogger<DocumentCirculateService> _logger;
         private readonly SqlSugarScope _db;
-        private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
         private readonly DocumentCirculateRepository _documentCirculate;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public DocumentCirculateService(CurrentUser loginuser, ILogger<DocumentCirculateService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, DocumentCirculateRepository documentCirculate, FormManager formmanger, LocalizationService localization)
+        public DocumentCirculateService(CurrentUser loginuser, ILogger<DocumentCirculateService> logger, SqlSugarScope db, FormPermissionChecker formchecker, DocumentCirculateRepository documentCirculate, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
-            _lang = lang;
             _formChecker = formchecker;
             _documentCirculate = documentCirculate;
             _formmanger = formmanger;

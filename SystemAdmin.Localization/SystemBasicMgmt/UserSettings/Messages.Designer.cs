@@ -61,23 +61,23 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.UserSettings {
         }
         
         /// <summary>
-        ///   查找类似 代理用户已代理其他用户，不可多人员代理 的本地化字符串。
+        ///   查找类似 代理用户于 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突 的本地化字符串。
         /// </summary>
-        internal static string HasMultipleTargets {
+        internal static string UserAgentAgentTimeConflict {
             get {
-                return ResourceManager.GetString("HasMultipleTargets", resourceCulture);
+                return ResourceManager.GetString("UserAgentAgentTimeConflict", resourceCulture);
             }
         }
-        
+
         /// <summary>
-        ///   查找类似 代理用户已被其他用户代理，不能作为代理用户 的本地化字符串。
+        ///   查找类似 被代理用户于 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突 的本地化字符串。
         /// </summary>
-        internal static string UserAgentAlreadyAgented {
+        internal static string UserAgentSubstituteTimeConflict {
             get {
-                return ResourceManager.GetString("UserAgentAlreadyAgented", resourceCulture);
+                return ResourceManager.GetString("UserAgentSubstituteTimeConflict", resourceCulture);
             }
         }
-        
+
         /// <summary>
         ///   查找类似 代理关系删除失败 的本地化字符串。
         /// </summary>
@@ -120,24 +120,6 @@ namespace SystemAdmin.Localization.SystemBasicMgmt.UserSettings {
         internal static string UserAgentSameUser {
             get {
                 return ResourceManager.GetString("UserAgentSameUser", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 被代理用户已被其他用户代理，不可多人员代理 的本地化字符串。
-        /// </summary>
-        internal static string UserAgentTargetAlreadyAgented {
-            get {
-                return ResourceManager.GetString("UserAgentTargetAlreadyAgented", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 被代理用户已代理其他用户，不能嵌套代理 的本地化字符串。
-        /// </summary>
-        internal static string UserAgentTargetHasAgentRole {
-            get {
-                return ResourceManager.GetString("UserAgentTargetHasAgentRole", resourceCulture);
             }
         }
         

@@ -156,8 +156,11 @@
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
     <value>Insufficient {1} leave balance for year {0}. Requested: {2} day(s), Available: {3} day(s)</value>
   </data>
-  <data name="AgentLeaveConflict" xml:space="preserve">
-    <value>The selected agent "{0}" already has a pending leave request from {1} to {2}. Please select another agent</value>
+  <data name="ApplicantTimeConflict" xml:space="preserve">
+    <value>The applicant already has a leave request or agent arrangement from {0} to {1}, which overlaps with this leave period</value>
+  </data>
+  <data name="AgentUserTimeConflict" xml:space="preserve">
+    <value>The selected agent "{0}" already has a leave request or agent arrangement from {1} to {2}. Please select another agent</value>
   </data>
   <data name="CancellHoursExceed" xml:space="preserve">
     <value>This cancellation of {0} hour(s) exceeds the remaining {1} cancellable hour(s) of the leave request</value>

@@ -115,7 +115,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
                 var isCan = await _formChecker.CanWithdraw(long.Parse(formId));
                 if (!isCan)
                 {
-                    return Result<int>.Ok(402, _localization.ReturnMsg($"{_this}NotCanWithdraw"));
+                    return Result<int>.Ok(400, _localization.ReturnMsg($"{_this}NotCanWithdraw"));
                 }
 
                 await _db.BeginTranAsync();
