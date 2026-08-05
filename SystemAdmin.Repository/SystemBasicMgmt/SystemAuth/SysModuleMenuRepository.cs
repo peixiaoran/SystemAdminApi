@@ -52,15 +52,17 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         /// <returns></returns>
         public async Task<List<SysMenuInfoDto>> GetMenuTreeList(long moduleId, long userId)
         {
-            return await _db.Queryable<SysUserInfoEntity>()
+            // ParentMenuId 为 null 的一级菜单作为容器节点，即使未直接授权给角色也一并返回，避免已授权的子菜单在树上失去挂载点
+            return await _db.Queryable<SysMenuInfoEntity>()
                             .With(SqlWith.NoLock)
-                            .LeftJoin<SysUserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
-                            .LeftJoin<SysRoleInfoEntity>((user, userrole, role) => userrole.RoleId == role.RoleId)
-                            .InnerJoin<SysRoleMenuEntity>((user, userrole, role, rolemenu) => role.RoleId == rolemenu.RoleId)
-                            .InnerJoin<SysMenuInfoEntity>((user, userrole, role, rolemenu, menu) => rolemenu.MenuId == menu.MenuId)
-                            .Where((user, userrole, role, rolemenu, menu) => user.UserId == userId && menu.ModuleId == moduleId)
-                            .OrderBy((user, userrole, role, rolemenu, menu) => menu.SortOrder)
-                            .Select((user, userrole, role, rolemenu, menu) => new SysMenuInfoDto
+                            .Where(menu => menu.ModuleId == moduleId
+                                        && (menu.ParentMenuId == null
+                                            || SqlFunc.Subqueryable<SysRoleMenuEntity>()
+                                                      .InnerJoin<SysUserRoleEntity>((rolemenu, userrole) => rolemenu.RoleId == userrole.RoleId)
+                                                      .Where((rolemenu, userrole) => userrole.UserId == userId && rolemenu.MenuId == menu.MenuId)
+                                                      .Any()))
+                            .OrderBy(menu => menu.SortOrder)
+                            .Select(menu => new SysMenuInfoDto
                             {
                                 MenuId = menu.MenuId,
                                 ParentMenuId = menu.ParentMenuId,

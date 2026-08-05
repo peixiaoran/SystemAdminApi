@@ -27,7 +27,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         {
             try
             {
-                List<SysModuleInfoDto> moduleList = await _sysModuleMenuRepo.GetModuleList(_loginuser.UserId);
+                var moduleList = await _sysModuleMenuRepo.GetModuleList(_loginuser.UserId);
                 return Result<List<SysModuleInfoDto>>.Ok(moduleList, "");
             }
             catch (Exception ex)
@@ -46,7 +46,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         {
             try
             {
-                List<SysMenuInfoDto> menuTree = await _sysModuleMenuRepo.GetMenuTreeList(long.Parse(moduleId), _loginuser.UserId);
+                var menuTree = await _sysModuleMenuRepo.GetMenuTreeList(long.Parse(moduleId), _loginuser.UserId);
                 return Result<List<SysMenuInfoDto>>.Ok(menuTree, "");
             }
             catch (Exception ex)
