@@ -52,15 +52,20 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         /// <returns></returns>
         public async Task<List<SysMenuInfoDto>> GetMenuTreeList(long moduleId, long userId)
         {
-            // ParentMenuId 为 null 的一级菜单作为容器节点，即使未直接授权给角色也一并返回，避免已授权的子菜单在树上失去挂载点
+            // 一级菜单（ParentMenuId 为 null）仅在自身被授权、或其下存在已授权的子菜单时才作为容器节点返回，避免未授权的一级菜单单独显示
             return await _db.Queryable<SysMenuInfoEntity>()
                             .With(SqlWith.NoLock)
                             .Where(menu => menu.ModuleId == moduleId
-                                        && (menu.ParentMenuId == null
-                                            || SqlFunc.Subqueryable<SysRoleMenuEntity>()
-                                                      .InnerJoin<SysUserRoleEntity>((rolemenu, userrole) => rolemenu.RoleId == userrole.RoleId)
-                                                      .Where((rolemenu, userrole) => userrole.UserId == userId && rolemenu.MenuId == menu.MenuId)
-                                                      .Any()))
+                                        && (SqlFunc.Subqueryable<SysRoleMenuEntity>()
+                                                    .InnerJoin<SysUserRoleEntity>((rolemenu, userrole) => rolemenu.RoleId == userrole.RoleId)
+                                                    .Where((rolemenu, userrole) => userrole.UserId == userId && rolemenu.MenuId == menu.MenuId)
+                                                    .Any()
+                                            || (menu.ParentMenuId == null
+                                                && SqlFunc.Subqueryable<SysMenuInfoEntity>()
+                                                          .InnerJoin<SysRoleMenuEntity>((child, rolemenu) => child.MenuId == rolemenu.MenuId)
+                                                          .InnerJoin<SysUserRoleEntity>((child, rolemenu, userrole) => rolemenu.RoleId == userrole.RoleId)
+                                                          .Where((child, rolemenu, userrole) => child.ParentMenuId == menu.MenuId && userrole.UserId == userId)
+                                                          .Any())))
                             .OrderBy(menu => menu.SortOrder)
                             .Select(menu => new SysMenuInfoDto
                             {
