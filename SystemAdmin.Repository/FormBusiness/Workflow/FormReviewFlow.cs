@@ -42,7 +42,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var flowSteps = await BuildStepReviewList(formDetail, context);
             var stepReviewList = flowSteps.Select(step => step.Review).ToList();
 
-            // 审批记录一次取回：步骤状态只认有效记录，驳回次数按全部记录统计
+            // 一次取回审批记录
             var reviewRecords = await _db.Queryable<FormReviewRecordEntity>()
                                          .With(SqlWith.NoLock)
                                          .Where(record => record.FormId == formId)
@@ -74,7 +74,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new List<RejectStepDrop>();
             }
 
-            // 先取当前步骤资料：起始步骤无可驳回步骤，其排序同时作为后续只解析前置步骤的上限
+            // 起始步骤无可驳回步骤；当前排序作为只解析前置步骤的上限
             int currentSortOrder = int.MaxValue;
             if (formDetail.CurrentStepId.HasValue)
             {
@@ -92,11 +92,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 currentSortOrder = currentStep?.SortOrder ?? int.MaxValue;
             }
 
-            // 下拉只显示当前步骤之前的步骤，其后步骤不预载指派配置、也不查审批人
+            // 只解析当前步骤之前的步骤
             var context = await BuildFlowContext(formDetail, currentSortOrder);
             var flowSteps = await BuildStepReviewList(formDetail, context, currentSortOrder);
 
-            // 可驳回：起始步骤始终保留；其余需位于当前步骤之前，且当前操作人不在该步骤审批人中
+            // 起始步骤始终保留；其余需在当前步骤之前，且操作人不在该步骤审批人中
             return flowSteps
                    .Where(step => step.Review.Skip != 1)
                    .Where(step => step.IsStartStep == 1
@@ -143,9 +143,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 预载步骤链、步骤配置与组织架构资料：配置与部门/人员按 Id 集合批量取回，
-        /// 部门级别与职级为小型基础资料整表缓存，使步骤循环内不再往返数据库。
-        /// maxSortOrder 用于只需要部分步骤的场景（如可驳回下拉），限定后不再预载其余步骤的指派配置
+        /// 预载步骤链、步骤配置与组织架构资料，使步骤循环内不再往返数据库；
+        /// maxSortOrder 限定时只预载其之前步骤的指派配置
         /// </summary>
         private async Task<FlowContext> BuildFlowContext(ApplyFormDetail formDetail, int? maxSortOrder = null)
         {
@@ -160,7 +159,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(step => stepIds.Contains(step.StepId))
                                      .ToListAsync();
 
-            // 仅查询需要解析审批人的步骤上实际出现的指派类型
+            // 只取需要解析审批人的步骤上出现的指派类型
             var assignStepIds = stepInfos.Where(step => step.IsStartStep != 1 && NeedResolveStep(step, maxSortOrder))
                                          .GroupBy(step => step.Assignment)
                                          .ToDictionary(group => group.Key, group => group.Select(step => step.StepId).ToList());
@@ -171,7 +170,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var customStepIds = AssignedStepIds(assignStepIds, Assignment.Custom);
             var addReviewStepIds = AssignedStepIds(assignStepIds, Assignment.AddReview);
 
-            // 申请人上级部门列表（包含申请人所在部门），仅组织架构指派步骤会用到
+            // 申请人上级部门链（含本部门），仅组织架构指派用到
             var applyParentDept = orgStepIds.Count == 0
                 ? new List<DepartmentInfoEntity>()
                 : await _db.Queryable<DepartmentInfoEntity>()
@@ -206,7 +205,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                            .Where(stepcustom => customStepIds.Contains(stepcustom.StepId))
                            .ToListAsync();
 
-            // 指定人步骤需先取本人档案，才能得到其部门与职级
+            // 指定人需先取档案才能得到部门与职级
             var configUserIds = userConfigs.Select(config => config.UserId).Distinct().ToList();
             var users = configUserIds.Count == 0
                 ? new List<UserInfoEntity>()
@@ -233,7 +232,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .With(SqlWith.NoLock)
                                      .ToListAsync();
 
-            // 步骤规则给出加审顺序，实际人员来自表单上的加审设定
+            // 加审顺序来自步骤规则，人员来自表单加审设定
             var addReviewConfigs = addReviewStepIds.Count == 0
                 ? new List<WorkflowStepAddReviewEntity>()
                 : await _db.Queryable<WorkflowStepAddReviewEntity>()
@@ -276,8 +275,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 判断步骤是否需要解析审批人：未限定排序上限时全部解析；
-        /// 限定时只解析起始步骤与排序在上限之前的步骤
+        /// 是否需要解析该步骤的审批人；限定排序上限时只解析起始步骤与其之前的步骤
         /// </summary>
         private static bool NeedResolveStep(WorkflowStepEntity stepInfo, int? maxSortOrder)
         {
@@ -285,8 +283,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 沿规则步骤链构建各步骤的审批人列表；
-        /// maxSortOrder 限定时，排序在其之后的步骤直接略过，不再查询审批人
+        /// 沿规则步骤链构建各步骤的审批人列表
         /// </summary>
         private async Task<List<StepFlowItem>> BuildStepReviewList(ApplyFormDetail formDetail, FlowContext context, int? maxSortOrder = null)
         {
@@ -297,7 +294,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 沿步骤链收集各步骤的取人条件（此阶段不查审批人）
+        /// 沿步骤链收集取人条件（此阶段不查审批人）
         /// </summary>
         private async Task<List<StepUserRequest>> CollectStepUserRequests(ApplyFormDetail formDetail, FlowContext context, int? maxSortOrder)
         {
@@ -339,7 +336,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按步骤指派类型确定取人条件；组织架构级别不足或指派配置缺失时直接标记步骤跳过
+        /// 按指派类型确定取人条件；级别不足或配置缺失时标记步骤跳过
         /// </summary>
         private async Task<StepUserRequest> BuildStepUserRequest(ApplyFormDetail formDetail, FlowContext context, WorkflowStepEntity stepInfo, StepReview stepReview)
         {
@@ -440,7 +437,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     return request;
                 }
 
-                // 加审是点名的人，查不到即略过，不做自动降级；身份优先级取最高一笔，避免专兼职并存时重复
+                // 加审为点名指派：查不到即略过、不降级、不校验审批权限
                 request.SkipWhenEmpty = true;
                 request.AllowDowngrade = false;
                 request.IsReview = true;
@@ -458,7 +455,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 批量取回步骤审批人员
 
         /// <summary>
-        /// 取回并回填各步骤审批人：按指派类型分批一次查回，精确匹配落空的步骤再兜底降级
+        /// 取回并回填各步骤审批人：按指派类型分批查询，落空的再降级兜底
         /// </summary>
         private async Task FillStepReviewUsers(ApplyFormDetail formDetail, FlowContext context, List<StepUserRequest> requests)
         {
@@ -476,7 +473,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 起始步骤：全流程共用申请人一次查询结果
+        /// 起始步骤：申请人一次查回共用
         /// </summary>
         private async Task FillStartRequests(ApplyFormDetail formDetail, List<StepUserRequest> requests)
         {
@@ -495,7 +492,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 组织架构指派：上级部门链全流程共用，仅 (部门级别, 职级) 组合因步骤而异，一次取回
+        /// 组织架构指派：(部门级别, 职级) 组合一次取回
         /// </summary>
         private async Task FillOrgRequests(FlowContext context, List<StepUserRequest> requests)
         {
@@ -511,7 +508,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return;
             }
 
-            // 单审只取一笔、会审取全部，两种语义分批查询
+            // 单审只取一笔、会审取全部，分批查询
             foreach (var group in orgRequests.GroupBy(request => request.IsReview))
             {
                 var comboKeys = BuildComboKeys(group, request => (request.DeptLevelSort, request.PositionSort));
@@ -562,7 +559,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return;
             }
 
-            // 加审不校验审批权限，与其余指定人步骤条件不同，分批查询
+            // 加审不校验审批权限，条件不同需分批
             foreach (var group in userRequests.GroupBy(request => (request.IsReview, request.RequireReviewAuth)))
             {
                 var userIds = group.SelectMany(request => request.UserIds).Distinct().ToList();
@@ -574,7 +571,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 foreach (var request in group)
                 {
-                    // 加审步骤有多人，按配置顺序回填
+                    // 加审多人按配置顺序回填
                     foreach (long userId in request.UserIds)
                     {
                         AppendReviewUsers(request, batch, comboKeys[userId]);
@@ -584,7 +581,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 精确匹配落空的步骤逐一降级兜底：部门链与相同降级条件只查一次
+        /// 精确匹配落空的步骤降级兜底：相同条件只查一次
         /// </summary>
         private async Task FillDowngradeRequests(FlowContext context, List<StepUserRequest> requests)
         {
@@ -619,7 +616,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 为去重后的条件组合编号，编号即 SQL 中带回的 ComboKey
+        /// 条件组合去重编号，编号即 SQL 带回的 ComboKey
         /// </summary>
         private static Dictionary<TCombo, int> BuildComboKeys<TCombo>(IEnumerable<StepUserRequest> requests, Func<StepUserRequest, TCombo> selector) where TCombo : notnull
         {
@@ -638,7 +635,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 同一批查询结果可能落在多个步骤上，回填时复制一份，避免步骤间审批状态互相覆盖
+        /// 回填时复制一份，避免步骤间审批状态互相覆盖
         /// </summary>
         private static void AppendReviewUsers(StepUserRequest request, List<UserReview> userReview)
         {
@@ -655,7 +652,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 取目标部门的上级部门链（含自身），同一部门只查一次
+        /// 取目标部门的上级部门链（含自身），带缓存
         /// </summary>
         private async Task<string> GetParentDeptIds(long departmentId, Dictionary<long, string> cache)
         {
@@ -675,7 +672,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 步骤取人条件：批量查询前按步骤收集，查回后回填到对应步骤
+        /// 步骤取人条件，批量查询后回填
         /// </summary>
         private sealed class StepUserRequest
         {
@@ -691,7 +688,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             /// <summary>是否单审（只取身份优先级最高的一笔）</summary>
             public bool IsReview { get; set; }
 
-            /// <summary>是否校验审批权限（加审为点名指派，无审批权限者亦可审批）</summary>
+            /// <summary>是否校验审批权限（加审免校验）</summary>
             public bool RequireReviewAuth { get; set; } = true;
 
             /// <summary>查不到人时是否标记步骤跳过</summary>
@@ -784,15 +781,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 拼接部门Id 列表；雪花 Id 字面量在 T-SQL 中会被当成 numeric，需显式转 bigint 才不致比较列被隐式转换、走不了索引
+        /// 拼接部门Id；雪花 Id 需显式转 bigint，否则比较列被隐式转换走不了索引
         /// </summary>
         private static string JoinDeptIds(IEnumerable<long> deptIds) => string.Join(",", deptIds.Select(AsBigInt));
 
         private static string AsBigInt(long value) => $"CAST({value} AS BIGINT)";
 
         /// <summary>
-        /// 批量精确匹配查询审批人：一次取回多组条件的结果，按 ComboKey 归属回各条件组；
-        /// requireReviewAuth 为 false 时不校验审批权限（加审）
+        /// 批量精确匹配查询审批人，按 ComboKey 归属回各条件组
         /// </summary>
         private async Task<Dictionary<int, List<UserReview>>> QueryExactReviewUsersBatch(ReviewUserFilter filter, string parentDeptIds, bool isReview, string comboValues, bool requireReviewAuth = true)
         {
@@ -815,12 +811,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 自动降级查询审批人：职级自高向低、部门级别自内向外取第一个有人的组合。
-        /// 由数据库一次排名取回，无需逐组合往返
+        /// 自动降级查询审批人：职级自高向低、部门级别自内向外取第一个有人的组合
         /// </summary>
         private async Task<List<UserReview>> FindDowngradeReviewUsers(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isReview)
         {
-            // 降级从低于当前职级一级开始；无可降级范围或无部门链时直接结束
+            // 降级从低一级职级开始
             int maxPositionSort = fromPositionSort - 1;
             if (maxPositionSort < 1 || fromDeptLevelSort < 1 || string.IsNullOrEmpty(parentDeptIds))
             {
@@ -854,11 +849,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 查询审批结果
 
         /// <summary>
-        /// 按审批记录填充各步骤人员的审批状态（纯内存计算，记录与步骤排序由调用方一次取回）
+        /// 按审批记录填充各步骤人员的审批状态（纯内存计算）
         /// </summary>
         private static void FillUserReviewResult(long? currentStepId, Dictionary<long, int> stepOrderMap, List<StepReview> reviewFlow, List<FormReviewRecordEntity> reviewRecords)
         {
-            // 步骤状态只认有效记录；驳回取最近优先，核准按步骤分组便于逐步骤判断
+            // 只认有效记录：驳回按时间倒序，核准按步骤分组
             var validRecords = reviewRecords.Where(record => record.RecordStatus == 1).ToList();
 
             var rejectRecords = validRecords
@@ -879,7 +874,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 stepOrderMap.TryGetValue(flow.StepId, out int targetStepOrder);
 
-                // 找出会影响当前被判断步骤的最后一次驳回
+                // 影响本步骤的最后一次驳回
                 var lastRejectAffectingThisStep = rejectRecords.FirstOrDefault(record =>
                 {
                     if (!record.RejectStepId.HasValue)
@@ -892,12 +887,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     return rejectTargetOrder <= targetStepOrder;
                 });
 
-                // 该步骤的有效核准起点时间
                 DateTime? validAfter = lastRejectAffectingThisStep?.ReviewDateTime;
 
                 bool isCurrentStep = currentStepId == flow.StepId;
 
-                // 该步骤只要有人在有效时间后核准过，就认为该步骤已核准
+                // 有人在此之后核准过即视为该步骤已核准
                 bool stepHasApprove = approvesByStep[flow.StepId]
                                       .Any(record => validAfter == null || record.ReviewDateTime > validAfter.Value);
 

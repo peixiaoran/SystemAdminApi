@@ -48,13 +48,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 手动核准
             bool hasPendingUser = await ProcessApprove(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
 
-            // 会审尚有其他人未签，不推进流程，也不重复发送邮件。
+            // 会审尚有其他人未签，不推进流程
             if (hasPendingUser)
             {
                 return Result<bool>.Ok(true);
             }
 
-            // 当前步骤完成后执行业务 Guidance。
+            // 步骤完成后执行业务 Guidance
             var guidanceResult = await ExecuteStepGuidance(formId);
             if (guidanceResult.Code != 200)
             {
@@ -78,19 +78,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 手动核准
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepInfo"></param>
-        /// <param name="reviewType"></param>
-        /// <param name="comment"></param>
         /// <returns>true = 当前步骤还有剩余待审批人</returns>
         public async Task<bool> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
         {
             var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
-            // 自定义人可能会找不到，例如加审人员
+            // 自定义、加审可能找不到人
             if (selfAppointments.Count > 0)
             {
-                // 取当前登录用户在待审批人表中对应的归属人 UserId（登录用户可能是代理人）
+                // 登录用户可能是代理人，取其归属人
                 long selfOriginalUserId = await GetSelfPendingOriginalUserId(formId, stepInfo.StepId);
 
                 await ApproveStepByMode(formId, stepInfo, selfOriginalUserId, selfAppointments, comment, reviewType);
@@ -119,7 +115,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 {
                     await DeletePendingReview(formId, stepInfo.StepId);
 
-                    // 跳过也视为该步骤已完成，仍执行本步骤 Guidance
+                    // 跳过也视为完成，仍执行 Guidance
                     var skippedGuidanceResult = await ExecuteStepGuidance(formId);
                     if (skippedGuidanceResult.Code != 200)
                     {
@@ -141,7 +137,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 long selfPendingUserId = await GetSelfPendingOriginalUserId(formId, stepInfo.StepId);
 
-                // 后续步骤不包含当前操作人：事务提交后通知该步骤待签人。
+                // 后续步骤不含当前操作人，交由事务提交后通知待签人
                 if (selfPendingUserId == 0)
                 {
                     return Result<bool>.Ok(true);
@@ -153,7 +149,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 {
                     await ApproveStepByMode(formId, stepInfo, selfPendingUserId, selfAppointments, string.Empty, ReviewType.Automatic);
 
-                    // 会审或加审尚有其他人未签：停在当前步骤
+                    // 尚有其他人未签，停在当前步骤
                     if (await HasPendingReview(formId, stepInfo.StepId))
                     {
                         return Result<bool>.Ok(true);
@@ -210,14 +206,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 foreach (long otherUserId in otherPendingUserIds)
                 {
-                    // 其他人的自动操作记录：操作人视为归属人本人
+                    // 其他人的自动核准记录，操作人即归属人
                     var otherAppointments = await GetStepReviewUser(formId, stepInfo, otherUserId);
                     await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, otherAppointments, string.Empty, ReviewType.Automatic, otherUserId);
                 }
             }
             else if (reviewMode == ReviewMode.AndReview.ToEnumString())
             {
-                // 会审：按归属人 UserId 只删除自己的待审批记录
+                // 会审：只删除自己的待审批记录
                 await DeletePendingReview(formId, stepInfo.StepId, selfOriginalUserId);
 
                 await InsertReviewRecords(formId, stepInfo.StepId, ReviewResult.Approve, null, selfAppointments, comment, reviewType, _loginuser.UserId);
@@ -231,9 +227,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 初始化指定步骤的待审批人
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepId"></param>
-        /// <returns></returns>
         public async Task EnsurePendingReviewExists(long formId, long stepId)
         {
             bool hasPending = await HasPendingReview(formId, stepId);
@@ -261,7 +254,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 取当前登录用户在待审批人表中对应的归属人 UserId（登录用户可能是代理人），无匹配返回 0
+        /// 取登录用户在待审批人中对应的归属人 UserId，无匹配返回 0
         /// </summary>
         private async Task<long> GetSelfPendingOriginalUserId(long formId, long stepId)
         {
@@ -314,20 +307,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询步骤全部审批人身份（含代理人）
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepInfo"></param>
-        /// <param name="reviewUserId"></param>
-        /// <returns></returns>
         public Task<List<UserAppointment>> GetStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
             => GetStepReviewUserCore(formId, stepInfo, reviewUserId, withAgent: true);
 
         /// <summary>
         /// 查询步骤全部审批人身份（仅实/兼，初始化待审批人用）
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepInfo"></param>
-        /// <param name="reviewUserId"></param>
-        /// <returns></returns>
         public Task<List<UserAppointment>> GetActualConStepReviewUser(long formId, WorkflowStepEntity stepInfo, long? reviewUserId = null)
             => GetStepReviewUserCore(formId, stepInfo, reviewUserId, withAgent: false);
 
@@ -407,7 +392,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new List<UserAppointment>();
             }
 
-            // 传入 reviewUserId 时，只返回匹配该人的记录
+            // 只返回匹配该人的记录
             if (reviewUserId.HasValue)
             {
                 result = result.Where(user => user.ReviewUserId == reviewUserId.Value || user.AgentUserId == reviewUserId.Value).ToList();
@@ -445,7 +430,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询加审人身份（点名的人，查不到即略过，不做自动降级）
+        /// 查询加审人身份（点名指派，查不到即略过，不降级）
         /// </summary>
         private async Task<List<UserAppointment>> GetAddReviewAppointments(long formId, int addReviewSortOrder, bool withAgent)
         {
@@ -453,7 +438,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             foreach (long addReviewUserId in await GetAddReviewUserIds(formId, addReviewSortOrder))
             {
-                // isReview 取身份优先级最高的一笔，避免专兼职并存时同一人重复；加审为点名指派，不校验审批权限
+                // 取身份优先级最高一笔，避免专兼职重复；加审不校验审批权限
                 var appointments = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isReview: true, withAgent, requireReviewAuth: false,
                     new SugarParameter("@UserId", addReviewUserId));
 
@@ -716,7 +701,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             DepartmentInfoEntity dept;
             DepartmentLevelEntity deptlevel;
 
-            // 历史行为差异（维持不变）：含代理版本的降级锚点按解析器给定的部门/职级，仅实/兼版本按该用户本人档案
+            // 历史行为差异（维持不变）：含代理版降级锚点按解析器给的部门/职级，仅实/兼版按用户档案
             if (withAgent)
             {
                 position = await _db.Queryable<PositionInfoEntity>()
@@ -776,7 +761,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 精确匹配查询审批人身份；requireReviewAuth 为 false 时不校验审批权限（加审）
+        /// 精确匹配查询审批人身份
         /// </summary>
         private async Task<List<UserAppointment>> QueryExactAppointments(ReviewUserFilter filter, string parentDeptIds, bool isReview, bool withAgent, bool requireReviewAuth, params SugarParameter[] filterParams)
         {
@@ -809,12 +794,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 自动降级查询审批人身份：职级自高向低、部门级别自内向外取第一个有人的组合。
-        /// 由数据库一次排名取回，无需逐组合往返
+        /// 自动降级查询审批人身份：职级自高向低、部门级别自内向外取第一个有人的组合
         /// </summary>
         private async Task<List<UserAppointment>> FindDowngradeAppointments(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isReview, bool withAgent)
         {
-            // 降级从低于当前职级一级开始；无可降级范围或无部门链时直接结束
+            // 降级从低一级职级开始
             int maxPositionSort = fromPositionSort - 1;
             if (maxPositionSort < 1 || fromDeptLevelSort < 1 || string.IsNullOrEmpty(parentDeptIds))
             {
@@ -855,9 +839,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 检查当前步骤是否应跳过
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepInfo"></param>
-        /// <returns></returns>
         public async Task<bool> ShouldSkipStep(long formId, WorkflowStepEntity stepInfo)
         {
             // 加审步骤
@@ -872,7 +853,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 var reviewUsers = await GetAddReviewAppointments(formId, addReviewSortOrder.Value, withAgent: true);
 
-                // 找不到加审人员，直接跳过
+                // 找不到人即跳过
                 return !reviewUsers.Any();
             }
 
@@ -886,11 +867,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 var reviewUsers = await GetCustomReviewUser(formId, customInfo.Guidance, stepInfo.ReviewMode);
 
-                // 找不到审批人，直接跳过
+                // 找不到人即跳过
                 return !reviewUsers.Any();
             }
 
-            // 原有组织架构跳过逻辑
+            // 组织架构：申请人级别不足即跳过
             if (stepInfo.Assignment != Assignment.Org.ToEnumString())
             {
                 return false;
@@ -930,9 +911,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 取当前步骤对应的流程规则
         /// </summary>
-        /// <param name="ruleId"></param>
-        /// <param name="currentStepId"></param>
-        /// <returns></returns>
         public async Task<WorkflowRuleStepEntity> GetNextStep(long? ruleId, long currentStepId)
         {
             return await _db.Queryable<WorkflowRuleStepEntity>()
@@ -944,9 +922,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 推进表单下一步骤
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="nextStepId"></param>
-        /// <returns></returns>
         public async Task AdvanceCurrentStep(long formId, long? nextStepId)
         {
             await _db.Updateable<FormInstanceEntity>()
@@ -960,8 +935,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 更改表单为已核准
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task ApproveForm(long formId)
         {
             await _db.Updateable<FormInstanceEntity>()
@@ -976,8 +949,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 获取表单当前步骤信息，同时返回 FormInstance 的 RuleId
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<(WorkflowStepEntity stepInfo, long? ruleId)> GetCurrentStepInfo(long formId)
         {
             var entity = await _db.Queryable<FormInstanceEntity>()
@@ -996,8 +967,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 执行当前步骤的 Guidance
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<Result<bool>> ExecuteStepGuidance(long formId)
         {
             var form = await _db.Queryable<FormInstanceEntity>()
@@ -1042,7 +1011,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             var selfAppointments = await GetStepReviewUser(formId, currentStep, _loginuser.UserId);
 
-            // 清空该表单所有待审批人。删除 0 行不代表业务失败。
+            // 清空该表单所有待审批人
             await _db.Deleteable<PendingReviewEntity>()
                      .Where(pending => pending.FormId == formId)
                      .ExecuteCommandAsync();
@@ -1057,7 +1026,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 ReviewType.Manual,
                 _loginuser.UserId);
 
-            // 状态和当前步骤一次更新，避免中间状态。
+            // 状态与当前步骤一次更新，避免中间状态
             await _db.Updateable<FormInstanceEntity>()
                      .SetColumns(instance => new FormInstanceEntity
                      {
@@ -1078,15 +1047,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 审批日志记录
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepId"></param>
-        /// <param name="result"></param>
-        /// <param name="rejectStepId"></param>
-        /// <param name="appointments"></param>
-        /// <param name="comment"></param>
-        /// <param name="reviewType"></param>
-        /// <param name="operatorUserId"></param>
-        /// <returns></returns>
         public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
         {
             if (!appointments.Any())
@@ -1103,8 +1063,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             {
                 bool isAgentOp = appoint.AgentUserId != null && appoint.AgentUserId == operatorUserId;
 
-                // 代理操作：ReviewUserId 取代理人，AppointmentType 保持代理身份（Agent/ConcurrentAgent）
-                // 本人操作：ReviewUserId 取归属人，AppointmentType 换回实/兼身份（去掉 Agent 后缀）
+                // 代理操作记代理人 + 代理身份；本人操作记归属人 + 实/兼身份
                 string appointmentCode;
                 long reviewUserId;
 
@@ -1115,7 +1074,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }
                 else
                 {
-                    // 本人操作，将 AppointmentType 中的代理身份还原为实/兼身份
                     appointmentCode = appoint.AppointmentType switch
                     {
                         var c when c == agentActual => AppointmentType.Actual.ToEnumString(),
@@ -1153,15 +1111,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 排序
         /// </summary>
-        /// <param name="isReview"></param>
-        /// <param name="isAuto"></param>
-        /// <returns></returns>
         public string BuildOrderBy(bool isReview, bool isAuto) => ReviewUserSql.BuildOrderBy(isReview, isAuto);
 
         /// <summary>
         /// 一次性取出所有 AppointmentType 枚举字符串
         /// </summary>
-        /// <returns></returns>
         public (string actual, string agent, string concurrent, string concurrentAgent, string autoActual, string autoAgent, string autoConcurrent, string autoConcurrentAgent) AppointmentEnumStrings() => ReviewUserSql.AppointmentEnumStrings();
 
         #endregion
