@@ -13,6 +13,7 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 using SystemAdmin.Repository.FormBusiness.Workflow;
+using System.Data;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
 {
@@ -121,6 +122,62 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ViewPath = formtype.ViewPath
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormHistoryDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 导出申请记录Excel（字段同 GetApplyHistoryPage，不分页）
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <param name="loginUserId"></param>
+        /// <returns></returns>
+        public async Task<DataTable> GetApplyHistoryExcel(GetFormHistoryPage getPage, long loginUserId)
+        {
+            var query = _db.Queryable<FormInstanceEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && dic.DicCode == instance.FormStatus && instance.FormStatus != FormStatus.PendingSubmit.ToEnumString() && instance.FormStatus != FormStatus.Rejected.ToEnumString() && instance.FormStatus != FormStatus.Voided.ToEnumString())
+                           .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                           .LeftJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
+                           .LeftJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
+                           .LeftJoin<UserAgentEntity>((instance, dic, formtype, applyuser, applydept, useragent) => applyuser.UserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                           .Where((instance, dic, formtype, applyuser, applydept, useragent) => instance.ApplicantUserId == loginUserId || useragent.AgentUserId == loginUserId);
+
+            // 表单组别Id
+            if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, useragent) =>
+                    formtype.FormGroupId == long.Parse(getPage.FormGroupId));
+            }
+            // 表单类别Id
+            if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, useragent) =>
+                    formtype.FormTypeId == long.Parse(getPage.FormTypeId));
+            }
+
+            // 排序
+            query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.ModifiedDate });
+
+            return await query.Select((instance, dic, formtype, applyuser, applydept, useragent) => new FormHistoryDto
+            {
+                FormId = instance.FormId,
+                FormNo = instance.FormNo,
+                FormTypeId = formtype.FormTypeId,
+                FormTypeName = _lang.Locale == "zh-CN"
+                               ? formtype.FormTypeNameCn
+                               : formtype.FormTypeNameEn,
+                FormStatus = instance.FormStatus,
+                FormStatusName = _lang.Locale == "zh-CN"
+                               ? dic.DicNameCn
+                               : dic.DicNameEn,
+                ApplyUserName = _lang.Locale == "zh-CN"
+                               ? applyuser.UserNameCn
+                               : applyuser.UserNameEn,
+                ApplyUserDeptName = _lang.Locale == "zh-CN"
+                               ? applydept.DepartmentNameCn
+                               : applydept.DepartmentNameEn,
+                ApplicantDate = instance.ApplicantDate,
+                ViewPath = formtype.ViewPath
+            }).ToDataTableAsync();
         }
 
         /// <summary>

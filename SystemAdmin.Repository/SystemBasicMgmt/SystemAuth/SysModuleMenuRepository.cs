@@ -23,26 +23,25 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         /// <returns></returns>
         public async Task<List<SysModuleInfoDto>> GetModuleList(long loginUserId)
         {
-            var list = await _db.Queryable<SysUserInfoEntity>()
-                                .With(SqlWith.NoLock)
-                                .InnerJoin<SysUserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
-                                .InnerJoin<SysRoleInfoEntity>((user, userrole, role) => userrole.RoleId == role.RoleId)
-                                .InnerJoin<SysRoleModuleEntity>((user, userrole, role, rolemodule) => role.RoleId == rolemodule.RoleId)
-                                .InnerJoin<SysModuleInfoEntity>((user, userrole, role, rolemodule, module) => rolemodule.ModuleId == module.ModuleId)
-                                 .Where((user, userrole, role, rolemodule, module) => user.UserId == loginUserId)
-                                 .OrderBy((user, userrole, role, rolemodule, module) => module.SortOrder)
-                                 .Select((user, userrole, role, rolemodule, module) => new SysModuleInfoDto
-                                 {
-                                     ModuleId = module.ModuleId,
-                                     ModuleNameCn = module.ModuleNameCn,
-                                     ModuleNameEn = module.ModuleNameEn,
-                                     ModuleIcon = module.ModuleIcon,
-                                     Path = module.Path,
-                                     Remark = _lang.Locale == "zh-CN"
-                                              ? module.RemarkCh
-                                              : module.RemarkEn,
-                                 }).ToListAsync();
-            return list;
+            return await _db.Queryable<SysUserInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<SysUserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
+                            .InnerJoin<SysRoleInfoEntity>((user, userrole, role) => userrole.RoleId == role.RoleId)
+                            .InnerJoin<SysRoleModuleEntity>((user, userrole, role, rolemodule) => role.RoleId == rolemodule.RoleId)
+                            .InnerJoin<SysModuleInfoEntity>((user, userrole, role, rolemodule, module) => rolemodule.ModuleId == module.ModuleId)
+                            .Where((user, userrole, role, rolemodule, module) => user.UserId == loginUserId)
+                            .OrderBy((user, userrole, role, rolemodule, module) => module.SortOrder)
+                            .Select((user, userrole, role, rolemodule, module) => new SysModuleInfoDto
+                            {
+                                ModuleId = module.ModuleId,
+                                ModuleNameCn = module.ModuleNameCn,
+                                ModuleNameEn = module.ModuleNameEn,
+                                ModuleIcon = module.ModuleIcon,
+                                Path = module.Path,
+                                Remark = _lang.Locale == "zh-CN"
+                                         ? module.RemarkCh
+                                         : module.RemarkEn,
+                            }).ToListAsync();
         }
 
         /// <summary>
@@ -52,7 +51,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         /// <returns></returns>
         public async Task<List<SysMenuInfoDto>> GetMenuTreeList(long moduleId, long userId)
         {
-            // 一级菜单（ParentMenuId 为 null）仅在自身被授权、或其下存在已授权的子菜单时才作为容器节点返回，避免未授权的一级菜单单独显示
             return await _db.Queryable<SysMenuInfoEntity>()
                             .With(SqlWith.NoLock)
                             .Where(menu => menu.ModuleId == moduleId

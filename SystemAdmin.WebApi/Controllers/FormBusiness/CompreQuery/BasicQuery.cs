@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using SystemAdmin.Model.FormBusiness.CompreQuery.Dto;
 using SystemAdmin.Model.FormBusiness.CompreQuery.Queries;
 using SystemAdmin.Service.FormBusiness.CompreQuery;
-using SystemAdmin.Service.FormBusiness.FormOperate;
+using SystemAdmin.Service.FormBusiness.FormExport;
 using SystemAdmin.WebApi.Attributes;
 
 namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
@@ -14,11 +14,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
     public class BasicQuery : ControllerBase
     {
         private readonly BasicQueryService _basicFormQueryService;
-        private readonly FormPrintPdfService _formPrintPdfService;
-        public BasicQuery(BasicQueryService basicFormQueryService, FormPrintPdfService formPrintPdfService)
+        private readonly FormPrintService _formPrintService;
+        private readonly FormQueryExcelService _formQueryExcelService;
+        public BasicQuery(BasicQueryService basicFormQueryService, FormPrintService formPrintPdfService, FormQueryExcelService formQueryExcelService)
         {
             _basicFormQueryService = basicFormQueryService;
-            _formPrintPdfService = formPrintPdfService;
+            _formPrintService = formPrintPdfService;
+            _formQueryExcelService = formQueryExcelService;
         }
 
         [HttpPost]
@@ -66,7 +68,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
         [EndpointSummary("[全部表单查询] 打印PDF")]
         public async Task<IActionResult> PrintFormPdf([FromForm] string formId)
         {
-            var result = await _formPrintPdfService.PrintFormPdf(formId);
+            var result = await _formPrintService.PrintFormPdf(formId);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);
@@ -79,12 +81,25 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
         [EndpointSummary("[全部表单查询] 批量打印PDF")]
         public async Task<IActionResult> PrintFormPdfBatch([FromBody] List<string> formIds)
         {
-            var result = await _formPrintPdfService.PrintFormPdfBatch(formIds);
+            var result = await _formPrintService.PrintFormPdfBatch(formIds);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);
             }
             return File(result.Data!.FileStream, "application/zip", result.Data.FileName);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-综合表单查询")]
+        [EndpointSummary("[全部表单查询] 导出Excel")]
+        public async Task<IActionResult> ExportFormQueryExcel([FromBody] GetFormQueryPage getpage)
+        {
+            var result = await _formQueryExcelService.ExportFormQueryExcel(getpage);
+            if (result.Code != 200)
+            {
+                return StatusCode(result.Code, result);
+            }
+            return File(result.Data!.FileStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.Data.FileName);
         }
     }
 }

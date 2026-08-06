@@ -351,7 +351,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return request;
             }
 
-            request.IsApproved = stepInfo.ReviewMode == ReviewMode.Review.ToEnumString();
+            request.IsReview = stepInfo.ReviewMode == ReviewMode.Review.ToEnumString();
 
             if (stepInfo.Assignment == Assignment.Org.ToEnumString())
             {
@@ -443,7 +443,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 加审是点名的人，查不到即略过，不做自动降级；身份优先级取最高一笔，避免专兼职并存时重复
                 request.SkipWhenEmpty = true;
                 request.AllowDowngrade = false;
-                request.IsApproved = true;
+                request.IsReview = true;
+                request.RequireReviewAuth = false;
                 request.Filter = ReviewUserFilter.User;
                 request.UserIds.AddRange(context.AddReviewUserIds(addReviewInfo.SortOrder));
                 return request;
@@ -511,7 +512,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
 
             // 单审只取一笔、会审取全部，两种语义分批查询
-            foreach (var group in orgRequests.GroupBy(request => request.IsApproved))
+            foreach (var group in orgRequests.GroupBy(request => request.IsReview))
             {
                 var comboKeys = BuildComboKeys(group, request => (request.DeptLevelSort, request.PositionSort));
                 string comboValues = string.Join(",", comboKeys.Select(combo => $"({combo.Value},{combo.Key.Item1},{combo.Key.Item2})"));
@@ -536,7 +537,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return;
             }
 
-            foreach (var group in deptRequests.GroupBy(request => request.IsApproved))
+            foreach (var group in deptRequests.GroupBy(request => request.IsReview))
             {
                 var comboKeys = BuildComboKeys(group, request => (request.DepartmentId, request.PositionSort));
                 string comboValues = string.Join(",", comboKeys.Select(combo => $"({combo.Value},{AsBigInt(combo.Key.Item1)},{combo.Key.Item2})"));
@@ -561,14 +562,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return;
             }
 
-            foreach (var group in userRequests.GroupBy(request => request.IsApproved))
+            // 加审不校验审批权限，与其余指定人步骤条件不同，分批查询
+            foreach (var group in userRequests.GroupBy(request => (request.IsReview, request.RequireReviewAuth)))
             {
                 var userIds = group.SelectMany(request => request.UserIds).Distinct().ToList();
                 var comboKeys = userIds.Select((userId, index) => (userId, index))
                                        .ToDictionary(pair => pair.userId, pair => pair.index);
                 string comboValues = string.Join(",", comboKeys.Select(combo => $"({combo.Value},{AsBigInt(combo.Key)})"));
 
-                var batch = await QueryExactReviewUsersBatch(ReviewUserFilter.User, parentDeptIds: string.Empty, group.Key, comboValues);
+                var batch = await QueryExactReviewUsersBatch(ReviewUserFilter.User, parentDeptIds: string.Empty, group.Key.IsReview, comboValues, group.Key.RequireReviewAuth);
 
                 foreach (var request in group)
                 {
@@ -605,10 +607,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     ? applicantDeptIds
                     : await GetParentDeptIds(request.DepartmentId, deptChainCache);
 
-                string cacheKey = $"{parentDeptIds}|{request.PositionSort}|{request.DeptLevelSort}|{request.IsApproved}";
+                string cacheKey = $"{parentDeptIds}|{request.PositionSort}|{request.DeptLevelSort}|{request.IsReview}";
                 if (!downgradeCache.TryGetValue(cacheKey, out var downgradeUsers))
                 {
-                    downgradeUsers = await FindDowngradeReviewUsers(parentDeptIds, request.PositionSort, request.DeptLevelSort, request.IsApproved);
+                    downgradeUsers = await FindDowngradeReviewUsers(parentDeptIds, request.PositionSort, request.DeptLevelSort, request.IsReview);
                     downgradeCache[cacheKey] = downgradeUsers;
                 }
 
@@ -687,7 +689,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             public ReviewUserFilter? Filter { get; set; }
 
             /// <summary>是否单审（只取身份优先级最高的一笔）</summary>
-            public bool IsApproved { get; set; }
+            public bool IsReview { get; set; }
+
+            /// <summary>是否校验审批权限（加审为点名指派，无审批权限者亦可审批）</summary>
+            public bool RequireReviewAuth { get; set; } = true;
 
             /// <summary>查不到人时是否标记步骤跳过</summary>
             public bool SkipWhenEmpty { get; set; }
@@ -786,13 +791,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private static string AsBigInt(long value) => $"CAST({value} AS BIGINT)";
 
         /// <summary>
-        /// 批量精确匹配查询审批人：一次取回多组条件的结果，按 ComboKey 归属回各条件组
+        /// 批量精确匹配查询审批人：一次取回多组条件的结果，按 ComboKey 归属回各条件组；
+        /// requireReviewAuth 为 false 时不校验审批权限（加审）
         /// </summary>
-        private async Task<Dictionary<int, List<UserReview>>> QueryExactReviewUsersBatch(ReviewUserFilter filter, string parentDeptIds, bool isApproved, string comboValues)
+        private async Task<Dictionary<int, List<UserReview>>> QueryExactReviewUsersBatch(ReviewUserFilter filter, string parentDeptIds, bool isReview, string comboValues, bool requireReviewAuth = true)
         {
             var (actual, agent, concurrent, concurrentAgent, _, _, _, _) = ReviewUserSql.AppointmentEnumStrings();
 
-            string sql = ReviewUserSql.ExactBatchSql(Projection, filter, parentDeptIds, comboValues, isApproved);
+            string sql = ReviewUserSql.ExactBatchSql(Projection, filter, parentDeptIds, comboValues, isReview, requireReviewAuth);
 
             var result = await _db.Ado.SqlQueryAsync<BatchUserReview>(sql, new[]
             {
@@ -812,7 +818,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 自动降级查询审批人：职级自高向低、部门级别自内向外取第一个有人的组合。
         /// 由数据库一次排名取回，无需逐组合往返
         /// </summary>
-        private async Task<List<UserReview>> FindDowngradeReviewUsers(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isApproved)
+        private async Task<List<UserReview>> FindDowngradeReviewUsers(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isReview)
         {
             // 降级从低于当前职级一级开始；无可降级范围或无部门链时直接结束
             int maxPositionSort = fromPositionSort - 1;
@@ -826,8 +832,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string sql = ReviewUserSql.AutoRankedSql(
                 Projection,
                 parentDeptIds,
-                topN: isApproved ? "TOP 1" : "",
-                orderBy: ReviewUserSql.BuildOrderBy(isApproved, isAuto: true));
+                topN: isReview ? "TOP 1" : "",
+                orderBy: ReviewUserSql.BuildOrderBy(isReview, isAuto: true));
 
             var result = await _db.Ado.SqlQueryAsync<UserReview>(sql, new[]
             {

@@ -144,4 +144,28 @@
   <data name="FormPendingBatchPrintAllFailed" xml:space="preserve">
     <value>所选表单均无法生成PDF</value>
   </data>
+  <data name="FormPendingExcelApplyHistoryTitle" xml:space="preserve">
+    <value>申请历史记录</value>
+  </data>
+  <data name="FormPendingExcelReviewHistoryTitle" xml:space="preserve">
+    <value>审批历史记录</value>
+  </data>
+  <data name="FormPendingExcelFormTypeName" xml:space="preserve">
+    <value>表单类型</value>
+  </data>
+  <data name="FormPendingExcelFormNo" xml:space="preserve">
+    <value>表单单号</value>
+  </data>
+  <data name="FormPendingExcelApplicantDate" xml:space="preserve">
+    <value>申请日期</value>
+  </data>
+  <data name="FormPendingExcelFormStatusName" xml:space="preserve">
+    <value>表单状态</value>
+  </data>
+  <data name="FormPendingExcelApplyUserName" xml:space="preserve">
+    <value>申请人</value>
+  </data>
+  <data name="FormPendingExcelApplyUserDeptName" xml:space="preserve">
+    <value>申请人部门</value>
+  </data>
 </root>

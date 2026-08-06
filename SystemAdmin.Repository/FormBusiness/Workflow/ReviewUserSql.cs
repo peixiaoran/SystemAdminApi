@@ -10,9 +10,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
     {
         /// <summary>
         /// 精确匹配查询。参数：Org → @DeptLevelSort、@PositionSort；Dept → @DepartmentId、@PositionSort；
-        /// User → @UserId；带代理时另需 @Now 及身份枚举参数
+        /// User → @UserId；带代理时另需 @Now 及身份枚举参数。
+        /// requireReviewAuth 为 false 时不校验审批权限（加审为点名指派，无审批权限者亦可审批）
         /// </summary>
-        internal static string ExactSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string topN, string orderBy)
+        internal static string ExactSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string topN, string orderBy, bool requireReviewAuth = true)
         {
             // 按指定人的精简投影无需组织架构关联；完整投影要输出排序列，始终关联
             bool joinOrg = filter != ReviewUserFilter.User || projection.WithNames;
@@ -28,16 +29,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             };
             string partTimeWhere = filter == ReviewUserFilter.User ? "partime.UserId = @UserId" : fullTimeWhere;
 
-            return Compose(projection, joinOrg, fullTimeWhere, partTimeWhere, topN, orderBy);
+            return Compose(projection, joinOrg, fullTimeWhere, partTimeWhere, topN, orderBy, requireReviewAuth);
         }
 
         /// <summary>
         /// 批量精确匹配查询（单次往返）：一次为多组条件取回审批人，各行以 ComboKey 归属回所属条件组。
         /// comboValues 为 (ComboKey, 条件...) 的值列表，列顺序依 filter 而定：
         /// Org → (ComboKey, 部门级别排序, 职级排序)；Dept → (ComboKey, 部门Id, 职级排序)；User → (ComboKey, 人员Id)。
-        /// isApproved 时按 ComboKey 分区取第一笔，等价于逐组各取 TOP 1
+        /// isReview 时按 ComboKey 分区取第一笔，等价于逐组各取 TOP 1。
+        /// requireReviewAuth 为 false 时不校验审批权限（加审为点名指派，无审批权限者亦可审批）
         /// </summary>
-        internal static string ExactBatchSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string comboValues, bool isApproved)
+        internal static string ExactBatchSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string comboValues, bool isReview, bool requireReviewAuth = true)
         {
             bool joinOrg = filter != ReviewUserFilter.User || projection.WithNames;
 
@@ -46,17 +48,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 : "1 = 1";
 
             string fullTimeBranch = Branch(projection, partTime: false, joinOrg, where, isAuto: false,
-                                           comboJoin: ComboJoin(filter, comboValues, partTime: false));
+                                           comboJoin: ComboJoin(filter, comboValues, partTime: false), requireReviewAuth: requireReviewAuth);
             string partTimeBranch = Branch(projection, partTime: true, joinOrg, where, isAuto: false,
-                                           comboJoin: ComboJoin(filter, comboValues, partTime: true));
+                                           comboJoin: ComboJoin(filter, comboValues, partTime: true), requireReviewAuth: requireReviewAuth);
 
-            string orderCore = BuildOrderCore(isApproved, isAuto: false);
+            string orderCore = BuildOrderCore(isReview, isAuto: false);
             string candidates = $@"
                 {fullTimeBranch}
                 UNION ALL
                 {partTimeBranch}";
 
-            if (!isApproved)
+            if (!isReview)
             {
                 return $@"
             SELECT
@@ -138,14 +140,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 排序：单审按身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代）+ 入职时间，其余仅按入职时间
         /// </summary>
-        internal static string BuildOrderBy(bool isApproved, bool isAuto) => $"ORDER BY {BuildOrderCore(isApproved, isAuto)}";
+        internal static string BuildOrderBy(bool isReview, bool isAuto) => $"ORDER BY {BuildOrderCore(isReview, isAuto)}";
 
         /// <summary>
         /// 排序表达式本体（不含 ORDER BY），供窗口函数 OVER 子句复用
         /// </summary>
-        internal static string BuildOrderCore(bool isApproved, bool isAuto)
+        internal static string BuildOrderCore(bool isReview, bool isAuto)
         {
-            if (!isApproved)
+            if (!isReview)
             {
                 return "t.HireDate DESC";
             }
@@ -179,10 +181,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             AppointmentType.AutoConcurrentAgent.ToEnumString()
         );
 
-        private static string Compose(ReviewUserProjection projection, bool joinOrg, string fullTimeWhere, string partTimeWhere, string topN, string orderBy)
+        private static string Compose(ReviewUserProjection projection, bool joinOrg, string fullTimeWhere, string partTimeWhere, string topN, string orderBy, bool requireReviewAuth)
         {
-            string fullTimeBranch = Branch(projection, partTime: false, joinOrg, fullTimeWhere, isAuto: false);
-            string partTimeBranch = Branch(projection, partTime: true, joinOrg, partTimeWhere, isAuto: false);
+            string fullTimeBranch = Branch(projection, partTime: false, joinOrg, fullTimeWhere, isAuto: false, requireReviewAuth: requireReviewAuth);
+            string partTimeBranch = Branch(projection, partTime: true, joinOrg, partTimeWhere, isAuto: false, requireReviewAuth: requireReviewAuth);
 
             return $@"
             SELECT {topN}
@@ -215,7 +217,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 t.AppointmentType";
         }
 
-        private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto, bool withSortColumns = false, string comboJoin = "")
+        private static string Branch(ReviewUserProjection projection, bool partTime, bool joinOrg, string where, bool isAuto, bool withSortColumns = false, string comboJoin = "", bool requireReviewAuth = true)
         {
             // 专职记实/代身份，兼职记兼/兼代身份；自动降级换用 Auto 前缀枚举
             string actualParam = partTime
@@ -325,12 +327,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 条件表放在最后关联，可引用前面所有关联表
             joins += comboJoin;
 
+            // 加审为点名指派，不校验审批权限；在职与冻结状态仍需校验
+            string reviewWhere = requireReviewAuth
+                ? @"
+                  AND [user].IsReview = 1"
+                : string.Empty;
+
             return $@"                SELECT
                     {string.Join(@",
                     ", columns)}
                 FROM {from}{joins}
-                WHERE {where}
-                  AND [user].IsReview = 1
+                WHERE {where}{reviewWhere}
                   AND [user].IsEmployed = 1
                   AND [user].IsFreeze = 0";
         }

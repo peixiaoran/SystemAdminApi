@@ -453,8 +453,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             foreach (long addReviewUserId in await GetAddReviewUserIds(formId, addReviewSortOrder))
             {
-                // isApproved 取身份优先级最高的一笔，避免专兼职并存时同一人重复
-                var appointments = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved: true, withAgent,
+                // isReview 取身份优先级最高的一笔，避免专兼职并存时同一人重复；加审为点名指派，不校验审批权限
+                var appointments = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isReview: true, withAgent, requireReviewAuth: false,
                     new SugarParameter("@UserId", addReviewUserId));
 
                 result.AddRange(appointments);
@@ -575,9 +575,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .FirstAsync();
 
             string parentDeptIds = string.Join(",", applyParentDept.Select(dept => dept.DepartmentId));
-            bool isApproved = reviewMode == ReviewMode.Review.ToEnumString();
+            bool isReview = reviewMode == ReviewMode.Review.ToEnumString();
 
-            var exactResult = await QueryExactAppointments(ReviewUserFilter.Org, parentDeptIds, isApproved, withAgent,
+            var exactResult = await QueryExactAppointments(ReviewUserFilter.Org, parentDeptIds, isReview, withAgent, requireReviewAuth: true,
                 new SugarParameter("@DeptLevelSort", deptlevel.SortOrder),
                 new SugarParameter("@PositionSort", position.SortOrder));
 
@@ -586,7 +586,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return exactResult;
             }
 
-            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isApproved, withAgent);
+            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isReview, withAgent);
         }
 
         /// <summary>
@@ -618,9 +618,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
                                      .FirstAsync();
 
-            bool isApproved = reviewMode == ReviewMode.Review.ToEnumString();
+            bool isReview = reviewMode == ReviewMode.Review.ToEnumString();
 
-            var exactResult = await QueryExactAppointments(ReviewUserFilter.Dept, parentDeptIds: string.Empty, isApproved, withAgent,
+            var exactResult = await QueryExactAppointments(ReviewUserFilter.Dept, parentDeptIds: string.Empty, isReview, withAgent, requireReviewAuth: true,
                 new SugarParameter("@DepartmentId", departmentId),
                 new SugarParameter("@PositionSort", position.SortOrder));
 
@@ -635,7 +635,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             .ToParentListAsync(parent => parent.ParentId, dept.DepartmentId);
             string parentDeptIds = string.Join(",", targetParentDept.Select(parent => parent.DepartmentId));
 
-            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isApproved, withAgent);
+            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isReview, withAgent);
         }
 
         /// <summary>
@@ -672,9 +672,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
                                      .FirstAsync();
 
-            bool isApproved = reviewMode == ReviewMode.Review.ToEnumString();
+            bool isReview = reviewMode == ReviewMode.Review.ToEnumString();
 
-            var exactResult = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved, withAgent,
+            var exactResult = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isReview, withAgent, requireReviewAuth: true,
                 new SugarParameter("@UserId", userId));
 
             if (exactResult.Any())
@@ -687,7 +687,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             .ToParentListAsync(parent => parent.ParentId, dept.DepartmentId);
             string parentDeptIds = string.Join(",", targetParentDept.Select(parent => parent.DepartmentId));
 
-            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isApproved, withAgent);
+            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isReview, withAgent);
         }
 
         /// <summary>
@@ -757,9 +757,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .FirstAsync();
             }
 
-            bool isApproved = reviewMode == ReviewMode.Review.ToEnumString();
+            bool isReview = reviewMode == ReviewMode.Review.ToEnumString();
 
-            var exactResult = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isApproved, withAgent,
+            var exactResult = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isReview, withAgent, requireReviewAuth: true,
                 new SugarParameter("@UserId", userId));
 
             if (exactResult.Any())
@@ -772,13 +772,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             .ToParentListAsync(parent => parent.ParentId, dept.DepartmentId);
             string parentDeptIds = string.Join(",", targetParentDept.Select(parent => parent.DepartmentId));
 
-            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isApproved, withAgent);
+            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isReview, withAgent);
         }
 
         /// <summary>
-        /// 精确匹配查询审批人身份
+        /// 精确匹配查询审批人身份；requireReviewAuth 为 false 时不校验审批权限（加审）
         /// </summary>
-        private async Task<List<UserAppointment>> QueryExactAppointments(ReviewUserFilter filter, string parentDeptIds, bool isApproved, bool withAgent, params SugarParameter[] filterParams)
+        private async Task<List<UserAppointment>> QueryExactAppointments(ReviewUserFilter filter, string parentDeptIds, bool isReview, bool withAgent, bool requireReviewAuth, params SugarParameter[] filterParams)
         {
             var (actual, agent, concurrent, concurrentAgent, _, _, _, _) = ReviewUserSql.AppointmentEnumStrings();
             var projection = withAgent ? ReviewUserProjection.Appointment : ReviewUserProjection.AppointmentNoAgent;
@@ -787,8 +787,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 projection,
                 filter,
                 parentDeptIds,
-                topN: isApproved ? "TOP 1" : "",
-                orderBy: ReviewUserSql.BuildOrderBy(isApproved, isAuto: false));
+                topN: isReview ? "TOP 1" : "",
+                orderBy: ReviewUserSql.BuildOrderBy(isReview, isAuto: false),
+                requireReviewAuth: requireReviewAuth);
 
             var parameters = new List<SugarParameter>
             {
@@ -811,7 +812,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 自动降级查询审批人身份：职级自高向低、部门级别自内向外取第一个有人的组合。
         /// 由数据库一次排名取回，无需逐组合往返
         /// </summary>
-        private async Task<List<UserAppointment>> FindDowngradeAppointments(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isApproved, bool withAgent)
+        private async Task<List<UserAppointment>> FindDowngradeAppointments(string parentDeptIds, int fromPositionSort, int fromDeptLevelSort, bool isReview, bool withAgent)
         {
             // 降级从低于当前职级一级开始；无可降级范围或无部门链时直接结束
             int maxPositionSort = fromPositionSort - 1;
@@ -826,8 +827,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string sql = ReviewUserSql.AutoRankedSql(
                 projection,
                 parentDeptIds,
-                topN: isApproved ? "TOP 1" : "",
-                orderBy: ReviewUserSql.BuildOrderBy(isApproved, isAuto: true));
+                topN: isReview ? "TOP 1" : "",
+                orderBy: ReviewUserSql.BuildOrderBy(isReview, isAuto: true));
 
             var parameters = new List<SugarParameter>
             {
@@ -1152,10 +1153,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 排序
         /// </summary>
-        /// <param name="isApproved"></param>
+        /// <param name="isReview"></param>
         /// <param name="isAuto"></param>
         /// <returns></returns>
-        public string BuildOrderBy(bool isApproved, bool isAuto) => ReviewUserSql.BuildOrderBy(isApproved, isAuto);
+        public string BuildOrderBy(bool isReview, bool isAuto) => ReviewUserSql.BuildOrderBy(isReview, isAuto);
 
         /// <summary>
         /// 一次性取出所有 AppointmentType 枚举字符串

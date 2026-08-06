@@ -1,17 +1,17 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
-  <!-- 
-    Microsoft ResX Schema 
-    
+  <!--
+    Microsoft ResX Schema
+
     Version 2.0
-    
-    The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
-    various data types are done through the TypeConverter classes 
+
+    The primary goals of this format is to allow a simple XML format
+    that is mostly human readable. The generation and parsing of the
+    various data types are done through the TypeConverter classes
     associated with the data types.
-    
+
     Example:
-    
+
     ... ado.net/XML headers & schema ...
     <resheader name="resmimetype">text/microsoft-resx</resheader>
     <resheader name="version">2.0</resheader>
@@ -26,36 +26,36 @@
         <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
         <comment>This is a comment</comment>
     </data>
-                
-    There are any number of "resheader" rows that contain simple 
+
+    There are any number of "resheader" rows that contain simple
     name/value pairs.
-    
-    Each data row contains a name, and value. The row also contains a 
-    type or mimetype. Type corresponds to a .NET class that support 
-    text/value conversion through the TypeConverter architecture. 
-    Classes that don't support this are serialized and stored with the 
+
+    Each data row contains a name, and value. The row also contains a
+    type or mimetype. Type corresponds to a .NET class that support
+    text/value conversion through the TypeConverter architecture.
+    Classes that don't support this are serialized and stored with the
     mimetype set.
-    
-    The mimetype is used for serialized objects, and tells the 
-    ResXResourceReader how to depersist the object. This is currently not 
+
+    The mimetype is used for serialized objects, and tells the
+    ResXResourceReader how to depersist the object. This is currently not
     extensible. For a given mimetype the value must be set accordingly:
-    
-    Note - application/x-microsoft.net.object.binary.base64 is the format 
-    that the ResXResourceWriter will generate, however the reader can 
+
+    Note - application/x-microsoft.net.object.binary.base64 is the format
+    that the ResXResourceWriter will generate, however the reader can
     read any of the formats listed below.
-    
+
     mimetype: application/x-microsoft.net.object.binary.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
             : and then encoded with base64 encoding.
-    
+
     mimetype: application/x-microsoft.net.object.soap.base64
-    value   : The object must be serialized with 
+    value   : The object must be serialized with
             : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
             : and then encoded with base64 encoding.
 
     mimetype: application/x-microsoft.net.object.bytearray.base64
-    value   : The object must be serialized into a byte array 
+    value   : The object must be serialized into a byte array
             : using a System.ComponentModel.TypeConverter
             : and then encoded with base64 encoding.
     -->
@@ -117,55 +117,25 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
-  <data name="FormPedingNotCanWithdraw" xml:space="preserve">
-    <value>A form must be either pending approval or in the approval process to be withdrawn.</value>
+  <data name="FormQueryExcel_Title" xml:space="preserve">
+    <value>All Forms Query</value>
   </data>
-  <data name="FormPendingNotVoided" xml:space="preserve">
-    <value>A form must be marked as “PendingSubmit” before it can be voided.</value>
-  </data>
-  <data name="FormPendingVoidedFailed" xml:space="preserve">
-    <value>Form Voided Failed</value>
-  </data>
-  <data name="FormPendingVoidedSuccess" xml:space="preserve">
-    <value>Form Cancellation Successful</value>
-  </data>
-  <data name="FormPendingWithdrawFailed" xml:space="preserve">
-    <value>Form withdrawal failed</value>
-  </data>
-  <data name="FormPendingWithdrawSuccess" xml:space="preserve">
-    <value>Form withdrawal successful</value>
-  </data>
-  <data name="FormPendingPrintNotSupport" xml:space="preserve">
-    <value>Printing PDF is not supported for this form type</value>
-  </data>
-  <data name="FormPendingBatchPrintNoFormIds" xml:space="preserve">
-    <value>Please select at least one form</value>
-  </data>
-  <data name="FormPendingBatchPrintAllFailed" xml:space="preserve">
-    <value>Unable to generate PDF for any of the selected forms</value>
-  </data>
-  <data name="FormPendingExcelApplyHistoryTitle" xml:space="preserve">
-    <value>Apply History</value>
-  </data>
-  <data name="FormPendingExcelReviewHistoryTitle" xml:space="preserve">
-    <value>Review History</value>
-  </data>
-  <data name="FormPendingExcelFormTypeName" xml:space="preserve">
+  <data name="FormQueryExcel_FormTypeName" xml:space="preserve">
     <value>Form Type</value>
   </data>
-  <data name="FormPendingExcelFormNo" xml:space="preserve">
+  <data name="FormQueryExcel_FormNo" xml:space="preserve">
     <value>Form No.</value>
   </data>
-  <data name="FormPendingExcelApplicantDate" xml:space="preserve">
+  <data name="FormQueryExcel_ApplicantDate" xml:space="preserve">
     <value>Applicant Date</value>
   </data>
-  <data name="FormPendingExcelFormStatusName" xml:space="preserve">
+  <data name="FormQueryExcel_FormStatusName" xml:space="preserve">
     <value>Form Status</value>
   </data>
-  <data name="FormPendingExcelApplyUserName" xml:space="preserve">
+  <data name="FormQueryExcel_ApplyUserName" xml:space="preserve">
     <value>Applicant</value>
   </data>
-  <data name="FormPendingExcelApplyUserDeptName" xml:space="preserve">
+  <data name="FormQueryExcel_ApplyUserDeptName" xml:space="preserve">
     <value>Applicant Department</value>
   </data>
 </root>

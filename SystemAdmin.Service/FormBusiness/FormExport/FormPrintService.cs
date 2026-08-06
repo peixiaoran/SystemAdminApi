@@ -13,15 +13,15 @@ using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 using System.IO.Compression;
 
-namespace SystemAdmin.Service.FormBusiness.FormOperate
+namespace SystemAdmin.Service.FormBusiness.FormExport
 {
     /// <summary>
     /// 新表单需在 PrintFormPdf 的 switch 中按前缀登记
     /// </summary>
-    public partial class FormPrintPdfService
+    public partial class FormPrintService
     {
         private readonly CurrentUser _loginuser;
-        private readonly ILogger<FormPrintPdfService> _logger;
+        private readonly ILogger<FormPrintService> _logger;
         private readonly Language _lang;
         private readonly FormPermissionChecker _formChecker;
         private readonly LeaveRequestRepository _leaveRequestRepo;
@@ -32,13 +32,13 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
         private readonly string _forms = "FormBusiness.Forms.";
 
-        static FormPrintPdfService()
+        static FormPrintService()
         {
             QuestPDF.Settings.License = LicenseType.Community;
             QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
         }
 
-        public FormPrintPdfService(CurrentUser loginuser, ILogger<FormPrintPdfService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;

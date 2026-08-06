@@ -9,6 +9,7 @@ using SystemAdmin.Model.FormBusiness.FormWorkflow.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
+using System.Data;
 
 namespace SystemAdmin.Repository.FormBusiness.CompreQuery
 {
@@ -155,6 +156,82 @@ namespace SystemAdmin.Repository.FormBusiness.CompreQuery
                 ApplicantDate = instance.ApplicantDate
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormQueryDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 导出全部表单查询Excel（字段同 GetFormQueryPage，不分页）
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <returns></returns>
+        public async Task<DataTable> GetFormQueryExcel(GetFormQueryPage getPage)
+        {
+            var query = _db.Queryable<FormInstanceEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && instance.FormStatus == dic.DicCode)
+                           .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
+                           .InnerJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
+                           .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId);
+
+            // 表单组别Id
+            if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                    formtype.FormGroupId == long.Parse(getPage.FormGroupId));
+            }
+            // 表单类别Id
+            if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                    formtype.FormTypeId == long.Parse(getPage.FormTypeId));
+            }
+            // 表单单号
+            if (!string.IsNullOrEmpty(getPage.FormNo))
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                    instance.FormNo.Contains(getPage.FormNo));
+            }
+            // 表单状态
+            if (!string.IsNullOrEmpty(getPage.FormStatus))
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                    instance.FormStatus == getPage.FormStatus);
+            }
+            // 申请日期范围
+            if (getPage.StartDate.HasValue)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                    instance.ApplicantDate >= getPage.StartDate.Value);
+            }
+            if (getPage.EndDate.HasValue)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                    instance.ApplicantDate <= getPage.EndDate.Value);
+            }
+
+            // 排序：按申请日期倒序
+            query = query.OrderBy((instance, dic, formtype, applyuser, applydept) => instance.ApplicantDate, OrderByType.Desc);
+
+            return await query.Select((instance, dic, formtype, applyuser, applydept) => new FormQueryDto
+            {
+                FormId = instance.FormId,
+                FormNo = instance.FormNo,
+                FormTypeId = formtype.FormTypeId,
+                FormTypeName = _lang.Locale == "zh-CN"
+                               ? formtype.FormTypeNameCn
+                               : formtype.FormTypeNameEn,
+                FormStatus = instance.FormStatus,
+                FormStatusName = _lang.Locale == "zh-CN"
+                               ? dic.DicNameCn
+                               : dic.DicNameEn,
+                ApplyUserName = _lang.Locale == "zh-CN"
+                               ? applyuser.UserNameCn
+                               : applyuser.UserNameEn,
+                ApplyUserDeptName = _lang.Locale == "zh-CN"
+                               ? applydept.DepartmentNameCn
+                               : applydept.DepartmentNameEn,
+                ViewPath = formtype.ViewPath,
+                ApplicantDate = instance.ApplicantDate
+            }).ToDataTableAsync();
         }
 
         /// <summary>

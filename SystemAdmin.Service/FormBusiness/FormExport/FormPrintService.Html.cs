@@ -3,13 +3,13 @@ using System.Text.RegularExpressions;
 using HtmlAgilityPack;
 using QuestPDF.Fluent;
 
-namespace SystemAdmin.Service.FormBusiness.FormOperate
+namespace SystemAdmin.Service.FormBusiness.FormExport
 {
     /// <summary>
     /// 富文本栏位（TipTap HTML）转PDF版面
     /// 支持前端编辑器启用的格式：粗斜体/下划线/删除线、字体颜色、高亮、标题、对齐、列表、引用、代码块、分隔线、表格、超链接
     /// </summary>
-    public partial class FormPrintPdfService
+    public partial class FormPrintService
     {
         private const string LinkColor = "#409EFF";
         private const string CodeFontFamily = "Consolas";

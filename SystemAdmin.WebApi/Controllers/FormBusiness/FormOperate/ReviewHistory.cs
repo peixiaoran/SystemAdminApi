@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.FormOperate.Queries;
+using SystemAdmin.Service.FormBusiness.FormExport;
 using SystemAdmin.Service.FormBusiness.FormOperate;
 using SystemAdmin.WebApi.Attributes;
 
@@ -13,11 +14,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
     public class ReviewHistory : ControllerBase
     {
         private readonly ReviewHistoryService _reviewHistoryService;
-        private readonly FormPrintPdfService _formPrintPdfService;
-        public ReviewHistory(ReviewHistoryService reviewHistoryService, FormPrintPdfService formPrintPdfService)
+        private readonly FormPrintService _formPrintService;
+        private readonly FormHistoryExcelService _formExcelService;
+        public ReviewHistory(ReviewHistoryService reviewHistoryService, FormPrintService formPrintService, FormHistoryExcelService formExcelService)
         {
             _reviewHistoryService = reviewHistoryService;
-            _formPrintPdfService = formPrintPdfService;
+            _formPrintService = formPrintService;
+            _formExcelService = formExcelService;
         }
 
         [HttpPost]
@@ -57,7 +60,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [EndpointSummary("[审批历史记录] 打印PDF")]
         public async Task<IActionResult> PrintFormPdf([FromForm] string formId)
         {
-            var result = await _formPrintPdfService.PrintFormPdf(formId);
+            var result = await _formPrintService.PrintFormPdf(formId);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);
@@ -70,12 +73,25 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [EndpointSummary("[审批历史记录] 批量打印PDF")]
         public async Task<IActionResult> PrintFormPdfBatch([FromBody] List<string> formIds)
         {
-            var result = await _formPrintPdfService.PrintFormPdfBatch(formIds);
+            var result = await _formPrintService.PrintFormPdfBatch(formIds);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);
             }
             return File(result.Data!.FileStream, "application/zip", result.Data.FileName);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单作业模块")]
+        [EndpointSummary("[审批历史记录] 导出Excel")]
+        public async Task<IActionResult> ExportReviewHistoryExcel([FromBody] GetFormHistoryPage getpage)
+        {
+            var result = await _formExcelService.ExportReviewHistoryExcel(getpage);
+            if (result.Code != 200)
+            {
+                return StatusCode(result.Code, result);
+            }
+            return File(result.Data!.FileStream, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", result.Data.FileName);
         }
     }
 }
