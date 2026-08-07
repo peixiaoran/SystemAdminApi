@@ -8,12 +8,12 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
 {
-    public class ProPartNumberRepository
+    public class PartNumberRepository
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
 
-        public ProPartNumberRepository(SqlSugarScope db, Language lang)
+        public PartNumberRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
             _lang = lang;
@@ -22,134 +22,134 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <summary>
         /// 新增料号信息
         /// </summary>
-        /// <param name="proPartNumberEntity"></param>
+        /// <param name="partNumberEntity"></param>
         /// <returns></returns>
-        public async Task<int> InsertProPartNumber(ProPartNumberEntity proPartNumberEntity)
+        public async Task<int> InsertPartNumber(PartNumberEntity partNumberEntity)
         {
-            return await _db.Insertable(proPartNumberEntity).ExecuteCommandAsync();
+            return await _db.Insertable(partNumberEntity).ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 删除料号信息
         /// </summary>
-        /// <param name="proPartNumberId"></param>
+        /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<int> DeleteProPartNumber(long proPartNumberId)
+        public async Task<int> DeletePartNumber(long partNumberId)
         {
-            return await _db.Deleteable<ProPartNumberEntity>()
-                            .Where(proPartNumber => proPartNumber.PartNumberId == proPartNumberId)
+            return await _db.Deleteable<PartNumberEntity>()
+                            .Where(partNumber => partNumber.PartNumberId == partNumberId)
                             .ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 修改料号信息
         /// </summary>
-        /// <param name="proPartNumberEntity"></param>
+        /// <param name="partNumberEntity"></param>
         /// <returns></returns>
-        public async Task<int> UpdateProPartNumber(ProPartNumberEntity proPartNumberEntity)
+        public async Task<int> UpdatePartNumber(PartNumberEntity partNumberEntity)
         {
-            return await _db.Updateable(proPartNumberEntity)
-                            .IgnoreColumns(proPartNumber => new
+            return await _db.Updateable(partNumberEntity)
+                            .IgnoreColumns(partNumber => new
                             {
-                                proPartNumber.PartNumberId,
-                                proPartNumber.CreatedBy,
-                                proPartNumber.CreatedDate,
-                            }).Where(proPartNumber => proPartNumber.PartNumberId == proPartNumberEntity.PartNumberId)
+                                partNumber.PartNumberId,
+                                partNumber.CreatedBy,
+                                partNumber.CreatedDate,
+                            }).Where(partNumber => partNumber.PartNumberId == partNumberEntity.PartNumberId)
                             .ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 查询料号实体
         /// </summary>
-        /// <param name="proPartNumberId"></param>
+        /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<ProPartNumberDto> GetProPartNumberEntity(long proPartNumberId)
+        public async Task<PartNumberDto> GetPartNumberEntity(long partNumberId)
         {
-            var proPartNumberEntity = await _db.Queryable<ProPartNumberEntity>()
+            var partNumberEntity = await _db.Queryable<PartNumberEntity>()
                                             .With(SqlWith.NoLock)
-                                            .Where(proPartNumber => proPartNumber.PartNumberId == proPartNumberId)
+                                            .Where(partNumber => partNumber.PartNumberId == partNumberId)
                                             .FirstAsync();
-            return proPartNumberEntity.Adapt<ProPartNumberDto>();
+            return partNumberEntity.Adapt<PartNumberDto>();
         }
 
         /// <summary>
         /// 按查询条件构建料号查询（分页查询与导出共用）
         /// </summary>
-        /// <param name="getProPartNumberPage"></param>
+        /// <param name="getPartNumberPage"></param>
         /// <returns></returns>
-        private ISugarQueryable<ProPartNumberEntity> BuildProPartNumberQuery(GetProPartNumberPage getProPartNumberPage)
+        private ISugarQueryable<PartNumberEntity> BuildPartNumberQuery(GetPartNumberPage getPartNumberPage)
         {
-            var query = _db.Queryable<ProPartNumberEntity>()
+            var query = _db.Queryable<PartNumberEntity>()
                            .With(SqlWith.NoLock);
 
             // 料号
-            if (!string.IsNullOrEmpty(getProPartNumberPage.PartNumber))
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartNumber))
             {
-                query = query.Where(proPartNumber => proPartNumber.PartNumber.Contains(getProPartNumberPage.PartNumber));
+                query = query.Where(partNumber => partNumber.PartNumber.Contains(getPartNumberPage.PartNumber));
             }
 
             // 品名（中英文品名均模糊查询）
-            if (!string.IsNullOrEmpty(getProPartNumberPage.PartNameCn))
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartNameCn))
             {
-                query = query.Where(proPartNumber =>
-                    proPartNumber.PartNameCn.Contains(getProPartNumberPage.PartNameCn) ||
-                    proPartNumber.PartNameEn.Contains(getProPartNumberPage.PartNameCn));
+                query = query.Where(partNumber =>
+                    partNumber.PartNameCn.Contains(getPartNumberPage.PartNameCn) ||
+                    partNumber.PartNameEn.Contains(getPartNumberPage.PartNameCn));
             }
 
             // 料号类型
-            if (!string.IsNullOrEmpty(getProPartNumberPage.PartType))
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartType))
             {
-                query = query.Where(proPartNumber => proPartNumber.PartType == getProPartNumberPage.PartType);
+                query = query.Where(partNumber => partNumber.PartType == getPartNumberPage.PartType);
             }
 
             // 物料分类
-            if (!string.IsNullOrEmpty(getProPartNumberPage.Category))
+            if (!string.IsNullOrEmpty(getPartNumberPage.Category))
             {
-                query = query.Where(proPartNumber => proPartNumber.Category == getProPartNumberPage.Category);
+                query = query.Where(partNumber => partNumber.Category == getPartNumberPage.Category);
             }
 
             // 启用状态
-            if (getProPartNumberPage.Status.HasValue)
+            if (getPartNumberPage.Status.HasValue)
             {
-                var status = getProPartNumberPage.Status.Value == 1;
-                query = query.Where(proPartNumber => proPartNumber.Status == status);
+                var status = getPartNumberPage.Status.Value == 1;
+                query = query.Where(partNumber => partNumber.Status == status);
             }
 
-            return query.OrderBy(proPartNumber => proPartNumber.CreatedDate);
+            return query.OrderBy(partNumber => partNumber.CreatedDate);
         }
 
         /// <summary>
         /// 查询料号分页
         /// </summary>
-        /// <param name="getProPartNumberPage"></param>
+        /// <param name="getPartNumberPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<ProPartNumberDto>> GetProPartNumberPage(GetProPartNumberPage getProPartNumberPage)
+        public async Task<ResultPaged<PartNumberDto>> GetPartNumberPage(GetPartNumberPage getPartNumberPage)
         {
             RefAsync<int> totalCount = 0;
-            var query = BuildProPartNumberQuery(getProPartNumberPage);
+            var query = BuildPartNumberQuery(getPartNumberPage);
 
-            var proPartNumberPage = await query.ToPageListAsync(getProPartNumberPage.PageIndex, getProPartNumberPage.PageSize, totalCount);
-            return ResultPaged<ProPartNumberDto>.Ok(proPartNumberPage.Adapt<List<ProPartNumberDto>>(), totalCount, "");
+            var partNumberPage = await query.ToPageListAsync(getPartNumberPage.PageIndex, getPartNumberPage.PageSize, totalCount);
+            return ResultPaged<PartNumberDto>.Ok(partNumberPage.Adapt<List<PartNumberDto>>(), totalCount, "");
         }
 
         /// <summary>
         /// 按查询条件查询料号信息列表
         /// </summary>
-        /// <param name="getProPartNumberPage"></param>
+        /// <param name="getPartNumberPage"></param>
         /// <returns></returns>
-        public async Task<List<ProPartNumberEntity>> GetProPartNumberList(GetProPartNumberPage getProPartNumberPage)
+        public async Task<List<PartNumberEntity>> GetPartNumberList(GetPartNumberPage getPartNumberPage)
         {
-            return await BuildProPartNumberQuery(getProPartNumberPage).ToListAsync();
+            return await BuildPartNumberQuery(getPartNumberPage).ToListAsync();
         }
 
         /// <summary>
         /// 批量新增料号信息列表
         /// </summary>
-        /// <param name="proPartNumberInfoList"></param>
+        /// <param name="partNumberInfoList"></param>
         /// <returns></returns>
-        public async Task<int> InsertProPartNumberList(List<ProPartNumberEntity> proPartNumberInfoList)
+        public async Task<int> InsertPartNumberList(List<PartNumberEntity> partNumberInfoList)
         {
-            return await _db.Insertable(proPartNumberInfoList).ExecuteCommandAsync();
+            return await _db.Insertable(partNumberInfoList).ExecuteCommandAsync();
         }
 
         /// <summary>
@@ -242,9 +242,9 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <returns></returns>
         public async Task<bool> ExistsPartNumber(string partNumber)
         {
-            return await _db.Queryable<ProPartNumberEntity>()
+            return await _db.Queryable<PartNumberEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(proPartNumber => proPartNumber.PartNumber == partNumber)
+                            .Where(entity => entity.PartNumber == partNumber)
                             .AnyAsync();
         }
 
@@ -255,10 +255,10 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <returns></returns>
         public async Task<List<string>> GetExistingPartNumbers(List<string> partNumbers)
         {
-            return await _db.Queryable<ProPartNumberEntity>()
+            return await _db.Queryable<PartNumberEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(proPartNumber => partNumbers.Contains(proPartNumber.PartNumber))
-                            .Select(proPartNumber => proPartNumber.PartNumber)
+                            .Where(partNumber => partNumbers.Contains(partNumber.PartNumber))
+                            .Select(partNumber => partNumber.PartNumber)
                             .ToListAsync();
         }
     }

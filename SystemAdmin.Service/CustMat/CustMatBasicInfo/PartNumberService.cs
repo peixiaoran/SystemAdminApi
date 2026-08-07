@@ -14,17 +14,17 @@ using SystemAdmin.Repository.CustMat.CustMatBasicInfo;
 
 namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
 {
-    public class ProPartNumberService
+    public class PartNumberService
     {
         private readonly CurrentUser _loginuser;
-        private readonly ILogger<ProPartNumberService> _logger;
+        private readonly ILogger<PartNumberService> _logger;
         private readonly SqlSugarScope _db;
-        private readonly ProPartNumberRepository _proPartNumberRepository;
+        private readonly PartNumberRepository _partNumberRepository;
         private readonly LocalizationService _localization;
         private readonly Language _lang;
-        private readonly string _this = "CustMat.CustMatBasicInfo.ProPartNumberInfo";
-        private readonly string _thisExcel = "CustMat.CustMatBasicInfo.ProPartNumberExcel_";
-        private readonly string _thisImport = "CustMat.CustMatBasicInfo.ProPartNumberImport_";
+        private readonly string _this = "CustMat.CustMatBasicInfo.PartNumberInfo";
+        private readonly string _thisExcel = "CustMat.CustMatBasicInfo.PartNumberExcel_";
+        private readonly string _thisImport = "CustMat.CustMatBasicInfo.PartNumberImport_";
 
         // 导入/导出模板列（顺序即Excel列顺序），不含Id、创建、修改等系统字段
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
@@ -48,12 +48,12 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             ("Remark", false),
         };
 
-        public ProPartNumberService(CurrentUser loginuser, ILogger<ProPartNumberService> logger, SqlSugarScope db, ProPartNumberRepository proPartNumberRepository, LocalizationService localization, Language lang)
+        public PartNumberService(CurrentUser loginuser, ILogger<PartNumberService> logger, SqlSugarScope db, PartNumberRepository partNumberRepository, LocalizationService localization, Language lang)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
-            _proPartNumberRepository = proPartNumberRepository;
+            _partNumberRepository = partNumberRepository;
             _localization = localization;
             _lang = lang;
         }
@@ -61,41 +61,41 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 新增料号信息
         /// </summary>
-        /// <param name="proPartNumberUpsert"></param>
+        /// <param name="partNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> InsertProPartNumber(ProPartNumberUpsert proPartNumberUpsert)
+        public async Task<Result<int>> InsertPartNumber(PartNumberUpsert partNumberUpsert)
         {
             try
             {
-                var exists = await _proPartNumberRepository.ExistsPartNumber(proPartNumberUpsert.PartNumber);
+                var exists = await _partNumberRepository.ExistsPartNumber(partNumberUpsert.PartNumber);
                 if (exists)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", proPartNumberUpsert.PartNumber));
+                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", partNumberUpsert.PartNumber));
 
                 await _db.BeginTranAsync();
-                var entity = new ProPartNumberEntity()
+                var entity = new PartNumberEntity()
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
-                    PartNumber = proPartNumberUpsert.PartNumber,
-                    PartNameCn = proPartNumberUpsert.PartNameCn,
-                    PartNameEn = proPartNumberUpsert.PartNameEn,
-                    Specification = proPartNumberUpsert.Specification,
-                    PartType = proPartNumberUpsert.PartType,
-                    Category = proPartNumberUpsert.Category,
-                    Model = proPartNumberUpsert.Model,
-                    DrawingNumber = proPartNumberUpsert.DrawingNumber,
-                    Version = proPartNumberUpsert.Version,
-                    Material = proPartNumberUpsert.Material,
-                    BaseUnit = proPartNumberUpsert.BaseUnit,
-                    SourceType = proPartNumberUpsert.SourceType,
-                    Manufacturer = proPartNumberUpsert.Manufacturer,
-                    ManufacturerPartNumber = proPartNumberUpsert.ManufacturerPartNumber,
-                    LotControl = proPartNumberUpsert.LotControl,
-                    Status = proPartNumberUpsert.Status,
-                    Remark = proPartNumberUpsert.Remark,
+                    PartNumber = partNumberUpsert.PartNumber,
+                    PartNameCn = partNumberUpsert.PartNameCn,
+                    PartNameEn = partNumberUpsert.PartNameEn,
+                    Specification = partNumberUpsert.Specification,
+                    PartType = partNumberUpsert.PartType,
+                    Category = partNumberUpsert.Category,
+                    Model = partNumberUpsert.Model,
+                    DrawingNumber = partNumberUpsert.DrawingNumber,
+                    Version = partNumberUpsert.Version,
+                    Material = partNumberUpsert.Material,
+                    BaseUnit = partNumberUpsert.BaseUnit,
+                    SourceType = partNumberUpsert.SourceType,
+                    Manufacturer = partNumberUpsert.Manufacturer,
+                    ManufacturerPartNumber = partNumberUpsert.ManufacturerPartNumber,
+                    LotControl = partNumberUpsert.LotControl,
+                    Status = partNumberUpsert.Status,
+                    Remark = partNumberUpsert.Remark,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _proPartNumberRepository.InsertProPartNumber(entity);
+                var count = await _partNumberRepository.InsertPartNumber(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -113,18 +113,18 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 删除料号信息
         /// </summary>
-        /// <param name="proPartNumberId"></param>
+        /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<Result<int>> DeleteProPartNumber(string proPartNumberId)
+        public async Task<Result<int>> DeletePartNumber(string partNumberId)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var delProPartNumberCount = await _proPartNumberRepository.DeleteProPartNumber(long.Parse(proPartNumberId));
+                var delPartNumberCount = await _partNumberRepository.DeletePartNumber(long.Parse(partNumberId));
                 await _db.CommitTranAsync();
 
-                return delProPartNumberCount >= 1
-                        ? Result<int>.Ok(delProPartNumberCount, _localization.ReturnMsg($"{_this}DeleteSuccess"))
+                return delPartNumberCount >= 1
+                        ? Result<int>.Ok(delPartNumberCount, _localization.ReturnMsg($"{_this}DeleteSuccess"))
                         : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}DeleteFailed"));
             }
             catch (Exception ex)
@@ -138,37 +138,37 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 修改料号信息
         /// </summary>
-        /// <param name="proPartNumberUpsert"></param>
+        /// <param name="partNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateProPartNumber(ProPartNumberUpsert proPartNumberUpsert)
+        public async Task<Result<int>> UpdatePartNumber(PartNumberUpsert partNumberUpsert)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var entity = new ProPartNumberEntity()
+                var entity = new PartNumberEntity()
                 {
-                    PartNumberId = long.Parse(proPartNumberUpsert.PartNumberId),
-                    PartNumber = proPartNumberUpsert.PartNumber,
-                    PartNameCn = proPartNumberUpsert.PartNameCn,
-                    PartNameEn = proPartNumberUpsert.PartNameEn,
-                    Specification = proPartNumberUpsert.Specification,
-                    PartType = proPartNumberUpsert.PartType,
-                    Category = proPartNumberUpsert.Category,
-                    Model = proPartNumberUpsert.Model,
-                    DrawingNumber = proPartNumberUpsert.DrawingNumber,
-                    Version = proPartNumberUpsert.Version,
-                    Material = proPartNumberUpsert.Material,
-                    BaseUnit = proPartNumberUpsert.BaseUnit,
-                    SourceType = proPartNumberUpsert.SourceType,
-                    Manufacturer = proPartNumberUpsert.Manufacturer,
-                    ManufacturerPartNumber = proPartNumberUpsert.ManufacturerPartNumber,
-                    LotControl = proPartNumberUpsert.LotControl,
-                    Status = proPartNumberUpsert.Status,
-                    Remark = proPartNumberUpsert.Remark,
+                    PartNumberId = long.Parse(partNumberUpsert.PartNumberId),
+                    PartNumber = partNumberUpsert.PartNumber,
+                    PartNameCn = partNumberUpsert.PartNameCn,
+                    PartNameEn = partNumberUpsert.PartNameEn,
+                    Specification = partNumberUpsert.Specification,
+                    PartType = partNumberUpsert.PartType,
+                    Category = partNumberUpsert.Category,
+                    Model = partNumberUpsert.Model,
+                    DrawingNumber = partNumberUpsert.DrawingNumber,
+                    Version = partNumberUpsert.Version,
+                    Material = partNumberUpsert.Material,
+                    BaseUnit = partNumberUpsert.BaseUnit,
+                    SourceType = partNumberUpsert.SourceType,
+                    Manufacturer = partNumberUpsert.Manufacturer,
+                    ManufacturerPartNumber = partNumberUpsert.ManufacturerPartNumber,
+                    LotControl = partNumberUpsert.LotControl,
+                    Status = partNumberUpsert.Status,
+                    Remark = partNumberUpsert.Remark,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _proPartNumberRepository.UpdateProPartNumber(entity);
+                var count = await _partNumberRepository.UpdatePartNumber(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -188,17 +188,17 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<Result<ProPartNumberDto>> GetProPartNumberEntity(string partNumberId)
+        public async Task<Result<PartNumberDto>> GetPartNumberEntity(string partNumberId)
         {
             try
             {
-                var proPartNumberEntity = await _proPartNumberRepository.GetProPartNumberEntity(long.Parse(partNumberId));
-                return Result<ProPartNumberDto>.Ok(proPartNumberEntity, "");
+                var partNumberEntity = await _partNumberRepository.GetPartNumberEntity(long.Parse(partNumberId));
+                return Result<PartNumberDto>.Ok(partNumberEntity, "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<ProPartNumberDto>.Failure(500, ex.Message);
+                return Result<PartNumberDto>.Failure(500, ex.Message);
             }
         }
 
@@ -207,16 +207,16 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<ProPartNumberDto>> GetProPartNumberPage(GetProPartNumberPage getPage)
+        public async Task<ResultPaged<PartNumberDto>> GetPartNumberPage(GetPartNumberPage getPage)
         {
             try
             {
-                return await _proPartNumberRepository.GetProPartNumberPage(getPage);
+                return await _partNumberRepository.GetPartNumberPage(getPage);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return ResultPaged<ProPartNumberDto>.Failure(500, ex.Message);
+                return ResultPaged<PartNumberDto>.Failure(500, ex.Message);
             }
         }
 
@@ -225,13 +225,13 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetProPartNumberExcel(GetProPartNumberPage getPage)
+        public async Task<byte[]> GetPartNumberExcel(GetPartNumberPage getPage)
         {
             try
             {
-                var entities = await _proPartNumberRepository.GetProPartNumberList(getPage);
+                var entities = await _partNumberRepository.GetPartNumberList(getPage);
 
-                var allDict = await _proPartNumberRepository.GetDictionaryByTypes(new List<string> { "PartType", "Category", "SourceType" });
+                var allDict = await _partNumberRepository.GetDictionaryByTypes(new List<string> { "PartType", "Category", "SourceType" });
                 var partTypeDict = allDict.Where(dic => dic.DicType == "PartType")
                                            .ToDictionary(dic => dic.DicCode, dic => _lang.Locale == "zh-CN" ? dic.DicNameCn : dic.DicNameEn);
                 var categoryDict = allDict.Where(dic => dic.DicType == "Category")
@@ -298,7 +298,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
-                var drop = await _proPartNumberRepository.GetPartTypeDrop();
+                var drop = await _partNumberRepository.GetPartTypeDrop();
                 return Result<List<PartTypeDropDto>>.Ok(drop, "");
             }
             catch (Exception ex)
@@ -316,7 +316,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
-                var drop = await _proPartNumberRepository.GetCategoryDrop();
+                var drop = await _partNumberRepository.GetCategoryDrop();
                 return Result<List<PartCategoryDropDto>>.Ok(drop, "");
             }
             catch (Exception ex)
@@ -334,7 +334,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
-                var drop = await _proPartNumberRepository.GetSourceTypeDrop();
+                var drop = await _partNumberRepository.GetSourceTypeDrop();
                 return Result<List<PartSourceTypeDropDto>>.Ok(drop, "");
             }
             catch (Exception ex)
@@ -348,7 +348,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// 导出料号导入模板（不含Id、创建、修改等字段）
         /// </summary>
         /// <returns></returns>
-        public Task<byte[]> GetProPartNumberTemplate()
+        public Task<byte[]> GetPartNumberTemplate()
         {
             try
             {
@@ -384,7 +384,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public async Task<Result<int>> ImportProPartNumber(IFormFile file)
+        public async Task<Result<int>> ImportPartNumber(IFormFile file)
         {
             try
             {
@@ -429,7 +429,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 }
 
                 // 三个下拉字段对应的字典数据一次性查询出来（编码、中文名称、英文名称均可匹配）
-                var allDict = await _proPartNumberRepository.GetDictionaryByTypes(new List<string> { "PartType", "Category", "SourceType" });
+                var allDict = await _partNumberRepository.GetDictionaryByTypes(new List<string> { "PartType", "Category", "SourceType" });
                 var partTypeDict = allDict.Where(dic => dic.DicType == "PartType").ToList();
                 var categoryDict = allDict.Where(dic => dic.DicType == "Category").ToList();
                 var sourceTypeDict = allDict.Where(dic => dic.DicType == "SourceType").ToList();
@@ -444,10 +444,10 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                         filePartNumbers.Add(text);
                 }
                 var existingPartNumbers = new HashSet<string>(
-                    await _proPartNumberRepository.GetExistingPartNumbers(filePartNumbers),
+                    await _partNumberRepository.GetExistingPartNumbers(filePartNumbers),
                     StringComparer.OrdinalIgnoreCase);
 
-                var entities = new List<ProPartNumberEntity>();
+                var entities = new List<PartNumberEntity>();
                 var seenPartNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 for (var row = 2; row <= ws.Dimension.End.Row; row++)
                 {
@@ -491,7 +491,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     if (!seenPartNumbers.Add(partNumber) || existingPartNumbers.Contains(partNumber))
                         return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}DuplicatePartNumber", row, partNumber));
 
-                    entities.Add(new ProPartNumberEntity
+                    entities.Add(new PartNumberEntity
                     {
                         PartNumberId = SnowFlakeSingle.Instance.NextId(),
                         PartNumber = rowValues["PartNumber"],
@@ -520,7 +520,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}NoData"));
 
                 await _db.BeginTranAsync();
-                var count = await _proPartNumberRepository.InsertProPartNumberList(entities);
+                var count = await _partNumberRepository.InsertPartNumberList(entities);
                 await _db.CommitTranAsync();
 
                 return count >= 1

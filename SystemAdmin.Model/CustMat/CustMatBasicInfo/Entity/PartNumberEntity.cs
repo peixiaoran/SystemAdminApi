@@ -6,7 +6,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity
     /// 生产料号信息实体类
     /// </summary>
     [SugarTable("[CustMat].[ProPartNumber]")]
-    public class ProPartNumberEntity
+    public class PartNumberEntity
     {
         /// <summary>
         /// 料号Id

@@ -6,7 +6,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
     /// <summary>
     /// 料号信息Dto
     /// </summary>
-    public class ProPartNumberDto
+    public class PartNumberDto
     {
         /// <summary>
         /// 料号Id

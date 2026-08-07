@@ -117,288 +117,288 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
         /// <summary>
         ///   查找类似 新增料号信息成功 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberInfoInsertSuccess {
+        internal static string PartNumberInfoInsertSuccess {
             get {
-                return ResourceManager.GetString("ProPartNumberInfoInsertSuccess", resourceCulture);
+                return ResourceManager.GetString("PartNumberInfoInsertSuccess", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 新增料号信息失败 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberInfoInsertFailed {
+        internal static string PartNumberInfoInsertFailed {
             get {
-                return ResourceManager.GetString("ProPartNumberInfoInsertFailed", resourceCulture);
+                return ResourceManager.GetString("PartNumberInfoInsertFailed", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 删除料号信息成功 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberInfoDeleteSuccess {
+        internal static string PartNumberInfoDeleteSuccess {
             get {
-                return ResourceManager.GetString("ProPartNumberInfoDeleteSuccess", resourceCulture);
+                return ResourceManager.GetString("PartNumberInfoDeleteSuccess", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 删除料号信息失败 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberInfoDeleteFailed {
+        internal static string PartNumberInfoDeleteFailed {
             get {
-                return ResourceManager.GetString("ProPartNumberInfoDeleteFailed", resourceCulture);
+                return ResourceManager.GetString("PartNumberInfoDeleteFailed", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 修改料号信息成功 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberInfoUpdateSuccess {
+        internal static string PartNumberInfoUpdateSuccess {
             get {
-                return ResourceManager.GetString("ProPartNumberInfoUpdateSuccess", resourceCulture);
+                return ResourceManager.GetString("PartNumberInfoUpdateSuccess", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 修改料号信息失败 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberInfoUpdateFailed {
+        internal static string PartNumberInfoUpdateFailed {
             get {
-                return ResourceManager.GetString("ProPartNumberInfoUpdateFailed", resourceCulture);
+                return ResourceManager.GetString("PartNumberInfoUpdateFailed", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 料号导入模板 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_SheetName {
+        internal static string PartNumberExcel_SheetName {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_SheetName", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_SheetName", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 料号 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_PartNumber {
+        internal static string PartNumberExcel_PartNumber {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_PartNumber", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_PartNumber", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 品名 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_PartNameCn {
+        internal static string PartNumberExcel_PartNameCn {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_PartNameCn", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_PartNameCn", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 英文品名 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_PartNameEn {
+        internal static string PartNumberExcel_PartNameEn {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_PartNameEn", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_PartNameEn", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 规格 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Specification {
+        internal static string PartNumberExcel_Specification {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Specification", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Specification", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 料号类型 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_PartType {
+        internal static string PartNumberExcel_PartType {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_PartType", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_PartType", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 物料分类 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Category {
+        internal static string PartNumberExcel_Category {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Category", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Category", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 型号 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Model {
+        internal static string PartNumberExcel_Model {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Model", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Model", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 图号 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_DrawingNumber {
+        internal static string PartNumberExcel_DrawingNumber {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_DrawingNumber", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_DrawingNumber", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 版本 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Version {
+        internal static string PartNumberExcel_Version {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Version", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Version", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 材质 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Material {
+        internal static string PartNumberExcel_Material {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Material", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Material", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 基本单位 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_BaseUnit {
+        internal static string PartNumberExcel_BaseUnit {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_BaseUnit", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_BaseUnit", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 来源类型 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_SourceType {
+        internal static string PartNumberExcel_SourceType {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_SourceType", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_SourceType", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 制造商 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Manufacturer {
+        internal static string PartNumberExcel_Manufacturer {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Manufacturer", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Manufacturer", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 制造商料号 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_ManufacturerPartNumber {
+        internal static string PartNumberExcel_ManufacturerPartNumber {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_ManufacturerPartNumber", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_ManufacturerPartNumber", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 是否批号管制 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_LotControl {
+        internal static string PartNumberExcel_LotControl {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_LotControl", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_LotControl", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 启用状态 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Status {
+        internal static string PartNumberExcel_Status {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Status", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Status", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 备注 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberExcel_Remark {
+        internal static string PartNumberExcel_Remark {
             get {
-                return ResourceManager.GetString("ProPartNumberExcel_Remark", resourceCulture);
+                return ResourceManager.GetString("PartNumberExcel_Remark", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 请上传导入文件 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_FileEmpty {
+        internal static string PartNumberImport_FileEmpty {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_FileEmpty", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_FileEmpty", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 Excel文件中未找到工作表 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_NoWorksheet {
+        internal static string PartNumberImport_NoWorksheet {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_NoWorksheet", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_NoWorksheet", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 Excel文件中至少需要一条数据 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_NoData {
+        internal static string PartNumberImport_NoData {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_NoData", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_NoData", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_HeaderMismatch {
+        internal static string PartNumberImport_HeaderMismatch {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_HeaderMismatch", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_HeaderMismatch", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 列数量与模板不符，请使用标准模板填写 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_ColumnCountMismatch {
+        internal static string PartNumberImport_ColumnCountMismatch {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_ColumnCountMismatch", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_ColumnCountMismatch", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 第{0}行【{1}】不能为空 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_RequiredFieldEmpty {
+        internal static string PartNumberImport_RequiredFieldEmpty {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_RequiredFieldEmpty", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_RequiredFieldEmpty", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 第{0}行【{1}】的值“{2}”不在有效范围内 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_InvalidDictValue {
+        internal static string PartNumberImport_InvalidDictValue {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_InvalidDictValue", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_InvalidDictValue", resourceCulture);
             }
         }
 
         /// <summary>
         ///   查找类似 成功导入{0}条料号信息 的本地化字符串。
         /// </summary>
-        internal static string ProPartNumberImport_Success {
+        internal static string PartNumberImport_Success {
             get {
-                return ResourceManager.GetString("ProPartNumberImport_Success", resourceCulture);
+                return ResourceManager.GetString("PartNumberImport_Success", resourceCulture);
             }
         }
     }

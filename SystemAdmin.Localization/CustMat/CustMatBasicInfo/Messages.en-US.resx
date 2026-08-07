@@ -135,112 +135,112 @@
   <data name="CustomerInfoUpdateSuccess" xml:space="preserve">
     <value>Customer information updated successfully</value>
   </data>
-  <data name="ProPartNumberInfoInsertSuccess" xml:space="preserve">
+  <data name="PartNumberInfoInsertSuccess" xml:space="preserve">
     <value>Part number information created successfully</value>
   </data>
-  <data name="ProPartNumberInfoInsertFailed" xml:space="preserve">
+  <data name="PartNumberInfoInsertFailed" xml:space="preserve">
     <value>Failed to create part number information</value>
   </data>
-  <data name="ProPartNumberInfoDeleteSuccess" xml:space="preserve">
+  <data name="PartNumberInfoDeleteSuccess" xml:space="preserve">
     <value>Part number information deleted successfully</value>
   </data>
-  <data name="ProPartNumberInfoDeleteFailed" xml:space="preserve">
+  <data name="PartNumberInfoDeleteFailed" xml:space="preserve">
     <value>Failed to delete part number information</value>
   </data>
-  <data name="ProPartNumberInfoUpdateSuccess" xml:space="preserve">
+  <data name="PartNumberInfoUpdateSuccess" xml:space="preserve">
     <value>Part number information updated successfully</value>
   </data>
-  <data name="ProPartNumberInfoUpdateFailed" xml:space="preserve">
+  <data name="PartNumberInfoUpdateFailed" xml:space="preserve">
     <value>Failed to update part number information</value>
   </data>
-  <data name="ProPartNumberInfoPartNumberDuplicate" xml:space="preserve">
+  <data name="PartNumberInfoPartNumberDuplicate" xml:space="preserve">
     <value>Part number "{0}" already exists</value>
   </data>
-  <data name="ProPartNumberExcel_SheetName" xml:space="preserve">
+  <data name="PartNumberExcel_SheetName" xml:space="preserve">
     <value>Part Number Import Template</value>
   </data>
-  <data name="ProPartNumberExcel_PartNumber" xml:space="preserve">
+  <data name="PartNumberExcel_PartNumber" xml:space="preserve">
     <value>Part Number</value>
   </data>
-  <data name="ProPartNumberExcel_PartNameCn" xml:space="preserve">
+  <data name="PartNumberExcel_PartNameCn" xml:space="preserve">
     <value>Part Name (CN)</value>
   </data>
-  <data name="ProPartNumberExcel_PartNameEn" xml:space="preserve">
+  <data name="PartNumberExcel_PartNameEn" xml:space="preserve">
     <value>Part Name (EN)</value>
   </data>
-  <data name="ProPartNumberExcel_Specification" xml:space="preserve">
+  <data name="PartNumberExcel_Specification" xml:space="preserve">
     <value>Specification</value>
   </data>
-  <data name="ProPartNumberExcel_PartType" xml:space="preserve">
+  <data name="PartNumberExcel_PartType" xml:space="preserve">
     <value>Part Type</value>
   </data>
-  <data name="ProPartNumberExcel_Category" xml:space="preserve">
+  <data name="PartNumberExcel_Category" xml:space="preserve">
     <value>Category</value>
   </data>
-  <data name="ProPartNumberExcel_Model" xml:space="preserve">
+  <data name="PartNumberExcel_Model" xml:space="preserve">
     <value>Model</value>
   </data>
-  <data name="ProPartNumberExcel_DrawingNumber" xml:space="preserve">
+  <data name="PartNumberExcel_DrawingNumber" xml:space="preserve">
     <value>Drawing Number</value>
   </data>
-  <data name="ProPartNumberExcel_Version" xml:space="preserve">
+  <data name="PartNumberExcel_Version" xml:space="preserve">
     <value>Version</value>
   </data>
-  <data name="ProPartNumberExcel_Material" xml:space="preserve">
+  <data name="PartNumberExcel_Material" xml:space="preserve">
     <value>Material</value>
   </data>
-  <data name="ProPartNumberExcel_BaseUnit" xml:space="preserve">
+  <data name="PartNumberExcel_BaseUnit" xml:space="preserve">
     <value>Base Unit</value>
   </data>
-  <data name="ProPartNumberExcel_SourceType" xml:space="preserve">
+  <data name="PartNumberExcel_SourceType" xml:space="preserve">
     <value>Source Type</value>
   </data>
-  <data name="ProPartNumberExcel_Manufacturer" xml:space="preserve">
+  <data name="PartNumberExcel_Manufacturer" xml:space="preserve">
     <value>Manufacturer</value>
   </data>
-  <data name="ProPartNumberExcel_ManufacturerPartNumber" xml:space="preserve">
+  <data name="PartNumberExcel_ManufacturerPartNumber" xml:space="preserve">
     <value>Manufacturer Part Number</value>
   </data>
-  <data name="ProPartNumberExcel_LotControl" xml:space="preserve">
+  <data name="PartNumberExcel_LotControl" xml:space="preserve">
     <value>Lot Control</value>
   </data>
-  <data name="ProPartNumberExcel_Status" xml:space="preserve">
+  <data name="PartNumberExcel_Status" xml:space="preserve">
     <value>Status</value>
   </data>
-  <data name="ProPartNumberExcel_Remark" xml:space="preserve">
+  <data name="PartNumberExcel_Remark" xml:space="preserve">
     <value>Remark</value>
   </data>
-  <data name="ProPartNumberExcel_Yes" xml:space="preserve">
+  <data name="PartNumberExcel_Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="ProPartNumberExcel_No" xml:space="preserve">
+  <data name="PartNumberExcel_No" xml:space="preserve">
     <value>No</value>
   </data>
-  <data name="ProPartNumberImport_FileEmpty" xml:space="preserve">
+  <data name="PartNumberImport_FileEmpty" xml:space="preserve">
     <value>Please upload a file to import</value>
   </data>
-  <data name="ProPartNumberImport_NoWorksheet" xml:space="preserve">
+  <data name="PartNumberImport_NoWorksheet" xml:space="preserve">
     <value>No worksheet found in the Excel file</value>
   </data>
-  <data name="ProPartNumberImport_NoData" xml:space="preserve">
+  <data name="PartNumberImport_NoData" xml:space="preserve">
     <value>At least one row of data is required in the Excel file</value>
   </data>
-  <data name="ProPartNumberImport_HeaderMismatch" xml:space="preserve">
+  <data name="PartNumberImport_HeaderMismatch" xml:space="preserve">
     <value>Column {0} header mismatch: expected "{1}" but got "{2}", please use the standard template</value>
   </data>
-  <data name="ProPartNumberImport_ColumnCountMismatch" xml:space="preserve">
+  <data name="PartNumberImport_ColumnCountMismatch" xml:space="preserve">
     <value>Column count does not match the template, please use the standard template</value>
   </data>
-  <data name="ProPartNumberImport_RequiredFieldEmpty" xml:space="preserve">
+  <data name="PartNumberImport_RequiredFieldEmpty" xml:space="preserve">
     <value>Row {0} [{1}] cannot be empty</value>
   </data>
-  <data name="ProPartNumberImport_InvalidDictValue" xml:space="preserve">
+  <data name="PartNumberImport_InvalidDictValue" xml:space="preserve">
     <value>Row {0} [{1}] value "{2}" is not valid</value>
   </data>
-  <data name="ProPartNumberImport_DuplicatePartNumber" xml:space="preserve">
+  <data name="PartNumberImport_DuplicatePartNumber" xml:space="preserve">
     <value>Row {0} part number "{1}" already exists or duplicates another row in the file</value>
   </data>
-  <data name="ProPartNumberImport_Success" xml:space="preserve">
+  <data name="PartNumberImport_Success" xml:space="preserve">
     <value>Successfully imported {0} part number record(s)</value>
   </data>
 </root>

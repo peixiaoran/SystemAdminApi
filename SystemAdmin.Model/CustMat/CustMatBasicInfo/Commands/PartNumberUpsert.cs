@@ -3,7 +3,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
     /// <summary>
     /// 料号信息新增/修改类
     /// </summary>
-    public class ProPartNumberUpsert
+    public class PartNumberUpsert
     {
         /// <summary>
         /// 料号Id
