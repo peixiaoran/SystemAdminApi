@@ -20,7 +20,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<int> InsertCustomerInfo(CustomerInfoEntity entity)
+        public async Task<int> InsertCustomer(CustomerInfoEntity entity)
         {
             return await _db.Insertable(entity).ExecuteCommandAsync();
         }
@@ -30,7 +30,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="customerId"></param>
         /// <returns></returns>
-        public async Task<int> DeleteCustomerInfo(long customerId)
+        public async Task<int> DeleteCustomer(long customerId)
         {
             return await _db.Deleteable<CustomerInfoEntity>()
                             .Where(customer => customer.CustomerId == customerId)
@@ -42,7 +42,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="entity"></param>
         /// <returns></returns>
-        public async Task<int> UpdateCustomerInfo(CustomerInfoEntity entity)
+        public async Task<int> UpdateCustomer(CustomerInfoEntity entity)
         {
             return await _db.Updateable(entity)
                             .IgnoreColumns(customer => new
@@ -59,7 +59,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="customerId"></param>
         /// <returns></returns>
-        public async Task<CustomerInfoDto> GetCustomerInfoEntity(long customerId)
+        public async Task<CustomerInfoDto> GetCustomerEntity(long customerId)
         {
             var customerEntity = await _db.Queryable<CustomerInfoEntity>()
                                           .With(SqlWith.NoLock)
@@ -73,7 +73,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<CustomerInfoDto>> GetCustomerInfoPage(GetCustomerInfoPage getPage)
+        public async Task<ResultPaged<CustomerInfoDto>> GetCustomerPage(GetCustomerPage getPage)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<CustomerInfoEntity>()

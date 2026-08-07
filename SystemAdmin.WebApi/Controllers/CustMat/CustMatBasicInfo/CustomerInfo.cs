@@ -22,41 +22,41 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[客户信息] 新增客户信息")]
-        public async Task<Result<int>> InsertCustomerInfo([FromBody] CustomerInfoUpsert upsert)
+        public async Task<Result<int>> InsertCustomer([FromBody] CustomerInfoUpsert upsert)
         {
-            return await _customerInfoService.InsertCustomerInfo(upsert);
+            return await _customerInfoService.InsertCustomer(upsert);
         }
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[客户信息] 删除客户信息")]
-        public async Task<Result<int>> DeleteCustomerInfo([FromBody] CustomerInfoUpsert upsert)
+        public async Task<Result<int>> DeleteCustomer([FromForm] string customerId)
         {
-            return await _customerInfoService.DeleteCustomerInfo(upsert);
+            return await _customerInfoService.DeleteCustomer(customerId);
         }
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[客户信息] 修改客户信息")]
-        public async Task<Result<int>> UpdateCustomerInfo([FromBody] CustomerInfoUpsert upsert)
+        public async Task<Result<int>> UpdateCustomer([FromBody] CustomerInfoUpsert upsert)
         {
-            return await _customerInfoService.UpdateCustomerInfo(upsert);
+            return await _customerInfoService.UpdateCustomer(upsert);
         }
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[客户信息] 查询客户信息实体")]
-        public async Task<Result<CustomerInfoDto>> GetCustomerInfoEntity([FromBody] GetCustomerInfoEntity getEntity)
+        public async Task<Result<CustomerInfoDto>> GetCustomerEntity([FromForm] string customerId)
         {
-            return await _customerInfoService.GetCustomerInfoEntity(getEntity);
+            return await _customerInfoService.GetCustomerEntity(customerId);
         }
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[客户信息] 查询客户信息分页")]
-        public async Task<ResultPaged<CustomerInfoDto>> GetCustomerInfoPage([FromBody] GetCustomerInfoPage getPage)
+        public async Task<ResultPaged<CustomerInfoDto>> GetCustomerPage([FromBody] GetCustomerPage getPage)
         {
-            return await _customerInfoService.GetCustomerInfoPage(getPage);
+            return await _customerInfoService.GetCustomerPage(getPage);
         }
     }
 }

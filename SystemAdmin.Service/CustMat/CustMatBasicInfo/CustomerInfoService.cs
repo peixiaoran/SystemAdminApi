@@ -16,7 +16,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private readonly SqlSugarScope _db;
         private readonly CustomerInfoRepository _customerInfoRepository;
         private readonly LocalizationService _localization;
-        private readonly string _this = "CustMat_CustMatBasicInfo_CustomerInfo_";
+        private readonly string _this = "CustMat.CustMatBasicInfo.CustomerInfo";
 
         public CustomerInfoService(CurrentUser loginuser, ILogger<CustomerInfoService> logger, SqlSugarScope db, CustomerInfoRepository customerInfoRepository, LocalizationService localization)
         {
@@ -32,7 +32,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> InsertCustomerInfo(CustomerInfoUpsert upsert)
+        public async Task<Result<int>> InsertCustomer(CustomerInfoUpsert upsert)
         {
             try
             {
@@ -48,7 +48,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 };
 
                 await _db.BeginTranAsync();
-                var count = await _customerInfoRepository.InsertCustomerInfo(entity);
+                var count = await _customerInfoRepository.InsertCustomer(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -66,14 +66,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 删除客户信息
         /// </summary>
-        /// <param name="upsert"></param>
+        /// <param name="customerId"></param>
         /// <returns></returns>
-        public async Task<Result<int>> DeleteCustomerInfo(CustomerInfoUpsert upsert)
+        public async Task<Result<int>> DeleteCustomer(string customerId)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var delCustomerCount = await _customerInfoRepository.DeleteCustomerInfo(long.Parse(upsert.CustomerId));
+                var delCustomerCount = await _customerInfoRepository.DeleteCustomer(long.Parse(customerId));
                 await _db.CommitTranAsync();
 
                 return delCustomerCount >= 1
@@ -93,7 +93,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateCustomerInfo(CustomerInfoUpsert upsert)
+        public async Task<Result<int>> UpdateCustomer(CustomerInfoUpsert upsert)
         {
             try
             {
@@ -109,7 +109,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 };
 
                 await _db.BeginTranAsync();
-                var count = await _customerInfoRepository.UpdateCustomerInfo(entity);
+                var count = await _customerInfoRepository.UpdateCustomer(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -127,13 +127,13 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 查询客户信息实体
         /// </summary>
-        /// <param name="getEntity"></param>
+        /// <param name="customerId"></param>
         /// <returns></returns>
-        public async Task<Result<CustomerInfoDto>> GetCustomerInfoEntity(GetCustomerInfoEntity getEntity)
+        public async Task<Result<CustomerInfoDto>> GetCustomerEntity(string customerId)
         {
             try
             {
-                var customerInfoEntity = await _customerInfoRepository.GetCustomerInfoEntity(long.Parse(getEntity.CustomerId));
+                var customerInfoEntity = await _customerInfoRepository.GetCustomerEntity(long.Parse(customerId));
                 return Result<CustomerInfoDto>.Ok(customerInfoEntity, "");
             }
             catch (Exception ex)
@@ -148,11 +148,11 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<CustomerInfoDto>> GetCustomerInfoPage(GetCustomerInfoPage getPage)
+        public async Task<ResultPaged<CustomerInfoDto>> GetCustomerPage(GetCustomerPage getPage)
         {
             try
             {
-                return await _customerInfoRepository.GetCustomerInfoPage(getPage);
+                return await _customerInfoRepository.GetCustomerPage(getPage);
             }
             catch (Exception ex)
             {

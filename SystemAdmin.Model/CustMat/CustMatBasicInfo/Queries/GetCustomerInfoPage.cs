@@ -5,7 +5,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries
     /// <summary>
     /// 查询客户信息分页请求参数
     /// </summary>
-    public class GetCustomerInfoPage : PageModel
+    public class GetCustomerPage : PageModel
     {
         /// <summary>
         /// 客户编码
