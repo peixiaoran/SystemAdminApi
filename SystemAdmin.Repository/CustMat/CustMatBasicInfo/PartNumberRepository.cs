@@ -73,63 +73,70 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 按查询条件构建料号查询（分页查询与导出共用）
-        /// </summary>
-        /// <param name="getPartNumberPage"></param>
-        /// <returns></returns>
-        private ISugarQueryable<PartNumberEntity> BuildPartNumberQuery(GetPartNumberPage getPartNumberPage)
-        {
-            var query = _db.Queryable<PartNumberEntity>()
-                           .With(SqlWith.NoLock);
-
-            // 料号
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartNumber))
-            {
-                query = query.Where(partNumber => partNumber.PartNumber.Contains(getPartNumberPage.PartNumber));
-            }
-
-            // 品名（中英文品名均模糊查询）
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartNameCn))
-            {
-                query = query.Where(partNumber =>
-                    partNumber.PartNameCn.Contains(getPartNumberPage.PartNameCn) ||
-                    partNumber.PartNameEn.Contains(getPartNumberPage.PartNameCn));
-            }
-
-            // 料号类型
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartType))
-            {
-                query = query.Where(partNumber => partNumber.PartType == getPartNumberPage.PartType);
-            }
-
-            // 物料分类
-            if (!string.IsNullOrEmpty(getPartNumberPage.Category))
-            {
-                query = query.Where(partNumber => partNumber.Category == getPartNumberPage.Category);
-            }
-
-            // 启用状态
-            if (getPartNumberPage.Status.HasValue)
-            {
-                var status = getPartNumberPage.Status.Value == 1;
-                query = query.Where(partNumber => partNumber.Status == status);
-            }
-
-            return query.OrderBy(partNumber => partNumber.CreatedDate);
-        }
-
-        /// <summary>
         /// 查询料号分页
         /// </summary>
         /// <param name="getPartNumberPage"></param>
         /// <returns></returns>
         public async Task<ResultPaged<PartNumberDto>> GetPartNumberPage(GetPartNumberPage getPartNumberPage)
         {
-            RefAsync<int> totalCount = 0;
-            var query = BuildPartNumberQuery(getPartNumberPage);
+            var query = _db.Queryable<PartNumberEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic) => typeDic.DicType == "PartType" && partNumber.PartType == typeDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && partNumber.Category == categoryDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && partNumber.SourceType == sourceDic.DicCode);
 
-            var partNumberPage = await query.ToPageListAsync(getPartNumberPage.PageIndex, getPartNumberPage.PageSize, totalCount);
-            return ResultPaged<PartNumberDto>.Ok(partNumberPage.Adapt<List<PartNumberDto>>(), totalCount, "");
+            // 料号
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartNumber))
+            {
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartNumber.Contains(getPartNumberPage.PartNumber));
+            }
+
+            // 料号类型
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartType))
+            {
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartType == getPartNumberPage.PartType);
+            }
+
+            // 物料分类
+            if (!string.IsNullOrEmpty(getPartNumberPage.Category))
+            {
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Category == getPartNumberPage.Category);
+            }
+
+            // 启用状态
+            if (getPartNumberPage.Status.HasValue)
+            {
+                var status = getPartNumberPage.Status.Value == 1;
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Status == status);
+            }
+
+            RefAsync<int> totalCount = 0;
+            var partNumberPage = await query.OrderBy((partNumber, typeDic, categoryDic, sourceDic) => partNumber.CreatedDate)
+                                            .Select((partNumber, typeDic, categoryDic, sourceDic) => new PartNumberDto
+                                            {
+                                                PartNumberId = partNumber.PartNumberId,
+                                                PartNumber = partNumber.PartNumber,
+                                                PartNameCn = partNumber.PartNameCn,
+                                                PartNameEn = partNumber.PartNameEn,
+                                                Specification = partNumber.Specification,
+                                                PartType = partNumber.PartType,
+                                                PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
+                                                Category = partNumber.Category,
+                                                CategoryName = _lang.Locale == "zh-CN" ? categoryDic.DicNameCn : categoryDic.DicNameEn,
+                                                Model = partNumber.Model,
+                                                DrawingNumber = partNumber.DrawingNumber,
+                                                Version = partNumber.Version,
+                                                Material = partNumber.Material,
+                                                BaseUnit = partNumber.BaseUnit,
+                                                SourceType = partNumber.SourceType,
+                                                SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
+                                                Manufacturer = partNumber.Manufacturer,
+                                                ManufacturerPartNumber = partNumber.ManufacturerPartNumber,
+                                                LotControl = partNumber.LotControl,
+                                                Status = partNumber.Status,
+                                                Remark = partNumber.Remark,
+                                            }).ToPageListAsync(getPartNumberPage.PageIndex, getPartNumberPage.PageSize, totalCount);
+            return ResultPaged<PartNumberDto>.Ok(partNumberPage, totalCount, "");
         }
 
         /// <summary>
@@ -137,9 +144,64 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="getPartNumberPage"></param>
         /// <returns></returns>
-        public async Task<List<PartNumberEntity>> GetPartNumberList(GetPartNumberPage getPartNumberPage)
+        public async Task<List<PartNumberDto>> GetPartNumberList(GetPartNumberPage getPartNumberPage)
         {
-            return await BuildPartNumberQuery(getPartNumberPage).ToListAsync();
+            var query = _db.Queryable<PartNumberEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic) => typeDic.DicType == "PartType" && partNumber.PartType == typeDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && partNumber.Category == categoryDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && partNumber.SourceType == sourceDic.DicCode);
+
+            // 料号
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartNumber))
+            {
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartNumber.Contains(getPartNumberPage.PartNumber));
+            }
+
+            // 料号类型
+            if (!string.IsNullOrEmpty(getPartNumberPage.PartType))
+            {
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartType == getPartNumberPage.PartType);
+            }
+
+            // 物料分类
+            if (!string.IsNullOrEmpty(getPartNumberPage.Category))
+            {
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Category == getPartNumberPage.Category);
+            }
+
+            // 启用状态
+            if (getPartNumberPage.Status.HasValue)
+            {
+                var status = getPartNumberPage.Status.Value == 1;
+                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Status == status);
+            }
+
+            return await query.OrderBy((partNumber, typeDic, categoryDic, sourceDic) => partNumber.CreatedDate)
+                              .Select((partNumber, typeDic, categoryDic, sourceDic) => new PartNumberDto
+                              {
+                                  PartNumberId = partNumber.PartNumberId,
+                                  PartNumber = partNumber.PartNumber,
+                                  PartNameCn = partNumber.PartNameCn,
+                                  PartNameEn = partNumber.PartNameEn,
+                                  Specification = partNumber.Specification,
+                                  PartType = partNumber.PartType,
+                                  PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
+                                  Category = partNumber.Category,
+                                  CategoryName = _lang.Locale == "zh-CN" ? categoryDic.DicNameCn : categoryDic.DicNameEn,
+                                  Model = partNumber.Model,
+                                  DrawingNumber = partNumber.DrawingNumber,
+                                  Version = partNumber.Version,
+                                  Material = partNumber.Material,
+                                  BaseUnit = partNumber.BaseUnit,
+                                  SourceType = partNumber.SourceType,
+                                  SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
+                                  Manufacturer = partNumber.Manufacturer,
+                                  ManufacturerPartNumber = partNumber.ManufacturerPartNumber,
+                                  LotControl = partNumber.LotControl,
+                                  Status = partNumber.Status,
+                                  Remark = partNumber.Remark,
+                              }).ToListAsync();
         }
 
         /// <summary>

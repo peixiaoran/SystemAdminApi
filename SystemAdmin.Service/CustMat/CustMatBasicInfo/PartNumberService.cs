@@ -231,14 +231,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             {
                 var entities = await _partNumberRepository.GetPartNumberList(getPage);
 
-                var allDict = await _partNumberRepository.GetDictionaryByTypes(new List<string> { "PartType", "Category", "SourceType" });
-                var partTypeDict = allDict.Where(dic => dic.DicType == "PartType")
-                                           .ToDictionary(dic => dic.DicCode, dic => _lang.Locale == "zh-CN" ? dic.DicNameCn : dic.DicNameEn);
-                var categoryDict = allDict.Where(dic => dic.DicType == "Category")
-                                           .ToDictionary(dic => dic.DicCode, dic => _lang.Locale == "zh-CN" ? dic.DicNameCn : dic.DicNameEn);
-                var sourceTypeDict = allDict.Where(dic => dic.DicType == "SourceType")
-                                           .ToDictionary(dic => dic.DicCode, dic => _lang.Locale == "zh-CN" ? dic.DicNameCn : dic.DicNameEn);
-
                 var yesText = _localization.ReturnMsg($"{_thisExcel}Yes");
                 var noText = _localization.ReturnMsg($"{_thisExcel}No");
 
@@ -259,14 +251,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     row["PartNameCn"] = entity.PartNameCn;
                     row["PartNameEn"] = entity.PartNameEn;
                     row["Specification"] = entity.Specification;
-                    row["PartType"] = partTypeDict.GetValueOrDefault(entity.PartType, entity.PartType);
-                    row["Category"] = categoryDict.GetValueOrDefault(entity.Category, entity.Category);
+                    row["PartType"] = entity.PartTypeName;
+                    row["Category"] = entity.CategoryName;
                     row["Model"] = entity.Model;
                     row["DrawingNumber"] = entity.DrawingNumber;
                     row["Version"] = entity.Version;
                     row["Material"] = entity.Material;
                     row["BaseUnit"] = entity.BaseUnit;
-                    row["SourceType"] = sourceTypeDict.GetValueOrDefault(entity.SourceType, entity.SourceType);
+                    row["SourceType"] = entity.SourceTypeName;
                     row["Manufacturer"] = entity.Manufacturer;
                     row["ManufacturerPartNumber"] = entity.ManufacturerPartNumber;
                     row["LotControl"] = entity.LotControl ? yesText : noText;
@@ -389,7 +381,11 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             try
             {
                 if (file == null || file.Length == 0)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}FileEmpty"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}FileEmpty"));
+
+                // EPPlus仅支持.xlsx，不支持旧版.xls
+                if (!string.Equals(Path.GetExtension(file.FileName), ".xlsx", StringComparison.OrdinalIgnoreCase))
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidFileFormat"));
 
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
 
@@ -398,19 +394,19 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
 
                 // 是否有Sheet表
                 if (package.Workbook.Worksheets.Count == 0)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}NoWorksheet"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}NoWorksheet"));
 
                 var ws = package.Workbook.Worksheets[0];
 
                 // 是否至少有一条数据
                 if (ws.Dimension == null || ws.Dimension.End.Row < 2)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}NoData"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}NoData"));
 
                 // 列数量是否对得上
                 var expectedColCount = _templateColumns.Length;
                 var actualColCount = ws.Dimension.End.Column;
                 if (actualColCount != expectedColCount)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}ColumnCountMismatch"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}ColumnCountMismatch"));
 
                 // 列名是否符合中文或英文模板列名（逐列分别判断，允许中英文列名混用）
                 var actualHeaders = new List<string>();
@@ -424,7 +420,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     if (actualHeaders[i] != zhHeaders[i] && actualHeaders[i] != enHeaders[i])
                     {
-                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}HeaderMismatch", i + 1, $"{zhHeaders[i]}/{enHeaders[i]}", actualHeaders[i]));
+                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}HeaderMismatch", i + 1, $"{zhHeaders[i]}/{enHeaders[i]}", actualHeaders[i]));
                     }
                 }
 
@@ -470,26 +466,26 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     if (emptyField.Key != null)
                     {
                         var fieldLabel = _localization.ReturnMsg($"{_thisExcel}{emptyField.Key}");
-                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}RequiredFieldEmpty", row, fieldLabel));
+                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}RequiredFieldEmpty", row, fieldLabel));
                     }
 
                     // 三个下拉框字段是否有匹配的字典值
                     var partTypeCode = MatchDictCode(partTypeDict, rowValues["PartType"]);
                     if (partTypeCode == null)
-                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}PartType"), rowValues["PartType"]));
+                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}PartType"), rowValues["PartType"]));
 
                     var categoryCode = MatchDictCode(categoryDict, rowValues["Category"]);
                     if (categoryCode == null)
-                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}Category"), rowValues["Category"]));
+                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}Category"), rowValues["Category"]));
 
                     var sourceTypeCode = MatchDictCode(sourceTypeDict, rowValues["SourceType"]);
                     if (sourceTypeCode == null)
-                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}SourceType"), rowValues["SourceType"]));
+                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}SourceType"), rowValues["SourceType"]));
 
                     // 料号是否重复：文件内重复 或 数据库中已存在
                     var partNumber = rowValues["PartNumber"];
                     if (!seenPartNumbers.Add(partNumber) || existingPartNumbers.Contains(partNumber))
-                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}DuplicatePartNumber", row, partNumber));
+                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}DuplicatePartNumber", row, partNumber));
 
                     entities.Add(new PartNumberEntity
                     {

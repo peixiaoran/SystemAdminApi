@@ -219,6 +219,9 @@
   <data name="PartNumberImport_FileEmpty" xml:space="preserve">
     <value>请上传导入文件</value>
   </data>
+  <data name="PartNumberImport_InvalidFileFormat" xml:space="preserve">
+    <value>仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传</value>
+  </data>
   <data name="PartNumberImport_NoWorksheet" xml:space="preserve">
     <value>Excel文件中未找到工作表</value>
   </data>

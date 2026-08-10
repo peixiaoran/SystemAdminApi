@@ -219,6 +219,9 @@
   <data name="PartNumberImport_FileEmpty" xml:space="preserve">
     <value>Please upload a file to import</value>
   </data>
+  <data name="PartNumberImport_InvalidFileFormat" xml:space="preserve">
+    <value>Only .xlsx files are supported. The legacy .xls format is not supported, please save as .xlsx and re-upload</value>
+  </data>
   <data name="PartNumberImport_NoWorksheet" xml:space="preserve">
     <value>No worksheet found in the Excel file</value>
   </data>

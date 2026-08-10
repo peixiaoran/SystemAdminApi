@@ -10,11 +10,6 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries
         public string PartNumber { get; set; } = string.Empty;
 
         /// <summary>
-        /// 品名
-        /// </summary>
-        public string PartNameCn { get; set; } = string.Empty;
-
-        /// <summary>
         /// 料号类型
         /// </summary>
         public string PartType { get; set; } = string.Empty;

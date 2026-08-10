@@ -340,6 +340,15 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
         }
 
         /// <summary>
+        ///   查找类似 仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传 的本地化字符串。
+        /// </summary>
+        internal static string PartNumberImport_InvalidFileFormat {
+            get {
+                return ResourceManager.GetString("PartNumberImport_InvalidFileFormat", resourceCulture);
+            }
+        }
+
+        /// <summary>
         ///   查找类似 Excel文件中未找到工作表 的本地化字符串。
         /// </summary>
         internal static string PartNumberImport_NoWorksheet {
