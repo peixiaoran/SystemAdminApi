@@ -8,12 +8,12 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
 {
-    public class PartNumberRepository
+    public class CompanyNumberRepository
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
 
-        public PartNumberRepository(SqlSugarScope db, Language lang)
+        public CompanyNumberRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
             _lang = lang;
@@ -22,11 +22,11 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <summary>
         /// 新增料号信息
         /// </summary>
-        /// <param name="partNumberEntity"></param>
+        /// <param name="companyNumberEntity"></param>
         /// <returns></returns>
-        public async Task<int> InsertPartNumber(PartNumberEntity partNumberEntity)
+        public async Task<int> InsertCompanyNumber(CompanyNumberEntity companyNumberEntity)
         {
-            return await _db.Insertable(partNumberEntity).ExecuteCommandAsync();
+            return await _db.Insertable(companyNumberEntity).ExecuteCommandAsync();
         }
 
         /// <summary>
@@ -34,27 +34,27 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<int> DeletePartNumber(long partNumberId)
+        public async Task<int> DeleteCompanyNumber(long partNumberId)
         {
-            return await _db.Deleteable<PartNumberEntity>()
-                            .Where(partNumber => partNumber.PartNumberId == partNumberId)
+            return await _db.Deleteable<CompanyNumberEntity>()
+                            .Where(companyNumber => companyNumber.PartNumberId == partNumberId)
                             .ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 修改料号信息
         /// </summary>
-        /// <param name="partNumberEntity"></param>
+        /// <param name="companyNumberEntity"></param>
         /// <returns></returns>
-        public async Task<int> UpdatePartNumber(PartNumberEntity partNumberEntity)
+        public async Task<int> UpdateCompanyNumber(CompanyNumberEntity companyNumberEntity)
         {
-            return await _db.Updateable(partNumberEntity)
-                            .IgnoreColumns(partNumber => new
+            return await _db.Updateable(companyNumberEntity)
+                            .IgnoreColumns(companyNumber => new
                             {
-                                partNumber.PartNumberId,
-                                partNumber.CreatedBy,
-                                partNumber.CreatedDate,
-                            }).Where(partNumber => partNumber.PartNumberId == partNumberEntity.PartNumberId)
+                                companyNumber.PartNumberId,
+                                companyNumber.CreatedBy,
+                                companyNumber.CreatedDate,
+                            }).Where(companyNumber => companyNumber.PartNumberId == companyNumberEntity.PartNumberId)
                             .ExecuteCommandAsync();
         }
 
@@ -63,155 +63,153 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<PartNumberDto> GetPartNumberEntity(long partNumberId)
+        public async Task<CompanyNumberDto> GetCompanyNumberEntity(long partNumberId)
         {
-            var partNumberEntity = await _db.Queryable<PartNumberEntity>()
+            var companyNumberEntity = await _db.Queryable<CompanyNumberEntity>()
                                             .With(SqlWith.NoLock)
-                                            .Where(partNumber => partNumber.PartNumberId == partNumberId)
+                                            .Where(companyNumber => companyNumber.PartNumberId == partNumberId)
                                             .FirstAsync();
-            return partNumberEntity.Adapt<PartNumberDto>();
+            return companyNumberEntity.Adapt<CompanyNumberDto>();
         }
 
         /// <summary>
         /// 查询料号分页
         /// </summary>
-        /// <param name="getPartNumberPage"></param>
+        /// <param name="getCompanyNumberPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<PartNumberDto>> GetPartNumberPage(GetPartNumberPage getPartNumberPage)
+        public async Task<ResultPaged<CompanyNumberDto>> GetCompanyNumberPage(GetCompanyNumberPage getCompanyNumberPage)
         {
-            var query = _db.Queryable<PartNumberEntity>()
+            var query = _db.Queryable<CompanyNumberEntity>()
                            .With(SqlWith.NoLock)
-                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic) => typeDic.DicType == "PartType" && partNumber.PartType == typeDic.DicCode)
-                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && partNumber.Category == categoryDic.DicCode)
-                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && partNumber.SourceType == sourceDic.DicCode);
+                           .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic) => typeDic.DicType == "PartType" && companyNumber.PartType == typeDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && companyNumber.Category == categoryDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && companyNumber.SourceType == sourceDic.DicCode);
 
             // 料号
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartNumber))
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.PartNumber))
             {
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartNumber.Contains(getPartNumberPage.PartNumber));
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartNumber.Contains(getCompanyNumberPage.PartNumber));
             }
 
             // 料号类型
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartType))
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.PartType))
             {
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartType == getPartNumberPage.PartType);
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartType == getCompanyNumberPage.PartType);
             }
 
             // 物料分类
-            if (!string.IsNullOrEmpty(getPartNumberPage.Category))
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Category))
             {
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Category == getPartNumberPage.Category);
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Category == getCompanyNumberPage.Category);
             }
 
             // 启用状态
-            if (getPartNumberPage.Status.HasValue)
+            if (getCompanyNumberPage.Status.HasValue)
             {
-                var status = getPartNumberPage.Status.Value == 1;
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Status == status);
+                var status = getCompanyNumberPage.Status.Value == 1;
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Status == status);
             }
 
             RefAsync<int> totalCount = 0;
-            var partNumberPage = await query.OrderBy((partNumber, typeDic, categoryDic, sourceDic) => partNumber.CreatedDate)
-                                            .Select((partNumber, typeDic, categoryDic, sourceDic) => new PartNumberDto
+            var companyNumberPage = await query.OrderBy((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.CreatedDate)
+                                            .Select((companyNumber, typeDic, categoryDic, sourceDic) => new CompanyNumberDto
                                             {
-                                                PartNumberId = partNumber.PartNumberId,
-                                                PartNumber = partNumber.PartNumber,
-                                                PartNameCn = partNumber.PartNameCn,
-                                                PartNameEn = partNumber.PartNameEn,
-                                                Specification = partNumber.Specification,
-                                                PartType = partNumber.PartType,
+                                                PartNumberId = companyNumber.PartNumberId,
+                                                PartNumber = companyNumber.PartNumber,
+                                                ProductNameCn = companyNumber.ProductNameCn,
+                                                ProductNameEn = companyNumber.ProductNameEn,
+                                                Specification = companyNumber.Specification,
+                                                PartType = companyNumber.PartType,
                                                 PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
-                                                Category = partNumber.Category,
+                                                Category = companyNumber.Category,
                                                 CategoryName = _lang.Locale == "zh-CN" ? categoryDic.DicNameCn : categoryDic.DicNameEn,
-                                                Model = partNumber.Model,
-                                                DrawingNumber = partNumber.DrawingNumber,
-                                                Version = partNumber.Version,
-                                                Material = partNumber.Material,
-                                                BaseUnit = partNumber.BaseUnit,
-                                                SourceType = partNumber.SourceType,
+                                                Model = companyNumber.Model,
+                                                DrawingNumber = companyNumber.DrawingNumber,
+                                                Version = companyNumber.Version,
+                                                BaseUnit = companyNumber.BaseUnit,
+                                                SourceType = companyNumber.SourceType,
                                                 SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
-                                                Manufacturer = partNumber.Manufacturer,
-                                                ManufacturerPartNumber = partNumber.ManufacturerPartNumber,
-                                                LotControl = partNumber.LotControl,
-                                                Status = partNumber.Status,
-                                                Remark = partNumber.Remark,
-                                            }).ToPageListAsync(getPartNumberPage.PageIndex, getPartNumberPage.PageSize, totalCount);
-            return ResultPaged<PartNumberDto>.Ok(partNumberPage, totalCount, "");
+                                                Manufacturer = companyNumber.Manufacturer,
+                                                ManufacturerPartNumber = companyNumber.ManufacturerPartNumber,
+                                                LotControl = companyNumber.LotControl,
+                                                Status = companyNumber.Status,
+                                                Remark = companyNumber.Remark,
+                                            }).ToPageListAsync(getCompanyNumberPage.PageIndex, getCompanyNumberPage.PageSize, totalCount);
+            return ResultPaged<CompanyNumberDto>.Ok(companyNumberPage, totalCount, "");
         }
 
         /// <summary>
         /// 按查询条件查询料号信息列表
         /// </summary>
-        /// <param name="getPartNumberPage"></param>
+        /// <param name="getCompanyNumberPage"></param>
         /// <returns></returns>
-        public async Task<List<PartNumberDto>> GetPartNumberList(GetPartNumberPage getPartNumberPage)
+        public async Task<List<CompanyNumberDto>> GetCompanyNumberList(GetCompanyNumberPage getCompanyNumberPage)
         {
-            var query = _db.Queryable<PartNumberEntity>()
+            var query = _db.Queryable<CompanyNumberEntity>()
                            .With(SqlWith.NoLock)
-                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic) => typeDic.DicType == "PartType" && partNumber.PartType == typeDic.DicCode)
-                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && partNumber.Category == categoryDic.DicCode)
-                           .InnerJoin<DictionaryInfoEntity>((partNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && partNumber.SourceType == sourceDic.DicCode);
+                           .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic) => typeDic.DicType == "PartType" && companyNumber.PartType == typeDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && companyNumber.Category == categoryDic.DicCode)
+                           .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && companyNumber.SourceType == sourceDic.DicCode);
 
             // 料号
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartNumber))
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.PartNumber))
             {
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartNumber.Contains(getPartNumberPage.PartNumber));
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartNumber.Contains(getCompanyNumberPage.PartNumber));
             }
 
             // 料号类型
-            if (!string.IsNullOrEmpty(getPartNumberPage.PartType))
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.PartType))
             {
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.PartType == getPartNumberPage.PartType);
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartType == getCompanyNumberPage.PartType);
             }
 
             // 物料分类
-            if (!string.IsNullOrEmpty(getPartNumberPage.Category))
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Category))
             {
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Category == getPartNumberPage.Category);
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Category == getCompanyNumberPage.Category);
             }
 
             // 启用状态
-            if (getPartNumberPage.Status.HasValue)
+            if (getCompanyNumberPage.Status.HasValue)
             {
-                var status = getPartNumberPage.Status.Value == 1;
-                query = query.Where((partNumber, typeDic, categoryDic, sourceDic) => partNumber.Status == status);
+                var status = getCompanyNumberPage.Status.Value == 1;
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Status == status);
             }
 
-            return await query.OrderBy((partNumber, typeDic, categoryDic, sourceDic) => partNumber.CreatedDate)
-                              .Select((partNumber, typeDic, categoryDic, sourceDic) => new PartNumberDto
+            return await query.OrderBy((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.CreatedDate)
+                              .Select((companyNumber, typeDic, categoryDic, sourceDic) => new CompanyNumberDto
                               {
-                                  PartNumberId = partNumber.PartNumberId,
-                                  PartNumber = partNumber.PartNumber,
-                                  PartNameCn = partNumber.PartNameCn,
-                                  PartNameEn = partNumber.PartNameEn,
-                                  Specification = partNumber.Specification,
-                                  PartType = partNumber.PartType,
+                                  PartNumberId = companyNumber.PartNumberId,
+                                  PartNumber = companyNumber.PartNumber,
+                                  ProductNameCn = companyNumber.ProductNameCn,
+                                  ProductNameEn = companyNumber.ProductNameEn,
+                                  Specification = companyNumber.Specification,
+                                  PartType = companyNumber.PartType,
                                   PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
-                                  Category = partNumber.Category,
+                                  Category = companyNumber.Category,
                                   CategoryName = _lang.Locale == "zh-CN" ? categoryDic.DicNameCn : categoryDic.DicNameEn,
-                                  Model = partNumber.Model,
-                                  DrawingNumber = partNumber.DrawingNumber,
-                                  Version = partNumber.Version,
-                                  Material = partNumber.Material,
-                                  BaseUnit = partNumber.BaseUnit,
-                                  SourceType = partNumber.SourceType,
+                                  Model = companyNumber.Model,
+                                  DrawingNumber = companyNumber.DrawingNumber,
+                                  Version = companyNumber.Version,
+                                  BaseUnit = companyNumber.BaseUnit,
+                                  SourceType = companyNumber.SourceType,
                                   SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
-                                  Manufacturer = partNumber.Manufacturer,
-                                  ManufacturerPartNumber = partNumber.ManufacturerPartNumber,
-                                  LotControl = partNumber.LotControl,
-                                  Status = partNumber.Status,
-                                  Remark = partNumber.Remark,
+                                  Manufacturer = companyNumber.Manufacturer,
+                                  ManufacturerPartNumber = companyNumber.ManufacturerPartNumber,
+                                  LotControl = companyNumber.LotControl,
+                                  Status = companyNumber.Status,
+                                  Remark = companyNumber.Remark,
                               }).ToListAsync();
         }
 
         /// <summary>
         /// 批量新增料号信息列表
         /// </summary>
-        /// <param name="partNumberInfoList"></param>
+        /// <param name="companyNumberList"></param>
         /// <returns></returns>
-        public async Task<int> InsertPartNumberList(List<PartNumberEntity> partNumberInfoList)
+        public async Task<int> InsertCompanyNumberList(List<CompanyNumberEntity> companyNumberList)
         {
-            return await _db.Insertable(partNumberInfoList).ExecuteCommandAsync();
+            return await _db.Insertable(companyNumberList).ExecuteCommandAsync();
         }
 
         /// <summary>
@@ -302,9 +300,9 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumber"></param>
         /// <returns></returns>
-        public async Task<bool> ExistsPartNumber(string partNumber)
+        public async Task<bool> ExistsCompanyNumber(string partNumber)
         {
-            return await _db.Queryable<PartNumberEntity>()
+            return await _db.Queryable<CompanyNumberEntity>()
                             .With(SqlWith.NoLock)
                             .Where(entity => entity.PartNumber == partNumber)
                             .AnyAsync();
@@ -315,12 +313,12 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// </summary>
         /// <param name="partNumbers"></param>
         /// <returns></returns>
-        public async Task<List<string>> GetExistingPartNumbers(List<string> partNumbers)
+        public async Task<List<string>> GetExistingCompanyNumbers(List<string> partNumbers)
         {
-            return await _db.Queryable<PartNumberEntity>()
+            return await _db.Queryable<CompanyNumberEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(partNumber => partNumbers.Contains(partNumber.PartNumber))
-                            .Select(partNumber => partNumber.PartNumber)
+                            .Where(companyNumber => partNumbers.Contains(companyNumber.PartNumber))
+                            .Select(companyNumber => companyNumber.PartNumber)
                             .ToListAsync();
         }
     }

@@ -3,7 +3,6 @@ using SqlSugar;
 using SystemAdmin.Common.Enums.SystemBasicMgmt;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
-using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Entity;

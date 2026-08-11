@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Options;
 using Minio;
 using Minio.DataModel.Args;
-using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.Security
 {

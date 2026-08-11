@@ -9,91 +9,68 @@ using SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries;
-using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Repository.CustMat.CustMatBasicInfo;
 
 namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
 {
-    public class CompanyNumberService
+    public class CustomerNumberService
     {
         private readonly CurrentUser _loginuser;
-        private readonly ILogger<CompanyNumberService> _logger;
+        private readonly ILogger<CustomerNumberService> _logger;
         private readonly SqlSugarScope _db;
-        private readonly CompanyNumberRepository _companyNumberRepository;
+        private readonly CustomerNumberRepository _customerNumberRepository;
         private readonly LocalizationService _localization;
-        private readonly Language _lang;
-        private readonly string _this = "CustMat.CustMatBasicInfo.CompanyNumberInfo";
-        private readonly string _thisExcel = "CustMat.CustMatBasicInfo.CompanyNumberExcel_";
-        private readonly string _thisImport = "CustMat.CustMatBasicInfo.CompanyNumberImport_";
+        private readonly string _this = "CustMat.CustMatBasicInfo.CustomerNumberInfo";
+        private readonly string _thisExcel = "CustMat.CustMatBasicInfo.CustomerNumberExcel_";
+        private readonly string _thisImport = "CustMat.CustMatBasicInfo.CustomerNumberImport_";
 
         // 导入/导出模板列（顺序即Excel列顺序），不含Id、创建、修改等系统字段
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
         {
             ("PartNumber", true),
-            ("ProductNameCn", true),
-            ("ProductNameEn", true),
+            ("NumberNameCn", true),
+            ("NumberNameEn", true),
             ("Specification", true),
-            ("PartType", true),
-            ("Category", true),
-            ("Model", true),
-            ("DrawingNumber", true),
-            ("Version", true),
-            ("BaseUnit", true),
-            ("SourceType", true),
-            ("Manufacturer", false),
-            ("ManufacturerPartNumber", false),
-            ("LotControl", true),
+            ("Unit", true),
             ("Status", true),
-            ("Remark", false),
         };
 
-        public CompanyNumberService(CurrentUser loginuser, ILogger<CompanyNumberService> logger, SqlSugarScope db, CompanyNumberRepository companyNumberRepository, LocalizationService localization, Language lang)
+        public CustomerNumberService(CurrentUser loginuser, ILogger<CustomerNumberService> logger, SqlSugarScope db, CustomerNumberRepository customerNumberRepository, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
-            _companyNumberRepository = companyNumberRepository;
+            _customerNumberRepository = customerNumberRepository;
             _localization = localization;
-            _lang = lang;
         }
 
         /// <summary>
-        /// 新增料号信息
+        /// 新增客户料号信息
         /// </summary>
-        /// <param name="companyNumberUpsert"></param>
+        /// <param name="customerNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> InsertCompanyNumber(CompanyNumberUpsert companyNumberUpsert)
+        public async Task<Result<int>> InsertCustomerNumber(CustomerNumberUpsert customerNumberUpsert)
         {
             try
             {
-                var exists = await _companyNumberRepository.ExistsCompanyNumber(companyNumberUpsert.PartNumber);
+                var exists = await _customerNumberRepository.ExistsCustomerNumber(customerNumberUpsert.PartNumber);
                 if (exists)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", companyNumberUpsert.PartNumber));
+                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", customerNumberUpsert.PartNumber));
 
                 await _db.BeginTranAsync();
-                var entity = new CompanyNumberEntity()
+                var entity = new CustomerNumberEntity()
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
-                    PartNumber = companyNumberUpsert.PartNumber,
-                    ProductNameCn = companyNumberUpsert.ProductNameCn,
-                    ProductNameEn = companyNumberUpsert.ProductNameEn,
-                    Specification = companyNumberUpsert.Specification,
-                    PartType = companyNumberUpsert.PartType,
-                    Category = companyNumberUpsert.Category,
-                    Model = companyNumberUpsert.Model,
-                    DrawingNumber = companyNumberUpsert.DrawingNumber,
-                    Version = companyNumberUpsert.Version,
-                    BaseUnit = companyNumberUpsert.BaseUnit,
-                    SourceType = companyNumberUpsert.SourceType,
-                    Manufacturer = companyNumberUpsert.Manufacturer,
-                    ManufacturerPartNumber = companyNumberUpsert.ManufacturerPartNumber,
-                    LotControl = companyNumberUpsert.LotControl,
-                    Status = companyNumberUpsert.Status,
-                    Remark = companyNumberUpsert.Remark,
+                    PartNumber = customerNumberUpsert.PartNumber,
+                    NumberNameCn = customerNumberUpsert.NumberNameCn,
+                    NumberNameEn = customerNumberUpsert.NumberNameEn,
+                    Specification = customerNumberUpsert.Specification,
+                    Unit = customerNumberUpsert.Unit,
+                    Status = customerNumberUpsert.Status,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _companyNumberRepository.InsertCompanyNumber(entity);
+                var count = await _customerNumberRepository.InsertCustomerNumber(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -109,20 +86,20 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 删除料号信息
+        /// 删除客户料号信息
         /// </summary>
         /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<Result<int>> DeleteCompanyNumber(string partNumberId)
+        public async Task<Result<int>> DeleteCustomerNumber(string partNumberId)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var delCompanyNumberCount = await _companyNumberRepository.DeleteCompanyNumber(long.Parse(partNumberId));
+                var delCustomerNumberCount = await _customerNumberRepository.DeleteCustomerNumber(long.Parse(partNumberId));
                 await _db.CommitTranAsync();
 
-                return delCompanyNumberCount >= 1
-                        ? Result<int>.Ok(delCompanyNumberCount, _localization.ReturnMsg($"{_this}DeleteSuccess"))
+                return delCustomerNumberCount >= 1
+                        ? Result<int>.Ok(delCustomerNumberCount, _localization.ReturnMsg($"{_this}DeleteSuccess"))
                         : Result<int>.Failure(500, _localization.ReturnMsg($"{_this}DeleteFailed"));
             }
             catch (Exception ex)
@@ -134,38 +111,28 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 修改料号信息
+        /// 修改客户料号信息
         /// </summary>
-        /// <param name="companyNumberUpsert"></param>
+        /// <param name="customerNumberUpsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateCompanyNumber(CompanyNumberUpsert companyNumberUpsert)
+        public async Task<Result<int>> UpdateCustomerNumber(CustomerNumberUpsert customerNumberUpsert)
         {
             try
             {
                 await _db.BeginTranAsync();
-                var entity = new CompanyNumberEntity()
+                var entity = new CustomerNumberEntity()
                 {
-                    PartNumberId = long.Parse(companyNumberUpsert.PartNumberId),
-                    PartNumber = companyNumberUpsert.PartNumber,
-                    ProductNameCn = companyNumberUpsert.ProductNameCn,
-                    ProductNameEn = companyNumberUpsert.ProductNameEn,
-                    Specification = companyNumberUpsert.Specification,
-                    PartType = companyNumberUpsert.PartType,
-                    Category = companyNumberUpsert.Category,
-                    Model = companyNumberUpsert.Model,
-                    DrawingNumber = companyNumberUpsert.DrawingNumber,
-                    Version = companyNumberUpsert.Version,
-                    BaseUnit = companyNumberUpsert.BaseUnit,
-                    SourceType = companyNumberUpsert.SourceType,
-                    Manufacturer = companyNumberUpsert.Manufacturer,
-                    ManufacturerPartNumber = companyNumberUpsert.ManufacturerPartNumber,
-                    LotControl = companyNumberUpsert.LotControl,
-                    Status = companyNumberUpsert.Status,
-                    Remark = companyNumberUpsert.Remark,
+                    PartNumberId = long.Parse(customerNumberUpsert.PartNumberId),
+                    PartNumber = customerNumberUpsert.PartNumber,
+                    NumberNameCn = customerNumberUpsert.NumberNameCn,
+                    NumberNameEn = customerNumberUpsert.NumberNameEn,
+                    Specification = customerNumberUpsert.Specification,
+                    Unit = customerNumberUpsert.Unit,
+                    Status = customerNumberUpsert.Status,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _companyNumberRepository.UpdateCompanyNumber(entity);
+                var count = await _customerNumberRepository.UpdateCustomerNumber(entity);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -181,52 +148,52 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 查询料号信息实体
+        /// 查询客户料号信息实体
         /// </summary>
         /// <param name="partNumberId"></param>
         /// <returns></returns>
-        public async Task<Result<CompanyNumberDto>> GetCompanyNumberEntity(string partNumberId)
+        public async Task<Result<CustomerNumberDto>> GetCustomerNumberEntity(string partNumberId)
         {
             try
             {
-                var companyNumberEntity = await _companyNumberRepository.GetCompanyNumberEntity(long.Parse(partNumberId));
-                return Result<CompanyNumberDto>.Ok(companyNumberEntity, "");
+                var customerNumberEntity = await _customerNumberRepository.GetCustomerNumberEntity(long.Parse(partNumberId));
+                return Result<CustomerNumberDto>.Ok(customerNumberEntity, "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<CompanyNumberDto>.Failure(500, ex.Message);
+                return Result<CustomerNumberDto>.Failure(500, ex.Message);
             }
         }
 
         /// <summary>
-        /// 查询料号信息分页
+        /// 查询客户料号信息分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<CompanyNumberDto>> GetCompanyNumberPage(GetCompanyNumberPage getPage)
+        public async Task<ResultPaged<CustomerNumberDto>> GetCustomerNumberPage(GetCustomerNumberPage getPage)
         {
             try
             {
-                return await _companyNumberRepository.GetCompanyNumberPage(getPage);
+                return await _customerNumberRepository.GetCustomerNumberPage(getPage);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return ResultPaged<CompanyNumberDto>.Failure(500, ex.Message);
+                return ResultPaged<CustomerNumberDto>.Failure(500, ex.Message);
             }
         }
 
         /// <summary>
-        /// 导出料号信息
+        /// 导出客户料号信息
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetCompanyNumberExcel(GetCompanyNumberPage getPage)
+        public async Task<byte[]> GetCustomerNumberExcel(GetCustomerNumberPage getPage)
         {
             try
             {
-                var entities = await _companyNumberRepository.GetCompanyNumberList(getPage);
+                var entities = await _customerNumberRepository.GetCustomerNumberList(getPage);
 
                 var yesText = _localization.ReturnMsg($"{_thisExcel}Yes");
                 var noText = _localization.ReturnMsg($"{_thisExcel}No");
@@ -245,21 +212,11 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     var row = dt.NewRow();
                     row["PartNumber"] = entity.PartNumber;
-                    row["ProductNameCn"] = entity.ProductNameCn;
-                    row["ProductNameEn"] = entity.ProductNameEn;
+                    row["NumberNameCn"] = entity.NumberNameCn;
+                    row["NumberNameEn"] = entity.NumberNameEn;
                     row["Specification"] = entity.Specification;
-                    row["PartType"] = entity.PartTypeName;
-                    row["Category"] = entity.CategoryName;
-                    row["Model"] = entity.Model;
-                    row["DrawingNumber"] = entity.DrawingNumber;
-                    row["Version"] = entity.Version;
-                    row["BaseUnit"] = entity.BaseUnit;
-                    row["SourceType"] = entity.SourceTypeName;
-                    row["Manufacturer"] = entity.Manufacturer;
-                    row["ManufacturerPartNumber"] = entity.ManufacturerPartNumber;
-                    row["LotControl"] = entity.LotControl ? yesText : noText;
-                    row["Status"] = entity.Status ? yesText : noText;
-                    row["Remark"] = entity.Remark;
+                    row["Unit"] = entity.Unit;
+                    row["Status"] = entity.Status == 1 ? yesText : noText;
                     dt.Rows.Add(row);
                 }
 
@@ -279,64 +236,10 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 查询料号类型下拉
+        /// 导出客户料号导入模板（不含Id、创建、修改等字段）
         /// </summary>
         /// <returns></returns>
-        public async Task<Result<List<PartTypeDropDto>>> GetPartTypeDrop()
-        {
-            try
-            {
-                var drop = await _companyNumberRepository.GetPartTypeDrop();
-                return Result<List<PartTypeDropDto>>.Ok(drop, "");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<List<PartTypeDropDto>>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 查询物料分类下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Result<List<PartCategoryDropDto>>> GetCategoryDrop()
-        {
-            try
-            {
-                var drop = await _companyNumberRepository.GetCategoryDrop();
-                return Result<List<PartCategoryDropDto>>.Ok(drop, "");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<List<PartCategoryDropDto>>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 查询来源类型下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Result<List<PartSourceTypeDropDto>>> GetSourceTypeDrop()
-        {
-            try
-            {
-                var drop = await _companyNumberRepository.GetSourceTypeDrop();
-                return Result<List<PartSourceTypeDropDto>>.Ok(drop, "");
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, ex.Message);
-                return Result<List<PartSourceTypeDropDto>>.Failure(500, ex.Message);
-            }
-        }
-
-        /// <summary>
-        /// 导出料号导入模板（不含Id、创建、修改等字段）
-        /// </summary>
-        /// <returns></returns>
-        public Task<byte[]> GetCompanyNumberTemplate()
+        public Task<byte[]> GetCustomerNumberTemplate()
         {
             try
             {
@@ -368,11 +271,11 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 导入料号信息
+        /// 导入客户料号信息
         /// </summary>
         /// <param name="file"></param>
         /// <returns></returns>
-        public async Task<Result<int>> ImportCompanyNumber(IFormFile file)
+        public async Task<Result<int>> ImportCustomerNumber(IFormFile file)
         {
             try
             {
@@ -422,13 +325,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     }
                 }
 
-                // 三个下拉字段对应的字典数据一次性查询出来（编码、中文名称、英文名称均可匹配）
-                var allDict = await _companyNumberRepository.GetDictionaryByTypes(new List<string> { "PartType", "Category", "SourceType" });
-                var partTypeDict = allDict.Where(dic => dic.DicType == "PartType").ToList();
-                var categoryDict = allDict.Where(dic => dic.DicType == "Category").ToList();
-                var sourceTypeDict = allDict.Where(dic => dic.DicType == "SourceType").ToList();
-
-                // 一次性查询文件中所有料号在数据库中是否已存在，避免逐行查询
+                // 一次性查询文件中所有客户料号在数据库中是否已存在，避免逐行查询
                 var partNumberColIndex = Array.FindIndex(_templateColumns, c => c.Key == "PartNumber") + 1;
                 var filePartNumbers = new List<string>();
                 for (var row = 2; row <= ws.Dimension.End.Row; row++)
@@ -437,11 +334,11 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     if (!string.IsNullOrEmpty(text))
                         filePartNumbers.Add(text);
                 }
-                var existingCompanyNumbers = new HashSet<string>(
-                    await _companyNumberRepository.GetExistingCompanyNumbers(filePartNumbers),
+                var existingCustomerNumbers = new HashSet<string>(
+                    await _customerNumberRepository.GetExistingCustomerNumbers(filePartNumbers),
                     StringComparer.OrdinalIgnoreCase);
 
-                var entities = new List<CompanyNumberEntity>();
+                var entities = new List<CustomerNumberEntity>();
                 var seenPartNumbers = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 for (var row = 2; row <= ws.Dimension.End.Row; row++)
                 {
@@ -467,43 +364,20 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                         return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}RequiredFieldEmpty", row, fieldLabel));
                     }
 
-                    // 三个下拉框字段是否有匹配的字典值
-                    var partTypeCode = MatchDictCode(partTypeDict, rowValues["PartType"]);
-                    if (partTypeCode == null)
-                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}PartType"), rowValues["PartType"]));
-
-                    var categoryCode = MatchDictCode(categoryDict, rowValues["Category"]);
-                    if (categoryCode == null)
-                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}Category"), rowValues["Category"]));
-
-                    var sourceTypeCode = MatchDictCode(sourceTypeDict, rowValues["SourceType"]);
-                    if (sourceTypeCode == null)
-                        return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}InvalidDictValue", row, _localization.ReturnMsg($"{_thisExcel}SourceType"), rowValues["SourceType"]));
-
-                    // 料号是否重复：文件内重复 或 数据库中已存在
+                    // 客户料号是否重复：文件内重复 或 数据库中已存在
                     var partNumber = rowValues["PartNumber"];
-                    if (!seenPartNumbers.Add(partNumber) || existingCompanyNumbers.Contains(partNumber))
+                    if (!seenPartNumbers.Add(partNumber) || existingCustomerNumbers.Contains(partNumber))
                         return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}DuplicatePartNumber", row, partNumber));
 
-                    entities.Add(new CompanyNumberEntity
+                    entities.Add(new CustomerNumberEntity
                     {
                         PartNumberId = SnowFlakeSingle.Instance.NextId(),
-                        PartNumber = rowValues["PartNumber"],
-                        ProductNameCn = rowValues["ProductNameCn"],
-                        ProductNameEn = rowValues["ProductNameEn"],
+                        PartNumber = partNumber,
+                        NumberNameCn = rowValues["NumberNameCn"],
+                        NumberNameEn = rowValues["NumberNameEn"],
                         Specification = rowValues["Specification"],
-                        PartType = partTypeCode,
-                        Category = categoryCode,
-                        Model = rowValues["Model"],
-                        DrawingNumber = rowValues["DrawingNumber"],
-                        Version = rowValues["Version"],
-                        BaseUnit = rowValues["BaseUnit"],
-                        SourceType = sourceTypeCode,
-                        Manufacturer = string.IsNullOrEmpty(rowValues["Manufacturer"]) ? null : rowValues["Manufacturer"],
-                        ManufacturerPartNumber = string.IsNullOrEmpty(rowValues["ManufacturerPartNumber"]) ? null : rowValues["ManufacturerPartNumber"],
-                        LotControl = ParseBoolText(rowValues["LotControl"]),
-                        Status = ParseBoolText(rowValues["Status"]),
-                        Remark = string.IsNullOrEmpty(rowValues["Remark"]) ? null : rowValues["Remark"],
+                        Unit = rowValues["Unit"],
+                        Status = ParseStatusText(rowValues["Status"]),
                         CreatedBy = _loginuser.UserId,
                         CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                     });
@@ -513,7 +387,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     return Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}NoData"));
 
                 await _db.BeginTranAsync();
-                var count = await _companyNumberRepository.InsertCompanyNumberList(entities);
+                var count = await _customerNumberRepository.InsertCustomerNumberList(entities);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -542,31 +416,16 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 按编码/中文名称/英文名称匹配字典编码
-        /// </summary>
-        /// <param name="dictList"></param>
-        /// <param name="value"></param>
-        /// <returns></returns>
-        private static string? MatchDictCode(List<DictionaryInfoEntity> dictList, string value)
-        {
-            var matched = dictList.FirstOrDefault(dic =>
-                string.Equals(dic.DicCode, value, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dic.DicNameCn, value, StringComparison.OrdinalIgnoreCase) ||
-                string.Equals(dic.DicNameEn, value, StringComparison.OrdinalIgnoreCase));
-            return matched?.DicCode;
-        }
-
-        /// <summary>
-        /// 解析是否类文本为bool（中文：是/否，英文：Yes/No）
+        /// 解析是否类文本为状态值（中文：是/否，英文：Yes/No，对应 1/0）
         /// </summary>
         /// <param name="value"></param>
         /// <returns></returns>
-        private static bool ParseBoolText(string value)
+        private static int ParseStatusText(string value)
         {
             return value.Trim().ToUpperInvariant() switch
             {
-                "是" or "YES" => true,
-                _ => false,
+                "是" or "YES" => 1,
+                _ => 0,
             };
         }
     }

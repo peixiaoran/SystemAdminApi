@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Dto;
-using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Queries;
 using SystemAdmin.Repository.SystemBasicMgmt.SystemAuth;
 
 namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth

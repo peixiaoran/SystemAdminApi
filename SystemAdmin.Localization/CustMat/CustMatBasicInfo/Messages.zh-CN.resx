@@ -135,115 +135,187 @@
   <data name="CustomerInfoUpdateSuccess" xml:space="preserve">
     <value>修改客户信息成功</value>
   </data>
-  <data name="PartNumberInfoInsertSuccess" xml:space="preserve">
+  <data name="CompanyNumberInfoInsertSuccess" xml:space="preserve">
     <value>新增料号信息成功</value>
   </data>
-  <data name="PartNumberInfoInsertFailed" xml:space="preserve">
+  <data name="CompanyNumberInfoInsertFailed" xml:space="preserve">
     <value>新增料号信息失败</value>
   </data>
-  <data name="PartNumberInfoDeleteSuccess" xml:space="preserve">
+  <data name="CompanyNumberInfoDeleteSuccess" xml:space="preserve">
     <value>删除料号信息成功</value>
   </data>
-  <data name="PartNumberInfoDeleteFailed" xml:space="preserve">
+  <data name="CompanyNumberInfoDeleteFailed" xml:space="preserve">
     <value>删除料号信息失败</value>
   </data>
-  <data name="PartNumberInfoUpdateSuccess" xml:space="preserve">
+  <data name="CompanyNumberInfoUpdateSuccess" xml:space="preserve">
     <value>修改料号信息成功</value>
   </data>
-  <data name="PartNumberInfoUpdateFailed" xml:space="preserve">
+  <data name="CompanyNumberInfoUpdateFailed" xml:space="preserve">
     <value>修改料号信息失败</value>
   </data>
-  <data name="PartNumberInfoPartNumberDuplicate" xml:space="preserve">
+  <data name="CompanyNumberInfoPartNumberDuplicate" xml:space="preserve">
     <value>料号“{0}”已存在</value>
   </data>
-  <data name="PartNumberExcel_SheetName" xml:space="preserve">
+  <data name="CompanyNumberExcel_SheetName" xml:space="preserve">
     <value>料号导入模板</value>
   </data>
-  <data name="PartNumberExcel_PartNumber" xml:space="preserve">
+  <data name="CompanyNumberExcel_PartNumber" xml:space="preserve">
     <value>料号</value>
   </data>
-  <data name="PartNumberExcel_PartNameCn" xml:space="preserve">
+  <data name="CompanyNumberExcel_ProductNameCn" xml:space="preserve">
     <value>品名</value>
   </data>
-  <data name="PartNumberExcel_PartNameEn" xml:space="preserve">
+  <data name="CompanyNumberExcel_ProductNameEn" xml:space="preserve">
     <value>英文品名</value>
   </data>
-  <data name="PartNumberExcel_Specification" xml:space="preserve">
+  <data name="CompanyNumberExcel_Specification" xml:space="preserve">
     <value>规格</value>
   </data>
-  <data name="PartNumberExcel_PartType" xml:space="preserve">
+  <data name="CompanyNumberExcel_PartType" xml:space="preserve">
     <value>料号类型</value>
   </data>
-  <data name="PartNumberExcel_Category" xml:space="preserve">
+  <data name="CompanyNumberExcel_Category" xml:space="preserve">
     <value>物料分类</value>
   </data>
-  <data name="PartNumberExcel_Model" xml:space="preserve">
+  <data name="CompanyNumberExcel_Model" xml:space="preserve">
     <value>型号</value>
   </data>
-  <data name="PartNumberExcel_DrawingNumber" xml:space="preserve">
+  <data name="CompanyNumberExcel_DrawingNumber" xml:space="preserve">
     <value>图号</value>
   </data>
-  <data name="PartNumberExcel_Version" xml:space="preserve">
+  <data name="CompanyNumberExcel_Version" xml:space="preserve">
     <value>版本</value>
   </data>
-  <data name="PartNumberExcel_Material" xml:space="preserve">
-    <value>材质</value>
-  </data>
-  <data name="PartNumberExcel_BaseUnit" xml:space="preserve">
+  <data name="CompanyNumberExcel_BaseUnit" xml:space="preserve">
     <value>基本单位</value>
   </data>
-  <data name="PartNumberExcel_SourceType" xml:space="preserve">
+  <data name="CompanyNumberExcel_SourceType" xml:space="preserve">
     <value>来源类型</value>
   </data>
-  <data name="PartNumberExcel_Manufacturer" xml:space="preserve">
+  <data name="CompanyNumberExcel_Manufacturer" xml:space="preserve">
     <value>制造商</value>
   </data>
-  <data name="PartNumberExcel_ManufacturerPartNumber" xml:space="preserve">
+  <data name="CompanyNumberExcel_ManufacturerPartNumber" xml:space="preserve">
     <value>制造商料号</value>
   </data>
-  <data name="PartNumberExcel_LotControl" xml:space="preserve">
+  <data name="CompanyNumberExcel_LotControl" xml:space="preserve">
     <value>是否批号管制</value>
   </data>
-  <data name="PartNumberExcel_Status" xml:space="preserve">
+  <data name="CompanyNumberExcel_Status" xml:space="preserve">
     <value>启用状态</value>
   </data>
-  <data name="PartNumberExcel_Remark" xml:space="preserve">
+  <data name="CompanyNumberExcel_Remark" xml:space="preserve">
     <value>备注</value>
   </data>
-  <data name="PartNumberExcel_Yes" xml:space="preserve">
+  <data name="CompanyNumberExcel_Yes" xml:space="preserve">
     <value>是</value>
   </data>
-  <data name="PartNumberExcel_No" xml:space="preserve">
+  <data name="CompanyNumberExcel_No" xml:space="preserve">
     <value>否</value>
   </data>
-  <data name="PartNumberImport_FileEmpty" xml:space="preserve">
+  <data name="CompanyNumberImport_FileEmpty" xml:space="preserve">
     <value>请上传导入文件</value>
   </data>
-  <data name="PartNumberImport_InvalidFileFormat" xml:space="preserve">
+  <data name="CompanyNumberImport_InvalidFileFormat" xml:space="preserve">
     <value>仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传</value>
   </data>
-  <data name="PartNumberImport_NoWorksheet" xml:space="preserve">
+  <data name="CompanyNumberImport_NoWorksheet" xml:space="preserve">
     <value>Excel文件中未找到工作表</value>
   </data>
-  <data name="PartNumberImport_NoData" xml:space="preserve">
+  <data name="CompanyNumberImport_NoData" xml:space="preserve">
     <value>Excel文件中至少需要一条数据</value>
   </data>
-  <data name="PartNumberImport_HeaderMismatch" xml:space="preserve">
+  <data name="CompanyNumberImport_HeaderMismatch" xml:space="preserve">
     <value>第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写</value>
   </data>
-  <data name="PartNumberImport_ColumnCountMismatch" xml:space="preserve">
+  <data name="CompanyNumberImport_ColumnCountMismatch" xml:space="preserve">
     <value>列数量与模板不符，请使用标准模板填写</value>
   </data>
-  <data name="PartNumberImport_RequiredFieldEmpty" xml:space="preserve">
+  <data name="CompanyNumberImport_RequiredFieldEmpty" xml:space="preserve">
     <value>第{0}行【{1}】不能为空</value>
   </data>
-  <data name="PartNumberImport_InvalidDictValue" xml:space="preserve">
+  <data name="CompanyNumberImport_InvalidDictValue" xml:space="preserve">
     <value>第{0}行【{1}】的值“{2}”不在有效范围内</value>
   </data>
-  <data name="PartNumberImport_DuplicatePartNumber" xml:space="preserve">
+  <data name="CompanyNumberImport_DuplicatePartNumber" xml:space="preserve">
     <value>第{0}行料号“{1}”已存在或与文件中其他行重复</value>
   </data>
-  <data name="PartNumberImport_Success" xml:space="preserve">
+  <data name="CompanyNumberImport_Success" xml:space="preserve">
     <value>成功导入{0}条料号信息</value>
+  </data>
+  <data name="CustomerNumberInfoInsertSuccess" xml:space="preserve">
+    <value>新增客户料号信息成功</value>
+  </data>
+  <data name="CustomerNumberInfoInsertFailed" xml:space="preserve">
+    <value>新增客户料号信息失败</value>
+  </data>
+  <data name="CustomerNumberInfoDeleteSuccess" xml:space="preserve">
+    <value>删除客户料号信息成功</value>
+  </data>
+  <data name="CustomerNumberInfoDeleteFailed" xml:space="preserve">
+    <value>删除客户料号信息失败</value>
+  </data>
+  <data name="CustomerNumberInfoUpdateSuccess" xml:space="preserve">
+    <value>修改客户料号信息成功</value>
+  </data>
+  <data name="CustomerNumberInfoUpdateFailed" xml:space="preserve">
+    <value>修改客户料号信息失败</value>
+  </data>
+  <data name="CustomerNumberInfoPartNumberDuplicate" xml:space="preserve">
+    <value>客户料号“{0}”已存在</value>
+  </data>
+  <data name="CustomerNumberExcel_SheetName" xml:space="preserve">
+    <value>客户料号导入模板</value>
+  </data>
+  <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
+    <value>客户料号</value>
+  </data>
+  <data name="CustomerNumberExcel_NumberNameCn" xml:space="preserve">
+    <value>品名（中文）</value>
+  </data>
+  <data name="CustomerNumberExcel_NumberNameEn" xml:space="preserve">
+    <value>品名（英文）</value>
+  </data>
+  <data name="CustomerNumberExcel_Specification" xml:space="preserve">
+    <value>规格型号</value>
+  </data>
+  <data name="CustomerNumberExcel_Unit" xml:space="preserve">
+    <value>单位</value>
+  </data>
+  <data name="CustomerNumberExcel_Status" xml:space="preserve">
+    <value>启用状态</value>
+  </data>
+  <data name="CustomerNumberExcel_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="CustomerNumberExcel_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="CustomerNumberImport_FileEmpty" xml:space="preserve">
+    <value>请上传导入文件</value>
+  </data>
+  <data name="CustomerNumberImport_InvalidFileFormat" xml:space="preserve">
+    <value>仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传</value>
+  </data>
+  <data name="CustomerNumberImport_NoWorksheet" xml:space="preserve">
+    <value>Excel文件中未找到工作表</value>
+  </data>
+  <data name="CustomerNumberImport_NoData" xml:space="preserve">
+    <value>Excel文件中至少需要一条数据</value>
+  </data>
+  <data name="CustomerNumberImport_HeaderMismatch" xml:space="preserve">
+    <value>第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写</value>
+  </data>
+  <data name="CustomerNumberImport_ColumnCountMismatch" xml:space="preserve">
+    <value>列数量与模板不符，请使用标准模板填写</value>
+  </data>
+  <data name="CustomerNumberImport_RequiredFieldEmpty" xml:space="preserve">
+    <value>第{0}行【{1}】不能为空</value>
+  </data>
+  <data name="CustomerNumberImport_DuplicatePartNumber" xml:space="preserve">
+    <value>第{0}行客户料号“{1}”已存在或与文件中其他行重复</value>
+  </data>
+  <data name="CustomerNumberImport_Success" xml:space="preserve">
+    <value>成功导入{0}条客户料号信息</value>
   </data>
 </root>

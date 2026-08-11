@@ -3,10 +3,10 @@ using SqlSugar;
 namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity
 {
     /// <summary>
-    /// 生产料号信息实体类
+    /// 公司料号信息实体类
     /// </summary>
-    [SugarTable("[CustMat].[PartNumber]")]
-    public class PartNumberEntity
+    [SugarTable("[CustMat].[CompanyNumber]")]
+    public class CompanyNumberEntity
     {
         /// <summary>
         /// 料号Id
@@ -22,12 +22,12 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity
         /// <summary>
         /// 品名
         /// </summary>
-        public string PartNameCn { get; set; } = string.Empty;
+        public string ProductNameCn { get; set; } = string.Empty;
 
         /// <summary>
         /// 英文品名
         /// </summary>
-        public string PartNameEn { get; set; } = string.Empty;
+        public string ProductNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 规格
@@ -58,11 +58,6 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity
         /// 版本
         /// </summary>
         public string Version { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 材质
-        /// </summary>
-        public string Material { get; set; } = string.Empty;
 
         /// <summary>
         /// 基本单位

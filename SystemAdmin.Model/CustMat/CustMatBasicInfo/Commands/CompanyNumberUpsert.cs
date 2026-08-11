@@ -1,9 +1,9 @@
 namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
 {
     /// <summary>
-    /// 料号信息新增/修改类
+    /// 公司料号信息新增/修改类
     /// </summary>
-    public class PartNumberUpsert
+    public class CompanyNumberUpsert
     {
         /// <summary>
         /// 料号Id
@@ -18,12 +18,12 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
         /// <summary>
         /// 品名
         /// </summary>
-        public string PartNameCn { get; set; } = string.Empty;
+        public string ProductNameCn { get; set; } = string.Empty;
 
         /// <summary>
         /// 英文品名
         /// </summary>
-        public string PartNameEn { get; set; } = string.Empty;
+        public string ProductNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 规格
@@ -54,11 +54,6 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
         /// 版本
         /// </summary>
         public string Version { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 材质
-        /// </summary>
-        public string Material { get; set; } = string.Empty;
 
         /// <summary>
         /// 基本单位

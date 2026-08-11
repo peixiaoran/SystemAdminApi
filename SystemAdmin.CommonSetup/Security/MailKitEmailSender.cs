@@ -3,7 +3,6 @@ using MailKit.Security;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.Security
 {
