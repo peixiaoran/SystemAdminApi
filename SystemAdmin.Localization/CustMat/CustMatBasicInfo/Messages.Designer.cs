@@ -61,6 +61,330 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
         }
         
         /// <summary>
+        ///   查找类似 基本单位 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_BaseUnit {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_BaseUnit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 物料分类 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Category {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Category", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 图号 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_DrawingNumber {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_DrawingNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 是否批号管制 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_LotControl {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_LotControl", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 制造商 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Manufacturer {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Manufacturer", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 制造商料号 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_ManufacturerPartNumber {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_ManufacturerPartNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 型号 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Model {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Model", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 否 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_No {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_No", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 料号 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_PartNumber {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_PartNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 料号类型 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_PartType {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_PartType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 品名 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_ProductNameCn {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_ProductNameCn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 英文品名 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_ProductNameEn {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_ProductNameEn", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 备注 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Remark {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Remark", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 公司料号导入模板 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_SheetName {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_SheetName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 来源类型 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_SourceType {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_SourceType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 规格 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Specification {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Specification", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 启用状态 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Status {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 版本 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Version {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Version", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 是 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberExcel_Yes {
+            get {
+                return ResourceManager.GetString("CompanyNumberExcel_Yes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 列数量与模板不符，请使用标准模板填写 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_ColumnCountMismatch {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_ColumnCountMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}行料号“{1}”已存在或与文件中其他行重复 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_DuplicatePartNumber {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_DuplicatePartNumber", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 请上传导入文件 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_FileEmpty {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_FileEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_HeaderMismatch {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_HeaderMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}行【{1}】的值“{2}”不在有效范围内 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_InvalidDictValue {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_InvalidDictValue", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_InvalidFileFormat {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_InvalidFileFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Excel文件中至少需要一条数据 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_NoData {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Excel文件中未找到工作表 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_NoWorksheet {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_NoWorksheet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}行【{1}】不能为空 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_RequiredFieldEmpty {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_RequiredFieldEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 成功导入{0}条料号信息 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberImport_Success {
+            get {
+                return ResourceManager.GetString("CompanyNumberImport_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除料号信息失败 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoDeleteFailed {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除料号信息成功 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoDeleteSuccess {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoDeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 新增料号信息失败 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoInsertFailed {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoInsertFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 新增料号信息成功 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoInsertSuccess {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoInsertSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 料号“{0}”已存在 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoPartNumberDuplicate {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoPartNumberDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 修改料号信息失败 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoUpdateFailed {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 修改料号信息成功 的本地化字符串。
+        /// </summary>
+        internal static string CompanyNumberInfoUpdateSuccess {
+            get {
+                return ResourceManager.GetString("CompanyNumberInfoUpdateSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   查找类似 删除客户信息失败 的本地化字符串。
         /// </summary>
         internal static string CustomerInfoDeleteFailed {
@@ -113,430 +437,7 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
                 return ResourceManager.GetString("CustomerInfoUpdateSuccess", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   查找类似 新增料号信息成功 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberInfoInsertSuccess {
-            get {
-                return ResourceManager.GetString("CompanyNumberInfoInsertSuccess", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 新增料号信息失败 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberInfoInsertFailed {
-            get {
-                return ResourceManager.GetString("CompanyNumberInfoInsertFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 删除料号信息成功 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberInfoDeleteSuccess {
-            get {
-                return ResourceManager.GetString("CompanyNumberInfoDeleteSuccess", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 删除料号信息失败 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberInfoDeleteFailed {
-            get {
-                return ResourceManager.GetString("CompanyNumberInfoDeleteFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 修改料号信息成功 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberInfoUpdateSuccess {
-            get {
-                return ResourceManager.GetString("CompanyNumberInfoUpdateSuccess", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 修改料号信息失败 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberInfoUpdateFailed {
-            get {
-                return ResourceManager.GetString("CompanyNumberInfoUpdateFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 料号导入模板 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_SheetName {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_SheetName", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 料号 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_PartNumber {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_PartNumber", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 品名 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_ProductNameCn {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_ProductNameCn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 英文品名 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_ProductNameEn {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_ProductNameEn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 规格 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Specification {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Specification", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 料号类型 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_PartType {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_PartType", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 物料分类 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Category {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Category", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 型号 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Model {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Model", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 图号 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_DrawingNumber {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_DrawingNumber", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 版本 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Version {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Version", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 基本单位 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_BaseUnit {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_BaseUnit", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 来源类型 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_SourceType {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_SourceType", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 制造商 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Manufacturer {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Manufacturer", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 制造商料号 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_ManufacturerPartNumber {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_ManufacturerPartNumber", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 是否批号管制 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_LotControl {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_LotControl", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 启用状态 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Status {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Status", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 备注 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Remark {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Remark", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 请上传导入文件 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_FileEmpty {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_FileEmpty", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_InvalidFileFormat {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_InvalidFileFormat", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Excel文件中未找到工作表 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_NoWorksheet {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_NoWorksheet", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 Excel文件中至少需要一条数据 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_NoData {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_NoData", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_HeaderMismatch {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_HeaderMismatch", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 列数量与模板不符，请使用标准模板填写 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_ColumnCountMismatch {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_ColumnCountMismatch", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 第{0}行【{1}】不能为空 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_RequiredFieldEmpty {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_RequiredFieldEmpty", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 第{0}行【{1}】的值“{2}”不在有效范围内 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_InvalidDictValue {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_InvalidDictValue", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 成功导入{0}条料号信息 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberImport_Success {
-            get {
-                return ResourceManager.GetString("CompanyNumberImport_Success", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 新增客户料号信息成功 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoInsertSuccess {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoInsertSuccess", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 新增客户料号信息失败 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoInsertFailed {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoInsertFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 删除客户料号信息成功 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoDeleteSuccess {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoDeleteSuccess", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 删除客户料号信息失败 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoDeleteFailed {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoDeleteFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 修改客户料号信息成功 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoUpdateSuccess {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoUpdateSuccess", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 修改客户料号信息失败 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoUpdateFailed {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoUpdateFailed", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 客户料号“{0}”已存在 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberInfoPartNumberDuplicate {
-            get {
-                return ResourceManager.GetString("CustomerNumberInfoPartNumberDuplicate", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 客户料号导入模板 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_SheetName {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_SheetName", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 客户料号 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_PartNumber {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_PartNumber", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 品名（中文） 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_NumberNameCn {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_NumberNameCn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 品名（英文） 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_NumberNameEn {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_NumberNameEn", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 规格型号 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_Specification {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_Specification", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 单位 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_Unit {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_Unit", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 启用状态 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_Status {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_Status", resourceCulture);
-            }
-        }
-
-        /// <summary>
-        ///   查找类似 是 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberExcel_Yes {
-            get {
-                return ResourceManager.GetString("CustomerNumberExcel_Yes", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   查找类似 否 的本地化字符串。
         /// </summary>
@@ -545,52 +446,79 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
                 return ResourceManager.GetString("CustomerNumberExcel_No", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   查找类似 请上传导入文件 的本地化字符串。
+        ///   查找类似 品名（中文） 的本地化字符串。
         /// </summary>
-        internal static string CustomerNumberImport_FileEmpty {
+        internal static string CustomerNumberExcel_NumberNameCn {
             get {
-                return ResourceManager.GetString("CustomerNumberImport_FileEmpty", resourceCulture);
+                return ResourceManager.GetString("CustomerNumberExcel_NumberNameCn", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   查找类似 仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传 的本地化字符串。
+        ///   查找类似 品名（英文） 的本地化字符串。
         /// </summary>
-        internal static string CustomerNumberImport_InvalidFileFormat {
+        internal static string CustomerNumberExcel_NumberNameEn {
             get {
-                return ResourceManager.GetString("CustomerNumberImport_InvalidFileFormat", resourceCulture);
+                return ResourceManager.GetString("CustomerNumberExcel_NumberNameEn", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   查找类似 Excel文件中未找到工作表 的本地化字符串。
+        ///   查找类似 客户料号 的本地化字符串。
         /// </summary>
-        internal static string CustomerNumberImport_NoWorksheet {
+        internal static string CustomerNumberExcel_PartNumber {
             get {
-                return ResourceManager.GetString("CustomerNumberImport_NoWorksheet", resourceCulture);
+                return ResourceManager.GetString("CustomerNumberExcel_PartNumber", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   查找类似 Excel文件中至少需要一条数据 的本地化字符串。
+        ///   查找类似 客户料号导入模板 的本地化字符串。
         /// </summary>
-        internal static string CustomerNumberImport_NoData {
+        internal static string CustomerNumberExcel_SheetName {
             get {
-                return ResourceManager.GetString("CustomerNumberImport_NoData", resourceCulture);
+                return ResourceManager.GetString("CustomerNumberExcel_SheetName", resourceCulture);
             }
         }
-
+        
         /// <summary>
-        ///   查找类似 第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写 的本地化字符串。
+        ///   查找类似 规格型号 的本地化字符串。
         /// </summary>
-        internal static string CustomerNumberImport_HeaderMismatch {
+        internal static string CustomerNumberExcel_Specification {
             get {
-                return ResourceManager.GetString("CustomerNumberImport_HeaderMismatch", resourceCulture);
+                return ResourceManager.GetString("CustomerNumberExcel_Specification", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   查找类似 启用状态 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberExcel_Status {
+            get {
+                return ResourceManager.GetString("CustomerNumberExcel_Status", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 单位 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberExcel_Unit {
+            get {
+                return ResourceManager.GetString("CustomerNumberExcel_Unit", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 是 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberExcel_Yes {
+            get {
+                return ResourceManager.GetString("CustomerNumberExcel_Yes", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   查找类似 列数量与模板不符，请使用标准模板填写 的本地化字符串。
         /// </summary>
@@ -599,16 +527,7 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
                 return ResourceManager.GetString("CustomerNumberImport_ColumnCountMismatch", resourceCulture);
             }
         }
-
-        /// <summary>
-        ///   查找类似 第{0}行【{1}】不能为空 的本地化字符串。
-        /// </summary>
-        internal static string CustomerNumberImport_RequiredFieldEmpty {
-            get {
-                return ResourceManager.GetString("CustomerNumberImport_RequiredFieldEmpty", resourceCulture);
-            }
-        }
-
+        
         /// <summary>
         ///   查找类似 第{0}行客户料号“{1}”已存在或与文件中其他行重复 的本地化字符串。
         /// </summary>
@@ -617,13 +536,130 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
                 return ResourceManager.GetString("CustomerNumberImport_DuplicatePartNumber", resourceCulture);
             }
         }
-
+        
+        /// <summary>
+        ///   查找类似 请上传导入文件 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberImport_FileEmpty {
+            get {
+                return ResourceManager.GetString("CustomerNumberImport_FileEmpty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberImport_HeaderMismatch {
+            get {
+                return ResourceManager.GetString("CustomerNumberImport_HeaderMismatch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberImport_InvalidFileFormat {
+            get {
+                return ResourceManager.GetString("CustomerNumberImport_InvalidFileFormat", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Excel文件中至少需要一条数据 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberImport_NoData {
+            get {
+                return ResourceManager.GetString("CustomerNumberImport_NoData", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 Excel文件中未找到工作表 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberImport_NoWorksheet {
+            get {
+                return ResourceManager.GetString("CustomerNumberImport_NoWorksheet", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 第{0}行【{1}】不能为空 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberImport_RequiredFieldEmpty {
+            get {
+                return ResourceManager.GetString("CustomerNumberImport_RequiredFieldEmpty", resourceCulture);
+            }
+        }
+        
         /// <summary>
         ///   查找类似 成功导入{0}条客户料号信息 的本地化字符串。
         /// </summary>
         internal static string CustomerNumberImport_Success {
             get {
                 return ResourceManager.GetString("CustomerNumberImport_Success", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除客户料号信息失败 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoDeleteFailed {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoDeleteFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 删除客户料号信息成功 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoDeleteSuccess {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoDeleteSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 新增客户料号信息失败 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoInsertFailed {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoInsertFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 新增客户料号信息成功 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoInsertSuccess {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoInsertSuccess", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 客户料号“{0}”已存在 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoPartNumberDuplicate {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoPartNumberDuplicate", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 修改客户料号信息失败 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoUpdateFailed {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoUpdateFailed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   查找类似 修改客户料号信息成功 的本地化字符串。
+        /// </summary>
+        internal static string CustomerNumberInfoUpdateSuccess {
+            get {
+                return ResourceManager.GetString("CustomerNumberInfoUpdateSuccess", resourceCulture);
             }
         }
     }

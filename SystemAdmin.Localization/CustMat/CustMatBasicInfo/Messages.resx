@@ -157,7 +157,7 @@
     <value>料号“{0}”已存在</value>
   </data>
   <data name="CompanyNumberExcel_SheetName" xml:space="preserve">
-    <value>料号导入模板</value>
+    <value>公司料号导入模板</value>
   </data>
   <data name="CompanyNumberExcel_PartNumber" xml:space="preserve">
     <value>料号</value>
@@ -261,35 +261,8 @@
   <data name="CustomerNumberInfoUpdateFailed" xml:space="preserve">
     <value>修改客户料号信息失败</value>
   </data>
-  <data name="CustomerNumberInfoPartNumberDuplicate" xml:space="preserve">
-    <value>客户料号“{0}”已存在</value>
-  </data>
   <data name="CustomerNumberExcel_SheetName" xml:space="preserve">
     <value>客户料号导入模板</value>
-  </data>
-  <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
-    <value>客户料号</value>
-  </data>
-  <data name="CustomerNumberExcel_NumberNameCn" xml:space="preserve">
-    <value>品名（中文）</value>
-  </data>
-  <data name="CustomerNumberExcel_NumberNameEn" xml:space="preserve">
-    <value>品名（英文）</value>
-  </data>
-  <data name="CustomerNumberExcel_Specification" xml:space="preserve">
-    <value>规格型号</value>
-  </data>
-  <data name="CustomerNumberExcel_Unit" xml:space="preserve">
-    <value>单位</value>
-  </data>
-  <data name="CustomerNumberExcel_Status" xml:space="preserve">
-    <value>启用状态</value>
-  </data>
-  <data name="CustomerNumberExcel_Yes" xml:space="preserve">
-    <value>是</value>
-  </data>
-  <data name="CustomerNumberExcel_No" xml:space="preserve">
-    <value>否</value>
   </data>
   <data name="CustomerNumberImport_FileEmpty" xml:space="preserve">
     <value>请上传导入文件</value>
@@ -312,10 +285,37 @@
   <data name="CustomerNumberImport_RequiredFieldEmpty" xml:space="preserve">
     <value>第{0}行【{1}】不能为空</value>
   </data>
-  <data name="CustomerNumberImport_DuplicatePartNumber" xml:space="preserve">
-    <value>第{0}行客户料号“{1}”已存在或与文件中其他行重复</value>
-  </data>
   <data name="CustomerNumberImport_Success" xml:space="preserve">
     <value>成功导入{0}条客户料号信息</value>
+  </data>
+  <data name="CustomerNumberExcel_Specification" xml:space="preserve">
+    <value>规格型号</value>
+  </data>
+  <data name="CustomerNumberExcel_Unit" xml:space="preserve">
+    <value>单位</value>
+  </data>
+  <data name="CustomerNumberExcel_Status" xml:space="preserve">
+    <value>启用状态</value>
+  </data>
+  <data name="CustomerNumberExcel_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="CustomerNumberExcel_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="CustomerNumberInfoPartNumberDuplicate" xml:space="preserve">
+    <value>客户料号“{0}”已存在</value>
+  </data>
+  <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
+    <value>客户料号</value>
+  </data>
+  <data name="CustomerNumberExcel_NumberNameCn" xml:space="preserve">
+    <value>品名（中文）</value>
+  </data>
+  <data name="CustomerNumberExcel_NumberNameEn" xml:space="preserve">
+    <value>品名（英文）</value>
+  </data>
+  <data name="CustomerNumberImport_DuplicatePartNumber" xml:space="preserve">
+    <value>第{0}行客户料号“{1}”已存在或与文件中其他行重复</value>
   </data>
 </root>
