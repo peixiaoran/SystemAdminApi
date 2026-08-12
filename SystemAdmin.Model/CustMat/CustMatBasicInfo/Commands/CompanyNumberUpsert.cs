@@ -18,12 +18,12 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
         /// <summary>
         /// 品名
         /// </summary>
-        public string ProductNameCn { get; set; } = string.Empty;
+        public string PartNameCn { get; set; } = string.Empty;
 
         /// <summary>
         /// 英文品名
         /// </summary>
-        public string ProductNameEn { get; set; } = string.Empty;
+        public string PartNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 规格
@@ -58,7 +58,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
         /// <summary>
         /// 基本单位
         /// </summary>
-        public string BaseUnit { get; set; } = string.Empty;
+        public string Unit { get; set; } = string.Empty;
 
         /// <summary>
         /// 来源类型

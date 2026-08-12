@@ -63,9 +63,9 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
         /// <summary>
         ///   查找类似 基本单位 的本地化字符串。
         /// </summary>
-        internal static string CompanyNumberExcel_BaseUnit {
+        internal static string CompanyNumberExcel_Unit {
             get {
-                return ResourceManager.GetString("CompanyNumberExcel_BaseUnit", resourceCulture);
+                return ResourceManager.GetString("CompanyNumberExcel_Unit", resourceCulture);
             }
         }
         

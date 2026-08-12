@@ -18,12 +18,12 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
         /// <summary>
         /// 品名（中文）
         /// </summary>
-        public string NumberNameCn { get; set; } = string.Empty;
+        public string PartNameCn { get; set; } = string.Empty;
 
         /// <summary>
         /// 品名（英文）
         /// </summary>
-        public string NumberNameEn { get; set; } = string.Empty;
+        public string PartNameEn { get; set; } = string.Empty;
 
         /// <summary>
         /// 规格型号

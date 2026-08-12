@@ -26,7 +26,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 新增客户料号信息")]
+        [EndpointSummary("[客户料号] 新增客户料号")]
         public async Task<Result<int>> InsertCustomerNumber([FromBody] CustomerNumberUpsert upsert)
         {
             return await _customerNumberService.InsertCustomerNumber(upsert);
@@ -34,7 +34,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 删除客户料号信息")]
+        [EndpointSummary("[客户料号] 删除客户料号")]
         public async Task<Result<int>> DeleteCustomerNumber([FromForm] string partNumberId)
         {
             return await _customerNumberService.DeleteCustomerNumber(partNumberId);
@@ -42,7 +42,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 修改客户料号信息")]
+        [EndpointSummary("[客户料号] 修改客户料号")]
         public async Task<Result<int>> UpdateCustomerNumber([FromBody] CustomerNumberUpsert upsert)
         {
             return await _customerNumberService.UpdateCustomerNumber(upsert);
@@ -50,7 +50,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 查询客户料号信息实体")]
+        [EndpointSummary("[客户料号] 查询客户料号实体")]
         public async Task<Result<CustomerNumberDto>> GetCustomerNumberEntity([FromForm] string partNumberId)
         {
             return await _customerNumberService.GetCustomerNumberEntity(partNumberId);
@@ -58,7 +58,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 查询客户料号信息分页")]
+        [EndpointSummary("[客户料号] 查询客户料号分页")]
         public async Task<ResultPaged<CustomerNumberDto>> GetCustomerNumberPage([FromBody] GetCustomerNumberPage getPage)
         {
             return await _customerNumberService.GetCustomerNumberPage(getPage);
@@ -66,7 +66,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 导出客户料号信息Excel")]
+        [EndpointSummary("[客户料号] 导出客户料号Excel")]
         public async Task<IActionResult> GetCustomerNumberExcel([FromBody] GetCustomerNumberPage getPage)
         {
             var bytes = await _customerNumberService.GetCustomerNumberExcel(getPage);
@@ -75,7 +75,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 导出客户料号导入模板")]
+        [EndpointSummary("[客户料号] 导出客户料号模板")]
         public async Task<IActionResult> GetCustomerNumberTemplate()
         {
             var bytes = await _customerNumberService.GetCustomerNumberTemplate();
@@ -85,7 +85,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
-        [EndpointSummary("[客户料号信息] 导入客户料号信息")]
+        [EndpointSummary("[客户料号] 导入客户料号")]
         public async Task<Result<int>> ImportCustomerNumber(IFormFile file)
         {
             return await _customerNumberService.ImportCustomerNumber(file);

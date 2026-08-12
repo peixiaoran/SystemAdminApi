@@ -91,16 +91,52 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                 query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartNumber.Contains(getCompanyNumberPage.PartNumber));
             }
 
-            // 料号类型
+            // 品名（中英文模糊匹配）
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.PartName))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartNameCn.Contains(getCompanyNumberPage.PartName) || companyNumber.PartNameEn.Contains(getCompanyNumberPage.PartName));
+            }
+
+            // 规格
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Specification))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Specification.Contains(getCompanyNumberPage.Specification));
+            }
+
+            // 料号类型（全值匹配）
             if (!string.IsNullOrEmpty(getCompanyNumberPage.PartType))
             {
                 query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartType == getCompanyNumberPage.PartType);
             }
 
-            // 物料分类
+            // 物料分类（全值匹配）
             if (!string.IsNullOrEmpty(getCompanyNumberPage.Category))
             {
                 query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Category == getCompanyNumberPage.Category);
+            }
+
+            // 来源类型（全值匹配）
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.SourceType))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.SourceType == getCompanyNumberPage.SourceType);
+            }
+
+            // 型号
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Model))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Model.Contains(getCompanyNumberPage.Model));
+            }
+
+            // 图号
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.DrawingNumber))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.DrawingNumber.Contains(getCompanyNumberPage.DrawingNumber));
+            }
+
+            // 版本
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Version))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Version.Contains(getCompanyNumberPage.Version));
             }
 
             // 启用状态
@@ -116,8 +152,8 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                                             {
                                                 PartNumberId = companyNumber.PartNumberId,
                                                 PartNumber = companyNumber.PartNumber,
-                                                ProductNameCn = companyNumber.ProductNameCn,
-                                                ProductNameEn = companyNumber.ProductNameEn,
+                                                PartNameCn = companyNumber.PartNameCn,
+                                                PartNameEn = companyNumber.PartNameEn,
                                                 Specification = companyNumber.Specification,
                                                 PartType = companyNumber.PartType,
                                                 PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
@@ -126,7 +162,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                                                 Model = companyNumber.Model,
                                                 DrawingNumber = companyNumber.DrawingNumber,
                                                 Version = companyNumber.Version,
-                                                BaseUnit = companyNumber.BaseUnit,
+                                                Unit = companyNumber.Unit,
                                                 SourceType = companyNumber.SourceType,
                                                 SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
                                                 Manufacturer = companyNumber.Manufacturer,
@@ -157,16 +193,52 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                 query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartNumber.Contains(getCompanyNumberPage.PartNumber));
             }
 
-            // 料号类型
+            // 品名（中英文模糊匹配）
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.PartName))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartNameCn.Contains(getCompanyNumberPage.PartName) || companyNumber.PartNameEn.Contains(getCompanyNumberPage.PartName));
+            }
+
+            // 规格
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Specification))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Specification.Contains(getCompanyNumberPage.Specification));
+            }
+
+            // 料号类型（全值匹配）
             if (!string.IsNullOrEmpty(getCompanyNumberPage.PartType))
             {
                 query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.PartType == getCompanyNumberPage.PartType);
             }
 
-            // 物料分类
+            // 物料分类（全值匹配）
             if (!string.IsNullOrEmpty(getCompanyNumberPage.Category))
             {
                 query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Category == getCompanyNumberPage.Category);
+            }
+
+            // 型号
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Model))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Model.Contains(getCompanyNumberPage.Model));
+            }
+
+            // 图号
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.DrawingNumber))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.DrawingNumber.Contains(getCompanyNumberPage.DrawingNumber));
+            }
+
+            // 版本
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.Version))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Version.Contains(getCompanyNumberPage.Version));
+            }
+
+            // 来源类型（全值匹配）
+            if (!string.IsNullOrEmpty(getCompanyNumberPage.SourceType))
+            {
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.SourceType == getCompanyNumberPage.SourceType);
             }
 
             // 启用状态
@@ -181,8 +253,8 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                               {
                                   PartNumberId = companyNumber.PartNumberId,
                                   PartNumber = companyNumber.PartNumber,
-                                  ProductNameCn = companyNumber.ProductNameCn,
-                                  ProductNameEn = companyNumber.ProductNameEn,
+                                  PartNameCn = companyNumber.PartNameCn,
+                                  PartNameEn = companyNumber.PartNameEn,
                                   Specification = companyNumber.Specification,
                                   PartType = companyNumber.PartType,
                                   PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
@@ -191,7 +263,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                                   Model = companyNumber.Model,
                                   DrawingNumber = companyNumber.DrawingNumber,
                                   Version = companyNumber.Version,
-                                  BaseUnit = companyNumber.BaseUnit,
+                                  Unit = companyNumber.Unit,
                                   SourceType = companyNumber.SourceType,
                                   SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
                                   Manufacturer = companyNumber.Manufacturer,

@@ -135,6 +135,51 @@
   <data name="CustomerInfoUpdateSuccess" xml:space="preserve">
     <value>修改客户信息成功</value>
   </data>
+  <data name="CustomerInfoCustomerCodeDuplicate" xml:space="preserve">
+    <value>客户编码“{0}”已存在</value>
+  </data>
+  <data name="CustomerInfoExcel_SheetName" xml:space="preserve">
+    <value>客户信息导入模板</value>
+  </data>
+  <data name="CustomerInfoExcel_CustomerCode" xml:space="preserve">
+    <value>客户编码</value>
+  </data>
+  <data name="CustomerInfoExcel_CustomerNameCn" xml:space="preserve">
+    <value>客户名称（中文）</value>
+  </data>
+  <data name="CustomerInfoExcel_CustomerNameEn" xml:space="preserve">
+    <value>客户名称（英文）</value>
+  </data>
+  <data name="CustomerInfoExcel_Description" xml:space="preserve">
+    <value>客户描述</value>
+  </data>
+  <data name="CustomerInfoImport_FileEmpty" xml:space="preserve">
+    <value>请上传导入文件</value>
+  </data>
+  <data name="CustomerInfoImport_InvalidFileFormat" xml:space="preserve">
+    <value>仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传</value>
+  </data>
+  <data name="CustomerInfoImport_NoWorksheet" xml:space="preserve">
+    <value>Excel文件中未找到工作表</value>
+  </data>
+  <data name="CustomerInfoImport_NoData" xml:space="preserve">
+    <value>Excel文件中至少需要一条数据</value>
+  </data>
+  <data name="CustomerInfoImport_HeaderMismatch" xml:space="preserve">
+    <value>第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写</value>
+  </data>
+  <data name="CustomerInfoImport_ColumnCountMismatch" xml:space="preserve">
+    <value>列数量与模板不符，请使用标准模板填写</value>
+  </data>
+  <data name="CustomerInfoImport_RequiredFieldEmpty" xml:space="preserve">
+    <value>第{0}行【{1}】不能为空</value>
+  </data>
+  <data name="CustomerInfoImport_DuplicateCustomerCode" xml:space="preserve">
+    <value>第{0}行客户编码“{1}”已存在或与文件中其他行重复</value>
+  </data>
+  <data name="CustomerInfoImport_Success" xml:space="preserve">
+    <value>成功导入{0}条客户信息</value>
+  </data>
   <data name="CompanyNumberInfoInsertSuccess" xml:space="preserve">
     <value>新增料号信息成功</value>
   </data>
@@ -162,10 +207,10 @@
   <data name="CompanyNumberExcel_PartNumber" xml:space="preserve">
     <value>料号</value>
   </data>
-  <data name="CompanyNumberExcel_ProductNameCn" xml:space="preserve">
+  <data name="CompanyNumberExcel_PartNameCn" xml:space="preserve">
     <value>品名</value>
   </data>
-  <data name="CompanyNumberExcel_ProductNameEn" xml:space="preserve">
+  <data name="CompanyNumberExcel_PartNameEn" xml:space="preserve">
     <value>英文品名</value>
   </data>
   <data name="CompanyNumberExcel_Specification" xml:space="preserve">
@@ -186,8 +231,8 @@
   <data name="CompanyNumberExcel_Version" xml:space="preserve">
     <value>版本</value>
   </data>
-  <data name="CompanyNumberExcel_BaseUnit" xml:space="preserve">
-    <value>基本单位</value>
+  <data name="CompanyNumberExcel_Unit" xml:space="preserve">
+    <value>单位</value>
   </data>
   <data name="CompanyNumberExcel_SourceType" xml:space="preserve">
     <value>来源类型</value>
@@ -309,13 +354,34 @@
   <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
     <value>客户料号</value>
   </data>
-  <data name="CustomerNumberExcel_NumberNameCn" xml:space="preserve">
+  <data name="CustomerNumberExcel_PartNameCn" xml:space="preserve">
     <value>品名（中文）</value>
   </data>
-  <data name="CustomerNumberExcel_NumberNameEn" xml:space="preserve">
+  <data name="CustomerNumberExcel_PartNameEn" xml:space="preserve">
     <value>品名（英文）</value>
   </data>
   <data name="CustomerNumberImport_DuplicatePartNumber" xml:space="preserve">
     <value>第{0}行客户料号“{1}”已存在或与文件中其他行重复</value>
+  </data>
+  <data name="NumberMappingInsertSuccess" xml:space="preserve">
+    <value>新增客户料号与公司料号对照成功</value>
+  </data>
+  <data name="NumberMappingInsertFailed" xml:space="preserve">
+    <value>新增客户料号与公司料号对照失败</value>
+  </data>
+  <data name="NumberMappingDeleteSuccess" xml:space="preserve">
+    <value>删除客户料号与公司料号对照成功</value>
+  </data>
+  <data name="NumberMappingDeleteFailed" xml:space="preserve">
+    <value>删除客户料号与公司料号对照失败</value>
+  </data>
+  <data name="NumberMappingUpdateSuccess" xml:space="preserve">
+    <value>修改客户料号与公司料号对照成功</value>
+  </data>
+  <data name="NumberMappingUpdateFailed" xml:space="preserve">
+    <value>修改客户料号与公司料号对照失败</value>
+  </data>
+  <data name="NumberMappingMappingOverlap" xml:space="preserve">
+    <value>公司料号“{0}”在该生效时间范围内已存在其他对照关系，同一公司料号在相同时间段内不能对照多个（含相同）客户料号</value>
   </data>
 </root>

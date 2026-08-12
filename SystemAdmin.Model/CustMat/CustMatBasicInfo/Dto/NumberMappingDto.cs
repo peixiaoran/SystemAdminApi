@@ -4,43 +4,38 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
 {
     /// <summary>
-    /// 客户料号信息Dto
+    /// 客户料号与公司料号对照Dto
     /// </summary>
-    public class CustomerNumberDto
+    public class NumberMappingDto
     {
         /// <summary>
         /// 主键
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long PartNumberId { get; set; }
+        public long MappingId { get; set; }
 
         /// <summary>
         /// 客户料号
         /// </summary>
-        public string PartNumber { get; set; } = string.Empty;
+        public string CustomerPartNumber { get; set; } = string.Empty;
 
         /// <summary>
-        /// 品名（中文）
+        /// 公司料号
         /// </summary>
-        public string PartNameCn { get; set; } = string.Empty;
+        public string CompanyPartNumber { get; set; } = string.Empty;
 
         /// <summary>
-        /// 品名（英文）
+        /// 生效日期
         /// </summary>
-        public string PartNameEn { get; set; } = string.Empty;
+        public DateTime EffectiveFrom { get; set; }
 
         /// <summary>
-        /// 规格型号
+        /// 失效日期
         /// </summary>
-        public string Specification { get; set; } = string.Empty;
+        public DateTime? EffectiveTo { get; set; }
 
         /// <summary>
-        /// 单位
-        /// </summary>
-        public string Unit { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 启用状态
+        /// 状态
         /// </summary>
         public int Status { get; set; }
     }

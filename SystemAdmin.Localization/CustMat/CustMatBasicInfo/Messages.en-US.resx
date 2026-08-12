@@ -135,6 +135,51 @@
   <data name="CustomerInfoUpdateSuccess" xml:space="preserve">
     <value>Customer information updated successfully</value>
   </data>
+  <data name="CustomerInfoCustomerCodeDuplicate" xml:space="preserve">
+    <value>Customer code "{0}" already exists</value>
+  </data>
+  <data name="CustomerInfoExcel_SheetName" xml:space="preserve">
+    <value>Customer Information Import Template</value>
+  </data>
+  <data name="CustomerInfoExcel_CustomerCode" xml:space="preserve">
+    <value>Customer Code</value>
+  </data>
+  <data name="CustomerInfoExcel_CustomerNameCn" xml:space="preserve">
+    <value>Customer Name (CN)</value>
+  </data>
+  <data name="CustomerInfoExcel_CustomerNameEn" xml:space="preserve">
+    <value>Customer Name (EN)</value>
+  </data>
+  <data name="CustomerInfoExcel_Description" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="CustomerInfoImport_FileEmpty" xml:space="preserve">
+    <value>Please upload a file to import</value>
+  </data>
+  <data name="CustomerInfoImport_InvalidFileFormat" xml:space="preserve">
+    <value>Only .xlsx files are supported. The legacy .xls format is not supported, please save as .xlsx and re-upload</value>
+  </data>
+  <data name="CustomerInfoImport_NoWorksheet" xml:space="preserve">
+    <value>No worksheet found in the Excel file</value>
+  </data>
+  <data name="CustomerInfoImport_NoData" xml:space="preserve">
+    <value>At least one row of data is required in the Excel file</value>
+  </data>
+  <data name="CustomerInfoImport_HeaderMismatch" xml:space="preserve">
+    <value>Column {0} header mismatch: expected "{1}" but got "{2}", please use the standard template</value>
+  </data>
+  <data name="CustomerInfoImport_ColumnCountMismatch" xml:space="preserve">
+    <value>Column count does not match the template, please use the standard template</value>
+  </data>
+  <data name="CustomerInfoImport_RequiredFieldEmpty" xml:space="preserve">
+    <value>Row {0} [{1}] cannot be empty</value>
+  </data>
+  <data name="CustomerInfoImport_DuplicateCustomerCode" xml:space="preserve">
+    <value>Row {0} customer code "{1}" already exists or duplicates another row in the file</value>
+  </data>
+  <data name="CustomerInfoImport_Success" xml:space="preserve">
+    <value>Successfully imported {0} customer record(s)</value>
+  </data>
   <data name="CompanyNumberInfoInsertSuccess" xml:space="preserve">
     <value>Part number information created successfully</value>
   </data>
@@ -162,10 +207,10 @@
   <data name="CompanyNumberExcel_PartNumber" xml:space="preserve">
     <value>Part Number</value>
   </data>
-  <data name="CompanyNumberExcel_ProductNameCn" xml:space="preserve">
+  <data name="CompanyNumberExcel_PartNameCn" xml:space="preserve">
     <value>Part Name (CN)</value>
   </data>
-  <data name="CompanyNumberExcel_ProductNameEn" xml:space="preserve">
+  <data name="CompanyNumberExcel_PartNameEn" xml:space="preserve">
     <value>Part Name (EN)</value>
   </data>
   <data name="CompanyNumberExcel_Specification" xml:space="preserve">
@@ -186,8 +231,8 @@
   <data name="CompanyNumberExcel_Version" xml:space="preserve">
     <value>Version</value>
   </data>
-  <data name="CompanyNumberExcel_BaseUnit" xml:space="preserve">
-    <value>Base Unit</value>
+  <data name="CompanyNumberExcel_Unit" xml:space="preserve">
+    <value>Unit</value>
   </data>
   <data name="CompanyNumberExcel_SourceType" xml:space="preserve">
     <value>Source Type</value>
@@ -309,13 +354,34 @@
   <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
     <value>Customer Part Number</value>
   </data>
-  <data name="CustomerNumberExcel_NumberNameCn" xml:space="preserve">
+  <data name="CustomerNumberExcel_PartNameCn" xml:space="preserve">
     <value>Part Name (CN)</value>
   </data>
-  <data name="CustomerNumberExcel_NumberNameEn" xml:space="preserve">
+  <data name="CustomerNumberExcel_PartNameEn" xml:space="preserve">
     <value>Part Name (EN)</value>
   </data>
   <data name="CustomerNumberImport_DuplicatePartNumber" xml:space="preserve">
     <value>Row {0} customer part number "{1}" already exists or duplicates another row in the file</value>
+  </data>
+  <data name="NumberMappingInsertSuccess" xml:space="preserve">
+    <value>Customer/company part number mapping created successfully</value>
+  </data>
+  <data name="NumberMappingInsertFailed" xml:space="preserve">
+    <value>Failed to create customer/company part number mapping</value>
+  </data>
+  <data name="NumberMappingDeleteSuccess" xml:space="preserve">
+    <value>Customer/company part number mapping deleted successfully</value>
+  </data>
+  <data name="NumberMappingDeleteFailed" xml:space="preserve">
+    <value>Failed to delete customer/company part number mapping</value>
+  </data>
+  <data name="NumberMappingUpdateSuccess" xml:space="preserve">
+    <value>Customer/company part number mapping updated successfully</value>
+  </data>
+  <data name="NumberMappingUpdateFailed" xml:space="preserve">
+    <value>Failed to update customer/company part number mapping</value>
+  </data>
+  <data name="NumberMappingMappingOverlap" xml:space="preserve">
+    <value>Company part number "{0}" already has another mapping that overlaps with this effective date range. A company part number cannot map to more than one customer part number (including the same one) during the same period</value>
   </data>
 </root>

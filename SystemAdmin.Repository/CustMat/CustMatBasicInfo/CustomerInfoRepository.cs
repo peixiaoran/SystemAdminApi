@@ -96,5 +96,67 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
             var customerPage = await query.ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<CustomerInfoDto>.Ok(customerPage.Adapt<List<CustomerInfoDto>>(), totalCount, "");
         }
+
+        /// <summary>
+        /// 按查询条件查询客户信息列表
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <returns></returns>
+        public async Task<List<CustomerInfoDto>> GetCustomerList(GetCustomerPage getPage)
+        {
+            var query = _db.Queryable<CustomerInfoEntity>()
+                           .With(SqlWith.NoLock);
+
+            // 客户编码
+            if (!string.IsNullOrEmpty(getPage.CustomerCode))
+            {
+                query.Where(customer => customer.CustomerCode.Contains(getPage.CustomerCode));
+            }
+            // 客户名称
+            if (!string.IsNullOrEmpty(getPage.CustomerName))
+            {
+                query.Where(customer => customer.CustomerNameCn.Contains(getPage.CustomerName) || customer.CustomerNameEn.Contains(getPage.CustomerName));
+            }
+
+            var customerList = await query.OrderBy(customer => customer.CreatedDate).ToListAsync();
+            return customerList.Adapt<List<CustomerInfoDto>>();
+        }
+
+        /// <summary>
+        /// 批量新增客户信息列表
+        /// </summary>
+        /// <param name="customerList"></param>
+        /// <returns></returns>
+        public async Task<int> InsertCustomerList(List<CustomerInfoEntity> customerList)
+        {
+            return await _db.Insertable(customerList).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 客户编码是否已存在
+        /// </summary>
+        /// <param name="customerCode"></param>
+        /// <returns></returns>
+        public async Task<bool> ExistsCustomer(string customerCode)
+        {
+            return await _db.Queryable<CustomerInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(customer => customer.CustomerCode == customerCode)
+                            .AnyAsync();
+        }
+
+        /// <summary>
+        /// 一次性查询给定客户编码列表中，数据库已存在的客户编码（用于导入校验，避免逐行查询）
+        /// </summary>
+        /// <param name="customerCodes"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetExistingCustomerCodes(List<string> customerCodes)
+        {
+            return await _db.Queryable<CustomerInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(customer => customerCodes.Contains(customer.CustomerCode))
+                            .Select(customer => customer.CustomerCode)
+                            .ToListAsync();
+        }
     }
 }

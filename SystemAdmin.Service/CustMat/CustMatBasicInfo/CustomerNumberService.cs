@@ -28,8 +28,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
         {
             ("PartNumber", true),
-            ("NumberNameCn", true),
-            ("NumberNameEn", true),
+            ("PartNameCn", true),
+            ("PartNameEn", true),
             ("Specification", true),
             ("Unit", true),
             ("Status", true),
@@ -62,8 +62,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
                     PartNumber = customerNumberUpsert.PartNumber,
-                    NumberNameCn = customerNumberUpsert.NumberNameCn,
-                    NumberNameEn = customerNumberUpsert.NumberNameEn,
+                    PartNameCn = customerNumberUpsert.PartNameCn,
+                    PartNameEn = customerNumberUpsert.PartNameEn,
                     Specification = customerNumberUpsert.Specification,
                     Unit = customerNumberUpsert.Unit,
                     Status = customerNumberUpsert.Status,
@@ -124,8 +124,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     PartNumberId = long.Parse(customerNumberUpsert.PartNumberId),
                     PartNumber = customerNumberUpsert.PartNumber,
-                    NumberNameCn = customerNumberUpsert.NumberNameCn,
-                    NumberNameEn = customerNumberUpsert.NumberNameEn,
+                    PartNameCn = customerNumberUpsert.PartNameCn,
+                    PartNameEn = customerNumberUpsert.PartNameEn,
                     Specification = customerNumberUpsert.Specification,
                     Unit = customerNumberUpsert.Unit,
                     Status = customerNumberUpsert.Status,
@@ -212,8 +212,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     var row = dt.NewRow();
                     row["PartNumber"] = entity.PartNumber;
-                    row["NumberNameCn"] = entity.NumberNameCn;
-                    row["NumberNameEn"] = entity.NumberNameEn;
+                    row["PartNameCn"] = entity.PartNameCn;
+                    row["PartNameEn"] = entity.PartNameEn;
                     row["Specification"] = entity.Specification;
                     row["Unit"] = entity.Unit;
                     row["Status"] = entity.Status == 1 ? yesText : noText;
@@ -373,8 +373,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     {
                         PartNumberId = SnowFlakeSingle.Instance.NextId(),
                         PartNumber = partNumber,
-                        NumberNameCn = rowValues["NumberNameCn"],
-                        NumberNameEn = rowValues["NumberNameEn"],
+                        PartNameCn = rowValues["PartNameCn"],
+                        PartNameEn = rowValues["PartNameEn"],
                         Specification = rowValues["Specification"],
                         Unit = rowValues["Unit"],
                         Status = ParseStatusText(rowValues["Status"]),

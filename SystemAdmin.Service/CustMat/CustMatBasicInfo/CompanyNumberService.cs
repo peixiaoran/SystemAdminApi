@@ -30,15 +30,15 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
         {
             ("PartNumber", true),
-            ("ProductNameCn", true),
-            ("ProductNameEn", true),
+            ("PartNameCn", true),
+            ("PartNameEn", true),
             ("Specification", true),
             ("PartType", true),
             ("Category", true),
             ("Model", true),
             ("DrawingNumber", true),
             ("Version", true),
-            ("BaseUnit", true),
+            ("Unit", true),
             ("SourceType", true),
             ("Manufacturer", false),
             ("ManufacturerPartNumber", false),
@@ -75,15 +75,15 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
                     PartNumber = companyNumberUpsert.PartNumber,
-                    ProductNameCn = companyNumberUpsert.ProductNameCn,
-                    ProductNameEn = companyNumberUpsert.ProductNameEn,
+                    PartNameCn = companyNumberUpsert.PartNameCn,
+                    PartNameEn = companyNumberUpsert.PartNameEn,
                     Specification = companyNumberUpsert.Specification,
                     PartType = companyNumberUpsert.PartType,
                     Category = companyNumberUpsert.Category,
                     Model = companyNumberUpsert.Model,
                     DrawingNumber = companyNumberUpsert.DrawingNumber,
                     Version = companyNumberUpsert.Version,
-                    BaseUnit = companyNumberUpsert.BaseUnit,
+                    Unit = companyNumberUpsert.Unit,
                     SourceType = companyNumberUpsert.SourceType,
                     Manufacturer = companyNumberUpsert.Manufacturer,
                     ManufacturerPartNumber = companyNumberUpsert.ManufacturerPartNumber,
@@ -147,15 +147,15 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     PartNumberId = long.Parse(companyNumberUpsert.PartNumberId),
                     PartNumber = companyNumberUpsert.PartNumber,
-                    ProductNameCn = companyNumberUpsert.ProductNameCn,
-                    ProductNameEn = companyNumberUpsert.ProductNameEn,
+                    PartNameCn = companyNumberUpsert.PartNameCn,
+                    PartNameEn = companyNumberUpsert.PartNameEn,
                     Specification = companyNumberUpsert.Specification,
                     PartType = companyNumberUpsert.PartType,
                     Category = companyNumberUpsert.Category,
                     Model = companyNumberUpsert.Model,
                     DrawingNumber = companyNumberUpsert.DrawingNumber,
                     Version = companyNumberUpsert.Version,
-                    BaseUnit = companyNumberUpsert.BaseUnit,
+                    Unit = companyNumberUpsert.Unit,
                     SourceType = companyNumberUpsert.SourceType,
                     Manufacturer = companyNumberUpsert.Manufacturer,
                     ManufacturerPartNumber = companyNumberUpsert.ManufacturerPartNumber,
@@ -245,15 +245,15 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     var row = dt.NewRow();
                     row["PartNumber"] = entity.PartNumber;
-                    row["ProductNameCn"] = entity.ProductNameCn;
-                    row["ProductNameEn"] = entity.ProductNameEn;
+                    row["PartNameCn"] = entity.PartNameCn;
+                    row["PartNameEn"] = entity.PartNameEn;
                     row["Specification"] = entity.Specification;
                     row["PartType"] = entity.PartTypeName;
                     row["Category"] = entity.CategoryName;
                     row["Model"] = entity.Model;
                     row["DrawingNumber"] = entity.DrawingNumber;
                     row["Version"] = entity.Version;
-                    row["BaseUnit"] = entity.BaseUnit;
+                    row["Unit"] = entity.Unit;
                     row["SourceType"] = entity.SourceTypeName;
                     row["Manufacturer"] = entity.Manufacturer;
                     row["ManufacturerPartNumber"] = entity.ManufacturerPartNumber;
@@ -489,15 +489,15 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     {
                         PartNumberId = SnowFlakeSingle.Instance.NextId(),
                         PartNumber = rowValues["PartNumber"],
-                        ProductNameCn = rowValues["ProductNameCn"],
-                        ProductNameEn = rowValues["ProductNameEn"],
+                        PartNameCn = rowValues["PartNameCn"],
+                        PartNameEn = rowValues["PartNameEn"],
                         Specification = rowValues["Specification"],
                         PartType = partTypeCode,
                         Category = categoryCode,
                         Model = rowValues["Model"],
                         DrawingNumber = rowValues["DrawingNumber"],
                         Version = rowValues["Version"],
-                        BaseUnit = rowValues["BaseUnit"],
+                        Unit = rowValues["Unit"],
                         SourceType = sourceTypeCode,
                         Manufacturer = string.IsNullOrEmpty(rowValues["Manufacturer"]) ? null : rowValues["Manufacturer"],
                         ManufacturerPartNumber = string.IsNullOrEmpty(rowValues["ManufacturerPartNumber"]) ? null : rowValues["ManufacturerPartNumber"],

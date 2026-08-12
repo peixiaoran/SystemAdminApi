@@ -84,6 +84,18 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                 query = query.Where(customerNumber => customerNumber.PartNumber.Contains(getCustomerNumberPage.PartNumber));
             }
 
+            // 品名（中英文模糊匹配）
+            if (!string.IsNullOrEmpty(getCustomerNumberPage.PartName))
+            {
+                query = query.Where(customerNumber => customerNumber.PartNameCn.Contains(getCustomerNumberPage.PartName) || customerNumber.PartNameEn.Contains(getCustomerNumberPage.PartName));
+            }
+
+            // 规格型号
+            if (!string.IsNullOrEmpty(getCustomerNumberPage.Specification))
+            {
+                query = query.Where(customerNumber => customerNumber.Specification.Contains(getCustomerNumberPage.Specification));
+            }
+
             // 启用状态
             if (getCustomerNumberPage.Status.HasValue)
             {
@@ -96,8 +108,8 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                                             {
                                                 PartNumberId = customerNumber.PartNumberId,
                                                 PartNumber = customerNumber.PartNumber,
-                                                NumberNameCn = customerNumber.NumberNameCn,
-                                                NumberNameEn = customerNumber.NumberNameEn,
+                                                PartNameCn = customerNumber.PartNameCn,
+                                                PartNameEn = customerNumber.PartNameEn,
                                                 Specification = customerNumber.Specification,
                                                 Unit = customerNumber.Unit,
                                                 Status = customerNumber.Status,
@@ -121,6 +133,18 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                 query = query.Where(customerNumber => customerNumber.PartNumber.Contains(getCustomerNumberPage.PartNumber));
             }
 
+            // 品名（中英文模糊匹配）
+            if (!string.IsNullOrEmpty(getCustomerNumberPage.PartName))
+            {
+                query = query.Where(customerNumber => customerNumber.PartNameCn.Contains(getCustomerNumberPage.PartName) || customerNumber.PartNameEn.Contains(getCustomerNumberPage.PartName));
+            }
+
+            // 规格型号
+            if (!string.IsNullOrEmpty(getCustomerNumberPage.Specification))
+            {
+                query = query.Where(customerNumber => customerNumber.Specification.Contains(getCustomerNumberPage.Specification));
+            }
+
             // 启用状态
             if (getCustomerNumberPage.Status.HasValue)
             {
@@ -132,8 +156,8 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                               {
                                   PartNumberId = customerNumber.PartNumberId,
                                   PartNumber = customerNumber.PartNumber,
-                                  NumberNameCn = customerNumber.NumberNameCn,
-                                  NumberNameEn = customerNumber.NumberNameEn,
+                                  PartNameCn = customerNumber.PartNameCn,
+                                  PartNameEn = customerNumber.PartNameEn,
                                   Specification = customerNumber.Specification,
                                   Unit = customerNumber.Unit,
                                   Status = customerNumber.Status,
