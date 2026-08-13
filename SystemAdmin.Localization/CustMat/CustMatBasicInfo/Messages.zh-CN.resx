@@ -204,6 +204,9 @@
   <data name="CompanyNumberExcel_SheetName" xml:space="preserve">
     <value>公司料号导入模板</value>
   </data>
+  <data name="CompanyNumberExcel_DataSheetName" xml:space="preserve">
+    <value>公司料号信息</value>
+  </data>
   <data name="CompanyNumberExcel_PartNumber" xml:space="preserve">
     <value>料号</value>
   </data>
@@ -309,6 +312,9 @@
   <data name="CustomerNumberExcel_SheetName" xml:space="preserve">
     <value>客户料号导入模板</value>
   </data>
+  <data name="CustomerNumberExcel_DataSheetName" xml:space="preserve">
+    <value>客户料号信息</value>
+  </data>
   <data name="CustomerNumberImport_FileEmpty" xml:space="preserve">
     <value>请上传导入文件</value>
   </data>
@@ -354,6 +360,9 @@
   <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
     <value>客户料号</value>
   </data>
+  <data name="CustomerNumberExcel_CustomerCode" xml:space="preserve">
+    <value>客户代码</value>
+  </data>
   <data name="CustomerNumberExcel_PartNameCn" xml:space="preserve">
     <value>品名（中文）</value>
   </data>
@@ -383,5 +392,71 @@
   </data>
   <data name="NumberMappingMappingOverlap" xml:space="preserve">
     <value>公司料号“{0}”在该生效时间范围内已存在其他对照关系，同一公司料号在相同时间段内不能对照多个（含相同）客户料号</value>
+  </data>
+  <data name="NumberMappingExcel_SheetName" xml:space="preserve">
+    <value>客户料号对照导入模板</value>
+  </data>
+  <data name="NumberMappingExcel_CustomerPartNumber" xml:space="preserve">
+    <value>客户料号</value>
+  </data>
+  <data name="NumberMappingExcel_CompanyPartNumber" xml:space="preserve">
+    <value>公司料号</value>
+  </data>
+  <data name="NumberMappingExcel_EffectiveFrom" xml:space="preserve">
+    <value>生效日期</value>
+  </data>
+  <data name="NumberMappingExcel_EffectiveTo" xml:space="preserve">
+    <value>失效日期</value>
+  </data>
+  <data name="NumberMappingExcel_Status" xml:space="preserve">
+    <value>启用状态</value>
+  </data>
+  <data name="NumberMappingExcel_DataSheetName" xml:space="preserve">
+    <value>料号对照信息</value>
+  </data>
+  <data name="NumberMappingExcel_Yes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="NumberMappingExcel_No" xml:space="preserve">
+    <value>否</value>
+  </data>
+  <data name="NumberMappingImport_FileEmpty" xml:space="preserve">
+    <value>请上传导入文件</value>
+  </data>
+  <data name="NumberMappingImport_InvalidFileFormat" xml:space="preserve">
+    <value>仅支持.xlsx格式文件，不支持旧版.xls格式，请另存为.xlsx后重新上传</value>
+  </data>
+  <data name="NumberMappingImport_NoWorksheet" xml:space="preserve">
+    <value>Excel文件中未找到工作表</value>
+  </data>
+  <data name="NumberMappingImport_NoData" xml:space="preserve">
+    <value>Excel文件中至少需要一条数据</value>
+  </data>
+  <data name="NumberMappingImport_HeaderMismatch" xml:space="preserve">
+    <value>第{0}列列名不符，应为“{1}”，实际为“{2}”，请使用标准模板填写</value>
+  </data>
+  <data name="NumberMappingImport_ColumnCountMismatch" xml:space="preserve">
+    <value>列数量与模板不符，请使用标准模板填写</value>
+  </data>
+  <data name="NumberMappingImport_RequiredFieldEmpty" xml:space="preserve">
+    <value>第{0}行【{1}】不能为空</value>
+  </data>
+  <data name="NumberMappingImport_InvalidDateValue" xml:space="preserve">
+    <value>第{0}行【{1}】的值“{2}”不是有效的日期</value>
+  </data>
+  <data name="NumberMappingImport_InvalidStatusValue" xml:space="preserve">
+    <value>第{0}行【启用状态】的值“{1}”不合法，只能填写“是”“否”“Yes”“No”</value>
+  </data>
+  <data name="NumberMappingImport_InvalidCustomerPartNumber" xml:space="preserve">
+    <value>第{0}行客户料号“{1}”不存在或未启用</value>
+  </data>
+  <data name="NumberMappingImport_InvalidCompanyPartNumber" xml:space="preserve">
+    <value>第{0}行公司料号“{1}”不存在或未启用</value>
+  </data>
+  <data name="NumberMappingImport_MappingOverlap" xml:space="preserve">
+    <value>第{0}行公司料号“{1}”在该生效时间范围内与已存在或文件中其他行的对照关系重叠</value>
+  </data>
+  <data name="NumberMappingImport_Success" xml:space="preserve">
+    <value>成功导入{0}条对照信息</value>
   </data>
 </root>

@@ -70,7 +70,8 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
         public async Task<IActionResult> GetCustomerNumberExcel([FromBody] GetCustomerNumberPage getPage)
         {
             var bytes = await _customerNumberService.GetCustomerNumberExcel(getPage);
-            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", _localization.ReturnMsg($"{_thisExcel}SheetName") + ".xlsx");
+            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}DataSheetName", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}DataSheetName", "en-US")}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         [HttpPost]
@@ -89,6 +90,14 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
         public async Task<Result<int>> ImportCustomerNumber(IFormFile file)
         {
             return await _customerNumberService.ImportCustomerNumber(file);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-相关基础信息")]
+        [EndpointSummary("[客户料号] 客户下拉")]
+        public async Task<Result<List<CustomerDropDto>>> GetCustomerDrop()
+        {
+            return await _customerNumberService.GetCustomerDrop();
         }
     }
 }

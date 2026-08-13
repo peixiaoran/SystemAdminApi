@@ -62,9 +62,9 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         public async Task<UserLaborDto> GetUserLaborEntity(long laborId)
         {
             var entity = await _db.Queryable<UserLaborEntity>()
-                                           .With(SqlWith.NoLock)
-                                           .Where(userPos => userPos.LaborId == laborId)
-                                           .FirstAsync();
+                                  .With(SqlWith.NoLock)
+                                  .Where(userPos => userPos.LaborId == laborId)
+                                  .FirstAsync();
             return entity.Adapt<UserLaborDto>();
         }
 

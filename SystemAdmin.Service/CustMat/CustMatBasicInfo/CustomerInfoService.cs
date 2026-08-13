@@ -19,12 +19,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private readonly ILogger<CustomerInfoService> _logger;
         private readonly SqlSugarScope _db;
         private readonly CustomerInfoRepository _customerInfoRepository;
+        private readonly CustomerNumberRepository _customerNumberRepository;
+        private readonly NumberMappingRepository _numberMappingRepository;
         private readonly LocalizationService _localization;
         private readonly string _this = "CustMat.CustMatBasicInfo.CustomerInfo";
         private readonly string _thisExcel = "CustMat.CustMatBasicInfo.CustomerInfoExcel_";
         private readonly string _thisImport = "CustMat.CustMatBasicInfo.CustomerInfoImport_";
 
-        // 导入/导出模板列（顺序即Excel列顺序），不含Id、创建、修改等系统字段
+        // 导入/导出模板列
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
         {
             ("CustomerCode", true),
@@ -33,12 +35,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             ("Description", false),
         };
 
-        public CustomerInfoService(CurrentUser loginuser, ILogger<CustomerInfoService> logger, SqlSugarScope db, CustomerInfoRepository customerInfoRepository, LocalizationService localization)
+        public CustomerInfoService(CurrentUser loginuser, ILogger<CustomerInfoService> logger, SqlSugarScope db, CustomerInfoRepository customerInfoRepository, CustomerNumberRepository customerNumberRepository, NumberMappingRepository numberMappingRepository, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _customerInfoRepository = customerInfoRepository;
+            _customerNumberRepository = customerNumberRepository;
+            _numberMappingRepository = numberMappingRepository;
             _localization = localization;
         }
 
@@ -87,8 +91,21 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
+                var id = long.Parse(customerId);
+                var entity = await _customerInfoRepository.GetCustomerEntity(id);
+
                 await _db.BeginTranAsync();
-                var delCustomerCount = await _customerInfoRepository.DeleteCustomer(long.Parse(customerId));
+                if (entity != null)
+                {
+                    // 联动删除该客户名下的全部客户料号，以及这些客户料号与公司料号的对照关系
+                    var customerPartNumbers = await _customerNumberRepository.GetPartNumbersByCustomerCode(entity.CustomerCode);
+                    if (customerPartNumbers.Count > 0)
+                    {
+                        await _numberMappingRepository.DeleteMappingsByCustomerPartNumbers(customerPartNumbers);
+                        await _customerNumberRepository.DeleteCustomerNumbersByCustomerCode(entity.CustomerCode);
+                    }
+                }
+                var delCustomerCount = await _customerInfoRepository.DeleteCustomer(id);
                 await _db.CommitTranAsync();
 
                 return delCustomerCount >= 1
@@ -148,8 +165,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
-                var customerInfoEntity = await _customerInfoRepository.GetCustomerEntity(long.Parse(customerId));
-                return Result<CustomerInfoDto>.Ok(customerInfoEntity, "");
+                var entity = await _customerInfoRepository.GetCustomerEntity(long.Parse(customerId));
+                return Result<CustomerInfoDto>.Ok(entity, "");
             }
             catch (Exception ex)
             {
@@ -223,7 +240,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 导出客户信息导入模板（不含Id、创建、修改等字段）
+        /// 导出客户信息导入模板
         /// </summary>
         /// <returns></returns>
         public Task<byte[]> GetCustomerTemplate()

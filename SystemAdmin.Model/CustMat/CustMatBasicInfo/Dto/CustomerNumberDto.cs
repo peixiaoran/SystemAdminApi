@@ -20,6 +20,11 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
         public string PartNumber { get; set; } = string.Empty;
 
         /// <summary>
+        /// 客户代码
+        /// </summary>
+        public string CustomerCode { get; set; } = string.Empty;
+
+        /// <summary>
         /// 品名（中文）
         /// </summary>
         public string PartNameCn { get; set; } = string.Empty;

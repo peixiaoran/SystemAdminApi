@@ -83,7 +83,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands
         /// <summary>
         /// 启用状态
         /// </summary>
-        public bool Status { get; set; }
+        public int Status { get; set; }
 
         /// <summary>
         /// 备注

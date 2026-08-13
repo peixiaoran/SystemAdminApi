@@ -204,6 +204,9 @@
   <data name="CompanyNumberExcel_SheetName" xml:space="preserve">
     <value>Company Number Import Template</value>
   </data>
+  <data name="CompanyNumberExcel_DataSheetName" xml:space="preserve">
+    <value>Company Number Info</value>
+  </data>
   <data name="CompanyNumberExcel_PartNumber" xml:space="preserve">
     <value>Part Number</value>
   </data>
@@ -309,6 +312,9 @@
   <data name="CustomerNumberExcel_SheetName" xml:space="preserve">
     <value>Customer Number Import Template</value>
   </data>
+  <data name="CustomerNumberExcel_DataSheetName" xml:space="preserve">
+    <value>Customer Number Info</value>
+  </data>
   <data name="CustomerNumberImport_FileEmpty" xml:space="preserve">
     <value>Please upload a file to import</value>
   </data>
@@ -354,6 +360,9 @@
   <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
     <value>Customer Part Number</value>
   </data>
+  <data name="CustomerNumberExcel_CustomerCode" xml:space="preserve">
+    <value>Customer Code</value>
+  </data>
   <data name="CustomerNumberExcel_PartNameCn" xml:space="preserve">
     <value>Part Name (CN)</value>
   </data>
@@ -382,6 +391,72 @@
     <value>Failed to update customer/company part number mapping</value>
   </data>
   <data name="NumberMappingMappingOverlap" xml:space="preserve">
-    <value>Company part number "{0}" already has another mapping that overlaps with this effective date range. A company part number cannot map to more than one customer part number (including the same one) during the same period</value>
+    <value>Company part number "{0}" already has another mapping that overlaps with this effective date range.</value>
+  </data>
+  <data name="NumberMappingExcel_SheetName" xml:space="preserve">
+    <value>Number Mapping Import Template</value>
+  </data>
+  <data name="NumberMappingExcel_CustomerPartNumber" xml:space="preserve">
+    <value>Customer Part Number</value>
+  </data>
+  <data name="NumberMappingExcel_CompanyPartNumber" xml:space="preserve">
+    <value>Company Part Number</value>
+  </data>
+  <data name="NumberMappingExcel_EffectiveFrom" xml:space="preserve">
+    <value>Effective From</value>
+  </data>
+  <data name="NumberMappingExcel_EffectiveTo" xml:space="preserve">
+    <value>Effective To</value>
+  </data>
+  <data name="NumberMappingExcel_Status" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="NumberMappingExcel_DataSheetName" xml:space="preserve">
+    <value>Number Mapping Info</value>
+  </data>
+  <data name="NumberMappingExcel_Yes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="NumberMappingExcel_No" xml:space="preserve">
+    <value>No</value>
+  </data>
+  <data name="NumberMappingImport_FileEmpty" xml:space="preserve">
+    <value>Please upload a file to import</value>
+  </data>
+  <data name="NumberMappingImport_InvalidFileFormat" xml:space="preserve">
+    <value>Only .xlsx files are supported. The legacy .xls format is not supported, please save as .xlsx and re-upload</value>
+  </data>
+  <data name="NumberMappingImport_NoWorksheet" xml:space="preserve">
+    <value>No worksheet found in the Excel file</value>
+  </data>
+  <data name="NumberMappingImport_NoData" xml:space="preserve">
+    <value>At least one row of data is required in the Excel file</value>
+  </data>
+  <data name="NumberMappingImport_HeaderMismatch" xml:space="preserve">
+    <value>Column {0} header mismatch: expected "{1}" but got "{2}", please use the standard template</value>
+  </data>
+  <data name="NumberMappingImport_ColumnCountMismatch" xml:space="preserve">
+    <value>Column count does not match the template, please use the standard template</value>
+  </data>
+  <data name="NumberMappingImport_RequiredFieldEmpty" xml:space="preserve">
+    <value>Row {0} [{1}] cannot be empty</value>
+  </data>
+  <data name="NumberMappingImport_InvalidDateValue" xml:space="preserve">
+    <value>Row {0} [{1}] value "{2}" is not a valid date</value>
+  </data>
+  <data name="NumberMappingImport_InvalidStatusValue" xml:space="preserve">
+    <value>Row {0} [Status] value "{1}" is invalid, only "是"/"否"/"Yes"/"No" are accepted</value>
+  </data>
+  <data name="NumberMappingImport_InvalidCustomerPartNumber" xml:space="preserve">
+    <value>Row {0} customer part number "{1}" does not exist or is not enabled</value>
+  </data>
+  <data name="NumberMappingImport_InvalidCompanyPartNumber" xml:space="preserve">
+    <value>Row {0} company part number "{1}" does not exist or is not enabled</value>
+  </data>
+  <data name="NumberMappingImport_MappingOverlap" xml:space="preserve">
+    <value>Row {0} company part number "{1}" overlaps with an existing mapping or another row in the file within this effective date range</value>
+  </data>
+  <data name="NumberMappingImport_Success" xml:space="preserve">
+    <value>Successfully imported {0} mapping record(s)</value>
   </data>
 </root>

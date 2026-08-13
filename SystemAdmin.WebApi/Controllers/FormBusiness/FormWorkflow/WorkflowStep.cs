@@ -134,7 +134,15 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormWorkflow
 
         [HttpPost]
         [Tags("表单业务管理-表单流程配置")]
-        [EndpointSummary("[流程步骤详情] 查询步骤栏位权限列表")]
+        [EndpointSummary("[流程步骤详情] 覆盖全部步骤权限")]
+        public async Task<Result<int>> UpdateAllStepFieldPermission([FromQuery] string formTypeId, [FromBody] List<StepFieldPermissionUpsert> list)
+        {
+            return await _workflowStepService.UpdateAllStepFieldPermission(formTypeId, list);
+        }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单流程配置")]
+        [EndpointSummary("[流程步骤详情] 查询步骤栏位权限")]
         public async Task<Result<List<StepFieldPermissionDto>>> GetStepFieldPermissionList([FromForm] string formTypeId, [FromForm] string stepId)
         {
             return await _workflowStepService.GetStepFieldPermissionList(formTypeId, stepId);

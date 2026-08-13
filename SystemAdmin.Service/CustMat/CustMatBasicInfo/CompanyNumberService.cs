@@ -20,13 +20,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private readonly ILogger<CompanyNumberService> _logger;
         private readonly SqlSugarScope _db;
         private readonly CompanyNumberRepository _companyNumberRepository;
+        private readonly NumberMappingRepository _numberMappingRepository;
         private readonly LocalizationService _localization;
         private readonly Language _lang;
         private readonly string _this = "CustMat.CustMatBasicInfo.CompanyNumberInfo";
         private readonly string _thisExcel = "CustMat.CustMatBasicInfo.CompanyNumberExcel_";
         private readonly string _thisImport = "CustMat.CustMatBasicInfo.CompanyNumberImport_";
 
-        // 导入/导出模板列（顺序即Excel列顺序），不含Id、创建、修改等系统字段
+        // 导入/导出模板列
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
         {
             ("PartNumber", true),
@@ -47,12 +48,13 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             ("Remark", false),
         };
 
-        public CompanyNumberService(CurrentUser loginuser, ILogger<CompanyNumberService> logger, SqlSugarScope db, CompanyNumberRepository companyNumberRepository, LocalizationService localization, Language lang)
+        public CompanyNumberService(CurrentUser loginuser, ILogger<CompanyNumberService> logger, SqlSugarScope db, CompanyNumberRepository companyNumberRepository, NumberMappingRepository numberMappingRepository, LocalizationService localization, Language lang)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _companyNumberRepository = companyNumberRepository;
+            _numberMappingRepository = numberMappingRepository;
             _localization = localization;
             _lang = lang;
         }
@@ -60,36 +62,36 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 新增料号信息
         /// </summary>
-        /// <param name="companyNumberUpsert"></param>
+        /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> InsertCompanyNumber(CompanyNumberUpsert companyNumberUpsert)
+        public async Task<Result<int>> InsertCompanyNumber(CompanyNumberUpsert upsert)
         {
             try
             {
-                var exists = await _companyNumberRepository.ExistsCompanyNumber(companyNumberUpsert.PartNumber);
+                var exists = await _companyNumberRepository.ExistsCompanyNumber(upsert.PartNumber);
                 if (exists)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", companyNumberUpsert.PartNumber));
+                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", (object)upsert.PartNumber));
 
                 await _db.BeginTranAsync();
                 var entity = new CompanyNumberEntity()
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
-                    PartNumber = companyNumberUpsert.PartNumber,
-                    PartNameCn = companyNumberUpsert.PartNameCn,
-                    PartNameEn = companyNumberUpsert.PartNameEn,
-                    Specification = companyNumberUpsert.Specification,
-                    PartType = companyNumberUpsert.PartType,
-                    Category = companyNumberUpsert.Category,
-                    Model = companyNumberUpsert.Model,
-                    DrawingNumber = companyNumberUpsert.DrawingNumber,
-                    Version = companyNumberUpsert.Version,
-                    Unit = companyNumberUpsert.Unit,
-                    SourceType = companyNumberUpsert.SourceType,
-                    Manufacturer = companyNumberUpsert.Manufacturer,
-                    ManufacturerPartNumber = companyNumberUpsert.ManufacturerPartNumber,
-                    LotControl = companyNumberUpsert.LotControl,
-                    Status = companyNumberUpsert.Status,
-                    Remark = companyNumberUpsert.Remark,
+                    PartNumber = upsert.PartNumber,
+                    PartNameCn = upsert.PartNameCn,
+                    PartNameEn = upsert.PartNameEn,
+                    Specification = upsert.Specification,
+                    PartType = upsert.PartType,
+                    Category = upsert.Category,
+                    Model = upsert.Model,
+                    DrawingNumber = upsert.DrawingNumber,
+                    Version = upsert.Version,
+                    Unit = upsert.Unit,
+                    SourceType = upsert.SourceType,
+                    Manufacturer = upsert.Manufacturer,
+                    ManufacturerPartNumber = upsert.ManufacturerPartNumber,
+                    LotControl = upsert.LotControl,
+                    Status = upsert.Status,
+                    Remark = upsert.Remark,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
@@ -117,8 +119,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
+                var id = long.Parse(partNumberId);
+                var entity = await _companyNumberRepository.GetCompanyNumberEntity(id);
+
                 await _db.BeginTranAsync();
-                var delCompanyNumberCount = await _companyNumberRepository.DeleteCompanyNumber(long.Parse(partNumberId));
+                // 联动删除该公司料号下的全部客户料号对照关系
+                if (entity != null)
+                    await _numberMappingRepository.DeleteMappingsByCompanyPartNumber(entity.PartNumber);
+                var delCompanyNumberCount = await _companyNumberRepository.DeleteCompanyNumber(id);
                 await _db.CommitTranAsync();
 
                 return delCompanyNumberCount >= 1
@@ -136,36 +144,41 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 修改料号信息
         /// </summary>
-        /// <param name="companyNumberUpsert"></param>
+        /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateCompanyNumber(CompanyNumberUpsert companyNumberUpsert)
+        public async Task<Result<int>> UpdateCompanyNumber(CompanyNumberUpsert upsert)
         {
             try
             {
                 await _db.BeginTranAsync();
                 var entity = new CompanyNumberEntity()
                 {
-                    PartNumberId = long.Parse(companyNumberUpsert.PartNumberId),
-                    PartNumber = companyNumberUpsert.PartNumber,
-                    PartNameCn = companyNumberUpsert.PartNameCn,
-                    PartNameEn = companyNumberUpsert.PartNameEn,
-                    Specification = companyNumberUpsert.Specification,
-                    PartType = companyNumberUpsert.PartType,
-                    Category = companyNumberUpsert.Category,
-                    Model = companyNumberUpsert.Model,
-                    DrawingNumber = companyNumberUpsert.DrawingNumber,
-                    Version = companyNumberUpsert.Version,
-                    Unit = companyNumberUpsert.Unit,
-                    SourceType = companyNumberUpsert.SourceType,
-                    Manufacturer = companyNumberUpsert.Manufacturer,
-                    ManufacturerPartNumber = companyNumberUpsert.ManufacturerPartNumber,
-                    LotControl = companyNumberUpsert.LotControl,
-                    Status = companyNumberUpsert.Status,
-                    Remark = companyNumberUpsert.Remark,
+                    PartNumberId = long.Parse(upsert.PartNumberId),
+                    PartNumber = upsert.PartNumber,
+                    PartNameCn = upsert.PartNameCn,
+                    PartNameEn = upsert.PartNameEn,
+                    Specification = upsert.Specification,
+                    PartType = upsert.PartType,
+                    Category = upsert.Category,
+                    Model = upsert.Model,
+                    DrawingNumber = upsert.DrawingNumber,
+                    Version = upsert.Version,
+                    Unit = upsert.Unit,
+                    SourceType = upsert.SourceType,
+                    Manufacturer = upsert.Manufacturer,
+                    ManufacturerPartNumber = upsert.ManufacturerPartNumber,
+                    LotControl = upsert.LotControl,
+                    Status = upsert.Status,
+                    Remark = upsert.Remark,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
                 var count = await _companyNumberRepository.UpdateCompanyNumber(entity);
+
+                // 联动失效：公司料号被修改为停用时，其下全部客户料号对照关系一并置为失效
+                if (upsert.Status == 0)
+                    await _numberMappingRepository.InvalidateMappingsByCompanyPartNumber(upsert.PartNumber, _loginuser.UserId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -189,8 +202,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
-                var companyNumberEntity = await _companyNumberRepository.GetCompanyNumberEntity(long.Parse(partNumberId));
-                return Result<CompanyNumberDto>.Ok(companyNumberEntity, "");
+                var entity = await _companyNumberRepository.GetCompanyNumberEntity(long.Parse(partNumberId));
+                return Result<CompanyNumberDto>.Ok(entity, "");
             }
             catch (Exception ex)
             {
@@ -233,7 +246,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
 
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
                 using var package = new ExcelPackage();
-                var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}SheetName"));
+                var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}DataSheetName"));
 
                 var dt = new DataTable();
                 foreach (var col in _templateColumns)
@@ -258,7 +271,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     row["Manufacturer"] = entity.Manufacturer;
                     row["ManufacturerPartNumber"] = entity.ManufacturerPartNumber;
                     row["LotControl"] = entity.LotControl ? yesText : noText;
-                    row["Status"] = entity.Status ? yesText : noText;
+                    row["Status"] = entity.Status == 1 ? yesText : noText;
                     row["Remark"] = entity.Remark;
                     dt.Rows.Add(row);
                 }
@@ -333,7 +346,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 导出料号导入模板（不含Id、创建、修改等字段）
+        /// 导出料号导入模板
         /// </summary>
         /// <returns></returns>
         public Task<byte[]> GetCompanyNumberTemplate()
@@ -502,7 +515,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                         Manufacturer = string.IsNullOrEmpty(rowValues["Manufacturer"]) ? null : rowValues["Manufacturer"],
                         ManufacturerPartNumber = string.IsNullOrEmpty(rowValues["ManufacturerPartNumber"]) ? null : rowValues["ManufacturerPartNumber"],
                         LotControl = ParseBoolText(rowValues["LotControl"]),
-                        Status = ParseBoolText(rowValues["Status"]),
+                        Status = ParseStatusText(rowValues["Status"]),
                         Remark = string.IsNullOrEmpty(rowValues["Remark"]) ? null : rowValues["Remark"],
                         CreatedBy = _loginuser.UserId,
                         CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
@@ -567,6 +580,20 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             {
                 "是" or "YES" => true,
                 _ => false,
+            };
+        }
+
+        /// <summary>
+        /// 解析是否类文本为状态值（中文：是/否，英文：Yes/No，对应 1/0）
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        private static int ParseStatusText(string value)
+        {
+            return value.Trim().ToUpperInvariant() switch
+            {
+                "是" or "YES" => 1,
+                _ => 0,
             };
         }
     }

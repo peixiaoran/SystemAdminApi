@@ -61,11 +61,11 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <returns></returns>
         public async Task<CustomerInfoDto> GetCustomerEntity(long customerId)
         {
-            var customerEntity = await _db.Queryable<CustomerInfoEntity>()
-                                          .With(SqlWith.NoLock)
-                                          .Where(customer => customer.CustomerId == customerId)
-                                          .FirstAsync();
-            return customerEntity.Adapt<CustomerInfoDto>();
+            var entity = await _db.Queryable<CustomerInfoEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(customer => customer.CustomerId == customerId)
+                                  .FirstAsync();
+            return entity.Adapt<CustomerInfoDto>();
         }
 
         /// <summary>

@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Commands;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries;
@@ -14,10 +16,13 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
     public class NumberMapping : ControllerBase
     {
         private readonly NumberMappingService _numberMappingService;
+        private readonly LocalizationService _localization;
+        private readonly string _thisExcel = "CustMat.CustMatBasicInfo.NumberMappingExcel_";
 
-        public NumberMapping(NumberMappingService numberMappingService)
+        public NumberMapping(NumberMappingService numberMappingService, LocalizationService localization)
         {
             _numberMappingService = numberMappingService;
+            _localization = localization;
         }
 
         [HttpPost]
@@ -58,6 +63,34 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
         public async Task<ResultPaged<NumberMappingDto>> GetNumberMappingPage([FromBody] GetNumberMappingPage getPage)
         {
             return await _numberMappingService.GetNumberMappingPage(getPage);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-相关基础信息")]
+        [EndpointSummary("[料号对照] 导出对照Excel")]
+        public async Task<IActionResult> GetNumberMappingExcel([FromBody] GetNumberMappingPage getPage)
+        {
+            var bytes = await _numberMappingService.GetNumberMappingExcel(getPage);
+            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}DataSheetName", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}DataSheetName", "en-US")}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-相关基础信息")]
+        [EndpointSummary("[料号对照] 导出对照导入模板")]
+        public async Task<IActionResult> GetNumberMappingTemplate()
+        {
+            var bytes = await _numberMappingService.GetNumberMappingTemplate();
+            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}SheetName", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}SheetName", "en-US")}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-相关基础信息")]
+        [EndpointSummary("[料号对照] 导入对照信息")]
+        public async Task<Result<int>> ImportNumberMapping(IFormFile file)
+        {
+            return await _numberMappingService.ImportNumberMapping(file);
         }
 
         [HttpPost]

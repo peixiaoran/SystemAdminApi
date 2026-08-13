@@ -77,9 +77,9 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
         public async Task<FormGroupDto> GetFormGroupEntity(long formGroupId)
         {
             var entity = await _db.Queryable<FormGroupEntity>()
-                                           .With(SqlWith.NoLock)
-                                           .Where(formgroup => formgroup.FormGroupId == formGroupId)
-                                           .FirstAsync();
+                                  .With(SqlWith.NoLock)
+                                  .Where(formgroup => formgroup.FormGroupId == formGroupId)
+                                  .FirstAsync();
             return entity.Adapt<FormGroupDto>();
         }
 

@@ -247,7 +247,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 {
                     To = new List<string> { user.Email },
                     Subject = _localization.ReturnMsg($"{_this}EmailAccountUnlock"),
-                    Body = _localization.ReturnMsg($"{_this}UnlockSendVcCodeBody", code)
+                    Body = _localization.ReturnMsg($"{_this}UnlockSendVcCodeBody", (object)code)
                 };
                 await _email.SendAsync(emailMsg);
 
@@ -256,7 +256,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}SendVcCodeFailed", ex.Message));
+                return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}SendVcCodeFailed", (object)ex.Message));
             }
         }
 
@@ -362,7 +362,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 {
                     To = new List<string> { user.Email },
                     Subject = _localization.ReturnMsg($"{_this}EmailAccountPasswordEx"),
-                    Body = _localization.ReturnMsg($"{_this}PasswordExSendVcCodeBody", code)
+                    Body = _localization.ReturnMsg($"{_this}PasswordExSendVcCodeBody", (object)code)
                 };
                 await _email.SendAsync(emailMsg);
 
@@ -371,7 +371,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}SendVcCodeFailed", ex.Message));
+                return Result<string>.Failure(500, _localization.ReturnMsg($"{_this}SendVcCodeFailed", (object)ex.Message));
             }
         }
 

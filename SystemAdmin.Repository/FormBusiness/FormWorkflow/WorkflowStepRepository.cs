@@ -506,6 +506,20 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
+        /// 查询表单类型下非开始步骤的步骤Id列表
+        /// </summary>
+        /// <param name="formTypeId"></param>
+        /// <returns></returns>
+        public async Task<List<long>> GetNonStartStepIds(long formTypeId)
+        {
+            return await _db.Queryable<WorkflowStepEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(stepinfo => stepinfo.FormTypeId == formTypeId && stepinfo.IsStartStep != 1)
+                            .Select(stepinfo => stepinfo.StepId)
+                            .ToListAsync();
+        }
+
+        /// <summary>
         /// 新增步骤栏位权限
         /// </summary>
         /// <param name="list"></param>

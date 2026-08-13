@@ -102,9 +102,9 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
         public async Task<RoleInfoDto> GetRoleEntity(long roleId)
         {
             var entity = await _db.Queryable<RoleInfoEntity>()
-                                      .With(SqlWith.NoLock)
-                                      .Where(role => role.RoleId == roleId)
-                                      .FirstAsync();
+                                  .With(SqlWith.NoLock)
+                                  .Where(role => role.RoleId == roleId)
+                                  .FirstAsync();
             return entity.Adapt<RoleInfoDto>();
         }
 

@@ -1,5 +1,6 @@
 using Mapster;
 using SqlSugar;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Queries;
@@ -9,10 +10,12 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
     public class CustomerNumberRepository
     {
         private readonly SqlSugarScope _db;
+        private readonly Language _lang;
 
-        public CustomerNumberRepository(SqlSugarScope db)
+        public CustomerNumberRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
+            _lang = lang;
         }
 
         /// <summary>
@@ -61,11 +64,11 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <returns></returns>
         public async Task<CustomerNumberDto> GetCustomerNumberEntity(long partNumberId)
         {
-            var customerNumberEntity = await _db.Queryable<CustomerNumberEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .Where(customerNumber => customerNumber.PartNumberId == partNumberId)
-                                            .FirstAsync();
-            return customerNumberEntity.Adapt<CustomerNumberDto>();
+            var entity = await _db.Queryable<CustomerNumberEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(customerNumber => customerNumber.PartNumberId == partNumberId)
+                                  .FirstAsync();
+            return entity.Adapt<CustomerNumberDto>();
         }
 
         /// <summary>
@@ -82,6 +85,12 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
             if (!string.IsNullOrEmpty(getCustomerNumberPage.PartNumber))
             {
                 query = query.Where(customerNumber => customerNumber.PartNumber.Contains(getCustomerNumberPage.PartNumber));
+            }
+
+            // 客户代码
+            if (!string.IsNullOrEmpty(getCustomerNumberPage.CustomerCode))
+            {
+                query = query.Where(customerNumber => customerNumber.CustomerCode.Contains(getCustomerNumberPage.CustomerCode));
             }
 
             // 品名（中英文模糊匹配）
@@ -108,6 +117,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                                             {
                                                 PartNumberId = customerNumber.PartNumberId,
                                                 PartNumber = customerNumber.PartNumber,
+                                                CustomerCode = customerNumber.CustomerCode,
                                                 PartNameCn = customerNumber.PartNameCn,
                                                 PartNameEn = customerNumber.PartNameEn,
                                                 Specification = customerNumber.Specification,
@@ -133,6 +143,12 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                 query = query.Where(customerNumber => customerNumber.PartNumber.Contains(getCustomerNumberPage.PartNumber));
             }
 
+            // 客户代码
+            if (!string.IsNullOrEmpty(getCustomerNumberPage.CustomerCode))
+            {
+                query = query.Where(customerNumber => customerNumber.CustomerCode.Contains(getCustomerNumberPage.CustomerCode));
+            }
+
             // 品名（中英文模糊匹配）
             if (!string.IsNullOrEmpty(getCustomerNumberPage.PartName))
             {
@@ -156,6 +172,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                               {
                                   PartNumberId = customerNumber.PartNumberId,
                                   PartNumber = customerNumber.PartNumber,
+                                  CustomerCode = customerNumber.CustomerCode,
                                   PartNameCn = customerNumber.PartNameCn,
                                   PartNameEn = customerNumber.PartNameEn,
                                   Specification = customerNumber.Specification,
@@ -199,6 +216,50 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
                             .Where(customerNumber => partNumbers.Contains(customerNumber.PartNumber))
                             .Select(customerNumber => customerNumber.PartNumber)
                             .ToListAsync();
+        }
+
+        /// <summary>
+        /// 查询指定客户编码下的全部客户料号（客户被删除时，用于联动清理其下客户料号及料号对照）
+        /// </summary>
+        /// <param name="customerCode"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetPartNumbersByCustomerCode(string customerCode)
+        {
+            return await _db.Queryable<CustomerNumberEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(customerNumber => customerNumber.CustomerCode == customerCode)
+                            .Select(customerNumber => customerNumber.PartNumber)
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 删除指定客户编码下的全部客户料号（客户被删除时联动清理）
+        /// </summary>
+        /// <param name="customerCode"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteCustomerNumbersByCustomerCode(string customerCode)
+        {
+            return await _db.Deleteable<CustomerNumberEntity>()
+                            .Where(customerNumber => customerNumber.CustomerCode == customerCode)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 客户下拉（配合客户料号选择所属客户使用）
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<CustomerDropDto>> GetCustomerDrop()
+        {
+            return await _db.Queryable<CustomerInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .OrderBy(customer => customer.CustomerCode)
+                            .Select(customer => new CustomerDropDto
+                            {
+                                CustomerCode = customer.CustomerCode,
+                                CustomerName = _lang.Locale == "zh-CN"
+                                               ? customer.CustomerNameCn
+                                               : customer.CustomerNameEn,
+                            }).ToListAsync();
         }
     }
 }

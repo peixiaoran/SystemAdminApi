@@ -284,21 +284,21 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemMgmt
         /// <summary>
         /// 修改角色菜单绑定
         /// </summary>
-        /// <param name="roleMenuUpsert"></param>
+        /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateRoleMenuList(RoleMenuUpsert roleMenuUpsert)
+        public async Task<Result<int>> UpdateRoleMenuList(RoleMenuUpsert upsert)
         {
             try
             {
                 await _db.BeginTranAsync();
                 // 删除角色全部菜单绑定
-                var delMenuIds = await _roleRepo.GetModuleMenuIds(long.Parse(roleMenuUpsert.ModuleId));
-                var delRoleMenuIdCount = await _roleRepo.DeleteRoleMenu(long.Parse(roleMenuUpsert.RoleId), delMenuIds);
+                var delMenuIds = await _roleRepo.GetModuleMenuIds(long.Parse(upsert.ModuleId));
+                var delRoleMenuIdCount = await _roleRepo.DeleteRoleMenu(long.Parse(upsert.RoleId), delMenuIds);
                 // 再新增角色菜单绑定
-                var insertRoleMenuList = roleMenuUpsert.SelectedMenuIds
+                var insertRoleMenuList = upsert.SelectedMenuIds
                 .Select(menuid => new RoleMenuEntity
                 {
-                    RoleId = long.Parse(roleMenuUpsert.RoleId),
+                    RoleId = long.Parse(upsert.RoleId),
                     MenuId = long.Parse(menuid),
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now,

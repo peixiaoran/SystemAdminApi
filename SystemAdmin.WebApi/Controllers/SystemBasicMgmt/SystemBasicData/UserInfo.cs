@@ -127,7 +127,8 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
         public async Task<IActionResult> ExportUserExcel([FromBody] GetUserInfoExcel getExcel)
         {
             var bytes = await _userInfoService.GetUserInfoExcel(getExcel);
-            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", _localization.ReturnMsg($"{_thisExcel}UserInfo") + ".xlsx");
+            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}UserInfo", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}UserInfo", "en-US")}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
     }
 }

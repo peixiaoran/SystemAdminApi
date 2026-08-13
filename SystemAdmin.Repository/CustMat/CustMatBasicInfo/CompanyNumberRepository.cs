@@ -65,11 +65,11 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         /// <returns></returns>
         public async Task<CompanyNumberDto> GetCompanyNumberEntity(long partNumberId)
         {
-            var companyNumberEntity = await _db.Queryable<CompanyNumberEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .Where(companyNumber => companyNumber.PartNumberId == partNumberId)
-                                            .FirstAsync();
-            return companyNumberEntity.Adapt<CompanyNumberDto>();
+            var entity = await _db.Queryable<CompanyNumberEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(companyNumber => companyNumber.PartNumberId == partNumberId)
+                                  .FirstAsync();
+            return entity.Adapt<CompanyNumberDto>();
         }
 
         /// <summary>
@@ -142,8 +142,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
             // 启用状态
             if (getCompanyNumberPage.Status.HasValue)
             {
-                var status = getCompanyNumberPage.Status.Value == 1;
-                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Status == status);
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Status == getCompanyNumberPage.Status.Value);
             }
 
             RefAsync<int> totalCount = 0;
@@ -244,8 +243,7 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
             // 启用状态
             if (getCompanyNumberPage.Status.HasValue)
             {
-                var status = getCompanyNumberPage.Status.Value == 1;
-                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Status == status);
+                query = query.Where((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.Status == getCompanyNumberPage.Status.Value);
             }
 
             return await query.OrderBy((companyNumber, typeDic, categoryDic, sourceDic) => companyNumber.CreatedDate)

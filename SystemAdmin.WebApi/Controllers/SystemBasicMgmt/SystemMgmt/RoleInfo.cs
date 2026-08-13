@@ -94,9 +94,9 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemMgmt
         [HttpPost]
         [Tags("系统基础管理-系统管理模块")]
         [EndpointSummary("[角色信息] 修改角色菜单绑定")]
-        public async Task<Result<int>> UpdateRoleMenuList([FromBody] RoleMenuUpsert roleMenuUpsert)
+        public async Task<Result<int>> UpdateRoleMenuList([FromBody] RoleMenuUpsert upsert)
         {
-            return await _roleService.UpdateRoleMenuList(roleMenuUpsert);
+            return await _roleService.UpdateRoleMenuList(upsert);
         }
     }
 }

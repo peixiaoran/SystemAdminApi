@@ -538,6 +538,56 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
         }
 
         /// <summary>
+        /// 覆盖表单类型下全部步骤的栏位权限
+        /// </summary>
+        /// <param name="formTypeId"></param>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> UpdateAllStepFieldPermission(string formTypeId, List<StepFieldPermissionUpsert> list)
+        {
+            try
+            {
+                var stepIds = await _workflowStepRepo.GetNonStartStepIds(long.Parse(formTypeId));
+                if (stepIds.Count == 0)
+                {
+                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_stepFieldPer}UpdateFailed"));
+                }
+
+                await _db.BeginTranAsync();
+                int insertCount = 0;
+                foreach (var stepId in stepIds)
+                {
+                    await _workflowStepRepo.DeleteStepFieldPermission(stepId);
+
+                    var insertList = list.Select(fieldper => new StepFieldPermissionEntity
+                    {
+                        StepId = stepId,
+                        FieldId = long.Parse(fieldper.FieldId),
+                        IsVisible = fieldper.IsVisible,
+                        IsDisabled = fieldper.IsDisabled,
+                        CreatedBy = _loginuser.UserId,
+                        CreatedDate = DateTime.Now,
+                        ModifiedBy = _loginuser.UserId,
+                        ModifiedDate = DateTime.Now
+                    }).ToList();
+
+                    insertCount += await _workflowStepRepo.InsertStepFieldPermission(insertList);
+                }
+                await _db.CommitTranAsync();
+
+                return insertCount >= 1
+                        ? Result<int>.Ok(insertCount, _localization.ReturnMsg($"{_stepFieldPer}UpdateSuccess"))
+                        : Result<int>.Failure(500, _localization.ReturnMsg($"{_stepFieldPer}UpdateFailed"));
+            }
+            catch (Exception ex)
+            {
+                await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// 查询步骤栏位权限列表
         /// </summary>
         /// <param name="formTypeId"></param>

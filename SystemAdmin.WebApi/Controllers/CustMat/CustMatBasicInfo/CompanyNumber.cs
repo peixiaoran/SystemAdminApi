@@ -51,9 +51,9 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[公司料号] 查询公司料号实体")]
-        public async Task<Result<CompanyNumberDto>> GetCompanyNumberEntity([FromForm] string partNumberIdss)
+        public async Task<Result<CompanyNumberDto>> GetCompanyNumberEntity([FromForm] string partNumberId)
         {
-            return await _companyNumberService.GetCompanyNumberEntity(partNumberIdss);
+            return await _companyNumberService.GetCompanyNumberEntity(partNumberId);
         }
 
         [HttpPost]
@@ -94,7 +94,8 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
         public async Task<IActionResult> GetCompanyNumberExcel([FromBody] GetCompanyNumberPage getPage)
         {
             var bytes = await _companyNumberService.GetCompanyNumberExcel(getPage);
-            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", _localization.ReturnMsg($"{_thisExcel}SheetName") + ".xlsx");
+            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}DataSheetName", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}DataSheetName", "en-US")}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
         [HttpPost]

@@ -19,15 +19,17 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private readonly ILogger<CustomerNumberService> _logger;
         private readonly SqlSugarScope _db;
         private readonly CustomerNumberRepository _customerNumberRepository;
+        private readonly NumberMappingRepository _numberMappingRepository;
         private readonly LocalizationService _localization;
         private readonly string _this = "CustMat.CustMatBasicInfo.CustomerNumberInfo";
         private readonly string _thisExcel = "CustMat.CustMatBasicInfo.CustomerNumberExcel_";
         private readonly string _thisImport = "CustMat.CustMatBasicInfo.CustomerNumberImport_";
 
-        // 导入/导出模板列（顺序即Excel列顺序），不含Id、创建、修改等系统字段
+        // 导入/导出模板列
         private static readonly (string Key, bool Required)[] _templateColumns = new[]
         {
             ("PartNumber", true),
+            ("CustomerCode", true),
             ("PartNameCn", true),
             ("PartNameEn", true),
             ("Specification", true),
@@ -35,38 +37,40 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             ("Status", true),
         };
 
-        public CustomerNumberService(CurrentUser loginuser, ILogger<CustomerNumberService> logger, SqlSugarScope db, CustomerNumberRepository customerNumberRepository, LocalizationService localization)
+        public CustomerNumberService(CurrentUser loginuser, ILogger<CustomerNumberService> logger, SqlSugarScope db, CustomerNumberRepository customerNumberRepository, NumberMappingRepository numberMappingRepository, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _customerNumberRepository = customerNumberRepository;
+            _numberMappingRepository = numberMappingRepository;
             _localization = localization;
         }
 
         /// <summary>
         /// 新增客户料号信息
         /// </summary>
-        /// <param name="customerNumberUpsert"></param>
+        /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> InsertCustomerNumber(CustomerNumberUpsert customerNumberUpsert)
+        public async Task<Result<int>> InsertCustomerNumber(CustomerNumberUpsert upsert)
         {
             try
             {
-                var exists = await _customerNumberRepository.ExistsCustomerNumber(customerNumberUpsert.PartNumber);
+                var exists = await _customerNumberRepository.ExistsCustomerNumber(upsert.PartNumber);
                 if (exists)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", customerNumberUpsert.PartNumber));
+                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}PartNumberDuplicate", (object)upsert.PartNumber));
 
                 await _db.BeginTranAsync();
                 var entity = new CustomerNumberEntity()
                 {
                     PartNumberId = SnowFlakeSingle.Instance.NextId(),
-                    PartNumber = customerNumberUpsert.PartNumber,
-                    PartNameCn = customerNumberUpsert.PartNameCn,
-                    PartNameEn = customerNumberUpsert.PartNameEn,
-                    Specification = customerNumberUpsert.Specification,
-                    Unit = customerNumberUpsert.Unit,
-                    Status = customerNumberUpsert.Status,
+                    PartNumber = upsert.PartNumber,
+                    CustomerCode = upsert.CustomerCode,
+                    PartNameCn = upsert.PartNameCn,
+                    PartNameEn = upsert.PartNameEn,
+                    Specification = upsert.Specification,
+                    Unit = upsert.Unit,
+                    Status = upsert.Status,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
@@ -94,8 +98,14 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
+                var id = long.Parse(partNumberId);
+                var entity = await _customerNumberRepository.GetCustomerNumberEntity(id);
+
                 await _db.BeginTranAsync();
-                var delCustomerNumberCount = await _customerNumberRepository.DeleteCustomerNumber(long.Parse(partNumberId));
+                // 联动删除该客户料号下的全部公司料号对照关系
+                if (entity != null)
+                    await _numberMappingRepository.DeleteMappingsByCustomerPartNumber(entity.PartNumber);
+                var delCustomerNumberCount = await _customerNumberRepository.DeleteCustomerNumber(id);
                 await _db.CommitTranAsync();
 
                 return delCustomerNumberCount >= 1
@@ -113,26 +123,32 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         /// <summary>
         /// 修改客户料号信息
         /// </summary>
-        /// <param name="customerNumberUpsert"></param>
+        /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateCustomerNumber(CustomerNumberUpsert customerNumberUpsert)
+        public async Task<Result<int>> UpdateCustomerNumber(CustomerNumberUpsert upsert)
         {
             try
             {
                 await _db.BeginTranAsync();
                 var entity = new CustomerNumberEntity()
                 {
-                    PartNumberId = long.Parse(customerNumberUpsert.PartNumberId),
-                    PartNumber = customerNumberUpsert.PartNumber,
-                    PartNameCn = customerNumberUpsert.PartNameCn,
-                    PartNameEn = customerNumberUpsert.PartNameEn,
-                    Specification = customerNumberUpsert.Specification,
-                    Unit = customerNumberUpsert.Unit,
-                    Status = customerNumberUpsert.Status,
+                    PartNumberId = long.Parse(upsert.PartNumberId),
+                    PartNumber = upsert.PartNumber,
+                    CustomerCode = upsert.CustomerCode,
+                    PartNameCn = upsert.PartNameCn,
+                    PartNameEn = upsert.PartNameEn,
+                    Specification = upsert.Specification,
+                    Unit = upsert.Unit,
+                    Status = upsert.Status,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
                 var count = await _customerNumberRepository.UpdateCustomerNumber(entity);
+
+                // 联动失效：客户料号被修改为停用时，其下全部公司料号对照关系一并置为失效
+                if (upsert.Status == 0)
+                    await _numberMappingRepository.InvalidateMappingsByCustomerPartNumber(upsert.PartNumber, _loginuser.UserId, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -156,8 +172,8 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         {
             try
             {
-                var customerNumberEntity = await _customerNumberRepository.GetCustomerNumberEntity(long.Parse(partNumberId));
-                return Result<CustomerNumberDto>.Ok(customerNumberEntity, "");
+                var entity = await _customerNumberRepository.GetCustomerNumberEntity(long.Parse(partNumberId));
+                return Result<CustomerNumberDto>.Ok(entity, "");
             }
             catch (Exception ex)
             {
@@ -200,7 +216,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
 
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
                 using var package = new ExcelPackage();
-                var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}SheetName"));
+                var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}DataSheetName"));
 
                 var dt = new DataTable();
                 foreach (var col in _templateColumns)
@@ -212,6 +228,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 {
                     var row = dt.NewRow();
                     row["PartNumber"] = entity.PartNumber;
+                    row["CustomerCode"] = entity.CustomerCode;
                     row["PartNameCn"] = entity.PartNameCn;
                     row["PartNameEn"] = entity.PartNameEn;
                     row["Specification"] = entity.Specification;
@@ -236,7 +253,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 导出客户料号导入模板（不含Id、创建、修改等字段）
+        /// 导出客户料号导入模板
         /// </summary>
         /// <returns></returns>
         public Task<byte[]> GetCustomerNumberTemplate()
@@ -330,9 +347,9 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 var filePartNumbers = new List<string>();
                 for (var row = 2; row <= ws.Dimension.End.Row; row++)
                 {
-                    var text = ws.Cells[row, partNumberColIndex].Text?.Trim();
-                    if (!string.IsNullOrEmpty(text))
-                        filePartNumbers.Add(text);
+                    var partNumberText = ws.Cells[row, partNumberColIndex].Text?.Trim();
+                    if (!string.IsNullOrEmpty(partNumberText))
+                        filePartNumbers.Add(partNumberText);
                 }
                 var existingCustomerNumbers = new HashSet<string>(
                     await _customerNumberRepository.GetExistingCustomerNumbers(filePartNumbers),
@@ -373,6 +390,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     {
                         PartNumberId = SnowFlakeSingle.Instance.NextId(),
                         PartNumber = partNumber,
+                        CustomerCode = rowValues["CustomerCode"],
                         PartNameCn = rowValues["PartNameCn"],
                         PartNameEn = rowValues["PartNameEn"],
                         Specification = rowValues["Specification"],
@@ -399,6 +417,24 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                 await _db.RollbackTranAsync();
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 客户下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<CustomerDropDto>>> GetCustomerDrop()
+        {
+            try
+            {
+                var drop = await _customerNumberRepository.GetCustomerDrop();
+                return Result<List<CustomerDropDto>>.Ok(drop, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<CustomerDropDto>>.Failure(500, ex.Message);
             }
         }
 
