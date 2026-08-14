@@ -1,16 +1,16 @@
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using SystemAdmin.CommonSetup.Security;
-using SystemAdmin.Model.CustMat.Sales.Commands;
-using SystemAdmin.Model.CustMat.Sales.Dto;
-using SystemAdmin.Model.CustMat.Sales.Entity;
-using SystemAdmin.Model.CustMat.Sales.Queries;
+using SystemAdmin.Model.CustMat.SalesMgmt.Commands;
+using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
+using SystemAdmin.Model.CustMat.SalesMgmt.Entity;
+using SystemAdmin.Model.CustMat.SalesMgmt.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries;
-using SystemAdmin.Repository.CustMat.Sales;
+using SystemAdmin.Repository.CustMat.SalesMgmt;
 using SystemAdmin.Service.SystemBasicMgmt.SystemBasicData;
 
-namespace SystemAdmin.Service.CustMat.Sales
+namespace SystemAdmin.Service.CustMat.SalesMgmt
 {
     public class SalesUserService
     {

@@ -1,4 +1,4 @@
-namespace SystemAdmin.Model.CustMat.Sales.Dto
+namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
 {
     /// <summary>
     /// 业务类型下拉Dto

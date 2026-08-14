@@ -1,6 +1,6 @@
 using SqlSugar;
 
-namespace SystemAdmin.Model.CustMat.Sales.Entity
+namespace SystemAdmin.Model.CustMat.SalesMgmt.Entity
 {
     /// <summary>
     /// 业务人员信息实体类

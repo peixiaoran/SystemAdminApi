@@ -1,12 +1,12 @@
 using SqlSugar;
 using SystemAdmin.CommonSetup.Security;
-using SystemAdmin.Model.CustMat.Sales.Dto;
-using SystemAdmin.Model.CustMat.Sales.Entity;
-using SystemAdmin.Model.CustMat.Sales.Queries;
+using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
+using SystemAdmin.Model.CustMat.SalesMgmt.Entity;
+using SystemAdmin.Model.CustMat.SalesMgmt.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
-namespace SystemAdmin.Repository.CustMat.Sales
+namespace SystemAdmin.Repository.CustMat.SalesMgmt
 {
     public class SalesUserRepository
     {

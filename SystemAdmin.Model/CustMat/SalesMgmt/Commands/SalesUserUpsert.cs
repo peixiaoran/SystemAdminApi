@@ -1,4 +1,4 @@
-namespace SystemAdmin.Model.CustMat.Sales.Commands
+namespace SystemAdmin.Model.CustMat.SalesMgmt.Commands
 {
     /// <summary>
     /// 业务人员信息新增/修改类

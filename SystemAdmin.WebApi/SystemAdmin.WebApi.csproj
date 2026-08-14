@@ -9,6 +9,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Controllers\CustMat\Sales\**" />
+    <Content Remove="Controllers\CustMat\Sales\**" />
+    <EmbeddedResource Remove="Controllers\CustMat\Sales\**" />
+    <None Remove="Controllers\CustMat\Sales\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.11" />
     <PackageReference Include="Scalar.AspNetCore" Version="2.16.20" />
   </ItemGroup>
@@ -24,10 +31,6 @@
       <HintPath>Libs\SystemAdmin.Tool.dll</HintPath>
       <Private>True</Private>
     </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Controllers\CustMat\Sales\" />
   </ItemGroup>
 
 </Project>

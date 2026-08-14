@@ -1,6 +1,6 @@
 using SqlSugar;
 
-namespace SystemAdmin.Model.CustMat.Sales.Queries
+namespace SystemAdmin.Model.CustMat.SalesMgmt.Queries
 {
     public class GetSalesUserPage : PageModel
     {

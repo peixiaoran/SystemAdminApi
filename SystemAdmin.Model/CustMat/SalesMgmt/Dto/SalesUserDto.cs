@@ -1,7 +1,7 @@
 using System.Text.Json.Serialization;
 using SystemAdmin.Model.ModelHelper.ModelConverter;
 
-namespace SystemAdmin.Model.CustMat.Sales.Dto
+namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
 {
     /// <summary>
     /// 业务人员信息Dto
