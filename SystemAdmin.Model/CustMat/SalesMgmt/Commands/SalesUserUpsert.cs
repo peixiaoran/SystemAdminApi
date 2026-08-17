@@ -19,10 +19,5 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Commands
         /// 业务类型
         /// </summary>
         public string SalesType { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 描述
-        /// </summary>
-        public string Description { get; set; } = string.Empty;
     }
 }

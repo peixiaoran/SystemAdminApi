@@ -3,7 +3,9 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
 using SystemAdmin.Model.CustMat.SalesMgmt.Entity;
 using SystemAdmin.Model.CustMat.SalesMgmt.Queries;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.CustMat.SalesMgmt
@@ -90,11 +92,9 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                                       SalesDeptId = salesUser.SalesDeptId,
                                       DepartmentName = _lang.Locale == "zh-CN" ? dept.DepartmentNameCn : dept.DepartmentNameEn,
                                       UserNo = user.UserNo,
-                                      UserNameCn = user.UserNameCn,
-                                      UserNameEn = user.UserNameEn,
+                                      UserName = _lang.Locale == "zh-CN" ? user.UserNameCn : user.UserNameEn,
                                       SalesType = salesUser.SalesType,
                                       SalesTypeName = _lang.Locale == "zh-CN" ? dic.DicNameCn : dic.DicNameEn,
-                                      Description = salesUser.Description ?? string.Empty,
                                   })
                                   .FirstAsync();
             return entity;
@@ -113,7 +113,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                            .InnerJoin<DepartmentInfoEntity>((salesUser, user, dept) => salesUser.SalesDeptId == dept.DepartmentId)
                            .LeftJoin<DictionaryInfoEntity>((salesUser, user, dept, dic) => salesUser.SalesType == dic.DicCode && dic.DicType == "SalesType");
 
-            // 部门Id（"0"表示不筛选）
+            // 部门Id
             if (getPage.SalesDeptId != "0")
             {
                 query = query.Where(salesUser => salesUser.SalesDeptId == long.Parse(getPage.SalesDeptId));
@@ -131,7 +131,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                 query = query.Where((salesUser, user) => user.UserNo.Contains(getPage.UserNo));
             }
 
-            // 用户姓名（中英文模糊匹配）
+            // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where((salesUser, user) => user.UserNameCn.Contains(getPage.UserName) || user.UserNameEn.Contains(getPage.UserName));
@@ -145,17 +145,87 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                                       SalesDeptId = salesUser.SalesDeptId,
                                       DepartmentName = _lang.Locale == "zh-CN" ? dept.DepartmentNameCn : dept.DepartmentNameEn,
                                       UserNo = user.UserNo,
-                                      UserNameCn = user.UserNameCn,
-                                      UserNameEn = user.UserNameEn,
+                                      UserName = _lang.Locale == "zh-CN" ? user.UserNameCn : user.UserNameEn,
                                       SalesType = salesUser.SalesType,
                                       SalesTypeName = _lang.Locale == "zh-CN" ? dic.DicNameCn : dic.DicNameEn,
-                                      Description = salesUser.Description ?? string.Empty,
                                   }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<SalesUserDto>.Ok(page, totalCount, "");
         }
 
         /// <summary>
-        /// 业务类型下拉（字典表 DicType = SalesType）
+        /// 查询用户分页
+        /// </summary>
+        /// <param name="getPage"></param>
+        /// <returns></returns>
+        public async Task<ResultPaged<SalesUserPageDto>> GetUserPage(GetUserInfoPage getPage)
+        {
+            var query = _db.Queryable<UserInfoEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<UserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
+                           .InnerJoin<DepartmentInfoEntity>((user, userrole, dept) => user.DepartmentId == dept.DepartmentId)
+                           .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
+                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationId);
+
+            // 用户工号
+            if (!string.IsNullOrEmpty(getPage.UserNo))
+            {
+                query = query.Where(user => user.UserNo.Contains(getPage.UserNo));
+            }
+
+            // 用户姓名
+            if (!string.IsNullOrEmpty(getPage.UserName))
+            {
+                query = query.Where(user => user.UserNameCn.Contains(getPage.UserName) || user.UserNameEn.Contains(getPage.UserName));
+            }
+
+            // 部门Id
+            if (getPage.DepartmentId != "0")
+            {
+                query = query.Where(user => user.DepartmentId == long.Parse(getPage.DepartmentId));
+            }
+
+            RefAsync<int> totalCount = 0;
+            var page = await query.OrderBy((user, userrole, dept, position, nation) => new { position.SortOrder, user.HireDate })
+                                  .Select((user, userrole, dept, position, nation) => new SalesUserPageDto
+                                  {
+                                      UserId = user.UserId,
+                                      DepartmentId = user.DepartmentId,
+                                      DepartmentName = _lang.Locale == "zh-CN" ? dept.DepartmentNameCn : dept.DepartmentNameEn,
+                                      UserNo = user.UserNo,
+                                      UserName = _lang.Locale == "zh-CN" ? user.UserNameCn : user.UserNameEn,
+                                      PositionName = _lang.Locale == "zh-CN" ? position.PositionNameCn : position.PositionNameEn,
+                                      Gender = user.Gender,
+                                      IsEmployed = user.IsEmployed,
+                                      IsReview = user.IsReview,
+                                      IsFreeze = user.IsFreeze,
+                                      Remark = user.Remark
+                                  }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
+            return ResultPaged<SalesUserPageDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 业务人员部门下拉分页
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ResultPaged<DepartmentDropDto>> GetSalesUserDepartmentPage()
+        {
+            var list = await _db.Queryable<DepartmentInfoEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(dept => SqlFunc.Subqueryable<SalesUserEntity>()
+                                                       .Where(salesUser => salesUser.SalesDeptId == dept.DepartmentId)
+                                                       .Any())
+                                .OrderBy(dept => dept.SortOrder)
+                                .Select(dept => new DepartmentDropDto
+                                {
+                                    DepartmentId = dept.DepartmentId,
+                                    DepartmentName = _lang.Locale == "zh-CN" ? dept.DepartmentNameCn : dept.DepartmentNameEn,
+                                    ParentId = dept.ParentId,
+                                }).ToListAsync();
+            return ResultPaged<DepartmentDropDto>.Ok(list, list.Count, "");
+        }
+
+        /// <summary>
+        /// 业务类型下拉
         /// </summary>
         /// <returns></returns>
         public async Task<List<SalesTypeDropDto>> GetSalesTypeDrop()

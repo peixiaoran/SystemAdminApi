@@ -19,18 +19,16 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         private readonly SqlSugarScope _db;
         private readonly SalesUserRepository _salesUserRepository;
         private readonly DepartmentInfoService _departmentInfoService;
-        private readonly UserInfoService _userInfoService;
         private readonly LocalizationService _localization;
         private readonly string _this = "CustMat.Sales.SalesUser";
 
-        public SalesUserService(CurrentUser loginuser, ILogger<SalesUserService> logger, SqlSugarScope db, SalesUserRepository salesUserRepository, DepartmentInfoService departmentInfoService, UserInfoService userInfoService, LocalizationService localization)
+        public SalesUserService(CurrentUser loginuser, ILogger<SalesUserService> logger, SqlSugarScope db, SalesUserRepository salesUserRepository, DepartmentInfoService departmentInfoService, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _salesUserRepository = salesUserRepository;
             _departmentInfoService = departmentInfoService;
-            _userInfoService = userInfoService;
             _localization = localization;
         }
 
@@ -54,7 +52,6 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
                     SalesUserId = salesUserId,
                     SalesDeptId = long.Parse(upsert.SalesDeptId),
                     SalesType = upsert.SalesType,
-                    Description = upsert.Description,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
@@ -113,7 +110,6 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
                     SalesUserId = long.Parse(upsert.SalesUserId),
                     SalesDeptId = long.Parse(upsert.SalesDeptId),
                     SalesType = upsert.SalesType,
-                    Description = upsert.Description,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
@@ -188,7 +184,7 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         }
 
         /// <summary>
-        /// 部门树下拉（复用系统基础数据模块，避免重复实现）
+        /// 部门树下拉
         /// </summary>
         /// <returns></returns>
         public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
@@ -197,13 +193,38 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         }
 
         /// <summary>
-        /// 查询用户分页（用于选择业务人员，复用系统基础数据模块，避免重复实现）
+        /// 业务人员部门下拉分页
+        /// </summary>
+        /// <returns></returns>
+        public async Task<ResultPaged<DepartmentDropDto>> GetSalesUserDepartmentPage()
+        {
+            try
+            {
+                return await _salesUserRepository.GetSalesUserDepartmentPage();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return ResultPaged<DepartmentDropDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 查询用户分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<UserInfoPageDto>> GetUserPage(GetUserInfoPage getPage)
+        public async Task<ResultPaged<SalesUserPageDto>> GetUserPage(GetUserInfoPage getPage)
         {
-            return await _userInfoService.GetUserInfoPage(getPage);
+            try
+            {
+                return await _salesUserRepository.GetUserPage(getPage);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return ResultPaged<SalesUserPageDto>.Failure(500, ex.Message);
+            }
         }
     }
 }

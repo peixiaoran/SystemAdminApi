@@ -25,11 +25,6 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Entity
         public string SalesType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 描述
-        /// </summary>
-        public string? Description { get; set; }
-
-        /// <summary>
         /// 创建人
         /// </summary>
         public long CreatedBy { get; set; }

@@ -80,8 +80,16 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
 
         [HttpPost]
         [Tags("客户生产订单-业务人员维护")]
-        [EndpointSummary("[业务人员] 查询用户分页（用于选择业务人员）")]
-        public async Task<ResultPaged<UserInfoPageDto>> GetUserPage([FromBody] GetUserInfoPage getPage)
+        [EndpointSummary("[业务人员] 部门下拉分页")]
+        public async Task<ResultPaged<DepartmentDropDto>> GetSalesUserDepartmentPage()
+        {
+            return await _salesUserService.GetSalesUserDepartmentPage();
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-业务人员维护")]
+        [EndpointSummary("[业务人员] 查询用户分页")]
+        public async Task<ResultPaged<SalesUserPageDto>> GetUserPage([FromBody] GetUserInfoPage getPage)
         {
             return await _salesUserService.GetUserPage(getPage);
         }

@@ -4,24 +4,24 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
 {
     /// <summary>
-    /// 业务人员信息Dto
+    /// 业务人员-用户分页查询Dto
     /// </summary>
-    public class SalesUserDto
+    public class SalesUserPageDto
     {
         /// <summary>
-        /// 用户Id（主键）
+        /// 用户Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long SalesUserId { get; set; }
+        public long UserId { get; set; }
 
         /// <summary>
         /// 部门Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long SalesDeptId { get; set; }
+        public long DepartmentId { get; set; }
 
         /// <summary>
-        /// 部门名称
+        /// 所属部门名称
         /// </summary>
         public string DepartmentName { get; set; } = string.Empty;
 
@@ -36,13 +36,33 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
         public string UserName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 业务类型
+        /// 职级名称
         /// </summary>
-        public string SalesType { get; set; } = string.Empty;
+        public string PositionName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 业务类型名称
+        /// 性别
         /// </summary>
-        public string SalesTypeName { get; set; } = string.Empty;
+        public int Gender { get; set; }
+
+        /// <summary>
+        /// 是否在职
+        /// </summary>
+        public int IsEmployed { get; set; }
+
+        /// <summary>
+        /// 是否需要审批
+        /// </summary>
+        public int IsReview { get; set; }
+
+        /// <summary>
+        /// 是否冻结
+        /// </summary>
+        public int IsFreeze { get; set; }
+
+        /// <summary>
+        /// 备注
+        /// </summary>
+        public string Remark { get; set; } = string.Empty;
     }
 }
