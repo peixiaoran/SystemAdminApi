@@ -66,6 +66,14 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.CustMatBasicInfo
 
         [HttpPost]
         [Tags("客户生产订单-相关基础信息")]
+        [EndpointSummary("[公司料号] 根据公司料号查询详情")]
+        public async Task<Result<CompanyNumberDetailDto>> GetCompanyNumberDetailByPartNumber([FromForm] string partNumber)
+        {
+            return await _companyNumberService.GetCompanyNumberDetailByPartNumber(partNumber);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-相关基础信息")]
         [EndpointSummary("[公司料号] 料号类型下拉")]
         public async Task<Result<List<PartTypeDropDto>>> GetPartTypeDrop()
         {

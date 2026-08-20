@@ -174,7 +174,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                            .LeftJoin<PositionInfoEntity>((rule, position) => rule.PositionId == position.PositionId)
                            .Where((rule, position) => rule.FormTypeId == long.Parse(getPage.FormTypeId));
 
-            if (!string.IsNullOrWhiteSpace(getPage.PositionId) && getPage.PositionId != "0")
+            if (!string.IsNullOrWhiteSpace(getPage.PositionId))
             {
                 query = query.Where((rule, position) => rule.PositionId == long.Parse(getPage.PositionId));
             }

@@ -138,4 +138,40 @@
   <data name="SalesUserDuplicate" xml:space="preserve">
     <value>This user has already been configured as a sales user</value>
   </data>
+  <data name="SalesNumberInsertSuccess" xml:space="preserve">
+    <value>Sales part number added successfully</value>
+  </data>
+  <data name="SalesNumberInsertFailed" xml:space="preserve">
+    <value>Failed to add sales part number</value>
+  </data>
+  <data name="SalesNumberUpdateSuccess" xml:space="preserve">
+    <value>Sales part number updated successfully</value>
+  </data>
+  <data name="SalesNumberUpdateFailed" xml:space="preserve">
+    <value>Failed to update sales part number</value>
+  </data>
+  <data name="SalesNumberDeleteSuccess" xml:space="preserve">
+    <value>Sales part number deleted successfully</value>
+  </data>
+  <data name="SalesNumberDeleteFailed" xml:space="preserve">
+    <value>Failed to delete sales part number</value>
+  </data>
+  <data name="SalesNumberDuplicate" xml:space="preserve">
+    <value>This company part number has already been assigned to a sales user</value>
+  </data>
+  <data name="SalesNumberSalesUserNotFound" xml:space="preserve">
+    <value>The selected user is not configured as a sales user</value>
+  </data>
+  <data name="SalesNumberNoCompanyPartNumber" xml:space="preserve">
+    <value>No bindable company part number was found for this customer</value>
+  </data>
+  <data name="SalesNumberBatchUpsertSuccess" xml:space="preserve">
+    <value>Sales part numbers updated successfully, {0} record(s) in total</value>
+  </data>
+  <data name="SalesNumberBatchUpsertFailed" xml:space="preserve">
+    <value>Failed to update sales part numbers in batch</value>
+  </data>
+  <data name="SalesNumberAllConfigured" xml:space="preserve">
+    <value>All company part numbers of this customer already have a sales user assigned</value>
+  </data>
 </root>

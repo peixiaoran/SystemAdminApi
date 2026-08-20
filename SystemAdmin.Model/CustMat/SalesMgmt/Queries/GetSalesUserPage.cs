@@ -5,9 +5,9 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Queries
     public class GetSalesUserPage : PageModel
     {
         /// <summary>
-        /// 部门Id（"0"表示不筛选）
+        /// 部门Id（空字符串表示不筛选）
         /// </summary>
-        public string SalesDeptId { get; set; } = "0";
+        public string SalesDeptId { get; set; } = string.Empty;
 
         /// <summary>
         /// 业务类型

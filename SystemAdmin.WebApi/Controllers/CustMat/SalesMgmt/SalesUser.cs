@@ -72,14 +72,6 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
 
         [HttpPost]
         [Tags("客户生产订单-业务人员维护")]
-        [EndpointSummary("[业务人员] 部门树下拉")]
-        public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
-        {
-            return await _salesUserService.GetDepartmentDrop();
-        }
-
-        [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
         [EndpointSummary("[业务人员] 部门下拉分页")]
         public async Task<ResultPaged<DepartmentDropDto>> GetSalesUserDepartmentPage()
         {

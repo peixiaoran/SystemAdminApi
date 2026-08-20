@@ -47,16 +47,16 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         /// 修改业务人员信息
         /// </summary>
         /// <param name="salesUserEntity"></param>
+        /// <param name="originalSalesUserId">原用户Id，用于定位原记录（人员可重新选择，主键随之变更）</param>
         /// <returns></returns>
-        public async Task<int> UpdateSalesUser(SalesUserEntity salesUserEntity)
+        public async Task<int> UpdateSalesUser(SalesUserEntity salesUserEntity, long originalSalesUserId)
         {
             return await _db.Updateable(salesUserEntity)
                             .IgnoreColumns(salesUser => new
                             {
-                                salesUser.SalesUserId,
                                 salesUser.CreatedBy,
                                 salesUser.CreatedDate,
-                            }).Where(salesUser => salesUser.SalesUserId == salesUserEntity.SalesUserId)
+                            }).Where(salesUser => salesUser.SalesUserId == originalSalesUserId)
                             .ExecuteCommandAsync();
         }
 
@@ -114,7 +114,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                            .LeftJoin<DictionaryInfoEntity>((salesUser, user, dept, dic) => salesUser.SalesType == dic.DicCode && dic.DicType == "SalesType");
 
             // 部门Id
-            if (getPage.SalesDeptId != "0")
+            if (!string.IsNullOrEmpty(getPage.SalesDeptId))
             {
                 query = query.Where(salesUser => salesUser.SalesDeptId == long.Parse(getPage.SalesDeptId));
             }
@@ -176,12 +176,6 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
                 query = query.Where(user => user.UserNameCn.Contains(getPage.UserName) || user.UserNameEn.Contains(getPage.UserName));
-            }
-
-            // 部门Id
-            if (getPage.DepartmentId != "0")
-            {
-                query = query.Where(user => user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
 
             RefAsync<int> totalCount = 0;

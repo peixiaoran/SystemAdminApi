@@ -8,7 +8,6 @@ using SystemAdmin.Model.CustMat.SalesMgmt.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries;
 using SystemAdmin.Repository.CustMat.SalesMgmt;
-using SystemAdmin.Service.SystemBasicMgmt.SystemBasicData;
 
 namespace SystemAdmin.Service.CustMat.SalesMgmt
 {
@@ -18,17 +17,15 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         private readonly ILogger<SalesUserService> _logger;
         private readonly SqlSugarScope _db;
         private readonly SalesUserRepository _salesUserRepository;
-        private readonly DepartmentInfoService _departmentInfoService;
         private readonly LocalizationService _localization;
         private readonly string _this = "CustMat.Sales.SalesUser";
 
-        public SalesUserService(CurrentUser loginuser, ILogger<SalesUserService> logger, SqlSugarScope db, SalesUserRepository salesUserRepository, DepartmentInfoService departmentInfoService, LocalizationService localization)
+        public SalesUserService(CurrentUser loginuser, ILogger<SalesUserService> logger, SqlSugarScope db, SalesUserRepository salesUserRepository, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _salesUserRepository = salesUserRepository;
-            _departmentInfoService = departmentInfoService;
             _localization = localization;
         }
 
@@ -104,16 +101,27 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         {
             try
             {
+                var salesUserId = long.Parse(upsert.SalesUserId);
+                var originalSalesUserId = string.IsNullOrEmpty(upsert.OriginalSalesUserId) ? salesUserId : long.Parse(upsert.OriginalSalesUserId);
+
+                // 人员变更时，需校验新选择的人员是否已被配置为业务人员，避免重复配置
+                if (salesUserId != originalSalesUserId)
+                {
+                    var exists = await _salesUserRepository.ExistsSalesUser(salesUserId);
+                    if (exists)
+                        return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}Duplicate"));
+                }
+
                 await _db.BeginTranAsync();
                 var entity = new SalesUserEntity()
                 {
-                    SalesUserId = long.Parse(upsert.SalesUserId),
+                    SalesUserId = salesUserId,
                     SalesDeptId = long.Parse(upsert.SalesDeptId),
                     SalesType = upsert.SalesType,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss")
                 };
-                var count = await _salesUserRepository.UpdateSalesUser(entity);
+                var count = await _salesUserRepository.UpdateSalesUser(entity, originalSalesUserId);
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -181,15 +189,6 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
                 _logger.LogError(ex, ex.Message);
                 return Result<List<SalesTypeDropDto>>.Failure(500, ex.Message);
             }
-        }
-
-        /// <summary>
-        /// 部门树下拉
-        /// </summary>
-        /// <returns></returns>
-        public async Task<Result<List<DepartmentDropDto>>> GetDepartmentDrop()
-        {
-            return await _departmentInfoService.GetDepartmentDrop();
         }
 
         /// <summary>

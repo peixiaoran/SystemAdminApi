@@ -231,6 +231,25 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
+        /// 根据公司料号查询详情
+        /// </summary>
+        /// <param name="partNumber"></param>
+        /// <returns></returns>
+        public async Task<Result<CompanyNumberDetailDto>> GetCompanyNumberDetailByPartNumber(string partNumber)
+        {
+            try
+            {
+                var entity = await _companyNumberRepository.GetCompanyNumberDetailByPartNumber(partNumber);
+                return Result<CompanyNumberDetailDto>.Ok(entity, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<CompanyNumberDetailDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// 导出料号信息
         /// </summary>
         /// <param name="getPage"></param>

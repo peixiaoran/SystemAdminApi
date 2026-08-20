@@ -11,6 +11,11 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Commands
         public string SalesUserId { get; set; } = string.Empty;
 
         /// <summary>
+        /// 原用户Id（仅编辑时传入，用于定位原记录；未传则默认与SalesUserId相同）
+        /// </summary>
+        public string OriginalSalesUserId { get; set; } = string.Empty;
+
+        /// <summary>
         /// 部门Id
         /// </summary>
         public string SalesDeptId { get; set; } = string.Empty;

@@ -322,7 +322,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                 query = query.Where(user => user.UserNameCn.Contains(getPage.UserName) || user.UserNameEn.Contains(getPage.UserName));
             }
             // 部门Id
-            if (getPage.DepartmentId != "0")
+            if (!string.IsNullOrEmpty(getPage.DepartmentId))
             {
                 query = query.Where(user => user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
@@ -408,7 +408,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                 query = query.Where(user => user.UserNameCn.Contains(getUserExcel.UserName) || user.UserNameEn.Contains(getUserExcel.UserName));
             }
             // 部门Id
-            if (getUserExcel.DepartmentId != "0")
+            if (!string.IsNullOrEmpty(getUserExcel.DepartmentId))
             {
                 query = query.Where(user => user.DepartmentId == long.Parse(getUserExcel.DepartmentId));
             }
