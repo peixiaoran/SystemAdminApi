@@ -52,9 +52,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         }
 
         /// <summary>
-        /// LVR=请假单，LCF=销假单，DCS=传签单
+        /// LVR=请假单，LCF=销假单，DCS=传签单；checkPermission=false 时跳过 CanView 与 StepFieldPermission 控件权限判断（综合表单查询打印使用）
         /// </summary>
-        public async Task<Result<FormPdfDto>> PrintFormPdf(string formId)
+        public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, bool checkPermission = true)
         {
             try
             {
@@ -63,9 +63,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
 
                 return prefix switch
                 {
-                    "LVR" => await PrintLeaveRequestPdf(id),
-                    "LCF" => await PrintLeaveCancellPdf(id),
-                    "DCS" => await PrintDocumentCirculatePdf(id),
+                    "LVR" => await PrintLeaveRequestPdf(id, checkPermission),
+                    "LCF" => await PrintLeaveCancellPdf(id, checkPermission),
+                    "DCS" => await PrintDocumentCirculatePdf(id, checkPermission),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -79,7 +79,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         /// <summary>
         /// 单个表单失败会跳过，不影响其余表单；全部失败才返回错误
         /// </summary>
-        public async Task<Result<FormPdfDto>> PrintFormPdfBatch(List<string> formIds)
+        public async Task<Result<FormPdfDto>> PrintFormPdfBatch(List<string> formIds, bool checkPermission = true)
         {
             if (formIds is not { Count: > 0 })
             {
@@ -96,7 +96,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                 {
                     foreach (var formId in formIds)
                     {
-                        var result = await PrintFormPdf(formId);
+                        var result = await PrintFormPdf(formId, checkPermission);
                         if (result.Code != 200 || result.Data is null)
                         {
                             continue;
@@ -148,10 +148,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
 
         #region 请假单PDF
 
-        private async Task<Result<FormPdfDto>> PrintLeaveRequestPdf(long formId)
+        private async Task<Result<FormPdfDto>> PrintLeaveRequestPdf(long formId, bool checkPermission)
         {
-            var isCan = await _formChecker.CanView(formId, "View");
-            if (!isCan)
+            if (checkPermission && !await _formChecker.CanView(formId, "View"))
             {
                 return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
             }
@@ -159,7 +158,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             var form = await _leaveRequestRepo.GetLeaveRequest(formId);
             form.Attachment = await _formmanger.GetAttachmentList(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
-            form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
+            form.StepFieldPermission = checkPermission
+                ? await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId)
+                : [];
 
             var leaveTypeDics = await _leaveRequestRepo.GetLeaveTypeDictionary();
             var leaveTypeDic = leaveTypeDics.FirstOrDefault(dic => dic.DicCode == form.LeaveType);
@@ -186,7 +187,6 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                 container.Page(page =>
                 {
                     ConfigurePage(page);
-                    ComposeApprovalStamp(page, form.FormStatus, form.ReviewRecord);
 
                     page.Content().Column(column =>
                     {
@@ -238,17 +238,18 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
 
         #region 销假单PDF
 
-        private async Task<Result<FormPdfDto>> PrintLeaveCancellPdf(long formId)
+        private async Task<Result<FormPdfDto>> PrintLeaveCancellPdf(long formId, bool checkPermission)
         {
-            var isCan = await _formChecker.CanView(formId, "View");
-            if (!isCan)
+            if (checkPermission && !await _formChecker.CanView(formId, "View"))
             {
                 return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
             }
 
             var form = await _leaveCancellRepo.GetLeaveCancell(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
-            form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
+            form.StepFieldPermission = checkPermission
+                ? await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId)
+                : [];
 
             var leaveRequest = form.LeaveRequestId.HasValue
                 ? await _leaveCancellRepo.GetLeaveRequestDetail(form.LeaveRequestId.Value)
@@ -275,7 +276,6 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                 container.Page(page =>
                 {
                     ConfigurePage(page);
-                    ComposeApprovalStamp(page, form.FormStatus, form.ReviewRecord);
 
                     page.Content().Column(column =>
                     {
@@ -355,10 +355,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
 
         #region 传签单PDF
 
-        private async Task<Result<FormPdfDto>> PrintDocumentCirculatePdf(long formId)
+        private async Task<Result<FormPdfDto>> PrintDocumentCirculatePdf(long formId, bool checkPermission)
         {
-            var isCan = await _formChecker.CanView(formId, "View");
-            if (!isCan)
+            if (checkPermission && !await _formChecker.CanView(formId, "View"))
             {
                 return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
             }
@@ -367,7 +366,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             form.Attachment = await _formmanger.GetAttachmentList(formId);
             form.AddReview = await _formmanger.GetAddReviewList(formId);
             form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
-            form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId);
+            form.StepFieldPermission = checkPermission
+                ? await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId)
+                : [];
 
             var pdf = new FormPdfDto
             {
@@ -386,7 +387,6 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                 container.Page(page =>
                 {
                     ConfigurePage(page);
-                    ComposeApprovalStamp(page, form.FormStatus, form.ReviewRecord);
 
                     page.Content().Column(column =>
                     {
@@ -486,7 +486,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
 
         #endregion
 
-        #region PDF通用组件（多表单共用：样式、页面、标题、栏位行、表格、印章）
+        #region PDF通用组件（多表单共用：样式、页面、标题、栏位行、表格）
 
         private const string FontFamilyName = "Microsoft YaHei";
         private const string BorderColor = "#DCDFE6";
@@ -496,7 +496,6 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         private const string MutedTextColor = "#909399";
         private const string EmphasizedColor = "#F56C6C";
         private const string HighlightColor = "#409EFF";
-        private const string StampColor = "#1F9254";
 
         // 标签格宽度 / 每行第一个值格的固定宽度（保证各行第二个栏位起始位置对齐）
         private const float LabelCellWidth = 66f;
@@ -661,64 +660,6 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                     table.Cell().Element(BodyCell).Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
                 }
             });
-        }
-
-        private void ComposeApprovalStamp(PageDescriptor page, string formStatus, List<FormReviewRecordDto> reviewRecords)
-        {
-            if (formStatus != FormStatus.Approved.ToEnumString())
-            {
-                return;
-            }
-
-            var approvedDateTime = reviewRecords.Count > 0
-                ? reviewRecords.Max(record => record.ReviewDateTime)
-                : (DateTime?)null;
-
-            var svg = BuildApprovalStampSvg(
-                Msg("PdfStampApproved"),
-                _lang.IsChinese ? "APPROVED" : string.Empty,
-                approvedDateTime?.ToString("yyyy-MM-dd") ?? string.Empty);
-
-            page.Foreground()
-                .AlignBottom()
-                .AlignRight()
-                .PaddingBottom(24)
-                .PaddingRight(18)
-                .Width(118)
-                .Height(118)
-                .Svg(svg);
-        }
-
-        private static string BuildApprovalStampSvg(string mainText, string subText, string dateText)
-        {
-            static string Escape(string value) => value.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;");
-
-            // 中文短文字用大号字，英文长文字缩小并加字距
-            var mainFontSize = mainText.Length > 6 ? 15 : 21;
-            var mainLetterSpacing = mainText.Length > 6 ? 1 : 2;
-
-            var subLine = string.IsNullOrEmpty(subText)
-                ? string.Empty
-                : $"<text x=\"80\" y=\"105\" font-size=\"8.5\" letter-spacing=\"3\" text-anchor=\"middle\">{Escape(subText)}</text>";
-
-            var dateLine = string.IsNullOrEmpty(dateText)
-                ? string.Empty
-                : $"<text x=\"80\" y=\"121\" font-size=\"9\" letter-spacing=\"1\" text-anchor=\"middle\">{Escape(dateText)}</text>";
-
-            return $"""
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160">
-                  <g transform="rotate(-12 80 80)" opacity="0.88">
-                    <circle cx="80" cy="80" r="74" fill="none" stroke="{StampColor}" stroke-width="3"/>
-                    <circle cx="80" cy="80" r="65" fill="none" stroke="{StampColor}" stroke-width="1"/>
-                    <g fill="{StampColor}" font-family="{FontFamilyName}">
-                      <path d="M80 41 L81.59 45.82 L86.66 45.84 L82.57 48.83 L84.11 53.66 L80 50.7 L75.89 53.66 L77.43 48.83 L73.34 45.84 L78.41 45.82 Z"/>
-                      <text x="80" y="88" font-size="{mainFontSize}" font-weight="bold" letter-spacing="{mainLetterSpacing}" text-anchor="middle">{Escape(mainText)}</text>
-                      {subLine}
-                      {dateLine}
-                    </g>
-                  </g>
-                </svg>
-                """;
         }
 
         private static MemoryStream GeneratePdfStream(Document document)

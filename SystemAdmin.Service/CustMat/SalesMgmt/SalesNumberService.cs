@@ -284,5 +284,24 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
                 return Result<List<CustomerDropDto>>.Failure(500, ex.Message);
             }
         }
+
+        /// <summary>
+        /// 根据公司料号查询详情
+        /// </summary>
+        /// <param name="partNumber"></param>
+        /// <returns></returns>
+        public async Task<Result<CompanyNumberDetailDto>> GetPartNumberDetail(string partNumber)
+        {
+            try
+            {
+                var entity = await _salesNumberRepository.GetPartNumberDetail(partNumber);
+                return Result<CompanyNumberDetailDto>.Ok(entity, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<CompanyNumberDetailDto>.Failure(500, ex.Message);
+            }
+        }
     }
 }

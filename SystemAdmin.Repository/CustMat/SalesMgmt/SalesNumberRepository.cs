@@ -5,6 +5,7 @@ using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
 using SystemAdmin.Model.CustMat.SalesMgmt.Entity;
 using SystemAdmin.Model.CustMat.SalesMgmt.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.CustMat.SalesMgmt
 {
@@ -119,7 +120,6 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                            .With(SqlWith.NoLock)
                            .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
                            .InnerJoin<UserInfoEntity>((salesNumber, companyNumber, user) => salesNumber.SalesUserId == user.UserId);
-            string sql = query.ToSqlString();
 
             // 公司料号
             if (!string.IsNullOrEmpty(getPage.PartNumber))
@@ -266,6 +266,43 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                             .SetColumns(salesNumber => new SalesNumberEntity { SalesUserId = salesUserId, ModifiedBy = modifiedBy, ModifiedDate = modifiedDate })
                             .Where(salesNumber => partNumbers.Contains(salesNumber.PartNumber))
                             .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 根据公司料号查询详情
+        /// </summary>
+        /// <param name="partNumber"></param>
+        /// <returns></returns>
+        public async Task<CompanyNumberDetailDto> GetPartNumberDetail(string partNumber)
+        {
+            return await _db.Queryable<CompanyNumberEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic) => typeDic.DicType == "PartType" && companyNumber.PartType == typeDic.DicCode)
+                            .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && companyNumber.Category == categoryDic.DicCode)
+                            .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && companyNumber.SourceType == sourceDic.DicCode)
+                            .Where(companyNumber => companyNumber.PartNumber == partNumber)
+                            .Select((companyNumber, typeDic, categoryDic, sourceDic) => new CompanyNumberDetailDto
+                            {
+                                PartNumberId = companyNumber.PartNumberId,
+                                PartNumber = companyNumber.PartNumber,
+                                PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
+                                Specification = companyNumber.Specification,
+                                PartType = companyNumber.PartType,
+                                PartTypeName = _lang.Locale == "zh-CN" ? typeDic.DicNameCn : typeDic.DicNameEn,
+                                Category = companyNumber.Category,
+                                CategoryName = _lang.Locale == "zh-CN" ? categoryDic.DicNameCn : categoryDic.DicNameEn,
+                                Model = companyNumber.Model,
+                                DrawingNumber = companyNumber.DrawingNumber,
+                                Version = companyNumber.Version,
+                                Unit = companyNumber.Unit,
+                                SourceType = companyNumber.SourceType,
+                                SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
+                                Manufacturer = companyNumber.Manufacturer,
+                                ManufacturerPartNumber = companyNumber.ManufacturerPartNumber,
+                                LotControl = companyNumber.LotControl,
+                                Status = companyNumber.Status,
+                                Remark = companyNumber.Remark,
+                            }).FirstAsync();
         }
     }
 }

@@ -1,10 +1,10 @@
 using System.Text.Json.Serialization;
 using SystemAdmin.Model.ModelHelper.ModelConverter;
 
-namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
+namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
 {
     /// <summary>
-    /// 公司料号详情Dto（下拉字典字段中英文均返回）
+    /// 公司料号详情Dto
     /// </summary>
     public class CompanyNumberDetailDto
     {
@@ -22,12 +22,7 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
         /// <summary>
         /// 品名
         /// </summary>
-        public string PartNameCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 英文品名
-        /// </summary>
-        public string PartNameEn { get; set; } = string.Empty;
+        public string PartName { get; set; } = string.Empty;
 
         /// <summary>
         /// 规格
@@ -40,14 +35,9 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
         public string PartType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 料号类型名称（中文）
+        /// 料号类型名称
         /// </summary>
-        public string PartTypeNameCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 料号类型名称（英文）
-        /// </summary>
-        public string PartTypeNameEn { get; set; } = string.Empty;
+        public string PartTypeName { get; set; } = string.Empty;
 
         /// <summary>
         /// 物料分类
@@ -55,14 +45,9 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
         public string Category { get; set; } = string.Empty;
 
         /// <summary>
-        /// 物料分类名称（中文）
+        /// 物料分类名称
         /// </summary>
-        public string CategoryNameCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 物料分类名称（英文）
-        /// </summary>
-        public string CategoryNameEn { get; set; } = string.Empty;
+        public string CategoryName { get; set; } = string.Empty;
 
         /// <summary>
         /// 型号
@@ -90,14 +75,9 @@ namespace SystemAdmin.Model.CustMat.CustMatBasicInfo.Dto
         public string SourceType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 来源类型名称（中文）
+        /// 来源类型名称
         /// </summary>
-        public string SourceTypeNameCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 来源类型名称（英文）
-        /// </summary>
-        public string SourceTypeNameEn { get; set; } = string.Empty;
+        public string SourceTypeName { get; set; } = string.Empty;
 
         /// <summary>
         /// 制造商

@@ -63,12 +63,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
             return await _basicFormQueryService.GetFormPendingUsers(formId);
         }
 
+        // 综合表单查询下的打印/批量打印不判断 CanView 及 StepFieldPermission 控件权限
         [HttpPost]
         [Tags("表单业务管理-综合表单查询")]
         [EndpointSummary("[全部表单查询] 打印PDF")]
         public async Task<IActionResult> PrintFormPdf([FromForm] string formId)
         {
-            var result = await _formPrintService.PrintFormPdf(formId);
+            var result = await _formPrintService.PrintFormPdf(formId, checkPermission: false);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);
@@ -81,7 +82,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
         [EndpointSummary("[全部表单查询] 批量打印PDF")]
         public async Task<IActionResult> PrintFormPdfBatch([FromBody] List<string> formIds)
         {
-            var result = await _formPrintService.PrintFormPdfBatch(formIds);
+            var result = await _formPrintService.PrintFormPdfBatch(formIds, checkPermission: false);
             if (result.Code != 200)
             {
                 return StatusCode(result.Code, result);

@@ -174,47 +174,6 @@ namespace SystemAdmin.Repository.CustMat.CustMatBasicInfo
         }
 
         /// <summary>
-        /// 根据公司料号查询详情（料号类型、物料分类、来源类型对应的字典中英文名称均返回）
-        /// </summary>
-        /// <param name="partNumber"></param>
-        /// <returns></returns>
-        public async Task<CompanyNumberDetailDto> GetCompanyNumberDetailByPartNumber(string partNumber)
-        {
-            return await _db.Queryable<CompanyNumberEntity>()
-                            .With(SqlWith.NoLock)
-                            .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic) => typeDic.DicType == "PartType" && companyNumber.PartType == typeDic.DicCode)
-                            .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic) => categoryDic.DicType == "Category" && companyNumber.Category == categoryDic.DicCode)
-                            .InnerJoin<DictionaryInfoEntity>((companyNumber, typeDic, categoryDic, sourceDic) => sourceDic.DicType == "SourceType" && companyNumber.SourceType == sourceDic.DicCode)
-                            .Where(companyNumber => companyNumber.PartNumber == partNumber)
-                            .Select((companyNumber, typeDic, categoryDic, sourceDic) => new CompanyNumberDetailDto
-                            {
-                                PartNumberId = companyNumber.PartNumberId,
-                                PartNumber = companyNumber.PartNumber,
-                                PartNameCn = companyNumber.PartNameCn,
-                                PartNameEn = companyNumber.PartNameEn,
-                                Specification = companyNumber.Specification,
-                                PartType = companyNumber.PartType,
-                                PartTypeNameCn = typeDic.DicNameCn,
-                                PartTypeNameEn = typeDic.DicNameEn,
-                                Category = companyNumber.Category,
-                                CategoryNameCn = categoryDic.DicNameCn,
-                                CategoryNameEn = categoryDic.DicNameEn,
-                                Model = companyNumber.Model,
-                                DrawingNumber = companyNumber.DrawingNumber,
-                                Version = companyNumber.Version,
-                                Unit = companyNumber.Unit,
-                                SourceType = companyNumber.SourceType,
-                                SourceTypeNameCn = sourceDic.DicNameCn,
-                                SourceTypeNameEn = sourceDic.DicNameEn,
-                                Manufacturer = companyNumber.Manufacturer,
-                                ManufacturerPartNumber = companyNumber.ManufacturerPartNumber,
-                                LotControl = companyNumber.LotControl,
-                                Status = companyNumber.Status,
-                                Remark = companyNumber.Remark,
-                            }).FirstAsync();
-        }
-
-        /// <summary>
         /// 按查询条件查询料号信息列表
         /// </summary>
         /// <param name="getCompanyNumberPage"></param>

@@ -91,5 +91,13 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         {
             return await _salesNumberService.GetCustomerDrop();
         }
+
+        [HttpPost]
+        [Tags("客户生产订单-业务人员维护")]
+        [EndpointSummary("[人员料号] 根据料号查询详情")]
+        public async Task<Result<CompanyNumberDetailDto>> GetPartNumberDetail([FromForm] string partNumber)
+        {
+            return await _salesNumberService.GetPartNumberDetail(partNumber);
+        }
     }
 }
