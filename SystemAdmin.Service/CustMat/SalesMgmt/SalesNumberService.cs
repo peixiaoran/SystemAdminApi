@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Logging;
+using OfficeOpenXml;
 using SqlSugar;
+using System.Data;
+using SystemAdmin.Common.Excel;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.SalesMgmt.Commands;
 using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
@@ -17,6 +20,7 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         private readonly SalesNumberRepository _salesNumberRepository;
         private readonly LocalizationService _localization;
         private readonly string _this = "CustMat.Sales.SalesNumber";
+        private readonly string _thisExcel = "CustMat.Sales.SalesNumberExcel_";
 
         public SalesNumberService(CurrentUser loginuser, ILogger<SalesNumberService> logger, SqlSugarScope db, SalesNumberRepository salesNumberRepository, LocalizationService localization)
         {
@@ -38,7 +42,7 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
             {
                 var exists = await _salesNumberRepository.ExistsSalesNumber(upsert.PartNumber);
                 if (exists)
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_this}Duplicate"));
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}Duplicate"));
 
                 await _db.BeginTranAsync();
                 var entity = new SalesNumberEntity()
@@ -131,7 +135,7 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         }
 
         /// <summary>
-        /// 批量修改人员料号：按客户找出料号对照中的公司料号，统一绑定到指定业务负责人
+        /// 批量修改人员料号
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
@@ -231,6 +235,48 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         }
 
         /// <summary>
+        /// 导出人员料号Excel表格
+        /// </summary>
+        /// <param name="getExcel"></param>
+        /// <returns></returns>
+        public async Task<byte[]> GetSalesNumberExcel(GetSalesNumberExcel getExcel)
+        {
+            try
+            {
+                DataTable dt = await _salesNumberRepository.GetSalesNumberExcel(getExcel);
+                ExcelPackage.License.SetNonCommercialPersonal("Your Name");
+
+                using var package = new ExcelPackage();
+                var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}SalesNumber"));
+
+                var columnConfigs = new Dictionary<string, ExcelColumnConfig>
+                {
+                    { "PartNumber", ExcelColumnConfig.Text },// 料号，防前导零消失
+                    { "PartName", ExcelColumnConfig.Text },// 品名
+                    { "UserNo", ExcelColumnConfig.Text },// 工号，防前导零消失
+                    { "UserName", ExcelColumnConfig.Text },// 姓名
+                };
+                var headers = new Dictionary<string, string>
+                {
+                    { "PartNumber", _localization.ReturnMsg($"{_thisExcel}PartNumber") },
+                    { "PartName", _localization.ReturnMsg($"{_thisExcel}PartName") },
+                    { "UserNo", _localization.ReturnMsg($"{_thisExcel}UserNo") },
+                    { "UserName", _localization.ReturnMsg($"{_thisExcel}UserName") },
+                };
+
+                ExcelStyleHelper.ApplyStandardStyle(ws, dt, headers, false, columnConfigs);
+                package.Workbook.CalcMode = ExcelCalcMode.Manual;
+
+                return package.GetAsByteArray();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Array.Empty<byte>();
+            }
+        }
+
+        /// <summary>
         /// 业务人员下拉
         /// </summary>
         /// <returns></returns>
@@ -253,11 +299,11 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         /// </summary>
         /// <param name="keyword"></param>
         /// <returns></returns>
-        public async Task<Result<List<CompanyNumberDropDto>>> GetCompanyPartNumberDrop(string keyword)
+        public async Task<Result<List<CompanyNumberDropDto>>> GetCompanyNumberDrop(string keyword)
         {
             try
             {
-                var drop = await _salesNumberRepository.GetCompanyPartNumberDrop(keyword);
+                var drop = await _salesNumberRepository.GetCompanyNumberDrop(keyword);
                 return Result<List<CompanyNumberDropDto>>.Ok(drop, "");
             }
             catch (Exception ex)

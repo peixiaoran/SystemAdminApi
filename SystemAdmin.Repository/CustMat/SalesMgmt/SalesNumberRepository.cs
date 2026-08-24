@@ -1,4 +1,5 @@
 using SqlSugar;
+using System.Data;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.CustMatBasicInfo.Entity;
 using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
@@ -153,6 +154,47 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         }
 
         /// <summary>
+        /// 导出人员料号Excel表格
+        /// </summary>
+        /// <param name="getExcel"></param>
+        /// <returns></returns>
+        public async Task<DataTable> GetSalesNumberExcel(GetSalesNumberExcel getExcel)
+        {
+            var query = _db.Queryable<SalesNumberEntity>()
+                           .With(SqlWith.NoLock)
+                           .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
+                           .InnerJoin<UserInfoEntity>((salesNumber, companyNumber, user) => salesNumber.SalesUserId == user.UserId);
+
+            // 公司料号
+            if (!string.IsNullOrEmpty(getExcel.PartNumber))
+            {
+                query = query.Where((salesNumber, companyNumber) => companyNumber.PartNumber.Contains(getExcel.PartNumber));
+            }
+
+            // 业务负责人Id
+            if (!string.IsNullOrEmpty(getExcel.SalesUserId))
+            {
+                query = query.Where(salesNumber => salesNumber.SalesUserId == long.Parse(getExcel.SalesUserId));
+            }
+
+            // 业务负责人姓名
+            if (!string.IsNullOrEmpty(getExcel.UserName))
+            {
+                query = query.Where((salesNumber, companyNumber, user) => user.UserNameCn.Contains(getExcel.UserName) || user.UserNameEn.Contains(getExcel.UserName));
+            }
+
+            return await query.OrderBy(salesNumber => salesNumber.CreatedDate)
+                              .Select((salesNumber, companyNumber, user) => new SalesNumberDto
+                              {
+                                  PartNumber = salesNumber.PartNumber,
+                                  PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
+                                  SalesUserId = salesNumber.SalesUserId,
+                                  UserNo = user.UserNo,
+                                  UserName = _lang.Locale == "zh-CN" ? user.UserNameCn : user.UserNameEn,
+                              }).ToDataTableAsync();
+        }
+
+        /// <summary>
         /// 业务人员下拉
         /// </summary>
         /// <returns></returns>
@@ -174,7 +216,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         /// </summary>
         /// <param name="keyword"></param>
         /// <returns></returns>
-        public async Task<List<CompanyNumberDropDto>> GetCompanyPartNumberDrop(string keyword)
+        public async Task<List<CompanyNumberDropDto>> GetCompanyNumberDrop(string keyword)
         {
             var query = _db.Queryable<CompanyNumberEntity>()
                            .With(SqlWith.NoLock);

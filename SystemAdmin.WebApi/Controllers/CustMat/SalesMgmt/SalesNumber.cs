@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.SalesMgmt.Commands;
 using SystemAdmin.Model.CustMat.SalesMgmt.Dto;
 using SystemAdmin.Model.CustMat.SalesMgmt.Queries;
@@ -14,10 +15,13 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
     public class SalesNumber : ControllerBase
     {
         private readonly SalesNumberService _salesNumberService;
+        private readonly LocalizationService _localization;
+        private readonly string _thisExcel = "CustMat.Sales.SalesNumberExcel_";
 
-        public SalesNumber(SalesNumberService salesNumberService)
+        public SalesNumber(SalesNumberService salesNumberService, LocalizationService localization)
         {
             _salesNumberService = salesNumberService;
+            _localization = localization;
         }
 
         [HttpPost]
@@ -70,6 +74,16 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
 
         [HttpPost]
         [Tags("客户生产订单-业务人员维护")]
+        [EndpointSummary("[人员料号] 导出Excel表格")]
+        public async Task<IActionResult> ExportSalesNumberExcel([FromBody] GetSalesNumberExcel getExcel)
+        {
+            var bytes = await _salesNumberService.GetSalesNumberExcel(getExcel);
+            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}SalesNumber", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}SalesNumber", "en-US")}.xlsx";
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-业务人员维护")]
         [EndpointSummary("[人员料号] 业务人员下拉")]
         public async Task<Result<List<SalesUserDropDto>>> GetSalesUserDrop()
         {
@@ -79,9 +93,9 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         [HttpPost]
         [Tags("客户生产订单-业务人员维护")]
         [EndpointSummary("[人员料号] 公司料号下拉")]
-        public async Task<Result<List<CompanyNumberDropDto>>> GetCompanyPartNumberDrop([FromForm] string keyword)
+        public async Task<Result<List<CompanyNumberDropDto>>> GetCompanyNumberDrop([FromForm] string keyword)
         {
-            return await _salesNumberService.GetCompanyPartNumberDrop(keyword);
+            return await _salesNumberService.GetCompanyNumberDrop(keyword);
         }
 
         [HttpPost]

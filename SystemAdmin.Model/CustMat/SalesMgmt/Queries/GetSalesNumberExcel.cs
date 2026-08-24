@@ -1,11 +1,12 @@
-using SqlSugar;
-
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Queries
 {
-    public class GetSalesNumberPage : PageModel
+    /// <summary>
+    /// 导出人员料号Excel请求参数
+    /// </summary>
+    public class GetSalesNumberExcel
     {
         /// <summary>
-        /// 公司料号
+        /// 公司料号（模糊匹配）
         /// </summary>
         public string PartNumber { get; set; } = string.Empty;
 

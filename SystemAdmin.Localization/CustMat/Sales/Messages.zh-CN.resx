@@ -174,4 +174,19 @@
   <data name="SalesNumberAllConfigured" xml:space="preserve">
     <value>该客户下的公司料号均已配置业务负责人，无需补充</value>
   </data>
+  <data name="SalesNumberExcel_SalesNumber" xml:space="preserve">
+    <value>人员料号</value>
+  </data>
+  <data name="SalesNumberExcel_PartNumber" xml:space="preserve">
+    <value>料号</value>
+  </data>
+  <data name="SalesNumberExcel_PartName" xml:space="preserve">
+    <value>品名</value>
+  </data>
+  <data name="SalesNumberExcel_UserNo" xml:space="preserve">
+    <value>业务负责人工号</value>
+  </data>
+  <data name="SalesNumberExcel_UserName" xml:space="preserve">
+    <value>业务负责人姓名</value>
+  </data>
 </root>
