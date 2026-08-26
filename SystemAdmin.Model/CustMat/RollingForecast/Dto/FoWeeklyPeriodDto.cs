@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+using SystemAdmin.Model.ModelHelper.ModelConverter;
+
 namespace SystemAdmin.Model.CustMat.RollingForecast.Dto
 {
     /// <summary>
@@ -16,13 +19,9 @@ namespace SystemAdmin.Model.CustMat.RollingForecast.Dto
         public string PeriodType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 周期开始日期
+        /// 周期日期
         /// </summary>
+        [JsonConverter(typeof(DateOnlyStringConverter))]
         public DateTime StartDate { get; set; }
-
-        /// <summary>
-        /// 周期结束日期
-        /// </summary>
-        public DateTime EndDate { get; set; }
     }
 }

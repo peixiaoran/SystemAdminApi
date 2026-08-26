@@ -39,6 +39,10 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         {
             try
             {
+                var nonLockedVersionCode = await _forecastVersionRepo.GetNonLockedVersionCode();
+                if (!string.IsNullOrEmpty(nonLockedVersionCode))
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}HasUnlocked", (object)nonLockedVersionCode));
+
                 var endDate = EndOfDay(upsert.EndDate);
                 var overlapping = await _forecastVersionRepo.HasOverlappingForecastVersion(upsert.StartDate, endDate, null);
                 if (overlapping)

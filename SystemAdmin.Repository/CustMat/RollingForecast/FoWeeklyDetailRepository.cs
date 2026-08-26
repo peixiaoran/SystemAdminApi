@@ -84,12 +84,36 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
                             .With(SqlWith.NoLock)
                             .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
                             .Where(salesNumber => salesNumber.SalesUserId == salesUserId)
+                            .Where((salesNumber, companyNumber) => companyNumber.Status == 1)
                             .OrderBy(salesNumber => salesNumber.PartNumber)
                             .Select((salesNumber, companyNumber) => new FoWeeklyRowDto
                             {
                                 PartNumber = salesNumber.PartNumber,
                                 PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
                             }).ToListAsync();
+        }
+
+        /// <summary>
+        /// 查询指定版本下公司料号明细
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <param name="salesUserId"></param>
+        /// <returns></returns>
+        public async Task<List<FoWeeklyRowDto>> GetImportedPartNumbers(long versionId, long salesUserId)
+        {
+            return await _db.Queryable<ForecastWeeklyDetailEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<CompanyNumberEntity>((detail, companyNumber) => detail.PartNumber == companyNumber.PartNumber)
+                            .Where(detail => detail.VersionId == versionId && detail.SalesUserId == salesUserId)
+                            .Where((detail, companyNumber) => companyNumber.Status == 1)
+                            .OrderBy(detail => detail.PartNumber)
+                            .Select((detail, companyNumber) => new FoWeeklyRowDto
+                            {
+                                PartNumber = detail.PartNumber,
+                                PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
+                            })
+                            .Distinct()
+                            .ToListAsync();
         }
 
         /// <summary>
@@ -104,6 +128,57 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
                             .With(SqlWith.NoLock)
                             .Where(detail => detail.VersionId == versionId && partNumbers.Contains(detail.PartNumber))
                             .ToListAsync();
+        }
+
+        /// <summary>
+        /// 查询给定公司料号列表中，已存在的有效料号
+        /// </summary>
+        /// <param name="partNumbers"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetExistingCompanyNumbers(List<string> partNumbers)
+        {
+            return await _db.Queryable<CompanyNumberEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(companyNumber => partNumbers.Contains(companyNumber.PartNumber))
+                            .Select(companyNumber => companyNumber.PartNumber)
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 查询给定公司料号列表中，已配置为指定业务负责人的料号
+        /// </summary>
+        /// <param name="partNumbers"></param>
+        /// <param name="salesUserId"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetAssignedPartNumbers(List<string> partNumbers, long salesUserId)
+        {
+            return await _db.Queryable<SalesNumberEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(salesNumber => partNumbers.Contains(salesNumber.PartNumber) && salesNumber.SalesUserId == salesUserId)
+                            .Select(salesNumber => salesNumber.PartNumber)
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 清空指定版本下的预测周明细
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <returns></returns>
+        public async Task<int> DeleteForecastWeeklyDetails(long versionId)
+        {
+            return await _db.Deleteable<ForecastWeeklyDetailEntity>()
+                            .Where(detail => detail.VersionId == versionId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 批量新增预测周明细
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public async Task<int> InsertForecastWeeklyDetailList(List<ForecastWeeklyDetailEntity> list)
+        {
+            return await _db.Insertable(list).ExecuteCommandAsync();
         }
     }
 }

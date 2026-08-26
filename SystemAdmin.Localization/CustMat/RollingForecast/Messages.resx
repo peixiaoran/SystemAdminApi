@@ -150,7 +150,58 @@
   <data name="ForecastVersionOverlap" xml:space="preserve">
     <value>预测版本 {0} 的时间范围与现有版本重叠</value>
   </data>
+  <data name="ForecastVersionHasUnlocked" xml:space="preserve">
+    <value>存在状态不为锁定的预测版本 {0}，请先将其锁定后再新增</value>
+  </data>
   <data name="FoWeeklyDetailVersionNotFound" xml:space="preserve">
     <value>预测版本不存在</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_Template" xml:space="preserve">
+    <value>预测周明细模板</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_Export" xml:space="preserve">
+    <value>预测周明细</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_PartNumber" xml:space="preserve">
+    <value>料号</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_PartName" xml:space="preserve">
+    <value>品名</value>
+  </data>
+  <data name="FoWeeklyDetailImport_FileEmpty" xml:space="preserve">
+    <value>请上传文件</value>
+  </data>
+  <data name="FoWeeklyDetailImport_InvalidFileFormat" xml:space="preserve">
+    <value>文件格式不正确，仅支持.xlsx</value>
+  </data>
+  <data name="FoWeeklyDetailImport_NoWorksheet" xml:space="preserve">
+    <value>文件中未找到工作表</value>
+  </data>
+  <data name="FoWeeklyDetailImport_NoData" xml:space="preserve">
+    <value>文件中至少需要一条数据</value>
+  </data>
+  <data name="FoWeeklyDetailImport_ColumnCountMismatch" xml:space="preserve">
+    <value>列数不匹配，应为{0}列，实际为{1}列</value>
+  </data>
+  <data name="FoWeeklyDetailImport_HeaderMismatch" xml:space="preserve">
+    <value>第{0}列列名不正确，应为"{1}"，实际为"{2}"</value>
+  </data>
+  <data name="FoWeeklyDetailImport_DateHeaderMismatch" xml:space="preserve">
+    <value>第{0}列日期应为{1}，实际为"{2}"</value>
+  </data>
+  <data name="FoWeeklyDetailImport_PartNumberEmpty" xml:space="preserve">
+    <value>第{0}行公司料号不能为空</value>
+  </data>
+  <data name="FoWeeklyDetailImport_PartNumberInvalid" xml:space="preserve">
+    <value>第{0}行公司料号{1}不存在</value>
+  </data>
+  <data name="FoWeeklyDetailImport_PartNumberNotAssigned" xml:space="preserve">
+    <value>第{0}行公司料号{1}未配置为您负责</value>
+  </data>
+  <data name="FoWeeklyDetailImport_QtyNotNumeric" xml:space="preserve">
+    <value>第{0}行第{1}列数量不是数值："{2}"</value>
+  </data>
+  <data name="FoWeeklyDetailImport_Success" xml:space="preserve">
+    <value>导入成功，共{0}条</value>
   </data>
 </root>

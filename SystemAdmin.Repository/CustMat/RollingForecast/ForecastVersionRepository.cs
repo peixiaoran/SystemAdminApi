@@ -1,5 +1,7 @@
 using Mapster;
 using SqlSugar;
+using SystemAdmin.Common.Enums.CustMat;
+using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.RollingForecast.Dto;
 using SystemAdmin.Model.CustMat.RollingForecast.Entity;
@@ -75,6 +77,20 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
                                 version.CreatedDate,
                             }).Where(version => version.VersionId == entity.VersionId)
                             .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 查询状态不为锁定的预测版本编号（若存在多个，只取一个）
+        /// </summary>
+        /// <returns></returns>
+        public async Task<string?> GetNonLockedVersionCode()
+        {
+            var lockStatus = ForecastVersionStatus.Lock.ToEnumString();
+            return await _db.Queryable<ForecastVersionEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(version => version.Status != lockStatus)
+                            .Select(version => version.VersionCode)
+                            .FirstAsync();
         }
 
         /// <summary>
