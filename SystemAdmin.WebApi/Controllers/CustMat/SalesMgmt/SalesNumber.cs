@@ -25,7 +25,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 新增人员料号")]
         public async Task<Result<int>> InsertSalesNumber([FromBody] SalesNumberUpsert upsert)
         {
@@ -33,7 +33,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 删除人员料号")]
         public async Task<Result<int>> DeleteSalesNumber([FromForm] string partNumber)
         {
@@ -41,7 +41,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 修改人员料号")]
         public async Task<Result<int>> UpdateSalesNumber([FromBody] SalesNumberUpsert upsert)
         {
@@ -49,7 +49,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 批量修改人员料号")]
         public async Task<Result<int>> BatchUpsertSalesNumber([FromBody] SalesNumberBatchUpsert upsert)
         {
@@ -57,7 +57,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 查询人员料号实体")]
         public async Task<Result<SalesNumberDto>> GetSalesNumberEntity([FromForm] string partNumber)
         {
@@ -65,7 +65,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 查询人员料号分页")]
         public async Task<ResultPaged<SalesNumberDto>> GetSalesNumberPage([FromBody] GetSalesNumberPage getPage)
         {
@@ -73,7 +73,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 导出Excel表格")]
         public async Task<IActionResult> ExportSalesNumberExcel([FromBody] GetSalesNumberExcel getExcel)
         {
@@ -83,7 +83,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 业务人员下拉")]
         public async Task<Result<List<SalesUserDropDto>>> GetSalesUserDrop()
         {
@@ -91,7 +91,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 公司料号下拉")]
         public async Task<Result<List<CompanyNumberDropDto>>> GetCompanyNumberDrop([FromForm] string keyword)
         {
@@ -99,7 +99,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 客户信息下拉")]
         public async Task<Result<List<CustomerDropDto>>> GetCustomerDrop()
         {
@@ -107,7 +107,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务人员料号")]
         [EndpointSummary("[人员料号] 根据料号查询详情")]
         public async Task<Result<CompanyNumberDetailDto>> GetPartNumberDetail([FromForm] string partNumber)
         {
