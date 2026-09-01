@@ -5,6 +5,7 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.RollingForecast.Dto;
 using SystemAdmin.Model.CustMat.RollingForecast.Queries;
 using SystemAdmin.Repository.CustMat.RollingForecast;
+using CompanyNumberDetailDto = SystemAdmin.Model.CustMat.SalesMgmt.Dto.CompanyNumberDetailDto;
 
 namespace SystemAdmin.Service.CustMat.RollingForecast
 {
@@ -62,22 +63,23 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
-        public async Task<Result<List<ForecastWeeklyDetailStatDto>>> GetNumberTrend(GetNumberTrend query)
+        public async Task<Result<NumberTrendDto>> GetNumberTrend(GetNumberTrend query)
         {
             try
             {
                 if (string.IsNullOrEmpty(query.PartNumber) || query.VersionIds == null || query.VersionIds.Count == 0)
-                    return Result<List<ForecastWeeklyDetailStatDto>>.Ok([], "");
+                    return Result<NumberTrendDto>.Ok(new NumberTrendDto(), "");
 
                 var versionIds = query.VersionIds.Select(long.Parse).Distinct().ToList();
 
+                var partNumberInfo = await _numberTrendRepo.GetCompanyPartNumberInfo(query.PartNumber);
                 var versions = await _numberTrendRepo.GetForecastVersionsByIds(versionIds);
                 var details = await _numberTrendRepo.GetForecastWeeklyDetailsByVersions(query.PartNumber, versionIds);
 
                 var dayPeriodType = ForecastPeriodType.Day.ToEnumString();
                 var weekPeriodType = ForecastPeriodType.Week.ToEnumString();
 
-                var result = versions
+                var versionStats = versions
                     .OrderBy(version => version.StartDate)
                     .Select(version =>
                     {
@@ -94,12 +96,18 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                         };
                     }).ToList();
 
-                return Result<List<ForecastWeeklyDetailStatDto>>.Ok(result, "");
+                var result = new NumberTrendDto
+                {
+                    PartInfo = partNumberInfo ?? new CompanyNumberDetailDto { PartNumber = query.PartNumber },
+                    Versions = versionStats,
+                };
+
+                return Result<NumberTrendDto>.Ok(result, "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<List<ForecastWeeklyDetailStatDto>>.Failure(500, ex.Message);
+                return Result<NumberTrendDto>.Failure(500, ex.Message);
             }
         }
     }

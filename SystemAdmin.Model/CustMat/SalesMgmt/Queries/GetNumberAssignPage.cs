@@ -2,7 +2,7 @@ using SqlSugar;
 
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Queries
 {
-    public class GetSalesNumberPage : PageModel
+    public class GetNumberAssignPage : PageModel
     {
         /// <summary>
         /// 公司料号

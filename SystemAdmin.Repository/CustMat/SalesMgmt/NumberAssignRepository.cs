@@ -10,48 +10,48 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.CustMat.SalesMgmt
 {
-    public class SalesNumberRepository
+    public class NumberAssignRepository
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
 
-        public SalesNumberRepository(SqlSugarScope db, Language lang)
+        public NumberAssignRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
             _lang = lang;
         }
 
         /// <summary>
-        /// 新增人员料号信息
+        /// 新增料号分配信息
         /// </summary>
-        /// <param name="salesNumberEntity"></param>
+        /// <param name="numberAssignEntity"></param>
         /// <returns></returns>
-        public async Task<int> InsertSalesNumber(SalesNumberEntity salesNumberEntity)
+        public async Task<int> InsertNumberAssign(NumberAssignEntity numberAssignEntity)
         {
-            return await _db.Insertable(salesNumberEntity).ExecuteCommandAsync();
+            return await _db.Insertable(numberAssignEntity).ExecuteCommandAsync();
         }
 
         /// <summary>
-        /// 删除人员料号信息
+        /// 删除料号分配信息
         /// </summary>
         /// <param name="partNumber"></param>
         /// <returns></returns>
-        public async Task<int> DeleteSalesNumber(string partNumber)
+        public async Task<int> DeleteNumberAssign(string partNumber)
         {
-            return await _db.Deleteable<SalesNumberEntity>()
+            return await _db.Deleteable<NumberAssignEntity>()
                             .Where(salesNumber => salesNumber.PartNumber == partNumber)
                             .ExecuteCommandAsync();
         }
 
         /// <summary>
-        /// 修改人员料号信息
+        /// 修改料号分配信息
         /// </summary>
-        /// <param name="salesNumberEntity"></param>
+        /// <param name="numberAssignEntity"></param>
         /// <param name="originalPartNumber">原公司料号，用于定位原记录（料号可重新选择，主键随之变更）</param>
         /// <returns></returns>
-        public async Task<int> UpdateSalesNumber(SalesNumberEntity salesNumberEntity, string originalPartNumber)
+        public async Task<int> UpdateNumberAssign(NumberAssignEntity numberAssignEntity, string originalPartNumber)
         {
-            return await _db.Updateable(salesNumberEntity)
+            return await _db.Updateable(numberAssignEntity)
                             .IgnoreColumns(salesNumber => new
                             {
                                 salesNumber.CreatedBy,
@@ -65,9 +65,9 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         /// </summary>
         /// <param name="partNumber"></param>
         /// <returns></returns>
-        public async Task<bool> ExistsSalesNumber(string partNumber)
+        public async Task<bool> ExistsNumberAssign(string partNumber)
         {
-            return await _db.Queryable<SalesNumberEntity>()
+            return await _db.Queryable<NumberAssignEntity>()
                             .With(SqlWith.NoLock)
                             .Where(salesNumber => salesNumber.PartNumber == partNumber)
                             .AnyAsync();
@@ -87,18 +87,18 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         }
 
         /// <summary>
-        /// 查询人员料号信息实体
+        /// 查询料号分配信息实体
         /// </summary>
         /// <param name="partNumber"></param>
         /// <returns></returns>
-        public async Task<SalesNumberDto> GetSalesNumberEntity(string partNumber)
+        public async Task<NumberAssignDto> GetNumberAssignEntity(string partNumber)
         {
-            var entity = await _db.Queryable<SalesNumberEntity>()
+            var entity = await _db.Queryable<NumberAssignEntity>()
                                   .With(SqlWith.NoLock)
                                   .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
                                   .InnerJoin<UserInfoEntity>((salesNumber, companyNumber, user) => salesNumber.SalesUserId == user.UserId)
                                   .Where(salesNumber => salesNumber.PartNumber == partNumber)
-                                  .Select((salesNumber, companyNumber, user) => new SalesNumberDto
+                                  .Select((salesNumber, companyNumber, user) => new NumberAssignDto
                                   {
                                       PartNumber = salesNumber.PartNumber,
                                       PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
@@ -111,13 +111,13 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         }
 
         /// <summary>
-        /// 查询人员料号信息分页
+        /// 查询料号分配信息分页
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<SalesNumberDto>> GetSalesNumberPage(GetSalesNumberPage getPage)
+        public async Task<ResultPaged<NumberAssignDto>> GetNumberAssignPage(GetNumberAssignPage getPage)
         {
-            var query = _db.Queryable<SalesNumberEntity>()
+            var query = _db.Queryable<NumberAssignEntity>()
                            .With(SqlWith.NoLock)
                            .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
                            .InnerJoin<UserInfoEntity>((salesNumber, companyNumber, user) => salesNumber.SalesUserId == user.UserId);
@@ -142,7 +142,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
 
             RefAsync<int> totalCount = 0;
             var page = await query.OrderBy(salesNumber => salesNumber.CreatedDate)
-                                  .Select((salesNumber, companyNumber, user) => new SalesNumberDto
+                                  .Select((salesNumber, companyNumber, user) => new NumberAssignDto
                                   {
                                       PartNumber = salesNumber.PartNumber,
                                       PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
@@ -150,17 +150,17 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                                       UserNo = user.UserNo,
                                       UserName = _lang.Locale == "zh-CN" ? user.UserNameCn : user.UserNameEn,
                                   }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
-            return ResultPaged<SalesNumberDto>.Ok(page, totalCount, "");
+            return ResultPaged<NumberAssignDto>.Ok(page, totalCount, "");
         }
 
         /// <summary>
-        /// 导出人员料号Excel表格
+        /// 导出料号分配Excel表格
         /// </summary>
         /// <param name="getExcel"></param>
         /// <returns></returns>
-        public async Task<DataTable> GetSalesNumberExcel(GetSalesNumberExcel getExcel)
+        public async Task<DataTable> GetNumberAssignExcel(GetNumberAssignExcel getExcel)
         {
-            var query = _db.Queryable<SalesNumberEntity>()
+            var query = _db.Queryable<NumberAssignEntity>()
                            .With(SqlWith.NoLock)
                            .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
                            .InnerJoin<UserInfoEntity>((salesNumber, companyNumber, user) => salesNumber.SalesUserId == user.UserId);
@@ -184,7 +184,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
             }
 
             return await query.OrderBy(salesNumber => salesNumber.CreatedDate)
-                              .Select((salesNumber, companyNumber, user) => new SalesNumberDto
+                              .Select((salesNumber, companyNumber, user) => new NumberAssignDto
                               {
                                   PartNumber = salesNumber.PartNumber,
                                   PartName = _lang.Locale == "zh-CN" ? companyNumber.PartNameCn : companyNumber.PartNameEn,
@@ -277,7 +277,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         /// <returns></returns>
         public async Task<List<string>> GetExistingPartNumbers(List<string> partNumbers)
         {
-            return await _db.Queryable<SalesNumberEntity>()
+            return await _db.Queryable<NumberAssignEntity>()
                             .With(SqlWith.NoLock)
                             .Where(salesNumber => partNumbers.Contains(salesNumber.PartNumber))
                             .Select(salesNumber => salesNumber.PartNumber)
@@ -285,11 +285,11 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         }
 
         /// <summary>
-        /// 批量新增人员料号信息
+        /// 批量新增料号分配信息
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
-        public async Task<int> InsertSalesNumberList(List<SalesNumberEntity> list)
+        public async Task<int> InsertNumberAssignList(List<NumberAssignEntity> list)
         {
             return await _db.Insertable(list).ExecuteCommandAsync();
         }
@@ -304,8 +304,8 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         /// <returns></returns>
         public async Task<int> UpdateSalesUserByPartNumbers(List<string> partNumbers, long salesUserId, long modifiedBy, string modifiedDate)
         {
-            return await _db.Updateable<SalesNumberEntity>()
-                            .SetColumns(salesNumber => new SalesNumberEntity { SalesUserId = salesUserId, ModifiedBy = modifiedBy, ModifiedDate = modifiedDate })
+            return await _db.Updateable<NumberAssignEntity>()
+                            .SetColumns(salesNumber => new NumberAssignEntity { SalesUserId = salesUserId, ModifiedBy = modifiedBy, ModifiedDate = modifiedDate })
                             .Where(salesNumber => partNumbers.Contains(salesNumber.PartNumber))
                             .ExecuteCommandAsync();
         }

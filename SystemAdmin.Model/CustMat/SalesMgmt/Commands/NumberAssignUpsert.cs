@@ -1,9 +1,9 @@
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Commands
 {
     /// <summary>
-    /// 人员料号信息新增/修改类
+    /// 料号分配信息新增/修改类
     /// </summary>
-    public class SalesNumberUpsert
+    public class NumberAssignUpsert
     {
         /// <summary>
         /// 公司料号（主键，从公司料号下拉中选择）

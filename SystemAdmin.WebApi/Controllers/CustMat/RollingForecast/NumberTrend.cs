@@ -20,7 +20,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-料号版本趋势")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[料号趋势] 查询料号分页")]
         public async Task<ResultPaged<SalesNumberDto>> GetSalesNumberPage([FromBody] GetSalesNumberPage getPage)
         {
@@ -28,7 +28,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-料号版本趋势")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[料号趋势] 版本下拉框")]
         public async Task<Result<List<ForecastVersionDropDto>>> GetForecastVersionDrop()
         {
@@ -36,9 +36,9 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-料号版本趋势")]
-        [EndpointSummary("[料号趋势] 按料号统计版本用量")]
-        public async Task<Result<List<ForecastWeeklyDetailStatDto>>> GetNumberTrend([FromBody] GetNumberTrend query)
+        [Tags("客户生产订单-料号滚动预测")]
+        [EndpointSummary("[料号趋势] 料号版本用量")]
+        public async Task<Result<NumberTrendDto>> GetNumberTrend([FromBody] GetNumberTrend query)
         {
             return await _numberTrendService.GetNumberTrend(query);
         }

@@ -4,9 +4,9 @@ using SystemAdmin.Model.ModelHelper.ModelConverter;
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
 {
     /// <summary>
-    /// 人员料号信息Dto
+    /// 料号分配信息Dto
     /// </summary>
-    public class SalesNumberDto
+    public class NumberAssignDto
     {
         /// <summary>
         /// 公司料号（主键）

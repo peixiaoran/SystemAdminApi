@@ -139,22 +139,22 @@
     <value>该用户已配置为业务人员，请勿重复添加</value>
   </data>
   <data name="SalesNumberInsertSuccess" xml:space="preserve">
-    <value>新增人员料号成功</value>
+    <value>新增料号分配成功</value>
   </data>
   <data name="SalesNumberInsertFailed" xml:space="preserve">
-    <value>新增人员料号失败</value>
+    <value>新增料号分配失败</value>
   </data>
   <data name="SalesNumberUpdateSuccess" xml:space="preserve">
-    <value>修改人员料号成功</value>
+    <value>修改料号分配成功</value>
   </data>
   <data name="SalesNumberUpdateFailed" xml:space="preserve">
-    <value>修改人员料号失败</value>
+    <value>修改料号分配失败</value>
   </data>
   <data name="SalesNumberDeleteSuccess" xml:space="preserve">
-    <value>删除人员料号成功</value>
+    <value>删除料号分配成功</value>
   </data>
   <data name="SalesNumberDeleteFailed" xml:space="preserve">
-    <value>删除人员料号失败</value>
+    <value>删除料号分配失败</value>
   </data>
   <data name="SalesNumberDuplicate" xml:space="preserve">
     <value>该公司料号已配置业务负责人，请勿重复添加</value>
@@ -166,16 +166,16 @@
     <value>该客户下未找到可绑定的公司料号</value>
   </data>
   <data name="SalesNumberBatchUpsertSuccess" xml:space="preserve">
-    <value>批量修改人员料号成功，共 {0} 条</value>
+    <value>批量修改料号分配成功，共 {0} 条</value>
   </data>
   <data name="SalesNumberBatchUpsertFailed" xml:space="preserve">
-    <value>批量修改人员料号失败</value>
+    <value>批量修改料号分配失败</value>
   </data>
   <data name="SalesNumberAllConfigured" xml:space="preserve">
     <value>该客户下的公司料号均已配置业务负责人，无需补充</value>
   </data>
   <data name="SalesNumberExcel_SalesNumber" xml:space="preserve">
-    <value>人员料号</value>
+    <value>料号分配</value>
   </data>
   <data name="SalesNumberExcel_PartNumber" xml:space="preserve">
     <value>料号</value>

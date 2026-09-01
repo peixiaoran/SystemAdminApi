@@ -1,9 +1,9 @@
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Commands
 {
     /// <summary>
-    /// 人员料号批量修改类：按客户找出其料号对照中的公司料号，统一绑定到指定业务负责人
+    /// 料号分配批量修改类：按客户找出其料号对照中的公司料号，统一绑定到指定业务负责人
     /// </summary>
-    public class SalesNumberBatchUpsert
+    public class NumberAssignBatchUpsert
     {
         /// <summary>
         /// 客户Id

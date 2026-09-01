@@ -25,15 +25,15 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测周明细")]
-        [EndpointSummary("[预测周明细] 查询预测版本分页")]
+        [Tags("客户生产订单-料号滚动预测")]
+        [EndpointSummary("[预测周明细] 查询版本分页")]
         public async Task<ResultPaged<ForecastVersionDto>> GetForecastVersionPage([FromBody] GetForecastVersionPage getPage)
         {
             return await _foWeeklyDetailService.GetForecastVersionPage(getPage);
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测周明细")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测周明细] 查询预测周明细")]
         public async Task<Result<FoWeeklyDetailDto>> GetFoWeeklyDetail([FromForm] string versionId)
         {
@@ -41,8 +41,8 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测周明细")]
-        [EndpointSummary("[预测周明细] 导出预测周明细模板")]
+        [Tags("客户生产订单-料号滚动预测")]
+        [EndpointSummary("[预测周明细] 导出预测明细模板")]
         public async Task<IActionResult> ExportFoWeeklyDetailTemplate([FromForm] string versionId)
         {
             var bytes = await _foWeeklyDetailService.GetFoWeeklyDetailTemplate(versionId);
@@ -51,7 +51,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测周明细")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测周明细] 导出预测周明细")]
         public async Task<IActionResult> ExportFoWeeklyDetail([FromForm] string versionId)
         {
@@ -61,7 +61,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测周明细")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测周明细] 导入预测周明细")]
         public async Task<Result<int>> ImportFoWeeklyDetail([FromForm] string versionId, IFormFile file)
         {

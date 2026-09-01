@@ -20,7 +20,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 新增预测版本")]
         public async Task<Result<int>> InsertForecastVersion([FromBody] ForecastVersionUpsert upsert)
         {
@@ -28,7 +28,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 删除预测版本")]
         public async Task<Result<int>> DeleteForecastVersion([FromForm] string versionId)
         {
@@ -36,7 +36,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 解锁预测版本")]
         public async Task<Result<int>> UnlockForecastVersion([FromForm] string versionId)
         {
@@ -44,7 +44,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 锁定预测版本")]
         public async Task<Result<int>> LockForecastVersion([FromForm] string versionId)
         {
@@ -52,7 +52,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 修改预测版本")]
         public async Task<Result<int>> UpdateForecastVersion([FromBody] ForecastVersionUpsert upsert)
         {
@@ -60,7 +60,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 查询预测版本实体")]
         public async Task<Result<ForecastVersionDto>> GetForecastVersionEntity([FromForm] string versionId)
         {
@@ -68,7 +68,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         }
 
         [HttpPost]
-        [Tags("客户生产订单-滚动预测版本")]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测版本] 查询预测版本分页")]
         public async Task<ResultPaged<ForecastVersionDto>> GetForecastVersionPage([FromBody] GetForecastVersionPage getPage)
         {

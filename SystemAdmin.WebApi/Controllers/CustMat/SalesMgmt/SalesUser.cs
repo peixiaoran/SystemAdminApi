@@ -23,7 +23,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 新增业务人员")]
         public async Task<Result<int>> InsertSalesUser([FromBody] SalesUserUpsert upsert)
         {
@@ -31,7 +31,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 删除业务人员")]
         public async Task<Result<int>> DeleteSalesUser([FromForm] string salesUserId)
         {
@@ -39,7 +39,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 修改业务人员")]
         public async Task<Result<int>> UpdateSalesUser([FromBody] SalesUserUpsert upsert)
         {
@@ -47,7 +47,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 查询业务人员实体")]
         public async Task<Result<SalesUserDto>> GetSalesUserEntity([FromForm] string salesUserId)
         {
@@ -55,7 +55,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 查询业务人员分页")]
         public async Task<ResultPaged<SalesUserDto>> GetSalesUserPage([FromBody] GetSalesUserPage getPage)
         {
@@ -63,7 +63,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 业务类型下拉")]
         public async Task<Result<List<SalesTypeDropDto>>> GetSalesTypeDrop()
         {
@@ -71,7 +71,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 部门下拉分页")]
         public async Task<ResultPaged<DepartmentDropDto>> GetSalesUserDepartmentPage()
         {
@@ -79,7 +79,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         }
 
         [HttpPost]
-        [Tags("客户生产订单-业务人员维护")]
+        [Tags("客户生产订单-业务料号管理")]
         [EndpointSummary("[业务人员] 查询用户分页")]
         public async Task<ResultPaged<SalesUserPageDto>> GetUserPage([FromBody] GetUserInfoPage getPage)
         {

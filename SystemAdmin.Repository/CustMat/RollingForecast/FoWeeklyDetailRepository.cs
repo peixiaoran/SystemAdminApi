@@ -80,7 +80,7 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         /// <returns></returns>
         public async Task<List<FoWeeklyRowDto>> GetSalesPartNumbers(long salesUserId)
         {
-            return await _db.Queryable<SalesNumberEntity>()
+            return await _db.Queryable<NumberAssignEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<CompanyNumberEntity>((salesNumber, companyNumber) => salesNumber.PartNumber == companyNumber.PartNumber)
                             .Where(salesNumber => salesNumber.SalesUserId == salesUserId)
@@ -152,7 +152,7 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         /// <returns></returns>
         public async Task<List<string>> GetAssignedPartNumbers(List<string> partNumbers, long salesUserId)
         {
-            return await _db.Queryable<SalesNumberEntity>()
+            return await _db.Queryable<NumberAssignEntity>()
                             .With(SqlWith.NoLock)
                             .Where(salesNumber => partNumbers.Contains(salesNumber.PartNumber) && salesNumber.SalesUserId == salesUserId)
                             .Select(salesNumber => salesNumber.PartNumber)

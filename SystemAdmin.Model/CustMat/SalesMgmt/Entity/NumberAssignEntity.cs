@@ -3,10 +3,10 @@ using SqlSugar;
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Entity
 {
     /// <summary>
-    /// 人员料号信息实体类
+    /// 料号分配信息实体类
     /// </summary>
-    [SugarTable("[CustMat].[SalesNumber]")]
-    public class SalesNumberEntity
+    [SugarTable("[CustMat].[NumberAssign]")]
+    public class NumberAssignEntity
     {
         /// <summary>
         /// 公司料号（主键，关联公司料号信息）

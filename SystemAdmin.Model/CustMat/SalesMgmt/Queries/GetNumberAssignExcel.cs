@@ -1,9 +1,9 @@
 namespace SystemAdmin.Model.CustMat.SalesMgmt.Queries
 {
     /// <summary>
-    /// 导出人员料号Excel请求参数
+    /// 导出料号分配Excel请求参数
     /// </summary>
-    public class GetSalesNumberExcel
+    public class GetNumberAssignExcel
     {
         /// <summary>
         /// 公司料号（模糊匹配）
