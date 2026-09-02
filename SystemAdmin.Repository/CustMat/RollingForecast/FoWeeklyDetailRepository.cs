@@ -74,6 +74,20 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
+        /// 查询指定开始时间之前最近的一个预测版本（上一周版本）
+        /// </summary>
+        /// <param name="startDate"></param>
+        /// <returns></returns>
+        public async Task<ForecastVersionEntity?> GetPreviousVersion(DateTime startDate)
+        {
+            return await _db.Queryable<ForecastVersionEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(version => version.StartDate < startDate)
+                            .OrderByDescending(version => version.StartDate)
+                            .FirstAsync();
+        }
+
+        /// <summary>
         /// 查询指定业务负责人所负责的公司料号
         /// </summary>
         /// <param name="salesUserId"></param>

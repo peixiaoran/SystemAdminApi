@@ -80,6 +80,8 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 if (version == null)
                     return Result<FoWeeklyDetailDto>.Failure(400, _localization.ReturnMsg($"{_this}VersionNotFound"));
 
+                await FillQtyChangeRates(version, periods, rows);
+
                 var result = new FoWeeklyDetailDto
                 {
                     VersionId = version.VersionId,
@@ -347,6 +349,43 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
             }
 
             return (version, periods, rows);
+        }
+
+        /// <summary>
+        /// 按料号填充天、周数量环比上周的变化百分比（保留2位小数，上周数量为0时为空）
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="periods"></param>
+        /// <param name="rows"></param>
+        private async Task FillQtyChangeRates(ForecastVersionEntity version, List<FoWeeklyPeriodDto> periods, List<FoWeeklyRowDto> rows)
+        {
+            if (rows.Count == 0)
+                return;
+
+            var previousVersion = await _foWeeklyDetailRepo.GetPreviousVersion(version.StartDate);
+            if (previousVersion == null)
+                return;
+
+            var dayType = ForecastPeriodType.Day.ToEnumString();
+            var weekType = ForecastPeriodType.Week.ToEnumString();
+            var dayKeys = periods.Where(period => period.PeriodType == dayType).Select(period => period.PeriodKey).ToHashSet();
+            var weekKeys = periods.Where(period => period.PeriodType == weekType).Select(period => period.PeriodKey).ToHashSet();
+
+            var previousDetails = await _foWeeklyDetailRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
+            var previousQtyOfPartNumber = previousDetails
+                .GroupBy(detail => (detail.PartNumber, detail.PeriodType))
+                .ToDictionary(group => group.Key, group => group.Sum(detail => detail.Qty));
+
+            foreach (var row in rows)
+            {
+                var currentDayQty = dayKeys.Sum(key => row.Quantities[key]);
+                var currentWeekQty = weekKeys.Sum(key => row.Quantities[key]);
+                var previousDayQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, dayType), 0m);
+                var previousWeekQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, weekType), 0m);
+
+                row.DayQtyChangeRate = previousDayQty == 0 ? null : Math.Round((currentDayQty - previousDayQty) / previousDayQty * 100, 2);
+                row.WeekQtyChangeRate = previousWeekQty == 0 ? null : Math.Round((currentWeekQty - previousWeekQty) / previousWeekQty * 100, 2);
+            }
         }
 
         /// <summary>
