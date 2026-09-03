@@ -147,6 +147,18 @@
   <data name="ForecastVersionLockSuccess" xml:space="preserve">
     <value>锁定预测版本成功</value>
   </data>
+  <data name="ForecastVersionUnlockEmailSubject" xml:space="preserve">
+    <value>【提醒】预测版本 {0} 已解锁</value>
+  </data>
+  <data name="ForecastVersionUnlockEmailBody" xml:space="preserve">
+    <value>预测版本 {0}（{1}）已解锁，请在该时间范围内及时上报/维护料号用量。</value>
+  </data>
+  <data name="ForecastVersionLockEmailSubject" xml:space="preserve">
+    <value>【提醒】预测版本 {0} 已锁定</value>
+  </data>
+  <data name="ForecastVersionLockEmailBody" xml:space="preserve">
+    <value>预测版本 {0}（{1}）已锁定，料号用量填报通道已关闭，如有疑问请联系相关负责人。</value>
+  </data>
   <data name="ForecastVersionOverlap" xml:space="preserve">
     <value>预测版本 {0} 的时间范围与现有版本重叠</value>
   </data>

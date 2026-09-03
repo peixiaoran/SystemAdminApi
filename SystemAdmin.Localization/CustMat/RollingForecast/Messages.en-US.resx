@@ -147,6 +147,18 @@
   <data name="ForecastVersionLockSuccess" xml:space="preserve">
     <value>Forecast version locked successfully</value>
   </data>
+  <data name="ForecastVersionUnlockEmailSubject" xml:space="preserve">
+    <value>[Reminder] Forecast Version {0} Unlocked</value>
+  </data>
+  <data name="ForecastVersionUnlockEmailBody" xml:space="preserve">
+    <value>Forecast version {0} ({1}) has been unlocked. Please fill in and update the part number usage quantities within this period in a timely manner.</value>
+  </data>
+  <data name="ForecastVersionLockEmailSubject" xml:space="preserve">
+    <value>[Reminder] Forecast Version {0} Locked</value>
+  </data>
+  <data name="ForecastVersionLockEmailBody" xml:space="preserve">
+    <value>Forecast version {0} ({1}) has been locked. The part number usage submission channel is now closed. Please contact the responsible person if you have any questions.</value>
+  </data>
   <data name="ForecastVersionOverlap" xml:space="preserve">
     <value>The date range of forecast version {0} overlaps with an existing version</value>
   </data>

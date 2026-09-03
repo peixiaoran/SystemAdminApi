@@ -38,6 +38,43 @@ namespace SystemAdmin.Service.CustMat.SalesMgmt
         }
 
         /// <summary>
+        /// 查询负责客户占比
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<SalesCustomerDistributionDto>>> GetSalesCustomerDistribution()
+        {
+            try
+            {
+                var rows = await _salesNumberRepository.GetSalesCustomerPartNumbers(_loginuser.UserId);
+
+                var totalCount = rows.Select(row => row.CustomerPartNumber).Distinct().Count();
+
+                var distribution = rows.GroupBy(row => new { row.CustomerId, row.CustomerCode, row.CustomerName })
+                                        .Select(group =>
+                                        {
+                                            var partNumberCount = group.Select(row => row.CustomerPartNumber).Distinct().Count();
+                                            return new SalesCustomerDistributionDto
+                                            {
+                                                CustomerId = group.Key.CustomerId,
+                                                CustomerCode = group.Key.CustomerCode,
+                                                CustomerName = group.Key.CustomerName,
+                                                CustomerPartNumberCount = partNumberCount,
+                                                Percentage = totalCount > 0 ? Math.Round(partNumberCount * 100m / totalCount, 2) : 0,
+                                            };
+                                        })
+                                        .OrderByDescending(item => item.Percentage)
+                                        .ToList();
+
+                return Result<List<SalesCustomerDistributionDto>>.Ok(distribution, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<SalesCustomerDistributionDto>>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
         /// 根据公司料号查询详情
         /// </summary>
         /// <param name="partNumber"></param>

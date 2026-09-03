@@ -6,6 +6,8 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.RollingForecast.Dto;
 using SystemAdmin.Model.CustMat.RollingForecast.Entity;
 using SystemAdmin.Model.CustMat.RollingForecast.Queries;
+using SystemAdmin.Model.CustMat.SalesMgmt.Entity;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 
 namespace SystemAdmin.Repository.CustMat.RollingForecast
@@ -124,6 +126,21 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
                             .SetColumns(version => new ForecastVersionEntity { Status = status, ModifiedBy = modifiedBy, ModifiedDate = modifiedDate })
                             .Where(version => version.VersionId == versionId)
                             .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 查询在职业务人员的邮箱地址（业务人员关联用户信息表）
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<string>> GetSalesUserEmails()
+        {
+            return await _db.Queryable<SalesUserEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<UserInfoEntity>((salesUser, user) => salesUser.SalesUserId == user.UserId)
+                            .Where((salesUser, user) => user.IsEmployed == 1 && !string.IsNullOrEmpty(user.Email))
+                            .Select((salesUser, user) => user.Email)
+                            .Distinct()
+                            .ToListAsync();
         }
 
         /// <summary>

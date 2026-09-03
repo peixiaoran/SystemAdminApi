@@ -52,6 +52,30 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
         }
 
         /// <summary>
+        /// 查询业务负责范围内，公司料号对应的客户料号明细（客户料号与公司料号对照不筛选生效有效期）
+        /// </summary>
+        /// <param name="salesUserId">当前登录人Id</param>
+        /// <returns></returns>
+        public async Task<List<SalesCustomerNumberDto>> GetSalesCustomerPartNumbers(long salesUserId)
+        {
+            return await _db.Queryable<NumberAssignEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(numberAssign => numberAssign.SalesUserId == salesUserId)
+                            .InnerJoin<NumberMappingEntity>((numberAssign, mapping) => numberAssign.PartNumber == mapping.CompanyPartNumber)
+                            .InnerJoin<CustomerNumberEntity>((numberAssign, mapping, customerNumber) => mapping.CustomerPartNumber == customerNumber.PartNumber)
+                            .InnerJoin<CustomerInfoEntity>((numberAssign, mapping, customerNumber, customer) => customerNumber.CustomerCode == customer.CustomerCode)
+                            .Select((numberAssign, mapping, customerNumber, customer) => new SalesCustomerNumberDto
+                            {
+                                CustomerId = customer.CustomerId,
+                                CustomerCode = customer.CustomerCode,
+                                CustomerName = _lang.Locale == "zh-CN" ? customer.CustomerNameCn : customer.CustomerNameEn,
+                                CustomerPartNumber = customerNumber.PartNumber,
+                            })
+                            .Distinct()
+                            .ToListAsync();
+        }
+
+        /// <summary>
         /// 根据公司料号查询详情
         /// </summary>
         /// <param name="partNumber"></param>

@@ -19,15 +19,17 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         private readonly SqlSugarScope _db;
         private readonly ForecastVersionRepository _forecastVersionRepo;
         private readonly LocalizationService _localization;
+        private readonly MailKitEmailSender _email;
         private readonly string _this = "CustMat.RollingForecast.ForecastVersion";
 
-        public ForecastVersionService(CurrentUser loginuser, ILogger<ForecastVersionService> logger, SqlSugarScope db, ForecastVersionRepository forecastVersionRepo, LocalizationService localization)
+        public ForecastVersionService(CurrentUser loginuser, ILogger<ForecastVersionService> logger, SqlSugarScope db, ForecastVersionRepository forecastVersionRepo, LocalizationService localization, MailKitEmailSender email)
         {
             _loginuser = loginuser;
             _logger = logger;
             _db = db;
             _forecastVersionRepo = forecastVersionRepo;
             _localization = localization;
+            _email = email;
         }
 
         /// <summary>
@@ -157,9 +159,15 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         {
             try
             {
+                var id = long.Parse(versionId);
                 await _db.BeginTranAsync();
-                int count = await _forecastVersionRepo.UpdateForecastVersionStatus(long.Parse(versionId), status.ToEnumString(), _loginuser.UserId, DateTime.Now);
+                int count = await _forecastVersionRepo.UpdateForecastVersionStatus(id, status.ToEnumString(), _loginuser.UserId, DateTime.Now);
                 await _db.CommitTranAsync();
+
+                if (count >= 1)
+                {
+                    await NotifySalesUsersByStatusChange(id, status);
+                }
 
                 return count >= 1
                         ? Result<int>.Ok(count, _localization.ReturnMsg(successKey))
@@ -170,6 +178,54 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 await _db.RollbackTranAsync();
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 预测版本解锁/锁定后，邮件通知业务人员
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <param name="status"></param>
+        /// <returns></returns>
+        private async Task NotifySalesUsersByStatusChange(long versionId, ForecastVersionStatus status)
+        {
+            try
+            {
+                var version = await _forecastVersionRepo.GetForecastVersionEntity(versionId);
+                if (version == null || string.IsNullOrEmpty(version.VersionCode))
+                    return;
+
+                var emails = await _forecastVersionRepo.GetSalesUserEmails();
+                if (emails.Count == 0)
+                    return;
+
+                var dateRange = $"{version.StartDate:yyyy-MM-dd} ~ {version.EndDate:yyyy-MM-dd}";
+                var subjectKey = status == ForecastVersionStatus.Unlock ? $"{_this}UnlockEmailSubject" : $"{_this}LockEmailSubject";
+                var bodyKey = status == ForecastVersionStatus.Unlock ? $"{_this}UnlockEmailBody" : $"{_this}LockEmailBody";
+
+                var subjectZh = _localization.ReturnMsg(subjectKey, "zh-CN", version.VersionCode);
+                var subjectEn = _localization.ReturnMsg(subjectKey, "en-US", version.VersionCode);
+                var bodyZh = _localization.ReturnMsg(bodyKey, "zh-CN", version.VersionCode, dateRange);
+                var bodyEn = _localization.ReturnMsg(bodyKey, "en-US", version.VersionCode, dateRange);
+
+                var subject = $"{subjectZh} / {subjectEn}";
+                var body = $"{bodyZh}\n\n{bodyEn}";
+
+                foreach (var email in emails)
+                {
+                    var emailMsg = new EmailMessage
+                    {
+                        To = new List<string> { email },
+                        Subject = subject,
+                        Body = body,
+                        IsHtml = false,
+                    };
+                    await _email.SendAsync(emailMsg);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
             }
         }
 

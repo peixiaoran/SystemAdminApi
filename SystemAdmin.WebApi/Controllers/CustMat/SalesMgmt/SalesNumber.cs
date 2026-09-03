@@ -34,5 +34,13 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.SalesMgmt
         {
             return await _salesNumberService.GetPartNumberDetail(partNumber);
         }
+
+        [HttpPost]
+        [Tags("客户生产订单-业务料号管理")]
+        [EndpointSummary("[负责料号] 查询负责客户占比")]
+        public async Task<Result<List<SalesCustomerDistributionDto>>> GetSalesCustomerDistribution()
+        {
+            return await _salesNumberService.GetSalesCustomerDistribution();
+        }
     }
 }
