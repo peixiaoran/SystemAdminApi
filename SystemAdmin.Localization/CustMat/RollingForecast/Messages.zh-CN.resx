@@ -159,6 +159,12 @@
   <data name="ForecastVersionLockEmailBody" xml:space="preserve">
     <value>预测版本 {0}（{1}）已锁定，料号用量填报通道已关闭，如有疑问请联系相关负责人。</value>
   </data>
+  <data name="ForecastVersionEmailVersionRange" xml:space="preserve">
+    <value>版本编号：{0}｜时间范围：{1}</value>
+  </data>
+  <data name="ForecastVersionEmailFooter" xml:space="preserve">
+    <value>此邮件为系统自动发送，请勿回复。</value>
+  </data>
   <data name="ForecastVersionOverlap" xml:space="preserve">
     <value>预测版本 {0} 的时间范围与现有版本重叠</value>
   </data>

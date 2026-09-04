@@ -17,6 +17,11 @@ namespace SystemAdmin.Common.EmailTemplates
 
         public static string GetApprovedNotice() => Load("FormBusiness.ApprovedNotice.html");
 
+        /// <summary>
+        /// 读取预测版本状态通知邮件模板
+        /// </summary>
+        public static string GetForecastVersionNotice() => Load("CustMat.ForecastVersionNotice.html");
+
         private static string Load(string fileName)
         {
             return _cache.GetOrAdd(fileName, name =>

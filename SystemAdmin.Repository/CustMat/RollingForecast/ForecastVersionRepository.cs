@@ -129,16 +129,20 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 查询在职业务人员的邮箱地址（业务人员关联用户信息表）
+        /// 查询在职业务人员的邮箱地址及邮件通知语言（业务人员关联用户信息表）
         /// </summary>
         /// <returns></returns>
-        public async Task<List<string>> GetSalesUserEmails()
+        public async Task<List<SalesUserEmailDto>> GetSalesUserEmails()
         {
             return await _db.Queryable<SalesUserEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<UserInfoEntity>((salesUser, user) => salesUser.SalesUserId == user.UserId)
                             .Where((salesUser, user) => user.IsEmployed == 1 && !string.IsNullOrEmpty(user.Email))
-                            .Select((salesUser, user) => user.Email)
+                            .Select((salesUser, user) => new SalesUserEmailDto
+                            {
+                                Email = user.Email,
+                                NoticeLanguage = user.NoticeLanguage,
+                            })
                             .Distinct()
                             .ToListAsync();
         }

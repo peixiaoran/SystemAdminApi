@@ -101,7 +101,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 导出预测周明细模板（数量固定为0，供下载后填写导入）
+        /// 导出预测周明细模板
         /// </summary>
         /// <param name="versionId"></param>
         /// <returns></returns>
@@ -129,7 +129,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 导出预测周明细（数量为实际预测数据）
+        /// 导出预测周明细
         /// </summary>
         /// <param name="versionId"></param>
         /// <returns></returns>

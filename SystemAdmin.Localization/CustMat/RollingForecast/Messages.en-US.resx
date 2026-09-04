@@ -159,6 +159,12 @@
   <data name="ForecastVersionLockEmailBody" xml:space="preserve">
     <value>Forecast version {0} ({1}) has been locked. The part number usage submission channel is now closed. Please contact the responsible person if you have any questions.</value>
   </data>
+  <data name="ForecastVersionEmailVersionRange" xml:space="preserve">
+    <value>Version: {0} | Period: {1}</value>
+  </data>
+  <data name="ForecastVersionEmailFooter" xml:space="preserve">
+    <value>This is an automated notification email. Please do not reply.</value>
+  </data>
   <data name="ForecastVersionOverlap" xml:space="preserve">
     <value>The date range of forecast version {0} overlaps with an existing version</value>
   </data>

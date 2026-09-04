@@ -1,6 +1,8 @@
 using System.Globalization;
+using System.Net;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
+using SystemAdmin.Common.EmailTemplates;
 using SystemAdmin.Common.Enums.CustMat;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
@@ -195,30 +197,44 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 if (version == null || string.IsNullOrEmpty(version.VersionCode))
                     return;
 
-                var emails = await _forecastVersionRepo.GetSalesUserEmails();
-                if (emails.Count == 0)
+                var recipients = await _forecastVersionRepo.GetSalesUserEmails();
+                if (recipients.Count == 0)
                     return;
 
                 var dateRange = $"{version.StartDate:yyyy-MM-dd} ~ {version.EndDate:yyyy-MM-dd}";
                 var subjectKey = status == ForecastVersionStatus.Unlock ? $"{_this}UnlockEmailSubject" : $"{_this}LockEmailSubject";
                 var bodyKey = status == ForecastVersionStatus.Unlock ? $"{_this}UnlockEmailBody" : $"{_this}LockEmailBody";
+                var template = EmailTemplateLoader.GetForecastVersionNotice();
 
-                var subjectZh = _localization.ReturnMsg(subjectKey, "zh-CN", version.VersionCode);
-                var subjectEn = _localization.ReturnMsg(subjectKey, "en-US", version.VersionCode);
-                var bodyZh = _localization.ReturnMsg(bodyKey, "zh-CN", version.VersionCode, dateRange);
-                var bodyEn = _localization.ReturnMsg(bodyKey, "en-US", version.VersionCode, dateRange);
+                // 按语言缓存已渲染好的邮件内容，避免同语言用户重复渲染
+                var renderedByLanguage = new Dictionary<string, (string Subject, string Html)>();
 
-                var subject = $"{subjectZh} / {subjectEn}";
-                var body = $"{bodyZh}\n\n{bodyEn}";
-
-                foreach (var email in emails)
+                foreach (var recipient in recipients)
                 {
+                    var lang = string.IsNullOrWhiteSpace(recipient.NoticeLanguage) ? "zh-CN" : recipient.NoticeLanguage;
+
+                    if (!renderedByLanguage.TryGetValue(lang, out var rendered))
+                    {
+                        var subject = _localization.ReturnMsg(subjectKey, lang, version.VersionCode);
+                        var greeting = _localization.ReturnMsg($"{_this}EmailVersionRange", lang, version.VersionCode, dateRange);
+                        var message = WebUtility.HtmlEncode(_localization.ReturnMsg(bodyKey, lang, version.VersionCode, dateRange));
+                        var footer = _localization.ReturnMsg($"{_this}EmailFooter", lang);
+
+                        var html = template.Replace("{{Title}}", WebUtility.HtmlEncode(subject))
+                                            .Replace("{{Greeting}}", WebUtility.HtmlEncode(greeting))
+                                            .Replace("{{Message}}", message)
+                                            .Replace("{{FooterText}}", WebUtility.HtmlEncode(footer));
+
+                        rendered = (subject, html);
+                        renderedByLanguage[lang] = rendered;
+                    }
+
                     var emailMsg = new EmailMessage
                     {
-                        To = new List<string> { email },
-                        Subject = subject,
-                        Body = body,
-                        IsHtml = false,
+                        To = new List<string> { recipient.Email },
+                        Subject = rendered.Subject,
+                        Body = rendered.Html,
+                        IsHtml = true,
                     };
                     await _email.SendAsync(emailMsg);
                 }
