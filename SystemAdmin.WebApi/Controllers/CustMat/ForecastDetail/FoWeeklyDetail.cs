@@ -51,5 +51,14 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.ForecastDetail
         {
             return await _foWeeklyDetailService.GetFoWeeklyArchiveDetail(versionId, salesUserId);
         }
+
+        [HttpPost]
+        [Tags("客户生产订单-料号预测明细")]
+        [EndpointSummary("[预测周明细] 导出预测周明细")]
+        public async Task<IActionResult> ExportFoWeeklyDetail([FromForm] string versionId, [FromForm] string? salesUserId)
+        {
+            var (bytes, fileName) = await _foWeeklyDetailService.GetFoWeeklyDetailExcel(versionId, salesUserId);
+            return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
+        }
     }
 }

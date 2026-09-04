@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.CustMat.RollingForecast.Dto;
 using SystemAdmin.Model.CustMat.RollingForecast.Queries;
 using SystemAdmin.Service.CustMat.RollingForecast;
@@ -15,13 +14,10 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
     public class FoWeeklyDetail : ControllerBase
     {
         private readonly FoWeeklyDetailService _foWeeklyDetailService;
-        private readonly LocalizationService _localization;
-        private readonly string _thisExcel = "CustMat.RollingForecast.FoWeeklyDetailExcel_";
 
-        public FoWeeklyDetail(FoWeeklyDetailService foWeeklyDetailService, LocalizationService localization)
+        public FoWeeklyDetail(FoWeeklyDetailService foWeeklyDetailService)
         {
             _foWeeklyDetailService = foWeeklyDetailService;
-            _localization = localization;
         }
 
         [HttpPost]
@@ -53,8 +49,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         [EndpointSummary("[预测周明细] 导出预测明细模板")]
         public async Task<IActionResult> ExportFoWeeklyDetailTemplate([FromForm] string versionId)
         {
-            var bytes = await _foWeeklyDetailService.GetFoWeeklyDetailTemplate(versionId);
-            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}Template", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}Template", "en-US")}.xlsx";
+            var (bytes, fileName) = await _foWeeklyDetailService.GetFoWeeklyDetailTemplate(versionId);
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 
@@ -63,8 +58,7 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
         [EndpointSummary("[预测周明细] 导出预测周明细")]
         public async Task<IActionResult> ExportFoWeeklyDetail([FromForm] string versionId)
         {
-            var bytes = await _foWeeklyDetailService.GetFoWeeklyDetailExcel(versionId);
-            var fileName = $"{_localization.ReturnMsg($"{_thisExcel}Export", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}Export", "en-US")}.xlsx";
+            var (bytes, fileName) = await _foWeeklyDetailService.GetFoWeeklyDetailExcel(versionId);
             return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", fileName);
         }
 

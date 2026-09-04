@@ -132,13 +132,13 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         /// </summary>
         /// <param name="versionId"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetFoWeeklyDetailTemplate(string versionId)
+        public async Task<(byte[] Bytes, string FileName)> GetFoWeeklyDetailTemplate(string versionId)
         {
             try
             {
                 var (version, periods, rows) = await BuildFoWeeklyDetailRows(long.Parse(versionId), withActualQty: false);
                 if (version == null)
-                    return [];
+                    return ([], string.Empty);
 
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
                 using var package = new ExcelPackage();
@@ -146,12 +146,12 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 WriteFoWeeklyDetailWorksheet(ws, periods, rows);
 
                 package.Workbook.CalcMode = ExcelCalcMode.Manual;
-                return package.GetAsByteArray();
+                return (package.GetAsByteArray(), BuildExcelFileName("Template", version.VersionCode));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return [];
+                return ([], string.Empty);
             }
         }
 
@@ -160,13 +160,13 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         /// </summary>
         /// <param name="versionId"></param>
         /// <returns></returns>
-        public async Task<byte[]> GetFoWeeklyDetailExcel(string versionId)
+        public async Task<(byte[] Bytes, string FileName)> GetFoWeeklyDetailExcel(string versionId)
         {
             try
             {
                 var (version, periods, rows) = await BuildFoWeeklyDetailRows(long.Parse(versionId), withActualQty: true);
                 if (version == null)
-                    return [];
+                    return ([], string.Empty);
 
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
                 using var package = new ExcelPackage();
@@ -174,13 +174,25 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 WriteFoWeeklyDetailWorksheet(ws, periods, rows);
 
                 package.Workbook.CalcMode = ExcelCalcMode.Manual;
-                return package.GetAsByteArray();
+                return (package.GetAsByteArray(), BuildExcelFileName("Export", version.VersionCode));
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return [];
+                return ([], string.Empty);
             }
+        }
+
+        /// <summary>
+        /// 拼接导出文件名，版本编码存在时追加为后缀
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="versionCode"></param>
+        /// <returns></returns>
+        private string BuildExcelFileName(string key, string? versionCode)
+        {
+            var name = $"{_localization.ReturnMsg($"{_thisExcel}{key}", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}{key}", "en-US")}";
+            return string.IsNullOrEmpty(versionCode) ? $"{name}.xlsx" : $"{name}_{versionCode}.xlsx";
         }
 
         /// <summary>

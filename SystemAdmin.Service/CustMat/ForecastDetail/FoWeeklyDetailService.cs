@@ -1,4 +1,7 @@
 using Microsoft.Extensions.Logging;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using System.Drawing;
 using System.Text.Json;
 using SystemAdmin.Common.Enums.CustMat;
 using SystemAdmin.Common.Utilities;
@@ -21,6 +24,16 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
         /// 复用预测周明细模块的多语言文案（版本不存在提示）
         /// </summary>
         private readonly string _this = "CustMat.RollingForecast.FoWeeklyDetail";
+
+        /// <summary>
+        /// 复用预测周明细模块的Excel文案（列头、导出文件名）
+        /// </summary>
+        private readonly string _thisExcel = "CustMat.RollingForecast.FoWeeklyDetailExcel_";
+
+        /// <summary>
+        /// 固定列数（料号、品名）
+        /// </summary>
+        private const int FixedColumnCount = 2;
 
         /// <summary>
         /// 按天展开的天数
@@ -138,6 +151,47 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
         }
 
         /// <summary>
+        /// 导出预测周明细，可按业务人员Id筛选
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <param name="salesUserId"></param>
+        /// <returns></returns>
+        public async Task<(byte[] Bytes, string FileName)> GetFoWeeklyDetailExcel(string versionId, string? salesUserId)
+        {
+            try
+            {
+                var result = await GetFoWeeklyDetail(versionId, salesUserId);
+                if (result.Code != 200 || result.Data == null)
+                    return ([], string.Empty);
+
+                ExcelPackage.License.SetNonCommercialPersonal("Your Name");
+                using var package = new ExcelPackage();
+                var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}Export"));
+                WriteFoWeeklyDetailWorksheet(ws, result.Data.Periods, result.Data.Rows);
+
+                package.Workbook.CalcMode = ExcelCalcMode.Manual;
+                return (package.GetAsByteArray(), BuildExcelFileName("Export", result.Data.VersionCode));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return ([], string.Empty);
+            }
+        }
+
+        /// <summary>
+        /// 拼接导出文件名，版本编码存在时追加为后缀
+        /// </summary>
+        /// <param name="key"></param>
+        /// <param name="versionCode"></param>
+        /// <returns></returns>
+        private string BuildExcelFileName(string key, string? versionCode)
+        {
+            var name = $"{_localization.ReturnMsg($"{_thisExcel}{key}", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}{key}", "en-US")}";
+            return string.IsNullOrEmpty(versionCode) ? $"{name}.xlsx" : $"{name}_{versionCode}.xlsx";
+        }
+
+        /// <summary>
         /// 查询指定版本锁定时归档的预测周明细，可按业务人员Id筛选；不筛选时合并所有业务人员的归档行（返回结构与 GetFoWeeklyDetail 一致）
         /// </summary>
         /// <param name="versionId"></param>
@@ -221,6 +275,73 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
                 row.DayQtyChangeRate = previousDayQty == 0 ? null : Math.Round((row.DayTotal - previousDayQty) / previousDayQty * 100, 2);
                 row.WeekQtyChangeRate = previousWeekQty == 0 ? null : Math.Round((row.WeekTotal - previousWeekQty) / previousWeekQty * 100, 2);
             }
+        }
+
+        /// <summary>
+        /// 按料号、品名 + 天/周日期列的固定格式写入预测周明细工作表
+        /// </summary>
+        /// <param name="ws"></param>
+        /// <param name="periods"></param>
+        /// <param name="rows"></param>
+        private void WriteFoWeeklyDetailWorksheet(ExcelWorksheet ws, List<FoWeeklyPeriodDto> periods, List<FoWeeklyRowDto> rows)
+        {
+            ws.Cells[1, 1].Value = _localization.ReturnMsg($"{_thisExcel}PartNumber");
+            ws.Cells[1, 2].Value = _localization.ReturnMsg($"{_thisExcel}PartName");
+
+            for (int i = 0; i < periods.Count; i++)
+            {
+                ws.Cells[1, FixedColumnCount + 1 + i].Value = periods[i].StartDate.ToString("yyyy-MM-dd");
+            }
+
+            for (int r = 0; r < rows.Count; r++)
+            {
+                int rowIndex = r + 2;
+                ws.Cells[rowIndex, 1].Value = rows[r].PartNumber;
+                ws.Cells[rowIndex, 2].Value = rows[r].PartName;
+                for (int c = 0; c < periods.Count; c++)
+                {
+                    ws.Cells[rowIndex, FixedColumnCount + 1 + c].Value = rows[r].Quantities[periods[c].PeriodKey];
+                }
+            }
+
+            int totalRows = rows.Count + 1;
+            int totalCols = FixedColumnCount + periods.Count;
+
+            ws.Cells[2, 1, totalRows, 1].Style.Numberformat.Format = "@";
+
+            var headerRange = ws.Cells[1, 1, 1, totalCols];
+            headerRange.Style.Font.Name = "微软雅黑";
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            headerRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            ws.Row(1).Height = 25;
+
+            // 天、周日期列头分别用深绿、深黄底色区分
+            for (int i = 0; i < periods.Count; i++)
+            {
+                var headerCell = ws.Cells[1, FixedColumnCount + 1 + i];
+                headerCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerCell.Style.Fill.BackgroundColor.SetColor(
+                    periods[i].PeriodType == ForecastPeriodType.Day.ToEnumString()
+                        ? ColorTranslator.FromHtml("#67c23a")
+                        : ColorTranslator.FromHtml("#e6a23c"));
+                headerCell.Style.Font.Color.SetColor(Color.White);
+            }
+
+            if (totalRows > 1)
+            {
+                var dataRange = ws.Cells[2, 1, totalRows, totalCols];
+                dataRange.Style.Font.Name = "微软雅黑";
+                dataRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                dataRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            }
+
+            var border = ws.Cells[1, 1, totalRows, totalCols].Style.Border;
+            border.Top.Style = border.Bottom.Style = border.Left.Style = border.Right.Style = ExcelBorderStyle.Thin;
+
+            ws.View.FreezePanes(2, FixedColumnCount + 1);
+            if (ws.Dimension != null)
+                ws.Cells[ws.Dimension.Address].AutoFitColumns();
         }
 
         /// <summary>
