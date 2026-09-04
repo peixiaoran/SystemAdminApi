@@ -42,6 +42,14 @@ namespace SystemAdmin.WebApi.Controllers.CustMat.RollingForecast
 
         [HttpPost]
         [Tags("客户生产订单-料号滚动预测")]
+        [EndpointSummary("[预测周明细] 查询归档预测周明细")]
+        public async Task<Result<FoWeeklyDetailDto>> GetFoWeeklyArchiveDetail([FromForm] string versionId)
+        {
+            return await _foWeeklyDetailService.GetFoWeeklyArchiveDetail(versionId);
+        }
+
+        [HttpPost]
+        [Tags("客户生产订单-料号滚动预测")]
         [EndpointSummary("[预测周明细] 导出预测明细模板")]
         public async Task<IActionResult> ExportFoWeeklyDetailTemplate([FromForm] string versionId)
         {

@@ -145,6 +145,20 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
+        /// 查询指定版本下指定业务人员的预测周明细归档
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <param name="salesUserId"></param>
+        /// <returns></returns>
+        public async Task<ForecastWeeklyArchiveEntity?> GetForecastWeeklyArchive(long versionId, long salesUserId)
+        {
+            return await _db.Queryable<ForecastWeeklyArchiveEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(archive => archive.VersionId == versionId && archive.SalesUserId == salesUserId)
+                            .FirstAsync();
+        }
+
+        /// <summary>
         /// 查询给定公司料号列表中，已存在的有效料号
         /// </summary>
         /// <param name="partNumbers"></param>
@@ -174,14 +188,15 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 清空指定版本下的预测周明细
+        /// 清空指定版本下、指定业务人员自己的预测周明细（仅清空导入人自己的数据，不影响同一版本下其他业务人员已导入的数据）
         /// </summary>
         /// <param name="versionId"></param>
+        /// <param name="salesUserId"></param>
         /// <returns></returns>
-        public async Task<int> DeleteForecastWeeklyDetails(long versionId)
+        public async Task<int> DeleteForecastWeeklyDetails(long versionId, long salesUserId)
         {
             return await _db.Deleteable<ForecastWeeklyDetailEntity>()
-                            .Where(detail => detail.VersionId == versionId)
+                            .Where(detail => detail.VersionId == versionId && detail.SalesUserId == salesUserId)
                             .ExecuteCommandAsync();
         }
 

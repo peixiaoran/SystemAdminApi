@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Net;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using SystemAdmin.Common.EmailTemplates;
@@ -164,6 +165,12 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 var id = long.Parse(versionId);
                 await _db.BeginTranAsync();
                 int count = await _forecastVersionRepo.UpdateForecastVersionStatus(id, status.ToEnumString(), _loginuser.UserId, DateTime.Now);
+
+                // 锁定时按业务人员归档周明细，归档失败则连同锁定一起回滚
+                if (count >= 1 && status == ForecastVersionStatus.Lock)
+                {
+                    await ArchiveForecastWeeklyDetails(id);
+                }
                 await _db.CommitTranAsync();
 
                 if (count >= 1)
@@ -181,6 +188,144 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
             }
+        }
+
+        /// <summary>
+        /// 锁定版本时，把每个业务人员的周明细（与 GetFoWeeklyDetail 返回结构一致）序列化为JSON归档到 ForecastWeeklyArchive
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <returns></returns>
+        private async Task ArchiveForecastWeeklyDetails(long versionId)
+        {
+            var version = await _forecastVersionRepo.GetForecastVersion(versionId);
+            if (version == null)
+                return;
+
+            var periods = BuildPeriods(version.StartDate.Date);
+
+            // 最新版本按人员料号对照查询，非最新版本直接取当时导入数据中的公司料号
+            var rows = version.IsLatest == 1
+                ? await _forecastVersionRepo.GetAllSalesPartNumbers()
+                : await _forecastVersionRepo.GetAllImportedPartNumbers(version.VersionId);
+
+            // 重新锁定时覆盖旧归档
+            await _forecastVersionRepo.DeleteForecastWeeklyArchives(version.VersionId);
+            if (rows.Count == 0)
+                return;
+
+            foreach (var row in rows)
+            {
+                row.Quantities = periods.ToDictionary(period => period.PeriodKey, period => 0m);
+            }
+
+            var partNumbers = rows.Select(row => row.PartNumber).ToList();
+            var periodKeyOfDate = periods.ToDictionary(period => period.StartDate, period => period.PeriodKey);
+            var rowOfPartNumber = rows.ToDictionary(row => row.PartNumber);
+
+            var details = await _forecastVersionRepo.GetForecastWeeklyDetails(version.VersionId, partNumbers);
+            foreach (var detail in details)
+            {
+                if (!rowOfPartNumber.TryGetValue(detail.PartNumber, out var row))
+                    continue;
+                if (!periodKeyOfDate.TryGetValue(detail.HorizonDays.Date, out var periodKey))
+                    continue;
+                row.Quantities[periodKey] += detail.Qty;
+            }
+
+            await FillTotalsAndChangeRates(version, periods, rows);
+
+            var now = DateTime.Now;
+            var archives = rows.GroupBy(row => row.SalesUserId ?? 0)
+                               .Select(group => new ForecastWeeklyArchiveEntity
+                               {
+                                   VersionId = version.VersionId,
+                                   SalesUserId = group.Key,
+                                   ForecastDetail = JsonSerializer.Serialize(new FoWeeklyDetailDto
+                                   {
+                                       VersionId = version.VersionId,
+                                       VersionCode = version.VersionCode,
+                                       StartDate = version.StartDate.Date,
+                                       Periods = periods,
+                                       Rows = [.. group],
+                                   }),
+                                   CreatedDate = now,
+                               }).ToList();
+
+            await _forecastVersionRepo.InsertForecastWeeklyArchiveList(archives);
+        }
+
+        /// <summary>
+        /// 按料号填充天/周数量合计，以及环比上周的变化百分比（保留2位小数，上周数量为0时为空）
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="periods"></param>
+        /// <param name="rows"></param>
+        private async Task FillTotalsAndChangeRates(ForecastVersionEntity version, List<FoWeeklyPeriodDto> periods, List<FoWeeklyRowDto> rows)
+        {
+            var dayType = ForecastPeriodType.Day.ToEnumString();
+            var weekType = ForecastPeriodType.Week.ToEnumString();
+            var dayKeys = periods.Where(period => period.PeriodType == dayType).Select(period => period.PeriodKey).ToHashSet();
+            var weekKeys = periods.Where(period => period.PeriodType == weekType).Select(period => period.PeriodKey).ToHashSet();
+
+            foreach (var row in rows)
+            {
+                row.DayTotal = dayKeys.Sum(key => row.Quantities[key]);
+                row.WeekTotal = weekKeys.Sum(key => row.Quantities[key]);
+            }
+
+            var previousVersion = await _forecastVersionRepo.GetPreviousVersion(version.StartDate);
+            if (previousVersion == null)
+                return;
+
+            var previousDetails = await _forecastVersionRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
+            var previousQtyOfPartNumber = previousDetails
+                .GroupBy(detail => (detail.PartNumber, detail.PeriodType))
+                .ToDictionary(group => group.Key, group => group.Sum(detail => detail.Qty));
+
+            foreach (var row in rows)
+            {
+                var previousDayQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, dayType), 0m);
+                var previousWeekQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, weekType), 0m);
+
+                row.DayQtyChangeRate = previousDayQty == 0 ? null : Math.Round((row.DayTotal - previousDayQty) / previousDayQty * 100, 2);
+                row.WeekQtyChangeRate = previousWeekQty == 0 ? null : Math.Round((row.WeekTotal - previousWeekQty) / previousWeekQty * 100, 2);
+            }
+        }
+
+        /// <summary>
+        /// 生成预测周明细的列，前21列按天，之后13列按周
+        /// </summary>
+        /// <param name="startDate"></param>
+        /// <returns></returns>
+        private static List<FoWeeklyPeriodDto> BuildPeriods(DateTime startDate)
+        {
+            const int dayCount = 21;
+            const int weekCount = 13;
+            var periods = new List<FoWeeklyPeriodDto>(dayCount + weekCount);
+
+            for (int i = 0; i < dayCount; i++)
+            {
+                periods.Add(new FoWeeklyPeriodDto
+                {
+                    PeriodKey = $"D{i + 1}",
+                    PeriodType = ForecastPeriodType.Day.ToEnumString(),
+                    StartDate = startDate.AddDays(i),
+                });
+            }
+
+            // 按天的部分结束后紧接着按周，版本开始日期为周一，因此每周仍以周一起算
+            var weekStartDate = startDate.AddDays(dayCount);
+            for (int i = 0; i < weekCount; i++)
+            {
+                periods.Add(new FoWeeklyPeriodDto
+                {
+                    PeriodKey = $"W{i + 1}",
+                    PeriodType = ForecastPeriodType.Week.ToEnumString(),
+                    StartDate = weekStartDate.AddDays(i * 7),
+                });
+            }
+
+            return periods;
         }
 
         /// <summary>
