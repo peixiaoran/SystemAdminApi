@@ -189,6 +189,21 @@
   <data name="FoWeeklyDetailExcel_PartName" xml:space="preserve">
     <value>Part Name</value>
   </data>
+  <data name="FoWeeklyDetailExcel_Index" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_DayTotal" xml:space="preserve">
+    <value>Day Total</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_WeekTotal" xml:space="preserve">
+    <value>Week Total</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_DayWoW" xml:space="preserve">
+    <value>Day WoW %</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_WeekWoW" xml:space="preserve">
+    <value>Week WoW %</value>
+  </data>
   <data name="FoWeeklyDetailImport_FileEmpty" xml:space="preserve">
     <value>Please upload a file</value>
   </data>

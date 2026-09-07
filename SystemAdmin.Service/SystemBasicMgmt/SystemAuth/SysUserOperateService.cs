@@ -202,6 +202,10 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 var insertLogOutCount = await _sysUserOperateRepo.AddUserLogOutInfo(logOutLog);
                 await _db.CommitTranAsync();
 
+                var response = _httpContextAccessor.HttpContext?.Response;
+                if (response != null)
+                    _jwt.ClearAuthCookie(response);
+
                 return Result<int>.Ok(insertLogOutCount, _localization.ReturnMsg($"{_this}LogOutSuccess"));
             }
             catch (Exception ex)

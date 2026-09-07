@@ -189,6 +189,21 @@
   <data name="FoWeeklyDetailExcel_PartName" xml:space="preserve">
     <value>品名</value>
   </data>
+  <data name="FoWeeklyDetailExcel_Index" xml:space="preserve">
+    <value>序号</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_DayTotal" xml:space="preserve">
+    <value>天合计</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_WeekTotal" xml:space="preserve">
+    <value>周合计</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_DayWoW" xml:space="preserve">
+    <value>天环比%</value>
+  </data>
+  <data name="FoWeeklyDetailExcel_WeekWoW" xml:space="preserve">
+    <value>周环比%</value>
+  </data>
   <data name="FoWeeklyDetailImport_FileEmpty" xml:space="preserve">
     <value>请上传文件</value>
   </data>

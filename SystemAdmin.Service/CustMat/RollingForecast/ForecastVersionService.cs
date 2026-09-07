@@ -191,7 +191,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 锁定版本时，把每个业务人员的周明细（与 GetFoWeeklyDetail 返回结构一致）序列化为JSON归档到 ForecastWeeklyArchive
+        /// 锁定版本时归档每个业务人员的周明细到 ForecastWeeklyArchive
         /// </summary>
         /// <param name="versionId"></param>
         /// <returns></returns>
@@ -255,7 +255,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 按料号填充天/周数量合计，以及环比上周的变化百分比（保留2位小数，上周数量为0时为空）
+        /// 按料号填充天/周数量合计及环比变化百分比
         /// </summary>
         /// <param name="version"></param>
         /// <param name="periods"></param>
@@ -391,7 +391,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 取指定日期当天的最后一刻（23:59:59）
+        /// 取指定日期当天的最后一刻
         /// </summary>
         /// <param name="date"></param>
         /// <returns></returns>

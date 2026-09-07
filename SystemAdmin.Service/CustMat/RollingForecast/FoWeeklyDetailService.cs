@@ -27,7 +27,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         private readonly string _thisImport = "CustMat.RollingForecast.FoWeeklyDetailImport_";
 
         /// <summary>
-        /// 固定列数（料号、品名）
+        /// 固定列数，料号、品名
         /// </summary>
         private const int FixedColumnCount = 2;
 
@@ -102,7 +102,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 查询当前登录人在指定版本锁定时归档的预测周明细（返回结构与 GetFoWeeklyDetail 一致）
+        /// 查询当前登录人在指定版本锁定时归档的预测周明细
         /// </summary>
         /// <param name="versionId"></param>
         /// <returns></returns>
@@ -168,10 +168,12 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 if (version == null)
                     return ([], string.Empty);
 
+                await FillQtyChangeRates(version, periods, rows);
+
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
                 using var package = new ExcelPackage();
                 var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}Export"));
-                WriteFoWeeklyDetailWorksheet(ws, periods, rows);
+                WriteFoWeeklyDetailExportWorksheet(ws, periods, rows);
 
                 package.Workbook.CalcMode = ExcelCalcMode.Manual;
                 return (package.GetAsByteArray(), BuildExcelFileName("Export", version.VersionCode));
@@ -191,7 +193,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         /// <returns></returns>
         private string BuildExcelFileName(string key, string? versionCode)
         {
-            var name = $"{_localization.ReturnMsg($"{_thisExcel}{key}", "zh-CN")} {_localization.ReturnMsg($"{_thisExcel}{key}", "en-US")}";
+            var name = _localization.ReturnMsg($"{_thisExcel}{key}");
             return string.IsNullOrEmpty(versionCode) ? $"{name}.xlsx" : $"{name}_{versionCode}.xlsx";
         }
 
@@ -231,7 +233,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 if (ws.Dimension == null || ws.Dimension.End.Row < 2)
                     return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}NoData"));
 
-                // 版本对应的完整周期列（21天+13周）
+                // 版本对应的完整周期列，21天+13周
                 var periods = BuildPeriods(version.StartDate.Date);
                 var expectedColCount = FixedColumnCount + periods.Count;
                 var actualColCount = ws.Dimension.End.Column;
@@ -391,7 +393,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 按料号填充天/周数量合计，以及环比上周的变化百分比（保留2位小数，上周数量为0时为空）
+        /// 按料号填充天/周数量合计及环比变化百分比
         /// </summary>
         /// <param name="version"></param>
         /// <param name="periods"></param>
@@ -432,7 +434,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 按料号、品名 + 天/周日期列的固定格式写入预测周明细工作表（模板导出与数据导出共用）
+        /// 写入预测周明细模板工作表，列结构需与导入校验保持一致
         /// </summary>
         /// <param name="ws"></param>
         /// <param name="periods"></param>
@@ -499,7 +501,117 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 判断列头是否匹配中文或英文名称（忽略大小写与空格差异）
+        /// 写入预测周明细导出工作表，含环比百分比
+        /// </summary>
+        /// <param name="ws"></param>
+        /// <param name="periods"></param>
+        /// <param name="rows"></param>
+        private void WriteFoWeeklyDetailExportWorksheet(ExcelWorksheet ws, List<FoWeeklyPeriodDto> periods, List<FoWeeklyRowDto> rows)
+        {
+            const int exportFixedColumnCount = 7;
+
+            ws.Cells[1, 1].Value = _localization.ReturnMsg($"{_thisExcel}Index");
+            ws.Cells[1, 2].Value = _localization.ReturnMsg($"{_thisExcel}PartNumber");
+            ws.Cells[1, 3].Value = _localization.ReturnMsg($"{_thisExcel}PartName");
+            ws.Cells[1, 4].Value = _localization.ReturnMsg($"{_thisExcel}DayTotal");
+            ws.Cells[1, 5].Value = _localization.ReturnMsg($"{_thisExcel}WeekTotal");
+            ws.Cells[1, 6].Value = _localization.ReturnMsg($"{_thisExcel}DayWoW");
+            ws.Cells[1, 7].Value = _localization.ReturnMsg($"{_thisExcel}WeekWoW");
+
+            for (int i = 0; i < periods.Count; i++)
+            {
+                ws.Cells[1, exportFixedColumnCount + 1 + i].Value = periods[i].StartDate.ToString("yyyy-MM-dd");
+            }
+
+            for (int r = 0; r < rows.Count; r++)
+            {
+                int rowIndex = r + 2;
+                var row = rows[r];
+                ws.Cells[rowIndex, 1].Value = r + 1;
+                ws.Cells[rowIndex, 2].Value = row.PartNumber;
+                ws.Cells[rowIndex, 3].Value = row.PartName;
+                ws.Cells[rowIndex, 4].Value = row.DayTotal;
+                ws.Cells[rowIndex, 5].Value = row.WeekTotal;
+                if (row.DayQtyChangeRate.HasValue)
+                {
+                    ws.Cells[rowIndex, 6].Value = row.DayQtyChangeRate.Value;
+                    SetChangeRateFontColor(ws.Cells[rowIndex, 6], row.DayQtyChangeRate.Value);
+                }
+                if (row.WeekQtyChangeRate.HasValue)
+                {
+                    ws.Cells[rowIndex, 7].Value = row.WeekQtyChangeRate.Value;
+                    SetChangeRateFontColor(ws.Cells[rowIndex, 7], row.WeekQtyChangeRate.Value);
+                }
+                for (int c = 0; c < periods.Count; c++)
+                {
+                    ws.Cells[rowIndex, exportFixedColumnCount + 1 + c].Value = row.Quantities[periods[c].PeriodKey];
+                }
+            }
+
+            int totalRows = rows.Count + 1;
+            int totalCols = exportFixedColumnCount + periods.Count;
+
+            // 料号列按文本格式，避免被识别为数字
+            ws.Cells[2, 2, totalRows, 2].Style.Numberformat.Format = "@";
+            // 环比百分比列已是百分数数值，追加%后缀显示，为空时留空
+            ws.Cells[2, 6, totalRows, 7].Style.Numberformat.Format = "0.00\"%\"";
+
+            var headerRange = ws.Cells[1, 1, 1, totalCols];
+            headerRange.Style.Font.Name = "微软雅黑";
+            headerRange.Style.Font.Bold = true;
+            headerRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            headerRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            ws.Row(1).Height = 25;
+
+            // 天、周日期列头分别用深绿、深黄底色区分
+            for (int i = 0; i < periods.Count; i++)
+            {
+                var headerCell = ws.Cells[1, exportFixedColumnCount + 1 + i];
+                headerCell.Style.Fill.PatternType = ExcelFillStyle.Solid;
+                headerCell.Style.Fill.BackgroundColor.SetColor(
+                    periods[i].PeriodType == ForecastPeriodType.Day.ToEnumString()
+                        ? ColorTranslator.FromHtml("#67c23a")
+                        : ColorTranslator.FromHtml("#e6a23c"));
+                headerCell.Style.Font.Color.SetColor(Color.White);
+            }
+
+            if (totalRows > 1)
+            {
+                var dataRange = ws.Cells[2, 1, totalRows, totalCols];
+                dataRange.Style.Font.Name = "微软雅黑";
+                dataRange.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                dataRange.Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            }
+
+            var border = ws.Cells[1, 1, totalRows, totalCols].Style.Border;
+            border.Top.Style = border.Bottom.Style = border.Left.Style = border.Right.Style = ExcelBorderStyle.Thin;
+
+            ws.View.FreezePanes(2, exportFixedColumnCount + 1);
+            if (ws.Dimension != null)
+                ws.Cells[ws.Dimension.Address].AutoFitColumns();
+        }
+
+        /// <summary>
+        /// 按环比涨跌设置字体颜色：上涨为红色，下跌为绿色，持平不设置
+        /// </summary>
+        /// <param name="cell"></param>
+        /// <param name="changeRate"></param>
+        private static void SetChangeRateFontColor(ExcelRange cell, decimal changeRate)
+        {
+            if (changeRate > 0)
+            {
+                cell.Style.Font.Color.SetColor(ColorTranslator.FromHtml("#c0392b"));
+                cell.Style.Font.Bold = true;
+            }
+            else if (changeRate < 0)
+            {
+                cell.Style.Font.Color.SetColor(ColorTranslator.FromHtml("#1e7e34"));
+                cell.Style.Font.Bold = true;
+            }
+        }
+
+        /// <summary>
+        /// 判断列头是否匹配中文或英文名称
         /// </summary>
         /// <param name="actual"></param>
         /// <param name="zh"></param>

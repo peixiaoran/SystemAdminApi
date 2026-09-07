@@ -81,6 +81,28 @@ namespace SystemAdmin.CommonSetup.Security
         }
 
         /// <summary>
+        /// 登出时调用：清空 Token Cookie
+        /// </summary>
+        /// <param name="response"></param>
+        public void ClearAuthCookie(HttpResponse response)
+        {
+            if (response == null) throw new ArgumentNullException(nameof(response));
+
+            var cookieName = string.IsNullOrWhiteSpace(_settings.CookieName)
+                ? DefaultCookieName
+                : _settings.CookieName;
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = _settings.CookieSecure,
+                SameSite = _settings.CookieSameSite
+            };
+
+            response.Cookies.Delete(cookieName, cookieOptions);
+        }
+
+        /// <summary>
         /// 生成 Token 字符串（供第三方系统等场景使用）
         /// </summary>
         /// <param name="userId"></param>

@@ -59,7 +59,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 按料号统计版本用量（天、周、天+周合计）
+        /// 按料号统计各版本用量
         /// </summary>
         /// <param name="query"></param>
         /// <returns></returns>
