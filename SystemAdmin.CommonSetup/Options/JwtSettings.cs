@@ -51,6 +51,16 @@ public class JwtSettings
     public string? CookieName { get; set; } = "AccessToken";
 
     /// <summary>
+    /// Refresh Token 有效期（天）
+    /// </summary>
+    public int RefreshTokenExpiresInDays { get; set; } = 30;
+
+    /// <summary>
+    /// 存储 Refresh Token 的 Cookie 名称
+    /// </summary>
+    public string? RefreshCookieName { get; set; } = "RefreshToken";
+
+    /// <summary>
     /// 是否仅 HTTPS 下发送 Cookie（生产环境建议 true）
     /// </summary>
     public bool CookieSecure { get; set; } = true;

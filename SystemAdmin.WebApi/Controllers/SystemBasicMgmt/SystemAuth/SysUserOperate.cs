@@ -70,5 +70,14 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemAuth
         {
             return await _sysUserOperateService.UserLogOut();
         }
+
+        [HttpPost]
+        [Tags("系统基础管理-Auth")]
+        [EndpointSummary("[身份验证] 刷新Token")]
+        [AllowAnonymous]
+        public async Task<Result<int>> RefreshToken()
+        {
+            return await _sysUserOperateService.RefreshAccessToken();
+        }
     }
 }

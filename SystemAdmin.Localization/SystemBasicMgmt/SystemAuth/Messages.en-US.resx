@@ -135,6 +135,18 @@
   <data name="SysUserOperateLogOutFailed" xml:space="preserve">
     <value>Logout failed</value>
   </data>
+  <data name="SysUserOperateRefreshTokenInvalid" xml:space="preserve">
+    <value>Your session is invalid. Please log in again</value>
+  </data>
+  <data name="SysUserOperateRefreshTokenExpired" xml:space="preserve">
+    <value>Your session has expired. Please log in again</value>
+  </data>
+  <data name="SysUserOperateRefreshTokenReused" xml:space="preserve">
+    <value>Unusual session activity detected. Please log in again</value>
+  </data>
+  <data name="SysUserOperateRefreshTokenSuccess" xml:space="preserve">
+    <value>Session refreshed</value>
+  </data>
   <data name="SysUserOperateUserNotFreeze" xml:space="preserve">
     <value>This account is not locked and does not require unlocking</value>
   </data>

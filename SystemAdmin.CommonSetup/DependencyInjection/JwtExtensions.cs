@@ -37,6 +37,8 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
                 opts.CookieName = settings.CookieName;
                 opts.CookieSecure = settings.CookieSecure;
                 opts.CookieSameSite = settings.CookieSameSite;
+                opts.RefreshTokenExpiresInDays = settings.RefreshTokenExpiresInDays;
+                opts.RefreshCookieName = settings.RefreshCookieName;
             });
 
             services.AddSingleton<JwtTokenService>();

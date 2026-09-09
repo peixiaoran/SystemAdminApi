@@ -190,5 +190,72 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
                             }).Where(user => user.UserId == userId)
                             .ExecuteCommandAsync();
         }
+
+        /// <summary>
+        /// 新增 RefreshToken
+        /// </summary>
+        /// <param name="entity"></param>
+        /// <returns></returns>
+        public async Task<int> AddRefreshToken(RefreshTokenEntity entity)
+        {
+            return await _db.Insertable(entity).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 按哈希值查询 RefreshToken
+        /// </summary>
+        /// <param name="tokenHash"></param>
+        /// <returns></returns>
+        public async Task<RefreshTokenEntity> GetRefreshTokenByHash(string tokenHash)
+        {
+            return await _db.Queryable<RefreshTokenEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(token => token.TokenHash == tokenHash)
+                            .FirstAsync();
+        }
+
+        /// <summary>
+        /// 撤销指定 RefreshToken，并记录轮换后的新Token
+        /// </summary>
+        /// <param name="refreshId"></param>
+        /// <param name="replacedByTokenId"></param>
+        /// <returns></returns>
+        public async Task<int> RevokeRefreshToken(long refreshId, long? replacedByTokenId)
+        {
+            return await _db.Updateable<RefreshTokenEntity>()
+                            .SetColumns(token => new RefreshTokenEntity
+                            {
+                                RevokedDate = DateTime.Now,
+                                ReplacedByTokenId = replacedByTokenId
+                            })
+                            .Where(token => token.RefreshId == refreshId)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 按哈希值撤销 RefreshToken
+        /// </summary>
+        /// <param name="tokenHash"></param>
+        /// <returns></returns>
+        public async Task<int> RevokeRefreshTokenByHash(string tokenHash)
+        {
+            return await _db.Updateable<RefreshTokenEntity>()
+                            .SetColumns(token => new RefreshTokenEntity { RevokedDate = DateTime.Now })
+                            .Where(token => token.TokenHash == tokenHash && token.RevokedDate == null)
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 撤销用户名下所有有效 RefreshToken
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<int> RevokeAllUserRefreshTokens(long userId)
+        {
+            return await _db.Updateable<RefreshTokenEntity>()
+                            .SetColumns(token => new RefreshTokenEntity { RevokedDate = DateTime.Now })
+                            .Where(token => token.UserId == userId && token.RevokedDate == null)
+                            .ExecuteCommandAsync();
+        }
     }
 }

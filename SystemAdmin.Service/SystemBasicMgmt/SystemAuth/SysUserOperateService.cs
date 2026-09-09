@@ -155,6 +155,20 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
 
                 _jwt.SetAuthCookie(httpResponse, userId: user.UserId, userNo: user.UserNo);
 
+                // 签发 Refresh Token，用于 Access Token 过期后静默续期
+                var (rawRefreshToken, refreshTokenHash) = _jwt.GenerateRefreshToken();
+                var refreshExpiresAt = nowTime.AddDays(_jwt.RefreshTokenExpiresInDays);
+                await _sysUserOperateRepo.AddRefreshToken(new RefreshTokenEntity
+                {
+                    RefreshId = SnowFlakeSingle.Instance.NextId(),
+                    UserId = user.UserId,
+                    TokenHash = refreshTokenHash,
+                    ExpiresAt = refreshExpiresAt,
+                    CreatedDate = nowTime,
+                    CreatedByIp = ip
+                });
+                _jwt.SetRefreshTokenCookie(httpResponse, rawRefreshToken, refreshExpiresAt);
+
                 // 返回登录成功信息（JWT Cookie 已在其他层处理）
                 return Result<SysUserLoginReturnDto>.Ok(
                     new SysUserLoginReturnDto
@@ -202,15 +216,101 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 var insertLogOutCount = await _sysUserOperateRepo.AddUserLogOutInfo(logOutLog);
                 await _db.CommitTranAsync();
 
+                var request = _httpContextAccessor.HttpContext?.Request;
                 var response = _httpContextAccessor.HttpContext?.Response;
+
+                var rawRefreshToken = request?.Cookies[_jwt.RefreshCookieName];
+                if (!string.IsNullOrWhiteSpace(rawRefreshToken))
+                    await _sysUserOperateRepo.RevokeRefreshTokenByHash(JwtTokenService.HashRefreshToken(rawRefreshToken));
+
                 if (response != null)
+                {
                     _jwt.ClearAuthCookie(response);
+                    _jwt.ClearRefreshTokenCookie(response);
+                }
 
                 return Result<int>.Ok(insertLogOutCount, _localization.ReturnMsg($"{_this}LogOutSuccess"));
             }
             catch (Exception ex)
             {
                 await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 刷新 Access Token：使用 Refresh Token 静默换取新的 Access Token，并轮换 Refresh Token
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<int>> RefreshAccessToken()
+        {
+            try
+            {
+                var context = _httpContextAccessor.HttpContext;
+                var request = context?.Request;
+                var response = context?.Response;
+                if (request == null || response == null)
+                {
+                    return Result<int>.Failure(401, _localization.ReturnMsg($"{_this}RefreshTokenInvalid"));
+                }
+
+                var rawToken = request.Cookies[_jwt.RefreshCookieName];
+                if (string.IsNullOrWhiteSpace(rawToken))
+                {
+                    return Result<int>.Failure(401, _localization.ReturnMsg($"{_this}RefreshTokenInvalid"));
+                }
+
+                var tokenHash = JwtTokenService.HashRefreshToken(rawToken);
+                var stored = await _sysUserOperateRepo.GetRefreshTokenByHash(tokenHash);
+                if (stored == null)
+                {
+                    return Result<int>.Failure(401, _localization.ReturnMsg($"{_this}RefreshTokenInvalid"));
+                }
+
+                // Token 已被撤销过又被使用，视为被盗用，撤销该用户所有 RefreshToken
+                if (stored.RevokedDate != null)
+                {
+                    await _sysUserOperateRepo.RevokeAllUserRefreshTokens(stored.UserId);
+                    _jwt.ClearAuthCookie(response);
+                    _jwt.ClearRefreshTokenCookie(response);
+                    return Result<int>.Failure(401, _localization.ReturnMsg($"{_this}RefreshTokenReused"));
+                }
+
+                if (stored.ExpiresAt < DateTime.Now)
+                {
+                    return Result<int>.Failure(401, _localization.ReturnMsg($"{_this}RefreshTokenExpired"));
+                }
+
+                var user = await _sysUserOperateRepo.GetUserInfoForUserLogOut(stored.UserId);
+                if (user == null || user.IsFreeze != 0)
+                {
+                    return Result<int>.Failure(401, _localization.ReturnMsg($"{_this}UserNotFound"));
+                }
+
+                // 轮换：撤销旧 Refresh Token，签发新的 Access Token + Refresh Token
+                var nowTime = DateTime.Now;
+                var (rawRefreshToken, refreshTokenHash) = _jwt.GenerateRefreshToken();
+                var refreshExpiresAt = nowTime.AddDays(_jwt.RefreshTokenExpiresInDays);
+                var newTokenId = SnowFlakeSingle.Instance.NextId();
+                await _sysUserOperateRepo.AddRefreshToken(new RefreshTokenEntity
+                {
+                    RefreshId = newTokenId,
+                    UserId = user.UserId,
+                    TokenHash = refreshTokenHash,
+                    ExpiresAt = refreshExpiresAt,
+                    CreatedDate = nowTime,
+                    CreatedByIp = GetClientIp()
+                });
+                await _sysUserOperateRepo.RevokeRefreshToken(stored.RefreshId, newTokenId);
+
+                _jwt.SetAuthCookie(response, user.UserId, user.UserNo);
+                _jwt.SetRefreshTokenCookie(response, rawRefreshToken, refreshExpiresAt);
+
+                return Result<int>.Ok(1, _localization.ReturnMsg($"{_this}RefreshTokenSuccess"));
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
             }

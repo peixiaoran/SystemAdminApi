@@ -135,6 +135,18 @@
   <data name="SysUserOperateLogOutFailed" xml:space="preserve">
     <value>安全登出失败</value>
   </data>
+  <data name="SysUserOperateRefreshTokenInvalid" xml:space="preserve">
+    <value>登录状态无效，请重新登录</value>
+  </data>
+  <data name="SysUserOperateRefreshTokenExpired" xml:space="preserve">
+    <value>登录已过期，请重新登录</value>
+  </data>
+  <data name="SysUserOperateRefreshTokenReused" xml:space="preserve">
+    <value>检测到异常登录状态，请重新登录</value>
+  </data>
+  <data name="SysUserOperateRefreshTokenSuccess" xml:space="preserve">
+    <value>登录状态已续期</value>
+  </data>
   <data name="SysUserOperateUserNotFreeze" xml:space="preserve">
     <value>该账号未处于冻结状态，无需解锁</value>
   </data>

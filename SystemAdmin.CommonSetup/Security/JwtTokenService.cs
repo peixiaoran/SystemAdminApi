@@ -4,6 +4,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
+using System.Text;
 
 namespace SystemAdmin.CommonSetup.Security
 {
@@ -13,6 +14,8 @@ namespace SystemAdmin.CommonSetup.Security
     public sealed class JwtTokenService : IDisposable
     {
         private const string DefaultCookieName = "AccessToken";
+        private const string DefaultRefreshCookieName = "RefreshToken";
+        private const string RefreshTokenPath = "/api/SystemBasicMgmt/SystemAuth/SysUserOperate/RefreshToken";
 
         private readonly JwtSettings _settings;
         private readonly JwtSecurityTokenHandler _handler = new();
@@ -111,6 +114,77 @@ namespace SystemAdmin.CommonSetup.Security
         public string GenerateTokenString(long userId, string userNo)
         {
             return GenerateTokenInternal(userId, userNo);
+        }
+
+        /// <summary>
+        /// Refresh Token 有效期（天）
+        /// </summary>
+        public int RefreshTokenExpiresInDays => _settings.RefreshTokenExpiresInDays;
+
+        /// <summary>
+        /// 存储 Refresh Token 的 Cookie 名称
+        /// </summary>
+        public string RefreshCookieName => string.IsNullOrWhiteSpace(_settings.RefreshCookieName)
+            ? DefaultRefreshCookieName
+            : _settings.RefreshCookieName;
+
+        /// <summary>
+        /// 生成 Refresh Token：返回明文（写入 Cookie）与哈希值（存库比对）
+        /// </summary>
+        public (string RawToken, string TokenHash) GenerateRefreshToken()
+        {
+            var raw = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
+            return (raw, HashRefreshToken(raw));
+        }
+
+        /// <summary>
+        /// 对 Refresh Token 明文做哈希，用于入库比对（不存明文）
+        /// </summary>
+        public static string HashRefreshToken(string rawToken)
+        {
+            var bytes = SHA256.HashData(Encoding.UTF8.GetBytes(rawToken));
+            return Convert.ToHexString(bytes);
+        }
+
+        /// <summary>
+        /// 登录/刷新成功时调用：将 Refresh Token 写入 HttpOnly Cookie，仅在刷新接口路径下生效
+        /// </summary>
+        /// <param name="response"></param>
+        /// <param name="rawToken"></param>
+        /// <param name="expiresAt"></param>
+        public void SetRefreshTokenCookie(HttpResponse response, string rawToken, DateTime expiresAt)
+        {
+            if (response == null) throw new ArgumentNullException(nameof(response));
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = _settings.CookieSecure,
+                SameSite = _settings.CookieSameSite,
+                Expires = expiresAt,
+                Path = RefreshTokenPath
+            };
+
+            response.Cookies.Append(RefreshCookieName, rawToken, cookieOptions);
+        }
+
+        /// <summary>
+        /// 登出时调用：清空 Refresh Token Cookie
+        /// </summary>
+        /// <param name="response"></param>
+        public void ClearRefreshTokenCookie(HttpResponse response)
+        {
+            if (response == null) throw new ArgumentNullException(nameof(response));
+
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = _settings.CookieSecure,
+                SameSite = _settings.CookieSameSite,
+                Path = RefreshTokenPath
+            };
+
+            response.Cookies.Delete(RefreshCookieName, cookieOptions);
         }
 
         /// <summary>
