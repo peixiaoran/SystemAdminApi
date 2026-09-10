@@ -77,7 +77,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<FormInstanceEntity>()
                            .With(SqlWith.NoLock)
-                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && dic.DicCode == instance.FormStatus && instance.FormStatus != FormStatus.PendingSubmit.ToEnumString() && instance.FormStatus != FormStatus.Rejected.ToEnumString() && instance.FormStatus != FormStatus.Voided.ToEnumString())
+                           .InnerJoin<DictionaryInfoEntity>((instance, dic) => dic.DicType == "FormStatus" && dic.DicCode == instance.FormStatus && instance.FormStatus != FormStatus.PendingSubmit.ToEnumString() && instance.FormStatus != FormStatus.Voided.ToEnumString())
                            .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
                            .LeftJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
                            .LeftJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
@@ -96,6 +96,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 query = query.Where((instance, dic, formtype, applyuser, applydept, useragent) =>
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
+
+            string sql = query.ToSqlString();
 
             // 排序
             query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.ModifiedDate });

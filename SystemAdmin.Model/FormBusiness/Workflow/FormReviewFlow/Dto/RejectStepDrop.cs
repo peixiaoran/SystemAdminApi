@@ -18,5 +18,10 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         /// 步骤名称
         /// </summary>
         public string StepName { get; set; } = string.Empty;
+
+        /// <summary>
+        /// 驳回到的审批人员姓名
+        /// </summary>
+        public string ReviewUserNames { get; set; } = string.Empty;
     }
 }

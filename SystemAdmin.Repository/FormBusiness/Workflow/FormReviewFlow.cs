@@ -109,6 +109,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                    {
                        StepId = step.Review.StepId,
                        StepName = step.Review.StepName,
+                       ReviewUserNames = string.Join("、", step.Review.StepReviewUser
+                                                                     .Select(user => string.IsNullOrEmpty(user.AgentUserName) ? user.ReviewUserName : user.AgentUserName)
+                                                                     .Where(name => !string.IsNullOrEmpty(name))
+                                                                     .Distinct()),
                    }).ToList();
         }
 
