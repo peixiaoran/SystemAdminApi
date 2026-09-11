@@ -136,7 +136,7 @@
     <value>删除业务人员失败</value>
   </data>
   <data name="SalesUserDuplicate" xml:space="preserve">
-    <value>该用户已配置为业务人员，请勿重复添加</value>
+    <value>该用户已是业务人员，无需重复添加</value>
   </data>
   <data name="SalesNumberInsertSuccess" xml:space="preserve">
     <value>新增料号分配成功</value>
@@ -157,13 +157,13 @@
     <value>删除料号分配失败</value>
   </data>
   <data name="SalesNumberDuplicate" xml:space="preserve">
-    <value>该公司料号已配置业务负责人，请勿重复添加</value>
+    <value>该公司料号已配置业务负责人，无需重复添加</value>
   </data>
   <data name="SalesNumberSalesUserNotFound" xml:space="preserve">
-    <value>所选人员未配置为业务人员</value>
+    <value>所选人员尚未配置为业务人员，请先将其添加为业务人员后再分配</value>
   </data>
   <data name="SalesNumberNoCompanyPartNumber" xml:space="preserve">
-    <value>该客户下未找到可绑定的公司料号</value>
+    <value>该客户下暂无可分配的公司料号</value>
   </data>
   <data name="SalesNumberBatchUpsertSuccess" xml:space="preserve">
     <value>批量修改料号分配成功，共 {0} 条</value>

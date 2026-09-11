@@ -118,7 +118,7 @@
     <value>Failed to update system dictionary</value>
   </data>
   <data name="DictionaryInfoDicTypeCodeIsExist" xml:space="preserve">
-    <value>A dictionary with the same code already exists under this dictionary type</value>
+    <value>A dictionary item with this code already exists under this dictionary type. Please use a different code.</value>
   </data>
 
   <data name="CurrencyInfoInsertSuccess" xml:space="preserve">
@@ -159,9 +159,9 @@
     <value>Failed to update exchange rate</value>
   </data>
   <data name="ExchangeRateIsExist" xml:space="preserve">
-    <value>This exchange rate mapping already exists</value>
+    <value>An exchange rate for this currency pair already exists.</value>
   </data>
   <data name="ExchangeRateIsRepeat" xml:space="preserve">
-    <value>The currency and the target currency cannot be the same</value>
+    <value>The source currency and target currency cannot be the same. Please select different currencies.</value>
   </data>
 </root>

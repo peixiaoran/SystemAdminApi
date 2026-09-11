@@ -169,10 +169,10 @@
     <value>Failed to update occupation information</value>
   </data>
   <data name="UserInfoUserNoRepat" xml:space="preserve">
-    <value>User ID or account already exists. Please re-enter</value>
+    <value>This employee ID or account already exists. Please use a different one</value>
   </data>
   <data name="UserInfoValidationPassWrodError" xml:space="preserve">
-    <value>Password must be 8–16 characters long and include uppercase letters, lowercase letters, numbers, and special characters</value>
+    <value>Password must be 8–16 characters long and include a mix of uppercase and lowercase letters, numbers, and special characters</value>
   </data>
   <data name="UserInfoInsertSuccess" xml:space="preserve">
     <value>User information created successfully</value>
@@ -199,7 +199,7 @@
     <value>Failed to update personal information</value>
   </data>
   <data name="PersonalValidationPassWrodError" xml:space="preserve">
-    <value>Password must be 8–16 characters long and include uppercase letters, lowercase letters, numbers, and special characters</value>
+    <value>Password must be 8–16 characters long and include a mix of uppercase and lowercase letters, numbers, and special characters</value>
   </data>
   <data name="NationalityInfoInsertSuccess" xml:space="preserve">
     <value>Nationality created successfully</value>
@@ -235,7 +235,7 @@
     <value>Upload failed</value>
   </data>
   <data name="DeptInfoNotDelete" xml:space="preserve">
-    <value>Cannot delete department because it or its sub-departments have users</value>
+    <value>This department cannot be deleted because it or its sub-departments still have users assigned</value>
   </data>
   <data name="PersonalAvatarFileNotNull" xml:space="preserve">
     <value>Please upload an avatar file</value>
@@ -253,7 +253,7 @@
     <value>Upload failed</value>
   </data>
   <data name="UserExcel_UserNo" xml:space="preserve">
-    <value>User No</value>
+    <value>Employee ID</value>
   </data>
   <data name="UserExcel_UserNameCn" xml:space="preserve">
     <value>User Name (Chinese)</value>
@@ -265,7 +265,7 @@
     <value>Department</value>
   </data>
   <data name="UserExcel_PositionName" xml:space="preserve">
-    <value>Position</value>
+    <value>Job Grade</value>
   </data>
   <data name="UserExcel_GenderName" xml:space="preserve">
     <value>Gender</value>
@@ -274,28 +274,28 @@
     <value>Nationality</value>
   </data>
   <data name="UserExcel_IsEmployedName" xml:space="preserve">
-    <value>EmployedStatus</value>
+    <value>Employment Status</value>
   </data>
   <data name="UserExcel_IsReviewName" xml:space="preserve">
-    <value>ApprovalStatus</value>
+    <value>Approval Status</value>
   </data>
   <data name="UserExcel_IsFreezeName" xml:space="preserve">
-    <value>FreezeStatus</value>
+    <value>Freeze Status</value>
   </data>
   <data name="UserExcel_UserInfo" xml:space="preserve">
-    <value>UserInfo</value>
+    <value>User Information</value>
   </data>
   <data name="UserExcel_HireDate" xml:space="preserve">
-    <value>HireDate</value>
+    <value>Hire Date</value>
   </data>
   <data name="UserExcel_Email" xml:space="preserve">
     <value>Email</value>
   </data>
   <data name="UserExcel_PhoneNumber" xml:space="preserve">
-    <value>PhoneNumber</value>
+    <value>Phone Number</value>
   </data>
   <data name="DeptInfoDeptCodeExist" xml:space="preserve">
-    <value>Department code already exists, please re-enter</value>
+    <value>This department code already exists. Please use a different one</value>
   </data>
   <data name="UserExcel_GenderMale" xml:space="preserve">
     <value>Male</value>

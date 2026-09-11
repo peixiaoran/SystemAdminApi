@@ -118,78 +118,78 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="WorkflowStepDeleteFailed" xml:space="preserve">
-    <value>Step deletion failed</value>
+    <value>Failed to delete the step</value>
   </data>
   <data name="WorkflowStepDeleteSuccess" xml:space="preserve">
-    <value>Step deletion successful</value>
+    <value>Step deleted successfully</value>
   </data>
   <data name="WorkflowStepInsertFailed" xml:space="preserve">
-    <value>Step addition failed</value>
+    <value>Failed to add the step</value>
   </data>
   <data name="WorkflowStepInsertSuccess" xml:space="preserve">
     <value>Step added successfully</value>
   </data>
   <data name="WorkflowStepUpdateFailed" xml:space="preserve">
-    <value>Step modification failed</value>
+    <value>Failed to update the step</value>
   </data>
   <data name="WorkflowStepUpdateSuccess" xml:space="preserve">
-    <value>Step modification successful</value>
+    <value>Step updated successfully</value>
   </data>
   <data name="WorkflowRuleInsertSuccess" xml:space="preserve">
-    <value>Rule creation successful</value>
+    <value>Rule added successfully</value>
   </data>
   <data name="WorkflowRuleInsertFailed" xml:space="preserve">
-    <value>Failed to add rule</value>
+    <value>Failed to add the rule</value>
   </data>
   <data name="WorkflowRuleDeleteSuccess" xml:space="preserve">
-    <value>Rule deletion successful</value>
+    <value>Rule deleted successfully</value>
   </data>
   <data name="WorkflowRuleDeleteFailed" xml:space="preserve">
-    <value>Failed to delete rule</value>
+    <value>Failed to delete the rule</value>
   </data>
   <data name="WorkflowRuleUpdateFailed" xml:space="preserve">
-    <value>Failed to modify rule</value>
+    <value>Failed to update the rule</value>
   </data>
   <data name="WorkflowRuleUpdateSuccess" xml:space="preserve">
-    <value>Rule modification successful</value>
+    <value>Rule updated successfully</value>
   </data>
   <data name="WorkflowRuleRepat" xml:space="preserve">
-    <value>A rule matching these criteria already exists; please do not configure it again</value>
+    <value>An approval rule with the same conditions already exists. Please avoid adding a duplicate.</value>
   </data>
   <data name="WorkflowRuleStepInsertSuccess" xml:space="preserve">
     <value>Rule step added successfully</value>
   </data>
   <data name="WorkflowRuleStepInsertFailed" xml:space="preserve">
-    <value>Rule step creation failed</value>
+    <value>Failed to add the rule step</value>
   </data>
   <data name="WorkflowRuleStepDeleteFailed" xml:space="preserve">
-    <value>Rule step deletion failed</value>
+    <value>Failed to delete the rule step</value>
   </data>
   <data name="WorkflowRuleStepDeleteSuccess" xml:space="preserve">
-    <value>Rule step deletion successful</value>
+    <value>Rule step deleted successfully</value>
   </data>
   <data name="WorkflowRuleStepUpdateSuccess" xml:space="preserve">
-    <value>Rule step modification successful</value>
+    <value>Rule step updated successfully</value>
   </data>
   <data name="WorkflowRuleStepUpdateFailed" xml:space="preserve">
-    <value>Failed to modify rule steps</value>
+    <value>Failed to update the rule step</value>
   </data>
   <data name="WorkflowRuleStepRepat" xml:space="preserve">
-    <value>The rule already includes the corresponding steps and next steps; please do not configure them again</value>
+    <value>This rule already has an identical step and next-step combination. Please avoid configuring a duplicate.</value>
   </data>
   <data name="WorkflowRuleExist" xml:space="preserve">
-    <value>The rule already has a configuration. Please delete the corresponding configuration first</value>
+    <value>This rule already has steps configured. Please delete the existing step configuration first.</value>
   </data>
   <data name="WorkflowStepExist" xml:space="preserve">
-    <value>There is already a rule configured for this step. Please delete the corresponding rule step first</value>
+    <value>This step is already referenced by a rule. Please delete the related rule step configuration first.</value>
   </data>
   <data name="WorkflowStepAddReviewSortOrderExist" xml:space="preserve">
-    <value>This additional review order is already used by another additional review step of the same form type. Please choose a different order</value>
+    <value>This additional review order is already used by another additional review step under the same form type. Please choose a different order.</value>
   </data>
   <data name="StepFieldPerUpdateFailed" xml:space="preserve">
     <value>Failed to update step field permissions</value>
   </data>
   <data name="StepFieldPerUpdateSuccess" xml:space="preserve">
-    <value>Step field permissions have been successfully updated</value>
+    <value>Step field permissions updated successfully</value>
   </data>
 </root>

@@ -119,41 +119,41 @@
   </data>
 
   <data name="PMenuInsertSuccess" xml:space="preserve">
-    <value>Level-1 menu created successfully</value>
+    <value>Top-level menu created successfully</value>
   </data>
   <data name="PMenuInsertFailed" xml:space="preserve">
-    <value>Failed to create level-1 menu</value>
+    <value>Failed to create top-level menu</value>
   </data>
   <data name="PMenuDeleteSuccess" xml:space="preserve">
-    <value>Level-1 menu deleted successfully</value>
+    <value>Top-level menu deleted successfully</value>
   </data>
   <data name="PMenuDeleteFailed" xml:space="preserve">
-    <value>Failed to delete level-1 menu</value>
+    <value>Failed to delete top-level menu</value>
   </data>
   <data name="PMenuUpdateSuccess" xml:space="preserve">
-    <value>Level-1 menu updated successfully</value>
+    <value>Top-level menu updated successfully</value>
   </data>
   <data name="PMenuUpdateFailed" xml:space="preserve">
-    <value>Failed to update level-1 menu</value>
+    <value>Failed to update top-level menu</value>
   </data>
 
   <data name="SMenuInsertSuccess" xml:space="preserve">
-    <value>Level-2 menu created successfully</value>
+    <value>Submenu created successfully</value>
   </data>
   <data name="SMenuInsertFailed" xml:space="preserve">
-    <value>Failed to create level-2 menu</value>
+    <value>Failed to create submenu</value>
   </data>
   <data name="SMenuDeleteSuccess" xml:space="preserve">
-    <value>Level-2 menu deleted successfully</value>
+    <value>Submenu deleted successfully</value>
   </data>
   <data name="SMenuDeleteFailed" xml:space="preserve">
-    <value>Failed to delete level-2 menu</value>
+    <value>Failed to delete submenu</value>
   </data>
   <data name="SMenuUpdateSuccess" xml:space="preserve">
-    <value>Level-2 menu updated successfully</value>
+    <value>Submenu updated successfully</value>
   </data>
   <data name="SMenuUpdateFailed" xml:space="preserve">
-    <value>Failed to update level-2 menu</value>
+    <value>Failed to update submenu</value>
   </data>
 
   <data name="RoleInsertSuccess" xml:space="preserve">
@@ -163,7 +163,7 @@
     <value>Failed to create role</value>
   </data>
   <data name="RoleRoleUsed" xml:space="preserve">
-    <value>This role is assigned to users. Please reassign users before deleting it</value>
+    <value>This role still has users assigned to it. Please reassign those users to a different role before deleting it</value>
   </data>
   <data name="RoleDeleteSuccess" xml:space="preserve">
     <value>Role deleted successfully</value>
@@ -178,15 +178,15 @@
     <value>Failed to update role</value>
   </data>
   <data name="RoleRoleModuleUpdateSuccess" xml:space="preserve">
-    <value>Role-module binding successful</value>
+    <value>Module permissions assigned to the role successfully</value>
   </data>
   <data name="RoleRoleModuleUpdateFailed" xml:space="preserve">
-    <value>Failed to bind role to modules</value>
+    <value>Failed to assign module permissions to the role. Please try again</value>
   </data>
   <data name="RoleRoleMenuUpdateSuccess" xml:space="preserve">
-    <value>Role-menu binding successful</value>
+    <value>Menu permissions assigned to the role successfully</value>
   </data>
   <data name="RoleRoleMenuUpdateFailed" xml:space="preserve">
-    <value>Failed to bind role to menus</value>
+    <value>Failed to assign menu permissions to the role. Please try again</value>
   </data>
 </root>

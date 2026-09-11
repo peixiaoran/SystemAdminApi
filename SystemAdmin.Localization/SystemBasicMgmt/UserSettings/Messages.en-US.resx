@@ -142,7 +142,7 @@
     <value>Failed to delete part-time assignment</value>
   </data>
   <data name="UserPartTimeIsExist" xml:space="preserve">
-    <value>This user already holds this part-time position in the department and cannot be set again</value>
+    <value>This user already holds this part-time position in this department and cannot be assigned again</value>
   </data>
   <data name="UserPartTimeUpdateSuccess" xml:space="preserve">
     <value>Part-time assignment updated successfully</value>
@@ -154,9 +154,9 @@
     <value>The agent and the target user cannot be the same person</value>
   </data>
   <data name="UserAgentSubstituteTimeConflict" xml:space="preserve">
-    <value>The target user already has a leave request or agent arrangement from {0} to {1}, which overlaps with this delegation period</value>
+    <value>The target user already has a leave request or delegation arrangement between {0} and {1}, which conflicts with the selected delegation period. Please choose a different time range.</value>
   </data>
   <data name="UserAgentAgentTimeConflict" xml:space="preserve">
-    <value>The agent user already has a leave request or agent arrangement from {0} to {1}, which overlaps with this delegation period</value>
+    <value>The agent user already has a leave request or delegation arrangement between {0} and {1}, which conflicts with the selected delegation period. Please choose a different time range.</value>
   </data>
 </root>

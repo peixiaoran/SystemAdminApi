@@ -118,28 +118,28 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="SaveFailed" xml:space="preserve">
-    <value>Form save failed</value>
+    <value>Failed to save the form. Please try again later</value>
   </data>
   <data name="SaveSuccess" xml:space="preserve">
-    <value>The form was saved successfully</value>
+    <value>The form has been saved successfully</value>
   </data>
   <data name="AttachmentNotNull" xml:space="preserve">
-    <value>The uploaded file cannot be empty</value>
+    <value>Please upload at least one attachment</value>
   </data>
   <data name="AttachmentSizeLimit" xml:space="preserve">
-    <value>The file size exceeds the maximum limit of 25 MB per attachment</value>
+    <value>Each attachment must not exceed 25 MB</value>
   </data>
   <data name="UploadFailed" xml:space="preserve">
-    <value>File upload failed</value>
+    <value>Failed to upload the attachment. Please try again</value>
   </data>
   <data name="AttachmentIdNotNull" xml:space="preserve">
-    <value>Please select the files you want to delete</value>
+    <value>Please select the attachment(s) to delete</value>
   </data>
   <data name="DeleteAttachmentFailed" xml:space="preserve">
-    <value>Unable to delete the attachment</value>
+    <value>Failed to delete the attachment. Please try again</value>
   </data>
   <data name="AttachmentExtensionNotAllow" xml:space="preserve">
-    <value>The file extension does not comply with the specifications</value>
+    <value>This attachment format is not supported. Please upload a supported file type</value>
   </data>
   <data name="NotCanApply" xml:space="preserve">
     <value>You do not have permission to submit this form</value>
@@ -154,28 +154,28 @@
     <value>You do not have permission to view this form</value>
   </data>
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
-    <value>Insufficient {1} leave balance for year {0}. Requested: {2} day(s), Available: {3} day(s)</value>
+    <value>Insufficient {1} leave balance for {0}. Requested {2} day(s), only {3} day(s) available</value>
   </data>
   <data name="ApplicantTimeConflict" xml:space="preserve">
-    <value>The applicant already has a leave request or agent arrangement from {0} to {1}, which overlaps with this leave period</value>
+    <value>You already have a leave request or agent assignment from {0} to {1}, which conflicts with this request. Please choose a different time</value>
   </data>
   <data name="AgentUserTimeConflict" xml:space="preserve">
     <value>The selected agent "{0}" already has a leave request or agent arrangement from {1} to {2}. Please select another agent</value>
   </data>
   <data name="CancellHoursExceed" xml:space="preserve">
-    <value>This cancellation of {0} hour(s) exceeds the remaining {1} cancellable hour(s) of the leave request</value>
+    <value>This cancellation of {0} hour(s) exceeds the {1} hour(s) still available to cancel on this leave request</value>
   </data>
   <data name="CancellPeriodOverlap" xml:space="preserve">
     <value>This cancellation period overlaps with an existing cancellation record ({0} to {1}) for this leave request. Please choose another period</value>
   </data>
   <data name="LeaveRequestNotFound" xml:space="preserve">
-    <value>The leave request does not exist</value>
+    <value>The leave request could not be found</value>
   </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>Leave Request Form</value>
   </data>
   <data name="PdfFormNo" xml:space="preserve">
-    <value>Form No</value>
+    <value>Form No.</value>
   </data>
   <data name="PdfApplicantDate" xml:space="preserve">
     <value>Apply Date</value>
@@ -220,7 +220,7 @@
     <value>Step</value>
   </data>
   <data name="PdfReviewUser" xml:space="preserve">
-    <value>User</value>
+    <value>Reviewer</value>
   </data>
   <data name="PdfReviewResult" xml:space="preserve">
     <value>Result</value>
@@ -241,16 +241,16 @@
     <value>Leave Cancellation</value>
   </data>
   <data name="PdfOriginalLeaveRequest" xml:space="preserve">
-    <value>Request</value>
+    <value>Original Leave Request</value>
   </data>
   <data name="PdfLeaveRequestNo" xml:space="preserve">
-    <value>Leave No.</value>
+    <value>Leave Request No.</value>
   </data>
   <data name="PdfLeaveRequestHours" xml:space="preserve">
     <value>Hours</value>
   </data>
   <data name="PdfCancellPeriod" xml:space="preserve">
-    <value>Time</value>
+    <value>Cancellation Time</value>
   </data>
   <data name="PdfCancellHours" xml:space="preserve">
     <value>Hours</value>
@@ -280,7 +280,7 @@
     <value>Failed to remove additional reviewer.</value>
   </data>
   <data name="PdfDocumentCirculateTitle" xml:space="preserve">
-    <value>Document Circulate</value>
+    <value>Document Circulation</value>
   </data>
   <data name="PdfIssueDept" xml:space="preserve">
     <value>Issuing Dept</value>
@@ -292,7 +292,7 @@
     <value>Content Summary</value>
   </data>
   <data name="PdfAddReview" xml:space="preserve">
-    <value>Add-Review</value>
+    <value>Additional Reviewer</value>
   </data>
   <data name="PdfAddReviewOrder" xml:space="preserve">
     <value>Order</value>

@@ -118,58 +118,58 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="SaveFailed" xml:space="preserve">
-    <value>表单保存失败</value>
+    <value>表单保存失败，请稍后重试</value>
   </data>
   <data name="SaveSuccess" xml:space="preserve">
-    <value>表单保存成功</value>
+    <value>表单已成功保存</value>
   </data>
   <data name="AttachmentNotNull" xml:space="preserve">
-    <value>附件不能为空</value>
+    <value>请至少上传一个附件</value>
   </data>
   <data name="AttachmentSizeLimit" xml:space="preserve">
-    <value>附件大小不得超过 25 MB</value>
+    <value>单个附件大小不得超过 25 MB</value>
   </data>
   <data name="UploadFailed" xml:space="preserve">
-    <value>附件上传失败</value>
+    <value>附件上传失败，请重试</value>
   </data>
   <data name="AttachmentIdNotNull" xml:space="preserve">
-    <value>请选择附件进行删除</value>
+    <value>请选择要删除的附件</value>
   </data>
   <data name="DeleteAttachmentFailed" xml:space="preserve">
-    <value>附件删除失败</value>
+    <value>附件删除失败，请重试</value>
   </data>
   <data name="AttachmentExtensionNotAllow" xml:space="preserve">
-    <value>附件后缀不符合规范</value>
+    <value>附件格式不受支持，请上传符合要求的文件类型</value>
   </data>
   <data name="NotCanApply" xml:space="preserve">
-    <value>无权申请此表单</value>
+    <value>您无权限申请此表单</value>
   </data>
   <data name="NotCanReview" xml:space="preserve">
-    <value>无权审批此表单</value>
+    <value>您无权限审批此表单</value>
   </data>
   <data name="NotCanVoided" xml:space="preserve">
-    <value>无权作废此表单</value>
+    <value>您无权限作废此表单</value>
   </data>
   <data name="NotCanView" xml:space="preserve">
-    <value>无权查看此表单</value>
+    <value>您无权限查看此表单</value>
   </data>
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
-    <value>{0} 年「{1}」余额不足，本次请假 {2} 天，可用余额 {3} 天</value>
+    <value>{0} 年度「{1}」假期余额不足，本次申请 {2} 天，剩余可用 {3} 天</value>
   </data>
   <data name="ApplicantTimeConflict" xml:space="preserve">
-    <value>申请人于 {0} 至 {1} 期间已有请假或代理安排，与本次请假时间冲突</value>
+    <value>您在 {0} 至 {1} 期间已有请假或代理安排，与本次申请的时间冲突，请重新选择</value>
   </data>
   <data name="AgentUserTimeConflict" xml:space="preserve">
     <value>代理人「{0}」于 {1} 至 {2} 期间已有请假或代理安排，请改选其他代理人</value>
   </data>
   <data name="CancellHoursExceed" xml:space="preserve">
-    <value>本次销假 {0} 小时，超出该请假单剩余可销除 {1} 小时</value>
+    <value>本次销假 {0} 小时，超过该请假单剩余可销假时数 {1} 小时</value>
   </data>
   <data name="CancellPeriodOverlap" xml:space="preserve">
     <value>本次销假时段与该请假单已存在的销假记录（{0} 至 {1}）重叠，请重新选择</value>
   </data>
   <data name="LeaveRequestNotFound" xml:space="preserve">
-    <value>请假单不存在</value>
+    <value>找不到该请假单</value>
   </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>请假单</value>

@@ -154,7 +154,7 @@
     <value>规则修改成功</value>
   </data>
   <data name="WorkflowRuleRepat" xml:space="preserve">
-    <value>已有对应条件的规则，请勿重复配置</value>
+    <value>已存在满足相同条件的审批规则，请勿重复添加</value>
   </data>
   <data name="WorkflowRuleStepInsertSuccess" xml:space="preserve">
     <value>规则步骤新增成功</value>
@@ -175,16 +175,16 @@
     <value>规则步骤修改失败</value>
   </data>
   <data name="WorkflowRuleStepRepat" xml:space="preserve">
-    <value>规则已有对应的步骤及下一步骤，请勿重复配置</value>
+    <value>该规则下已存在相同的步骤及下一步骤组合，请勿重复配置</value>
   </data>
   <data name="WorkflowRuleExist" xml:space="preserve">
-    <value>规则已有步骤配置，请先删除对应配置</value>
+    <value>该规则已配置步骤，请先删除相关步骤配置后再进行操作</value>
   </data>
   <data name="WorkflowStepExist" xml:space="preserve">
-    <value>步骤已有对应规则配置，请先删除对应的规则步骤</value>
+    <value>该步骤已被规则引用，请先删除相关的规则步骤配置</value>
   </data>
   <data name="WorkflowStepAddReviewSortOrderExist" xml:space="preserve">
-    <value>该加审顺序已被本表单类型下的其他加审步骤使用，请更换顺序</value>
+    <value>该加审顺序已被此表单类型下的其他加审步骤占用，请重新选择顺序</value>
   </data>
   <data name="StepFieldPerUpdateFailed" xml:space="preserve">
     <value>步骤栏位权限更新失败</value>

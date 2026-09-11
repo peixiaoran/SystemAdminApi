@@ -151,7 +151,7 @@
     <value>[Reminder] Forecast Version {0} Unlocked</value>
   </data>
   <data name="ForecastVersionUnlockEmailBody" xml:space="preserve">
-    <value>Forecast version {0} ({1}) has been unlocked. Please fill in and update the part number usage quantities within this period in a timely manner.</value>
+    <value>Forecast version {0} ({1}) has been unlocked. Please submit or update the usage quantities for the relevant part numbers within this period in a timely manner.</value>
   </data>
   <data name="ForecastVersionLockEmailSubject" xml:space="preserve">
     <value>[Reminder] Forecast Version {0} Locked</value>
@@ -166,10 +166,10 @@
     <value>This is an automated notification email. Please do not reply.</value>
   </data>
   <data name="ForecastVersionOverlap" xml:space="preserve">
-    <value>The date range of forecast version {0} overlaps with an existing version</value>
+    <value>The date range of forecast version {0} overlaps with an existing version. Please adjust it and try again</value>
   </data>
   <data name="ForecastVersionHasUnlocked" xml:space="preserve">
-    <value>Forecast version {0} is not locked. Please lock it before adding a new version</value>
+    <value>Forecast version {0} has not been locked yet. Please lock it before adding another version</value>
   </data>
   <data name="FoWeeklyDetailVersionNotFound" xml:space="preserve">
     <value>Forecast version does not exist</value>
@@ -205,39 +205,39 @@
     <value>Week WoW %</value>
   </data>
   <data name="FoWeeklyDetailImport_FileEmpty" xml:space="preserve">
-    <value>Please upload a file</value>
+    <value>Please select a file to upload</value>
   </data>
   <data name="FoWeeklyDetailImport_InvalidFileFormat" xml:space="preserve">
-    <value>Invalid file format, only .xlsx is supported</value>
+    <value>Invalid file format. Only .xlsx files are supported</value>
   </data>
   <data name="FoWeeklyDetailImport_NoWorksheet" xml:space="preserve">
-    <value>No worksheet found in the file</value>
+    <value>No valid worksheet was found in the file. Please check the file content</value>
   </data>
   <data name="FoWeeklyDetailImport_NoData" xml:space="preserve">
-    <value>The file must contain at least one row of data</value>
+    <value>The file must contain at least one row of data. Please check and upload again</value>
   </data>
   <data name="FoWeeklyDetailImport_ColumnCountMismatch" xml:space="preserve">
-    <value>Column count mismatch, expected {0} columns, got {1}</value>
+    <value>Column count mismatch: expected {0} columns but found {1}. Please re-upload using the latest template</value>
   </data>
   <data name="FoWeeklyDetailImport_HeaderMismatch" xml:space="preserve">
-    <value>Column {0} header is incorrect, expected "{1}", got "{2}"</value>
+    <value>Column {0} header is incorrect: expected "{1}" but found "{2}". Please check the template</value>
   </data>
   <data name="FoWeeklyDetailImport_DateHeaderMismatch" xml:space="preserve">
-    <value>Column {0} date should be {1}, got "{2}"</value>
+    <value>Column {0} date should be {1} but found "{2}". Please check the template</value>
   </data>
   <data name="FoWeeklyDetailImport_PartNumberEmpty" xml:space="preserve">
-    <value>Row {0}: company part number cannot be empty</value>
+    <value>Row {0}: part number cannot be empty</value>
   </data>
   <data name="FoWeeklyDetailImport_PartNumberInvalid" xml:space="preserve">
-    <value>Row {0}: company part number {1} does not exist</value>
+    <value>Row {0}: part number {1} does not exist</value>
   </data>
   <data name="FoWeeklyDetailImport_PartNumberNotAssigned" xml:space="preserve">
-    <value>Row {0}: company part number {1} is not assigned to you</value>
+    <value>Row {0}: part number {1} is not assigned to you</value>
   </data>
   <data name="FoWeeklyDetailImport_QtyNotNumeric" xml:space="preserve">
-    <value>Row {0}, column {1}: quantity is not numeric: "{2}"</value>
+    <value>Row {0}, column {1}: quantity is not a valid number: "{2}"</value>
   </data>
   <data name="FoWeeklyDetailImport_Success" xml:space="preserve">
-    <value>Import succeeded, {0} rows</value>
+    <value>Import completed successfully. {0} rows imported</value>
   </data>
 </root>

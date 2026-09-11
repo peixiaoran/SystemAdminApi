@@ -124,7 +124,7 @@
     <value>前往审批</value>
   </data>
   <data name="EmailNoticeBtnSignIn" xml:space="preserve">
-    <value>登入系统</value>
+    <value>登录系统</value>
   </data>
   <data name="EmailNoticeBtnView" xml:space="preserve">
     <value>前往查看</value>
@@ -184,12 +184,12 @@
     <value>核准完成</value>
   </data>
   <data name="GuidanceHandlerNotFound" xml:space="preserve">
-    <value>表单完成导向未定义</value>
+    <value>未配置表单完成后的导向处理，请联系系统管理员</value>
   </data>
   <data name="InsufficientLeaveBalance" xml:space="preserve">
-    <value>{0} 在 {1} 年的「 {2} 」不足，剩余 {3} 天，申请 {4} 天</value>
+    <value>{0} 在 {1} 年度的「{2}」余额不足，剩余 {3} 天，本次申请 {4} 天，请调整申请天数</value>
   </data>
   <data name="LeaveAnnualNotFound" xml:space="preserve">
-    <value>{0} 在 {1} 年的 {2} 已无剩余天数</value>
+    <value>{0} 在 {1} 年度的「{2}」已无剩余天数</value>
   </data>
 </root>

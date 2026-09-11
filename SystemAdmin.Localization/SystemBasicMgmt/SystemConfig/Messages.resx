@@ -118,7 +118,7 @@
     <value>系统字典修改失败</value>
   </data>
   <data name="DictionaryInfoDicTypeCodeIsExist" xml:space="preserve">
-    <value>该字典类型下已存在相同的字典编码</value>
+    <value>该字典类型下已存在相同编码的字典项,请更换编码后重试</value>
   </data>
 
   <data name="CurrencyInfoInsertSuccess" xml:space="preserve">
@@ -159,9 +159,9 @@
     <value>汇率信息修改失败</value>
   </data>
   <data name="ExchangeRateIsExist" xml:space="preserve">
-    <value>该币别汇率对照已存在</value>
+    <value>该币别对的汇率已存在,请勿重复添加</value>
   </data>
   <data name="ExchangeRateIsRepeat" xml:space="preserve">
-    <value>币别不能与兑换币别相同</value>
+    <value>原币别与目标币别不能相同,请重新选择</value>
   </data>
 </root>

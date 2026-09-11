@@ -118,16 +118,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="FormPedingNotCanWithdraw" xml:space="preserve">
-    <value>A form must be either pending approval or in the approval process to be withdrawn.</value>
+    <value>Only forms that are pending submission or currently under approval can be withdrawn. Please check the form's current status.</value>
   </data>
   <data name="FormPendingNotVoided" xml:space="preserve">
-    <value>A form must be marked as “PendingSubmit” before it can be voided.</value>
+    <value>Only forms in "Pending Submission" status can be voided. Please check the form's current status.</value>
   </data>
   <data name="FormPendingVoidedFailed" xml:space="preserve">
-    <value>Form Voided Failed</value>
+    <value>Failed to void the form</value>
   </data>
   <data name="FormPendingVoidedSuccess" xml:space="preserve">
-    <value>Form Cancellation Successful</value>
+    <value>Form voided successfully</value>
   </data>
   <data name="FormPendingWithdrawFailed" xml:space="preserve">
     <value>Form withdrawal failed</value>
@@ -145,7 +145,7 @@
     <value>Unable to generate PDF for any of the selected forms</value>
   </data>
   <data name="FormPendingExcelApplyHistoryTitle" xml:space="preserve">
-    <value>Apply History</value>
+    <value>Application History</value>
   </data>
   <data name="FormPendingExcelReviewHistoryTitle" xml:space="preserve">
     <value>Review History</value>
@@ -157,7 +157,7 @@
     <value>Form No.</value>
   </data>
   <data name="FormPendingExcelApplicantDate" xml:space="preserve">
-    <value>Applicant Date</value>
+    <value>Application Date</value>
   </data>
   <data name="FormPendingExcelFormStatusName" xml:space="preserve">
     <value>Form Status</value>

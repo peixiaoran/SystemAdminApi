@@ -136,7 +136,7 @@
     <value>Customer information updated successfully</value>
   </data>
   <data name="CustomerInfoCustomerCodeDuplicate" xml:space="preserve">
-    <value>Customer code "{0}" already exists</value>
+    <value>Customer code "{0}" already exists. Please use a different code.</value>
   </data>
   <data name="CustomerInfoExcel_SheetName" xml:space="preserve">
     <value>Customer Information Import Template</value>
@@ -199,7 +199,7 @@
     <value>Failed to update part number information</value>
   </data>
   <data name="CompanyNumberInfoPartNumberDuplicate" xml:space="preserve">
-    <value>Part number "{0}" already exists</value>
+    <value>Part number "{0}" already exists. Please use a different part number.</value>
   </data>
   <data name="CompanyNumberExcel_SheetName" xml:space="preserve">
     <value>Company Number Import Template</value>
@@ -223,7 +223,7 @@
     <value>Part Type</value>
   </data>
   <data name="CompanyNumberExcel_Category" xml:space="preserve">
-    <value>Category</value>
+    <value>Material Category</value>
   </data>
   <data name="CompanyNumberExcel_Model" xml:space="preserve">
     <value>Model</value>
@@ -355,7 +355,7 @@
     <value>No</value>
   </data>
   <data name="CustomerNumberInfoPartNumberDuplicate" xml:space="preserve">
-    <value>Customer part number "{0}" already exists</value>
+    <value>Customer part number "{0}" already exists. Please use a different part number.</value>
   </data>
   <data name="CustomerNumberExcel_PartNumber" xml:space="preserve">
     <value>Customer Part Number</value>
@@ -391,7 +391,7 @@
     <value>Failed to update customer/company part number mapping</value>
   </data>
   <data name="NumberMappingMappingOverlap" xml:space="preserve">
-    <value>Company part number "{0}" already has another mapping that overlaps with this effective date range.</value>
+    <value>Company part number "{0}" already has an overlapping mapping within this effective date range. Please adjust the effective date and try again.</value>
   </data>
   <data name="NumberMappingExcel_SheetName" xml:space="preserve">
     <value>Number Mapping Import Template</value>
@@ -454,7 +454,7 @@
     <value>Row {0} company part number "{1}" does not exist or is not enabled</value>
   </data>
   <data name="NumberMappingImport_MappingOverlap" xml:space="preserve">
-    <value>Row {0} company part number "{1}" overlaps with an existing mapping or another row in the file within this effective date range</value>
+    <value>Row {0} company part number "{1}" has an effective date range that overlaps with an existing mapping or another row in the file. Please adjust and try again.</value>
   </data>
   <data name="NumberMappingImport_Success" xml:space="preserve">
     <value>Successfully imported {0} mapping record(s)</value>

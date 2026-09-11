@@ -169,10 +169,10 @@
     <value>职业信息修改失败</value>
   </data>
   <data name="UserInfoUserNoRepat" xml:space="preserve">
-    <value>工号或账号已存在，请重新输入</value>
+    <value>该工号或账号已存在，请更换后重试</value>
   </data>
   <data name="UserInfoValidationPassWrodError" xml:space="preserve">
-    <value>密码长度需为 8–16 位，并包含大小写字母、数字及特殊字符</value>
+    <value>密码长度需为 8–16 位，且需同时包含大小写字母、数字及特殊字符</value>
   </data>
   <data name="UserInfoInsertSuccess" xml:space="preserve">
     <value>用户信息新增成功</value>
@@ -199,7 +199,7 @@
     <value>个人信息修改失败</value>
   </data>
   <data name="PersonalValidationPassWrodError" xml:space="preserve">
-    <value>密码长度需为 8–16 位，并包含大小写字母、数字及特殊字符</value>
+    <value>密码长度需为 8–16 位，且需同时包含大小写字母、数字及特殊字符</value>
   </data>
   <data name="NationalityInfoInsertSuccess" xml:space="preserve">
     <value>国籍信息新增成功</value>
@@ -235,7 +235,7 @@
     <value>上传失败</value>
   </data>
   <data name="DeptInfoNotDelete" xml:space="preserve">
-    <value>无法删除部门，因为该部门或其子部门下存在人员</value>
+    <value>该部门或其子部门下仍有人员，无法删除</value>
   </data>
   <data name="PersonalAvatarFileNotNull" xml:space="preserve">
     <value>请上传头像文件</value>
@@ -295,7 +295,7 @@
     <value>电话号码</value>
   </data>
   <data name="DeptInfoDeptCodeExist" xml:space="preserve">
-    <value>部门代码已存在，请重新输入</value>
+    <value>该部门代码已存在，请更换后重新输入</value>
   </data>
   <data name="UserExcel_GenderMale" xml:space="preserve">
     <value>男</value>

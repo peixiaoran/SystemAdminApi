@@ -163,7 +163,7 @@
     <value>角色新增失败</value>
   </data>
   <data name="RoleRoleUsed" xml:space="preserve">
-    <value>该角色已被用户使用，请先调整用户角色后再删除</value>
+    <value>该角色下还有关联用户，请先将这些用户调整为其他角色，再删除该角色</value>
   </data>
   <data name="RoleDeleteSuccess" xml:space="preserve">
     <value>角色删除成功</value>
@@ -178,15 +178,15 @@
     <value>角色修改失败</value>
   </data>
   <data name="RoleRoleModuleUpdateSuccess" xml:space="preserve">
-    <value>角色模块绑定成功</value>
+    <value>角色的模块权限分配成功</value>
   </data>
   <data name="RoleRoleModuleUpdateFailed" xml:space="preserve">
-    <value>角色模块绑定失败</value>
+    <value>角色的模块权限分配失败，请重试</value>
   </data>
   <data name="RoleRoleMenuUpdateSuccess" xml:space="preserve">
-    <value>角色菜单绑定成功</value>
+    <value>角色的菜单权限分配成功</value>
   </data>
   <data name="RoleRoleMenuUpdateFailed" xml:space="preserve">
-    <value>角色菜单绑定失败</value>
+    <value>角色的菜单权限分配失败，请重试</value>
   </data>
 </root>

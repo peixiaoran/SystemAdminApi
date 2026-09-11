@@ -127,7 +127,7 @@
     <value>Form No.</value>
   </data>
   <data name="FormQueryExcel_ApplicantDate" xml:space="preserve">
-    <value>Applicant Date</value>
+    <value>Application Date</value>
   </data>
   <data name="FormQueryExcel_FormStatusName" xml:space="preserve">
     <value>Form Status</value>

@@ -142,7 +142,7 @@
     <value>用户兼任删除失败</value>
   </data>
   <data name="UserPartTimeIsExist" xml:space="preserve">
-    <value>该用户已在此部门兼任该职业，无法重复设置</value>
+    <value>该用户已在此部门兼任该职位，请勿重复设置</value>
   </data>
   <data name="UserPartTimeUpdateSuccess" xml:space="preserve">
     <value>用户兼任修改成功</value>
@@ -154,9 +154,9 @@
     <value>被代理用户与代理用户不能为同一人</value>
   </data>
   <data name="UserAgentSubstituteTimeConflict" xml:space="preserve">
-    <value>被代理用户于 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突</value>
+    <value>被代理用户在 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突，请重新选择代理时间</value>
   </data>
   <data name="UserAgentAgentTimeConflict" xml:space="preserve">
-    <value>代理用户于 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突</value>
+    <value>代理用户在 {0} 至 {1} 期间已有请假或代理安排，与本次代理时间冲突，请重新选择代理时间</value>
   </data>
 </root>

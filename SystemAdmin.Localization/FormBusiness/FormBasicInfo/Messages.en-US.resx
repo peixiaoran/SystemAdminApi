@@ -163,13 +163,13 @@
     <value>Failed to delete form field</value>
   </data>
   <data name="FormTypeFieldDeleteSuccess" xml:space="preserve">
-    <value>Form field successfully deleted</value>
+    <value>Form field deleted successfully</value>
   </data>
   <data name="FormTypeFieldInsertFailed" xml:space="preserve">
-    <value>Failed to add form field</value>
+    <value>Failed to create form field</value>
   </data>
   <data name="FormTypeFieldInsertSuccess" xml:space="preserve">
-    <value>Added form field successfully</value>
+    <value>Form field created successfully</value>
   </data>
   <data name="FormTypeFieldUpdateFailed" xml:space="preserve">
     <value>Failed to modify form field</value>
