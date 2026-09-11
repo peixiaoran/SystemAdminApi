@@ -193,6 +193,14 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                 int insertCustomCount = 0;
                 int insertAddReviewCount = 0;
 
+                // 加审顺序在同一表单类型内不可重复，否则两个加审步骤会指向同一个加审人
+                if (upsert.IsStartStep != 1
+                    && upsert.Assignment.MatchEnum(Assignment.AddReview)
+                    && await _workflowStepRepo.IsAddReviewSortOrderExist(long.Parse(upsert.FormTypeId), upsert.stepAddReviewUpsert.SortOrder))
+                {
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}AddReviewSortOrderExist"));
+                }
+
                 var stepEntity = new WorkflowStepEntity
                 {
                     StepId = stepId,
@@ -351,6 +359,14 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                 int insertStepUserCount = 0;
                 int insertStepCustomCount = 0;
                 int insertStepAddReviewCount = 0;
+
+                // 加审顺序在同一表单类型内不可重复（排除自身），否则两个加审步骤会指向同一个加审人
+                if (upsert.IsStartStep != 1
+                    && upsert.Assignment.MatchEnum(Assignment.AddReview)
+                    && await _workflowStepRepo.IsAddReviewSortOrderExist(long.Parse(upsert.FormTypeId), upsert.stepAddReviewUpsert.SortOrder, long.Parse(upsert.StepId)))
+                {
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}AddReviewSortOrderExist"));
+                }
 
                 var stepEntity = new WorkflowStepEntity
                 {

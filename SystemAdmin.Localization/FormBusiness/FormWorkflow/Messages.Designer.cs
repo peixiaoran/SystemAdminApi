@@ -239,6 +239,15 @@ namespace SystemAdmin.Localization.FormBusiness.FormWorkflow {
                 return ResourceManager.GetString("WorkflowStepExist", resourceCulture);
             }
         }
+
+        /// <summary>
+        ///   查找类似 该加审顺序已被本表单类型下的其他加审步骤使用，请更换顺序 的本地化字符串。
+        /// </summary>
+        public static string WorkflowStepAddReviewSortOrderExist {
+            get {
+                return ResourceManager.GetString("WorkflowStepAddReviewSortOrderExist", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   查找类似 步骤新增失败 的本地化字符串。

@@ -279,6 +279,24 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
         }
 
         /// <summary>
+        /// 查询同一表单类型下是否已有其他加审步骤使用该加审顺序（撞号会导致两个步骤指向同一个加审人）
+        /// </summary>
+        /// <param name="formTypeId">表单类型Id</param>
+        /// <param name="sortOrder">加审顺序</param>
+        /// <param name="excludeStepId">排除的步骤Id（修改时排除自身）</param>
+        /// <returns></returns>
+        public async Task<bool> IsAddReviewSortOrderExist(long formTypeId, int sortOrder, long? excludeStepId = null)
+        {
+            return await _db.Queryable<WorkflowStepAddReviewEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<WorkflowStepEntity>((stepaddreview, step) => stepaddreview.StepId == step.StepId)
+                            .Where((stepaddreview, step) => step.FormTypeId == formTypeId
+                                                         && stepaddreview.SortOrder == sortOrder
+                                                         && (excludeStepId == null || stepaddreview.StepId != excludeStepId))
+                            .AnyAsync();
+        }
+
+        /// <summary>
         /// 查询步骤是否有规则配置
         /// </summary>
         /// <param name="stepId"></param>

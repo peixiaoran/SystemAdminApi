@@ -183,6 +183,9 @@
   <data name="WorkflowStepExist" xml:space="preserve">
     <value>步骤已有对应规则配置，请先删除对应的规则步骤</value>
   </data>
+  <data name="WorkflowStepAddReviewSortOrderExist" xml:space="preserve">
+    <value>该加审顺序已被本表单类型下的其他加审步骤使用，请更换顺序</value>
+  </data>
   <data name="StepFieldPerUpdateFailed" xml:space="preserve">
     <value>步骤栏位权限更新失败</value>
   </data>
