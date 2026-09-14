@@ -601,12 +601,10 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
             if (changeRate > 0)
             {
                 cell.Style.Font.Color.SetColor(ColorTranslator.FromHtml("#c0392b"));
-                cell.Style.Font.Bold = true;
             }
             else if (changeRate < 0)
             {
                 cell.Style.Font.Color.SetColor(ColorTranslator.FromHtml("#1e7e34"));
-                cell.Style.Font.Bold = true;
             }
         }
 

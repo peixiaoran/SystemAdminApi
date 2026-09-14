@@ -132,6 +132,8 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemMgmt
                     role.RoleNameEn.Contains(getPage.RoleName));
             }
 
+            query = query.OrderBy(role => role.RoleCode);
+
             var rolePage = await query.ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<RoleInfoDto>.Ok(rolePage.Adapt<List<RoleInfoDto>>(), totalCount, "");
         }
