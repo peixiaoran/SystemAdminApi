@@ -134,7 +134,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemAuth
         {
             return await _db.Queryable<UserInfoEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(user => user.UserNo == userNo && user.IsEmployed == 1 && user.IsFreeze == 0)
+                            .Where(user => user.UserNo == userNo && user.IsEmployed == 1)
                             .FirstAsync();
         }
 

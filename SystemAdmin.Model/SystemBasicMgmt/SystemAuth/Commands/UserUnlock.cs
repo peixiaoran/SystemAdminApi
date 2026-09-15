@@ -8,16 +8,16 @@
         /// <summary>
         /// 用户工号
         /// </summary>
-        public string UserNo = string.Empty;
+        public string UserNo { get; set; } = string.Empty;
 
         /// <summary>
         /// 密码
         /// </summary>
-        public string PassWord = string.Empty;
+        public string PassWord { get; set; } = string.Empty;
 
         /// <summary>
         /// 验证码
         /// </summary>
-        public string VerificationCode = string.Empty;
+        public string VerificationCode { get; set; } = string.Empty;
     }
 }
