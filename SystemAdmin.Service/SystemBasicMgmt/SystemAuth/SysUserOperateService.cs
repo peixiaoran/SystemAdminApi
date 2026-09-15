@@ -29,11 +29,12 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         private readonly LocalizationService _localization;
         private readonly HybridCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly TurnstileService _turnstile;
         private readonly string _this = "SystemBasicMgmt.SystemAuth.SysUserOperate";
         private const int CodeLength = 6;
         private static readonly Random _random = new Random();
 
-        public SysUserOperateService(CurrentUser loginuser, JwtTokenService jwt, ILogger<SysUserOperateService> logger, SqlSugarScope db, SysUserOperateRepository sysUserOperateRepo, MailKitEmailSender email, LocalizationService localization, HybridCache cache, IHttpContextAccessor httpContextAccessor)
+        public SysUserOperateService(CurrentUser loginuser, JwtTokenService jwt, ILogger<SysUserOperateService> logger, SqlSugarScope db, SysUserOperateRepository sysUserOperateRepo, MailKitEmailSender email, LocalizationService localization, HybridCache cache, IHttpContextAccessor httpContextAccessor, TurnstileService turnstile)
         {
             _loginuser = loginuser;
             _jwt = jwt;
@@ -44,6 +45,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             _localization = localization;
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
+            _turnstile = turnstile;
         }
 
         /// <summary>
@@ -58,6 +60,12 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             {
                 var ip = GetClientIp();
                 var nowTime = DateTime.Now;
+
+                // 人机验证
+                if (!await _turnstile.VerifyAsync(login.TurnstileToken, ip))
+                {
+                    return Result<SysUserLoginReturnDto>.Failure(400, _localization.ReturnMsg($"{_this}TurnstileVerifyFailed"));
+                }
 
                 // 查询用户
                 var user = await _sysUserOperateRepo.GetUserInfo(login);

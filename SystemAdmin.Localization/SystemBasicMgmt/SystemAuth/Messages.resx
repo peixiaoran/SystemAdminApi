@@ -207,4 +207,7 @@
   <data name="SysUserOperateUserNotFound" xml:space="preserve">
     <value>账号或密码错误</value>
   </data>
+  <data name="SysUserOperateTurnstileVerifyFailed" xml:space="preserve">
+    <value>人机验证失败，请重试</value>
+  </data>
 </root>

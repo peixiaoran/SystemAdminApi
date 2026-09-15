@@ -12,6 +12,7 @@ builder.Services.AddCorsSetup(builder.Configuration);       // 跨域
 builder.Services.AddOpenApi();                              // OpenAPI
 builder.Services.AddCustomOpenApiAction();                  // 自定义 OpenAPI 规范
 builder.Services.AddJwtSetup(builder.Configuration);        // JWT 认证
+builder.Services.AddTurnstileSetup(builder.Configuration);  // Cloudflare Turnstile 人机验证
 builder.Services.AddMinioSetup(builder.Configuration);      // MinIO 对象存储
 builder.Services.AddFileUploadSetup(builder.Configuration); // 文件上传
 builder.Services.AddAppUrlSetup(builder.Configuration);     // 前端地址

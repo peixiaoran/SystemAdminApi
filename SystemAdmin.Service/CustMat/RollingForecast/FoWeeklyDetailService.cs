@@ -140,6 +140,8 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 if (version == null)
                     return ([], string.Empty);
 
+                await FillTemplateQtyFromPreviousVersion(version, periods, rows);
+
                 ExcelPackage.License.SetNonCommercialPersonal("Your Name");
                 using var package = new ExcelPackage();
                 var ws = package.Workbook.Worksheets.Add(_localization.ReturnMsg($"{_thisExcel}Template"));
@@ -430,6 +432,50 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
 
                 row.DayQtyChangeRate = previousDayQty == 0 ? null : Math.Round((row.DayTotal - previousDayQty) / previousDayQty * 100, 2);
                 row.WeekQtyChangeRate = previousWeekQty == 0 ? null : Math.Round((row.WeekTotal - previousWeekQty) / previousWeekQty * 100, 2);
+            }
+        }
+
+        /// <summary>
+        /// 用上一版本的预测数量按日期换算，预填充模板
+        /// </summary>
+        /// <param name="version"></param>
+        /// <param name="periods"></param>
+        /// <param name="rows"></param>
+        private async Task FillTemplateQtyFromPreviousVersion(ForecastVersionEntity version, List<FoWeeklyPeriodDto> periods, List<FoWeeklyRowDto> rows)
+        {
+            if (rows.Count == 0)
+                return;
+
+            var previousVersion = await _foWeeklyDetailRepo.GetPreviousVersion(version.StartDate);
+            if (previousVersion == null)
+                return;
+
+            var previousDetails = await _foWeeklyDetailRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
+            if (previousDetails.Count == 0)
+                return;
+
+            var dayType = ForecastPeriodType.Day.ToEnumString();
+            var weekType = ForecastPeriodType.Week.ToEnumString();
+
+            var detailsByPartNumber = previousDetails.GroupBy(detail => detail.PartNumber)
+                .ToDictionary(group => group.Key, group => group.ToList());
+
+            foreach (var row in rows)
+            {
+                if (!detailsByPartNumber.TryGetValue(row.PartNumber, out var details))
+                    continue;
+
+                var dayQtyByDate = details.Where(detail => detail.PeriodType == dayType)
+                    .ToDictionary(detail => detail.HorizonDays.Date, detail => detail.Qty);
+                var weekQtyByStart = details.Where(detail => detail.PeriodType == weekType)
+                    .ToDictionary(detail => detail.HorizonDays.Date, detail => detail.Qty);
+
+                foreach (var period in periods)
+                {
+                    var primary = period.PeriodType == dayType ? dayQtyByDate : weekQtyByStart;
+                    var fallback = period.PeriodType == dayType ? weekQtyByStart : dayQtyByDate;
+                    row.Quantities[period.PeriodKey] = primary.TryGetValue(period.StartDate, out var qty) ? qty : fallback.GetValueOrDefault(period.StartDate);
+                }
             }
         }
 

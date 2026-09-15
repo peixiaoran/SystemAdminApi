@@ -207,4 +207,7 @@
   <data name="SysUserOperateUserNotFound" xml:space="preserve">
     <value>Incorrect username or password</value>
   </data>
+  <data name="SysUserOperateTurnstileVerifyFailed" xml:space="preserve">
+    <value>Human verification failed, please try again</value>
+  </data>
 </root>

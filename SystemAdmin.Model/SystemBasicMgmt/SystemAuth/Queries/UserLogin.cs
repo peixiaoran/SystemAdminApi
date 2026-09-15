@@ -14,5 +14,10 @@
         /// 密码
         /// </summary>
         public string PassWord { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Cloudflare Turnstile 验证Token
+        /// </summary>
+        public string TurnstileToken { get; set; } = string.Empty;
     }
 }
