@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Logging;
+using QuestPDF.Drawing;
 using QuestPDF.Fluent;
 using QuestPDF.Helpers;
 using QuestPDF.Infrastructure;
@@ -35,7 +36,23 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         static FormPrintService()
         {
             QuestPDF.Settings.License = LicenseType.Community;
-            QuestPDF.Settings.CheckIfAllTextGlyphsAreAvailable = false;
+            QuestPDF.Settings.ThrowOnMissingTextGlyphs = false;
+            RegisterChineseFont();
+        }
+
+        /// <summary>
+        /// 从系统字体目录按文件注册微软雅黑，避免 UseSystemFonts 在中文系统上解析出本地化家族名"微软雅黑"
+        /// </summary>
+        private static void RegisterChineseFont()
+        {
+            var fontsDir = Environment.GetFolderPath(Environment.SpecialFolder.Fonts);
+            if (string.IsNullOrEmpty(fontsDir))
+                return;
+
+            foreach (var file in Directory.EnumerateFiles(fontsDir, "msyh*.ttc"))
+            {
+                FontManager.RegisterFontFromFile(file);
+            }
         }
 
         public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, FormManager formmanger, LocalizationService localization)
@@ -52,7 +69,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         }
 
         /// <summary>
-        /// LVR=请假单，LCF=销假单，DCS=传签单；checkPermission=false 时跳过 CanView 与 StepFieldPermission 控件权限判断（综合表单查询打印使用）
+        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单；checkPermission=false 跳过权限校验（综合查询打印用）
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, bool checkPermission = true)
         {

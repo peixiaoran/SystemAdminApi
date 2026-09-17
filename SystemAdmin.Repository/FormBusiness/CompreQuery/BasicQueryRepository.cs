@@ -159,7 +159,7 @@ namespace SystemAdmin.Repository.FormBusiness.CompreQuery
         }
 
         /// <summary>
-        /// 导出全部表单查询Excel（字段同 GetFormQueryPage，不分页）
+        /// 导出全部表单查询Excel
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
