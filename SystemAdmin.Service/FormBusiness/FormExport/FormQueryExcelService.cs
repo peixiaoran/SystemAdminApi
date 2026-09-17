@@ -16,13 +16,15 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
     {
         private readonly ILogger<FormQueryExcelService> _logger;
         private readonly BasicQueryRepository _basicQueryRepo;
+        private readonly GeneralQueryRepository _generalQueryRepo;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.CompreQuery.FormQueryExcel_";
 
-        public FormQueryExcelService(ILogger<FormQueryExcelService> logger, BasicQueryRepository basicQueryRepo, LocalizationService localization)
+        public FormQueryExcelService(ILogger<FormQueryExcelService> logger, BasicQueryRepository basicQueryRepo, GeneralQueryRepository generalQueryRepo, LocalizationService localization)
         {
             _logger = logger;
             _basicQueryRepo = basicQueryRepo;
+            _generalQueryRepo = generalQueryRepo;
             _localization = localization;
         }
 
@@ -34,6 +36,29 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             try
             {
                 var dt = await _basicQueryRepo.GetFormQueryExcel(getpage);
+                var title = Msg("Title");
+                var excel = new FormPdfDto
+                {
+                    FileName = $"{title}_{DateTime.Now:yyyyMMddHHmmss}.xlsx",
+                    FileStream = BuildFormQueryExcel(dt, title)
+                };
+                return Result<FormPdfDto>.Ok(excel);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<FormPdfDto>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 导出综合查询Excel
+        /// </summary>
+        public async Task<Result<FormPdfDto>> ExportGeneralQueryExcel(GetGeneralQueryPage getpage)
+        {
+            try
+            {
+                var dt = await _generalQueryRepo.GetGeneralQueryExcel(getpage);
                 var title = Msg("Title");
                 var excel = new FormPdfDto
                 {

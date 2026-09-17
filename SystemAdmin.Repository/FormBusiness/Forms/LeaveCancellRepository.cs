@@ -9,6 +9,7 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
+using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Repository.FormBusiness.Forms
 {
@@ -16,11 +17,13 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
+        private readonly FormManager _formManager;
 
-        public LeaveCancellRepository(SqlSugarScope db, Language lang)
+        public LeaveCancellRepository(SqlSugarScope db, Language lang, FormManager formManager)
         {
             _db = db;
             _lang = lang;
+            _formManager = formManager;
         }
 
         /// <summary>
@@ -40,14 +43,28 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// <returns></returns>
         public async Task<int> SaveLeaveCancell(LeaveCancellEntity entity)
         {
-            return await _db.Updateable(entity)
-                            .IgnoreColumns(cancell => new
-                            {
-                                cancell.FormId,
-                                cancell.CreatedBy,
-                                cancell.CreatedDate,
-                            }).Where(cancell => cancell.FormId == entity.FormId)
-                            .ExecuteCommandAsync();
+            var count = await _db.Updateable(entity)
+                                 .IgnoreColumns(cancell => new
+                                 {
+                                     cancell.FormId,
+                                     cancell.CreatedBy,
+                                     cancell.CreatedDate,
+                                 }).Where(cancell => cancell.FormId == entity.FormId)
+                                 .ExecuteCommandAsync();
+
+            // 页面还显示绑定请假单的时间、时数、假别，一并存入
+            var leave = entity.LeaveRequestId == null ? null : await GetLeaveRequest(entity.LeaveRequestId.Value);
+            await _formManager.SaveFormSearch(entity.FormId,
+                                              [entity.LeaveRequestNo,
+                                               leave?.StartDateTime?.ToString("yyyy-MM-dd HH:mm"),
+                                               leave?.EndDateTime?.ToString("yyyy-MM-dd HH:mm"),
+                                               leave?.LeaveHours?.ToString("0.##"),
+                                               entity.StartDateTime?.ToString("yyyy-MM-dd HH:mm"),
+                                               entity.EndDateTime?.ToString("yyyy-MM-dd HH:mm"),
+                                               entity.CancellHours?.ToString("0.##")],
+                                              [("LeaveType", leave?.LeaveType)]);
+
+            return count;
         }
 
         /// <summary>

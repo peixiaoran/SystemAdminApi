@@ -233,6 +233,161 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
+        /// 保存表单检索文本（按 FormId 新增或修改）
+        /// </summary>
+        /// <param name="formId">表单Id</param>
+        /// <param name="detailValues">明细表字段值</param>
+        /// <param name="dictionaries">关联字典的字段：(DicType, DicCode)，会换成 DicNameCn / DicNameEn 后写入</param>
+        public async Task<int> SaveFormSearch(long formId, List<string?> detailValues, List<(string DicType, string? DicCode)>? dictionaries = null)
+        {
+            var texts = detailValues.ToList();
+
+            var dicRefs = (dictionaries ?? [])
+                          .Where(dic => !string.IsNullOrWhiteSpace(dic.DicCode))
+                          .ToList();
+            if (dicRefs.Count > 0)
+            {
+                var dicTypes = dicRefs.Select(dic => dic.DicType).Distinct().ToList();
+                var dicList = await _db.Queryable<DictionaryInfoEntity>()
+                                       .With(SqlWith.NoLock)
+                                       .Where(dic => dicTypes.Contains(dic.DicType))
+                                       .ToListAsync();
+
+                foreach (var (dicType, dicCode) in dicRefs)
+                {
+                    var matched = dicList.FirstOrDefault(dic => dic.DicType == dicType && dic.DicCode == dicCode);
+                    texts.Add(matched?.DicNameCn);
+                    texts.Add(matched?.DicNameEn);
+                }
+            }
+
+            return await _db.Storageable(new FormSearchEntity
+            {
+                FormId = formId,
+                FormText = await BuildFormText(formId),
+                DetailText = JoinText(texts),
+                AttachmentText = await BuildAttachmentText(formId),
+                AddReviewText = await BuildAddReviewText(formId),
+                ModifiedBy = _loginuser.UserId,
+                ModifiedDate = DateTime.Now
+            }).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 附件变更后刷新附件检索文本
+        /// </summary>
+        public async Task<int> RefreshAttachmentText(long formId)
+        {
+            return await RefreshSearchText(formId, attachmentText: await BuildAttachmentText(formId));
+        }
+
+        /// <summary>
+        /// 加审人变更后刷新加审人检索文本
+        /// </summary>
+        public async Task<int> RefreshAddReviewText(long formId)
+        {
+            return await RefreshSearchText(formId, addReviewText: await BuildAddReviewText(formId));
+        }
+
+        /// <summary>
+        /// 只更新传入的检索列；表单还没有检索记录时插入一条，明细文本留空等业务保存时补齐
+        /// </summary>
+        private async Task<int> RefreshSearchText(long formId, string? attachmentText = null, string? addReviewText = null)
+        {
+            var count = await _db.Updateable<FormSearchEntity>()
+                                 .SetColumns(search => new FormSearchEntity
+                                 {
+                                     ModifiedBy = _loginuser.UserId,
+                                     ModifiedDate = DateTime.Now
+                                 })
+                                 .SetColumnsIF(attachmentText != null, search => new FormSearchEntity { AttachmentText = attachmentText! })
+                                 .SetColumnsIF(addReviewText != null, search => new FormSearchEntity { AddReviewText = addReviewText! })
+                                 .Where(search => search.FormId == formId)
+                                 .ExecuteCommandAsync();
+            if (count > 0)
+            {
+                return count;
+            }
+
+            return await _db.Insertable(new FormSearchEntity
+            {
+                FormId = formId,
+                FormText = await BuildFormText(formId),
+                DetailText = string.Empty,
+                AttachmentText = attachmentText ?? await BuildAttachmentText(formId),
+                AddReviewText = addReviewText ?? await BuildAddReviewText(formId),
+                ModifiedBy = _loginuser.UserId,
+                ModifiedDate = DateTime.Now
+            }).ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 标准表检索文本：单号、申请日期、申请人工号/姓名、部门
+        /// </summary>
+        private async Task<string> BuildFormText(long formId)
+        {
+            var form = await _db.Queryable<FormInstanceEntity>()
+                                .With(SqlWith.NoLock)
+                                .InnerJoin<UserInfoEntity>((instance, user) => instance.ApplicantUserId == user.UserId)
+                                .InnerJoin<DepartmentInfoEntity>((instance, user, dept) => user.DepartmentId == dept.DepartmentId)
+                                .Where((instance, user, dept) => instance.FormId == formId)
+                                .Select((instance, user, dept) => new
+                                {
+                                    instance.FormNo,
+                                    instance.ApplicantDate,
+                                    user.UserNo,
+                                    user.UserNameCn,
+                                    user.UserNameEn,
+                                    dept.DepartmentNameCn,
+                                    dept.DepartmentNameEn
+                                }).FirstAsync();
+
+            return form == null
+                ? string.Empty
+                : JoinText([form.FormNo,
+                            form.ApplicantDate.ToString("yyyy-MM-dd"),
+                            form.UserNo,
+                            form.UserNameCn,
+                            form.UserNameEn,
+                            form.DepartmentNameCn,
+                            form.DepartmentNameEn]);
+        }
+
+        /// <summary>
+        /// 附件表检索文本：附件文件名
+        /// </summary>
+        private async Task<string> BuildAttachmentText(long formId)
+        {
+            var names = await _db.Queryable<FormAttachmentEntity>()
+                                 .With(SqlWith.NoLock)
+                                 .Where(attach => attach.FormId == formId)
+                                 .Select(attach => attach.AttachmentName)
+                                 .ToListAsync();
+
+            return JoinText(names);
+        }
+
+        /// <summary>
+        /// 加审人检索文本：按顺序 部门 工号 姓名
+        /// </summary>
+        private async Task<string> BuildAddReviewText(long formId)
+        {
+            var list = await _db.Queryable<FormAddReviewEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(addreview => addreview.FormId == formId)
+                                .OrderBy(addreview => addreview.SortOrder)
+                                .ToListAsync();
+
+            return JoinText(list.Select(addreview => $"{addreview.DeptName} {addreview.UserNo} {addreview.UserName}"));
+        }
+
+        private static string JoinText(IEnumerable<string?> texts)
+        {
+            return string.Join(" | ", texts.Where(text => !string.IsNullOrWhiteSpace(text))
+                                           .Select(text => text!.Trim()));
+        }
+
+        /// <summary>
         /// 查询附件列表
         /// </summary>
         public async Task<List<FormAttachmentDto>> GetAttachmentList(long formId)
@@ -250,7 +405,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> InsertAttachment(FormAttachmentEntity entity)
         {
-            return await _db.Insertable(entity).ExecuteCommandAsync();
+            var count = await _db.Insertable(entity).ExecuteCommandAsync();
+            await RefreshAttachmentText(entity.FormId);
+            return count;
         }
 
         /// <summary>
@@ -258,9 +415,20 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> DeleteAttachment(long attachmentId)
         {
-            return await _db.Deleteable<FormAttachmentEntity>()
-                            .Where(attach => attach.AttachmentId == attachmentId)
-                            .ExecuteCommandAsync();
+            var formId = await _db.Queryable<FormAttachmentEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(attach => attach.AttachmentId == attachmentId)
+                                  .Select(attach => attach.FormId)
+                                  .FirstAsync();
+
+            var count = await _db.Deleteable<FormAttachmentEntity>()
+                                 .Where(attach => attach.AttachmentId == attachmentId)
+                                 .ExecuteCommandAsync();
+            if (count > 0)
+            {
+                await RefreshAttachmentText(formId);
+            }
+            return count;
         }
 
         /// <summary>
@@ -375,7 +543,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> InsertAddReview(FormAddReviewEntity entity)
         {
-            return await _db.Insertable(entity).ExecuteCommandAsync();
+            var count = await _db.Insertable(entity).ExecuteCommandAsync();
+            await RefreshAddReviewText(entity.FormId);
+            return count;
         }
 
         /// <summary>
@@ -383,11 +553,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> DeleteAddReview(long formId, long userId, int sortOrder)
         {
-            return await _db.Deleteable<FormAddReviewEntity>()
-                            .Where(addreview => addreview.FormId == formId
-                                             && addreview.UserId == userId
-                                             && addreview.SortOrder == sortOrder)
-                            .ExecuteCommandAsync();
+            var count = await _db.Deleteable<FormAddReviewEntity>()
+                                 .Where(addreview => addreview.FormId == formId
+                                                  && addreview.UserId == userId
+                                                  && addreview.SortOrder == sortOrder)
+                                 .ExecuteCommandAsync();
+            if (count > 0)
+            {
+                await RefreshAddReviewText(formId);
+            }
+            return count;
         }
 
         /// <summary>
@@ -395,18 +570,23 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public async Task<int> UpdateAddReview(FormAddReviewEntity entity)
         {
-            return await _db.Updateable<FormAddReviewEntity>()
-                            .SetColumns(addReview => new FormAddReviewEntity
-                            {
-                                DeptName = entity.DeptName,
-                                UserId = entity.UserId,
-                                UserNo = entity.UserNo,
-                                UserName = entity.UserName,
-                                SortOrder = entity.SortOrder,
-                                ModifiedBy = entity.ModifiedBy,
-                                ModifiedDate = entity.ModifiedDate
-                            }).Where(addReview => addReview.FormId == entity.FormId && addReview.SortOrder == entity.SortOrder)
-                            .ExecuteCommandAsync();
+            var count = await _db.Updateable<FormAddReviewEntity>()
+                                 .SetColumns(addReview => new FormAddReviewEntity
+                                 {
+                                     DeptName = entity.DeptName,
+                                     UserId = entity.UserId,
+                                     UserNo = entity.UserNo,
+                                     UserName = entity.UserName,
+                                     SortOrder = entity.SortOrder,
+                                     ModifiedBy = entity.ModifiedBy,
+                                     ModifiedDate = entity.ModifiedDate
+                                 }).Where(addReview => addReview.FormId == entity.FormId && addReview.SortOrder == entity.SortOrder)
+                                 .ExecuteCommandAsync();
+            if (count > 0)
+            {
+                await RefreshAddReviewText(entity.FormId);
+            }
+            return count;
         }
 
         /// <summary>

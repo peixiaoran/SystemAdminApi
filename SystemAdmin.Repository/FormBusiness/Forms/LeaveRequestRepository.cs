@@ -10,6 +10,7 @@ using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
+using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Repository.FormBusiness.Forms
 {
@@ -17,11 +18,13 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
+        private readonly FormManager _formManager;
 
-        public LeaveRequestRepository(SqlSugarScope db, Language lang)
+        public LeaveRequestRepository(SqlSugarScope db, Language lang, FormManager formManager)
         {
             _db = db;
             _lang = lang;
+            _formManager = formManager;
         }
 
         /// <summary>
@@ -215,14 +218,24 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// <returns></returns>
         public async Task<int> SaveLeaveRequest(LeaveRequestEntity entity)
         {
-            return await _db.Updateable(entity)
-                            .IgnoreColumns(leave => new
-                            {
-                                leave.FormId,
-                                leave.CreatedBy,
-                                leave.CreatedDate,
-                            }).Where(leave => leave.FormId == entity.FormId)
-                            .ExecuteCommandAsync();
+            var count = await _db.Updateable(entity)
+                                 .IgnoreColumns(leave => new
+                                 {
+                                     leave.FormId,
+                                     leave.CreatedBy,
+                                     leave.CreatedDate,
+                                 }).Where(leave => leave.FormId == entity.FormId)
+                                 .ExecuteCommandAsync();
+
+            await _formManager.SaveFormSearch(entity.FormId,
+                                              [entity.AgentUserName,
+                                               entity.StartDateTime?.ToString("yyyy-MM-dd HH:mm"),
+                                               entity.EndDateTime?.ToString("yyyy-MM-dd HH:mm"),
+                                               entity.LeaveHours?.ToString("0.##"),
+                                               entity.LeaveReason],
+                                              [("LeaveType", entity.LeaveType)]);
+
+            return count;
         }
 
         /// <summary>

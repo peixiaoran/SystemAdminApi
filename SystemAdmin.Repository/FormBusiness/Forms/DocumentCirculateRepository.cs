@@ -5,6 +5,7 @@ using SystemAdmin.Model.FormBusiness.Forms.DocumentCirculate.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
+using SystemAdmin.Repository.FormBusiness.Workflow;
 
 namespace SystemAdmin.Repository.FormBusiness.Forms
 {
@@ -12,11 +13,13 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
     {
         private readonly SqlSugarScope _db;
         private readonly Language _lang;
+        private readonly FormManager _formManager;
 
-        public DocumentCirculateRepository(SqlSugarScope db, Language lang)
+        public DocumentCirculateRepository(SqlSugarScope db, Language lang, FormManager formManager)
         {
             _db = db;
             _lang = lang;
+            _formManager = formManager;
         }
 
         /// <summary>
@@ -36,14 +39,19 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// <returns></returns>
         public async Task<int> SaveDocumentCirculate(DocumentCirculateEntity entity)
         {
-            return await _db.Updateable(entity)
-                            .IgnoreColumns(circulate => new
-                            {
-                                circulate.FormId,
-                                circulate.CreatedBy,
-                                circulate.CreatedDate,
-                            }).Where(circulate => circulate.FormId == entity.FormId)
-                            .ExecuteCommandAsync();
+            var count = await _db.Updateable(entity)
+                                 .IgnoreColumns(circulate => new
+                                 {
+                                     circulate.FormId,
+                                     circulate.CreatedBy,
+                                     circulate.CreatedDate,
+                                 }).Where(circulate => circulate.FormId == entity.FormId)
+                                 .ExecuteCommandAsync();
+
+            await _formManager.SaveFormSearch(entity.FormId,
+                                              [entity.IssueDept, entity.CirculationPurpose, entity.ContentSummary]);
+
+            return count;
         }
 
         /// <summary>
