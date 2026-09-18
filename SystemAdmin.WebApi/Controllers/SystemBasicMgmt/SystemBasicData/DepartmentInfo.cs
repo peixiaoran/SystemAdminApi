@@ -30,7 +30,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
         [EndpointSummary("[部门信息] 部门级别下拉")]
-        public async Task<Result<List<DepartmentLevelDropDto>>> GetDepartmentLevelDrop()
+        public async Task<Result<List<DepartmentLevelDropDto>>> GetDepartmentLevelDrop() 
         {
             return await _departmentInfoService.GetDepartmentLevelDrop();
         }
