@@ -1,43 +1,27 @@
-﻿namespace SystemAdmin.CommonSetup.Security
+namespace SystemAdmin.CommonSetup.Security
 {
-    /// <summary>
-    /// 发送的邮件内容
-    /// </summary>
+    /// <summary>待发送的邮件</summary>
     public class EmailMessage
     {
-        /// <summary>
-        /// 收件人地址列表
-        /// </summary>
+        /// <summary>收件人</summary>
         public List<string> To { get; set; } = new();
 
-        /// <summary>
-        /// 抄送地址列表
-        /// </summary>
+        /// <summary>抄送</summary>
         public List<string> Cc { get; set; } = new();
 
-        /// <summary>
-        /// 密送地址列表
-        /// </summary>
+        /// <summary>密送</summary>
         public List<string> Bcc { get; set; } = new();
 
-        /// <summary>
-        /// 邮件主题
-        /// </summary>
+        /// <summary>主题</summary>
         public string Subject { get; set; } = string.Empty;
 
-        /// <summary>
-        /// 邮件正文内容，支持 HTML
-        /// </summary>
+        /// <summary>正文</summary>
         public string Body { get; set; } = string.Empty;
 
-        /// <summary>
-        /// 是否为 HTML 格式正文
-        /// </summary>
+        /// <summary>正文是否为 HTML</summary>
         public bool IsHtml { get; set; } = true;
 
-        /// <summary>
-        /// 附件文件路径列表，路径必须指向本地存在的文件
-        /// </summary>
+        /// <summary>附件本地路径</summary>
         public List<string> Attachments { get; set; } = new();
     }
 }

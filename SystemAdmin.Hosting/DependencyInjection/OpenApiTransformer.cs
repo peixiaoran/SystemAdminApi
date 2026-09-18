@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OpenApi;
 using Microsoft.OpenApi;
@@ -6,56 +6,44 @@ using System.Text.Json.Nodes;
 
 namespace SystemAdmin.Hosting.DependencyInjection
 {
-    /// <summary>
-    /// OpenAPI 文档转换器：添加 JWT Bearer 安全方案和 Accept-Language 公共参数
-    /// </summary>
-    public class OpenApiTransformer(IAuthenticationSchemeProvider authenticationSchemeProvider) : IOpenApiDocumentTransformer
+    /// <summary>OpenAPI 文档转换器：添加 JWT Bearer 安全方案与 Accept-Language 公共参数</summary>
+    public sealed class OpenApiTransformer(IAuthenticationSchemeProvider schemeProvider) : IOpenApiDocumentTransformer
     {
-        /// <summary>
-        /// 转换 OpenAPI 文档
-        /// </summary>
+        private const string SchemeKey = "Bearer";
+
         public async Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
         {
-            var authenticationSchemes = await authenticationSchemeProvider.GetAllSchemesAsync();
+            var schemes = await schemeProvider.GetAllSchemesAsync();
+            if (schemes.Any(s => s.Name == JwtBearerDefaults.AuthenticationScheme))
+                AddJwtSecurity(document);
 
-            // 处理 JWT 认证方案
-            if (authenticationSchemes.Any(authScheme => authScheme.Name == JwtBearerDefaults.AuthenticationScheme))
+            AddAcceptLanguageParameter(document);
+        }
+
+        private static void AddJwtSecurity(OpenApiDocument document)
+        {
+            document.Components ??= new OpenApiComponents();
+            document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+            document.Components.SecuritySchemes[SchemeKey] = new OpenApiSecurityScheme
             {
-                // 初始化 Components
-                document.Components ??= new OpenApiComponents();
-                document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
+                Type = SecuritySchemeType.Http,
+                Scheme = "bearer",
+                BearerFormat = "JWT",
+                In = ParameterLocation.Header,
+                Name = "Authorization",
+                Description = "JWT Authorization header using the Bearer scheme"
+            };
 
-                // 定义 JWT Bearer 安全方案
-                var jwtSecurityScheme = new OpenApiSecurityScheme
-                {
-                    Type = SecuritySchemeType.Http,
-                    Scheme = "bearer",
-                    BearerFormat = "JWT",
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Description = "JWT Authorization header using the Bearer scheme"
-                };
+            document.Security ??= new List<OpenApiSecurityRequirement>();
+            document.Security.Add(new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference(SchemeKey, document)] = new List<string>()
+            });
+        }
 
-                // 注册到 Components
-                const string schemeKey = "Bearer"; // key 用于引用
-                document.Components.SecuritySchemes[schemeKey] = jwtSecurityScheme;
-
-                // 初始化全局 SecurityRequirements
-                document.Security ??= new List<OpenApiSecurityRequirement>();
-
-                // 使用 OpenApiSecuritySchemeReference 添加全局安全要求
-                document.Security.Add(
-                    new OpenApiSecurityRequirement
-                    {
-                        [
-                            new OpenApiSecuritySchemeReference(schemeKey, document)
-                        ] = new List<string>()
-                    }
-                );
-            }
-
-            // 创建 Accept-Language 参数
-            var acceptLanguageParameter = new OpenApiParameter
+        private static void AddAcceptLanguageParameter(OpenApiDocument document)
+        {
+            var parameter = new OpenApiParameter
             {
                 Name = "Accept-Language",
                 In = ParameterLocation.Header,
@@ -73,16 +61,12 @@ namespace SystemAdmin.Hosting.DependencyInjection
                 }
             };
 
-            // 将参数添加到每个 Operation
             foreach (var path in document.Paths.Values)
             {
                 foreach (var operation in path.Operations?.Values ?? Enumerable.Empty<OpenApiOperation>())
                 {
-                    if (operation.Parameters == null)
-                    {
-                        operation.Parameters = new List<IOpenApiParameter>();
-                    }
-                    operation.Parameters.Add(acceptLanguageParameter);
+                    operation.Parameters ??= new List<IOpenApiParameter>();
+                    operation.Parameters.Add(parameter);
                 }
             }
         }

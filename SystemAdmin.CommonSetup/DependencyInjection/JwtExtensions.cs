@@ -1,85 +1,36 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography;
 using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
-    /// <summary>
-    /// JWT 认证注册扩展
-    /// </summary>
+    /// <summary>JWT 认证注册扩展</summary>
     public static class JwtExtensions
     {
-        /// <summary>
-        /// 注册 JWT 认证：绑定配置、注册 Token 服务与当前用户、配置 JwtBearer（支持 Header + Cookie）
-        /// </summary>
+        /// <summary>注册 JWT 配置、Token 服务、当前用户，并配置 JwtBearer（Header 优先，其次 Cookie）</summary>
         public static IServiceCollection AddJwtSetup(this IServiceCollection services, IConfiguration configuration)
         {
-            // 绑定配置并清理 PEM 中可能的换行
-            var settings = configuration.GetSection("JwtSettings").Get<JwtSettings>() ?? new JwtSettings();
-            settings.PublicKey = (settings.PublicKey ?? string.Empty).Trim();
-            settings.PrivateKey = (settings.PrivateKey ?? string.Empty).Trim();
-
-            // 写回 Options 供其它服务使用
-            services.Configure<JwtSettings>(opts =>
-            {
-                opts.Algorithm = settings.Algorithm;
-                opts.Issuer = settings.Issuer;
-                opts.Audience = settings.Audience;
-                opts.ExpiresInMinutes = settings.ExpiresInMinutes;
-                opts.ClockSkewSeconds = settings.ClockSkewSeconds;
-                opts.KeyId = settings.KeyId;
-                opts.PublicKey = settings.PublicKey;
-                opts.PrivateKey = settings.PrivateKey;
-                opts.CookieName = settings.CookieName;
-                opts.CookieSecure = settings.CookieSecure;
-                opts.CookieSameSite = settings.CookieSameSite;
-                opts.RefreshTokenExpiresInDays = settings.RefreshTokenExpiresInDays;
-                opts.RefreshCookieName = settings.RefreshCookieName;
-            });
-
+            services.AddHttpContextAccessor();
+            services.Configure<JwtSettings>(configuration.GetSection("JwtSettings"));
             services.AddSingleton<JwtTokenService>();
             services.AddScoped<CurrentUser>();
 
-            // 构造验证用公钥
-            var ecdsa = ECDsa.Create();
-            ecdsa.ImportFromPem(settings.PublicKey);
-            var securityKey = new ECDsaSecurityKey(ecdsa) { KeyId = settings.KeyId };
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer();
 
-            services
-                .AddAuthentication(options =>
+            // 验签参数直接复用 JwtTokenService，避免在注册阶段重复解析密钥
+            services.AddOptions<JwtBearerOptions>(JwtBearerDefaults.AuthenticationScheme)
+                .Configure<JwtTokenService>((options, tokenService) =>
                 {
-                    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-                    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-                })
-                .AddJwtBearer(options =>
-                {
-                    options.Audience = settings.Audience;
                     options.RequireHttpsMetadata = true;
                     options.SaveToken = false;
-
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidIssuer = settings.Issuer,
-                        ValidAudience = settings.Audience,
-                        IssuerSigningKey = securityKey,
-                        ValidateIssuerSigningKey = true,
-                        ValidateIssuer = true,
-                        ValidateAudience = true,
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.FromSeconds(settings.ClockSkewSeconds),
-                        ValidAlgorithms = new[] { SecurityAlgorithms.EcdsaSha256 },
-                    };
-
-                    // 优先从 Authorization Header 读取，其次从 Cookie
+                    options.TokenValidationParameters = tokenService.ValidationParameters;
                     options.Events = new JwtBearerEvents
                     {
                         OnMessageReceived = context =>
                         {
-                            context.Token = ExtractToken(context.Request, settings.CookieName);
+                            context.Token = ExtractToken(context.Request, tokenService.CookieName);
                             return Task.CompletedTask;
                         }
                     };
@@ -89,20 +40,16 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
             return services;
         }
 
-        /// <summary>
-        /// 提取 Token：优先 Authorization Header，其次 Cookie
-        /// </summary>
-        private static string? ExtractToken(HttpRequest request, string? cookieName)
+        private static string? ExtractToken(HttpRequest request, string cookieName)
         {
             var authHeader = request.Headers.Authorization.ToString();
             if (authHeader.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase))
             {
                 var token = authHeader["Bearer ".Length..].Trim();
-                if (!string.IsNullOrWhiteSpace(token)) return token;
+                if (token.Length > 0) return token;
             }
 
-            var name = string.IsNullOrWhiteSpace(cookieName) ? "AccessToken" : cookieName;
-            return request.Cookies.TryGetValue(name, out var cookieToken) && !string.IsNullOrWhiteSpace(cookieToken)
+            return request.Cookies.TryGetValue(cookieName, out var cookieToken) && !string.IsNullOrWhiteSpace(cookieToken)
                 ? cookieToken
                 : null;
         }

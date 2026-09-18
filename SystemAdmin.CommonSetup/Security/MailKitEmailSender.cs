@@ -1,67 +1,47 @@
-﻿using MailKit.Net.Smtp;
+using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 
 namespace SystemAdmin.CommonSetup.Security
 {
-    /// <summary>
-    /// MailKit 邮件发送服务
-    /// </summary>
+    /// <summary>MailKit 邮件发送</summary>
     public class MailKitEmailSender
     {
         private readonly EmailOptions _options;
-        private readonly ILogger<MailKitEmailSender> _logger;
 
-        public MailKitEmailSender(IOptions<EmailOptions> options, ILogger<MailKitEmailSender> logger)
+        public MailKitEmailSender(IOptions<EmailOptions> options)
         {
             _options = options.Value;
-            _logger = logger;
         }
 
-        /// <summary>
-        /// 发送邮件
-        /// </summary>
-        public async Task SendAsync( EmailMessage message, CancellationToken cancellationToken = default)
+        /// <summary>通过 SMTP（587 / StartTls）发送邮件</summary>
+        public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             var mimeMessage = BuildMimeMessage(message);
 
-            using var client = new SmtpClient
-            {
-                Timeout = _options.Timeout
-            };
+            using var client = new SmtpClient { Timeout = _options.Timeout };
 
-            await client.ConnectAsync( _options.SmtpServer, 587, SecureSocketOptions.StartTls, cancellationToken);
+            await client.ConnectAsync(_options.SmtpServer, 587, SecureSocketOptions.StartTls, cancellationToken);
 
             if (!string.IsNullOrWhiteSpace(_options.UserName))
-            {
-                await client.AuthenticateAsync(
-                    _options.UserName,
-                    _options.Password,
-                    cancellationToken);
-            }
+                await client.AuthenticateAsync(_options.UserName, _options.Password, cancellationToken);
 
             await client.SendAsync(mimeMessage, cancellationToken);
-
             await client.DisconnectAsync(true, cancellationToken);
         }
 
-        /// <summary>
-        /// 构建 MimeMessage 邮件对象
-        /// </summary>
         private MimeMessage BuildMimeMessage(EmailMessage message)
         {
-            var mimeMessage = new MimeMessage();
+            var mimeMessage = new MimeMessage
+            {
+                Subject = message.Subject ?? string.Empty
+            };
 
-            mimeMessage.From.Add(new MailboxAddress(
-                _options.DisplayName,
-                _options.From));
+            mimeMessage.From.Add(new MailboxAddress(_options.DisplayName, _options.From));
 
             foreach (var to in message.To)
                 mimeMessage.To.Add(MailboxAddress.Parse(to));
-
-            mimeMessage.Subject = message.Subject ?? string.Empty;
 
             var bodyBuilder = new BodyBuilder
             {
@@ -69,20 +49,13 @@ namespace SystemAdmin.CommonSetup.Security
                 TextBody = message.IsHtml ? null : message.Body
             };
 
-            if (message.Attachments != null)
+            foreach (var path in message.Attachments ?? Enumerable.Empty<string>())
             {
-                foreach (var path in message.Attachments)
-                {
-                    if (!string.IsNullOrWhiteSpace(path)
-                        && File.Exists(path))
-                    {
-                        bodyBuilder.Attachments.Add(path);
-                    }
-                }
+                if (!string.IsNullOrWhiteSpace(path) && File.Exists(path))
+                    bodyBuilder.Attachments.Add(path);
             }
 
             mimeMessage.Body = bodyBuilder.ToMessageBody();
-
             return mimeMessage;
         }
     }

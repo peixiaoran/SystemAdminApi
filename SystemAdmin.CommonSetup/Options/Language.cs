@@ -1,30 +1,53 @@
-﻿namespace SystemAdmin.CommonSetup.Security
+using System.Globalization;
+
+namespace SystemAdmin.CommonSetup.Security
 {
-    /// <summary>
-    /// 语言配置类
-    /// </summary>
+    /// <summary>当前请求的语言</summary>
     public class Language
     {
-        /// <summary>
-        /// 当前请求的 UI 语言，例如 "zh-CN"
-        /// </summary>
+        private const string DefaultLocale = "zh-CN";
+
+        /// <summary>语言标识，如 zh-CN</summary>
         public string Locale { get; }
 
-        /// <summary>
-        /// 是否中文（包含 zh-CN等）
-        /// </summary>
+        /// <summary>对应的 CultureInfo，无法识别时回退 zh-CN</summary>
+        public CultureInfo Culture { get; }
+
+        /// <summary>是否中文</summary>
         public bool IsChinese { get; }
 
-        /// <summary>
-        /// 是否英文（包含 en-US等）
-        /// </summary>
+        /// <summary>是否英文</summary>
         public bool IsEnglish { get; }
 
-        public Language(string uiLanguage)
+        public Language(string locale)
         {
-            Locale = uiLanguage;
-            IsChinese = uiLanguage.StartsWith("zh", System.StringComparison.OrdinalIgnoreCase);
-            IsEnglish = uiLanguage.StartsWith("en", System.StringComparison.OrdinalIgnoreCase);
+            Locale = locale;
+            Culture = ToCulture(locale) ?? new CultureInfo(DefaultLocale);
+            IsChinese = locale.StartsWith("zh", StringComparison.OrdinalIgnoreCase);
+            IsEnglish = locale.StartsWith("en", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>解析 Accept-Language 请求头，取第一个语言，缺省 zh-CN</summary>
+        public static Language Parse(string? acceptLanguage)
+        {
+            var first = acceptLanguage?.Split(',')[0].Split(';')[0].Trim();
+            return new Language(string.IsNullOrEmpty(first) ? DefaultLocale : first);
+        }
+
+        /// <summary>语言名称转 CultureInfo，无效时返回 null</summary>
+        internal static CultureInfo? ToCulture(string? name)
+        {
+            if (string.IsNullOrWhiteSpace(name))
+                return null;
+
+            try
+            {
+                return new CultureInfo(name);
+            }
+            catch (CultureNotFoundException)
+            {
+                return null;
+            }
         }
     }
 }

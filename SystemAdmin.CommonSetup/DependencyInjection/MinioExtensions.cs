@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Minio;
@@ -6,43 +6,29 @@ using SystemAdmin.CommonSetup.Security;
 
 namespace SystemAdmin.CommonSetup.DependencyInjection
 {
-    /// <summary>
-    /// Minio 注册扩展
-    /// </summary>
+    /// <summary>Minio 注册扩展</summary>
     public static class MinioExtensions
     {
-        /// <summary>
-        /// 注册 Minio 相关依赖：MinioSettings、IMinioClient、MinioService
-        /// </summary>
+        /// <summary>绑定 Minio 配置，注册 IMinioClient 与 MinioService 单例</summary>
         public static IServiceCollection AddMinioSetup(this IServiceCollection services, IConfiguration configuration)
         {
-            // 1. 绑定 MinioSettings
-            services.Configure<MinioSettings>(opts =>
-            {
-                configuration.GetSection("Minio").Bind(opts);
-            });
+            services.Configure<MinioSettings>(configuration.GetSection("Minio"));
 
-            // 2. 注册 IMinioClient 单例
-            services.AddSingleton(sp =>
+            services.AddSingleton<IMinioClient>(sp =>
             {
-                var options = sp.GetRequiredService<IOptions<MinioSettings>>().Value;
+                var settings = sp.GetRequiredService<IOptions<MinioSettings>>().Value;
 
                 var client = new MinioClient()
-                    .WithEndpoint(options.Endpoint)
-                    .WithCredentials(options.AccessKey, options.SecretKey);
+                    .WithEndpoint(settings.Endpoint)
+                    .WithCredentials(settings.AccessKey, settings.SecretKey);
 
-                if (options.UseSSL)
-                {
+                if (settings.UseSSL)
                     client = client.WithSSL();
-                }
 
-                // Build() 返回 IMinioClient，正好匹配注册类型
                 return client.Build();
             });
 
-            // 3. 注册业务操作服务
-            services.AddScoped<MinioService>();
-
+            services.AddSingleton<MinioService>();
             return services;
         }
     }

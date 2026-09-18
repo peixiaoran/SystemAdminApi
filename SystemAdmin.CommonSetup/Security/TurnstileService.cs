@@ -4,9 +4,7 @@ using System.Text.Json.Serialization;
 
 namespace SystemAdmin.CommonSetup.Security
 {
-    /// <summary>
-    /// Cloudflare Turnstile 人机验证服务
-    /// </summary>
+    /// <summary>Cloudflare Turnstile 人机验证</summary>
     public class TurnstileService
     {
         private readonly HttpClient _httpClient;
@@ -18,12 +16,7 @@ namespace SystemAdmin.CommonSetup.Security
             _options = options.Value;
         }
 
-        /// <summary>
-        /// 校验前端提交的 Turnstile Token
-        /// </summary>
-        /// <param name="token"></param>
-        /// <param name="remoteIp"></param>
-        /// <returns></returns>
+        /// <summary>校验前端提交的 Turnstile Token</summary>
         public async Task<bool> VerifyAsync(string? token, string? remoteIp)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -45,7 +38,7 @@ namespace SystemAdmin.CommonSetup.Security
             return result?.Success ?? false;
         }
 
-        private class TurnstileVerifyResult
+        private sealed class TurnstileVerifyResult
         {
             [JsonPropertyName("success")]
             public bool Success { get; set; }
