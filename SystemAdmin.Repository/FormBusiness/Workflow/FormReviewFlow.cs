@@ -419,14 +419,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 request.SkipWhenEmpty = true;
 
+                // 解析器定位到的是「部门 + 职级」这个角色，按部门职级指派同样的取人方式解析
+                // （实/兼/代/兼代身份、降级兜底均复用同一套逻辑，与 FormReviewAction 保持一致）
                 var custom = await _personResolver.Resolve(customInfo.Guidance, formDetail.FormId);
                 if (custom == null)
                 {
                     return request;
                 }
 
-                request.Filter = ReviewUserFilter.User;
-                request.UserIds.Add(custom.UserId);
+                request.Filter = ReviewUserFilter.Dept;
                 request.DepartmentId = custom.DepartmentId;
                 request.PositionSort = context.PositionSort(custom.PositionId);
                 request.DeptLevelSort = context.DeptLevelSort(custom.DepartmentLevelId);
@@ -704,7 +705,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             /// <summary>降级沿申请人部门链查找（组织架构指派）</summary>
             public bool DowngradeFromApplicant { get; set; }
 
-            /// <summary>点名的审批人（指定人 / 自定义 / 加审）</summary>
+            /// <summary>点名的审批人（指定人 / 加审）</summary>
             public List<long> UserIds { get; set; } = new List<long>();
 
             /// <summary>目标部门（指定部门职级过滤 / 降级起点）</summary>

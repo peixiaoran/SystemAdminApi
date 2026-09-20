@@ -221,7 +221,16 @@ namespace SystemAdmin.Localization.FormBusiness.Forms {
                 return ResourceManager.GetString("LeaveRequestNotFound", resourceCulture);
             }
         }
-        
+
+        /// <summary>
+        ///   查找类似 出差单号「{0}」于 {1} 至 {2} 期间与本次出差时间冲突，请重新选择 的本地化字符串。
+        /// </summary>
+        internal static string TripDateConflict {
+            get {
+                return ResourceManager.GetString("TripDateConflict", resourceCulture);
+            }
+        }
+
         /// <summary>
         ///   查找类似 无权申请此表单 的本地化字符串。
         /// </summary>

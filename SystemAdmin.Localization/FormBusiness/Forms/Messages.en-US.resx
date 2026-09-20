@@ -171,6 +171,9 @@
   <data name="LeaveRequestNotFound" xml:space="preserve">
     <value>The leave request could not be found</value>
   </data>
+  <data name="TripDateConflict" xml:space="preserve">
+    <value>Trip form {0} conflicts with this trip's dates from {1} to {2}. Please choose a different time</value>
+  </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>Leave Request Form</value>
   </data>

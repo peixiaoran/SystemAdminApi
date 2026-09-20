@@ -59,6 +59,25 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
+        /// 部门职能下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<DepartmentFunctionsDropDto>> GetDepartmentFunctionsDrop()
+        {
+            return await _db.Queryable<DictionaryInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(dic => dic.DicType == "Functions")
+                            .OrderBy(dic => dic.SortOrder)
+                            .Select(dic => new DepartmentFunctionsDropDto
+                            {
+                                DepartmentFunctions = dic.DicCode,
+                                DepartmentFunctionsName = _lang.Locale == "zh-CN"
+                                                          ? dic.DicNameCn
+                                                          : dic.DicNameEn
+                            }).ToListAsync();
+        }
+
+        /// <summary>
         /// 部门级别下拉
         /// </summary>
         /// <returns></returns>
@@ -207,9 +226,10 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
             var deptList = await _db.Queryable<DepartmentInfoEntity>()
                                     .With(SqlWith.NoLock)
                                     .LeftJoin<DepartmentLevelEntity>((dept, level) => dept.DepartmentLevelId == level.DepartmentLevelId)
-                                    .Where((dept, level) => allDeptIds.Contains(dept.DepartmentId))
+                                    .LeftJoin<DictionaryInfoEntity>((dept, level, functionsDic) => functionsDic.DicType == "Functions" && dept.DepartmentFunctions == functionsDic.DicCode)
+                                    .Where((dept, level, functionsDic) => allDeptIds.Contains(dept.DepartmentId))
                                     .OrderBy(dept => dept.SortOrder)
-                                    .Select((dept, level) => new DepartmentInfoDto
+                                    .Select((dept, level, functionsDic) => new DepartmentInfoDto
                                     {
                                         DepartmentId = dept.DepartmentId,
                                         DepartmentCode = dept.DepartmentCode,
@@ -218,6 +238,10 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                         ParentId = dept.ParentId,
                                         Factory = dept.Factory,
                                         DepartmentLevelId = dept.DepartmentLevelId,
+                                        DepartmentFunctions = dept.DepartmentFunctions,
+                                        DepartmentFunctionsName = _lang.Locale == "zh-CN"
+                                                                  ? functionsDic.DicNameCn
+                                                                  : functionsDic.DicNameEn,
                                         DepartmentLevelName = _lang.Locale == "zh-CN"
                                                               ? level.DepartmentLevelNameCn
                                                               : level.DepartmentLevelNameEn,

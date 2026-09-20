@@ -171,6 +171,9 @@
   <data name="LeaveRequestNotFound" xml:space="preserve">
     <value>找不到该请假单</value>
   </data>
+  <data name="TripDateConflict" xml:space="preserve">
+    <value>出差单号「{0}」于 {1} 至 {2} 期间与本次出差时间冲突，请重新选择</value>
+  </data>
   <data name="PdfLeaveRequestTitle" xml:space="preserve">
     <value>请假单</value>
   </data>

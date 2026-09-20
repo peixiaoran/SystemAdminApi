@@ -696,68 +696,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new List<UserAppointment>();
             }
 
-            long userId = custom.UserId;
-            PositionInfoEntity position;
-            DepartmentInfoEntity dept;
-            DepartmentLevelEntity deptlevel;
-
-            // 历史行为差异（维持不变）：含代理版降级锚点按解析器给的部门/职级，仅实/兼版按用户档案
-            if (withAgent)
-            {
-                position = await _db.Queryable<PositionInfoEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(position => position.PositionId == custom.PositionId)
-                                    .FirstAsync();
-
-                dept = await _db.Queryable<DepartmentInfoEntity>()
-                                .With(SqlWith.NoLock)
-                                .Where(dept => dept.DepartmentId == custom.DepartmentId)
-                                .FirstAsync();
-
-                deptlevel = await _db.Queryable<DepartmentLevelEntity>()
-                                     .With(SqlWith.NoLock)
-                                     .Where(deptlevel => deptlevel.DepartmentLevelId == custom.DepartmentLevelId)
-                                     .FirstAsync();
-            }
-            else
-            {
-                var user = await _db.Queryable<UserInfoEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(user => user.UserId == userId)
-                                    .FirstAsync();
-
-                position = await _db.Queryable<PositionInfoEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(position => position.PositionId == user.PositionId)
-                                    .FirstAsync();
-
-                dept = await _db.Queryable<DepartmentInfoEntity>()
-                                .With(SqlWith.NoLock)
-                                .Where(dept => dept.DepartmentId == user.DepartmentId)
-                                .FirstAsync();
-
-                deptlevel = await _db.Queryable<DepartmentLevelEntity>()
-                                     .With(SqlWith.NoLock)
-                                     .Where(deptlevel => deptlevel.DepartmentLevelId == dept.DepartmentLevelId)
-                                     .FirstAsync();
-            }
-
-            bool isReview = reviewMode == ReviewMode.Review.ToEnumString();
-
-            var exactResult = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isReview, withAgent, requireReviewAuth: true,
-                new SugarParameter("@UserId", userId));
-
-            if (exactResult.Any())
-            {
-                return exactResult;
-            }
-
-            var targetParentDept = await _db.Queryable<DepartmentInfoEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .ToParentListAsync(parent => parent.ParentId, dept.DepartmentId);
-            string parentDeptIds = string.Join(",", targetParentDept.Select(parent => parent.DepartmentId));
-
-            return await FindDowngradeAppointments(parentDeptIds, position.SortOrder, deptlevel.SortOrder, isReview, withAgent);
+            // 解析器定位到的是「部门 + 职级」这个角色，直接复用指定部门职级指派的既有取人逻辑：
+            // 实职优先、查不到再取生效中的兼任，命中人员再叠加生效中的代理人，
+            // 精确匹配落空则按同一套身份优先级（实 > 代 > 兼 > 兼代）沿部门链降级
+            return await GetDeptUserReviewUserCore(custom.DepartmentId, custom.PositionId, reviewMode, withAgent);
         }
 
         /// <summary>

@@ -45,6 +45,11 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         public long DepartmentLevelId { get; set; }
 
         /// <summary>
+        /// 部门职能
+        /// </summary>
+        public string? DepartmentFunctions { get; set; }
+
+        /// <summary>
         /// 部门描述
         /// </summary>
         public string Description { get; set; } = string.Empty;

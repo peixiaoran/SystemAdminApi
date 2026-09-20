@@ -64,6 +64,24 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         }
 
         /// <summary>
+        /// 部门职能下拉
+        /// </summary>
+        /// <returns></returns>
+        public async Task<Result<List<DepartmentFunctionsDropDto>>> GetDepartmentFunctionsDrop()
+        {
+            try
+            {
+                var drop = await _deptInfoRepo.GetDepartmentFunctionsDrop();
+                return Result<List<DepartmentFunctionsDropDto>>.Ok(drop, "");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<List<DepartmentFunctionsDropDto>>.Failure(500, ex.Message.ToString());
+            }
+        }
+
+        /// <summary>
         /// 部门级别下拉
         /// </summary>
         /// <returns></returns>
@@ -99,6 +117,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
                     Factory = upsert.Factory,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
+                    DepartmentFunctions = upsert.DepartmentFunctions,
                     SortOrder = upsert.SortOrder,
                     Landline = upsert.Landline,
                     Email = upsert.Email,
@@ -196,6 +215,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
                     Factory = upsert.Factory,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
+                    DepartmentFunctions = upsert.DepartmentFunctions,
                     SortOrder = upsert.SortOrder,
                     Landline = upsert.Landline,
                     Email = upsert.Email,

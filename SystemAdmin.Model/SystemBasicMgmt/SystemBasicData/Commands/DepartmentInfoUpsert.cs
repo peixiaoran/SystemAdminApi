@@ -41,6 +41,11 @@
         public string DepartmentLevelId { get; set; } = string.Empty;
 
         /// <summary>
+        /// 部门职能
+        /// </summary>
+        public string? DepartmentFunctions { get; set; }
+
+        /// <summary>
         /// 排序值（默认0）
         /// </summary>
         public int SortOrder { get; set; }

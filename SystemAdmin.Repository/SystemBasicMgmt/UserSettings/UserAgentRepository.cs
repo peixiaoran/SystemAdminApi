@@ -33,7 +33,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
             return await _db.Queryable<DepartmentInfoEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<DepartmentLevelEntity>((dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
-                            .OrderBy((dept, deptlevel) => deptlevel.SortOrder)
+                            .OrderBy((dept, deptlevel) => dept.SortOrder)
                             .Select((dept, deptlevel) => new DepartmentDropDto
                             {
                                 DepartmentId = dept.DepartmentId,
