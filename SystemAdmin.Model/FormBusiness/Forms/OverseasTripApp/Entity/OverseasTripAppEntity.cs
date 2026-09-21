@@ -17,12 +17,12 @@ namespace SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Entity
         /// <summary>
         /// 出发厂区
         /// </summary>
-        public string? DepartureFactory { get; set; }
+        public string? DepartureSite { get; set; }
 
         /// <summary>
         /// 目的厂区
         /// </summary>
-        public string? DestinationFactory { get; set; }
+        public string? DestinationSite { get; set; }
 
         /// <summary>
         /// 出差事由

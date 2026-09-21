@@ -71,22 +71,22 @@ namespace SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto
         /// <summary>
         /// 出发厂区
         /// </summary>
-        public string? DepartureFactory { get; set; } = string.Empty;
+        public string? DepartureSite { get; set; } = string.Empty;
 
         /// <summary>
         /// 出发厂区名称
         /// </summary>
-        public string? DepartureFactoryName { get; set; } = string.Empty;
+        public string? DepartureSiteName { get; set; } = string.Empty;
 
         /// <summary>
         /// 目的厂区
         /// </summary>
-        public string? DestinationFactory { get; set; } = string.Empty;
+        public string? DestinationSite { get; set; } = string.Empty;
 
         /// <summary>
         /// 目的厂区名称
         /// </summary>
-        public string? DestinationFactoryName { get; set; } = string.Empty;
+        public string? DestinationSiteName { get; set; } = string.Empty;
 
         /// <summary>
         /// 出差事由

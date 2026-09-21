@@ -170,7 +170,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             var orgStepIds = AssignedStepIds(assignStepIds, Assignment.Org);
             var deptUserStepIds = AssignedStepIds(assignStepIds, Assignment.DeptUser);
-            var userStepIds = AssignedStepIds(assignStepIds, Assignment.User);
+            var userStepIds = AssignedStepIds(assignStepIds, Assignment.AssignedUser);
             var customStepIds = AssignedStepIds(assignStepIds, Assignment.Custom);
             var addReviewStepIds = AssignedStepIds(assignStepIds, Assignment.AddReview);
 
@@ -392,7 +392,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return request;
             }
 
-            if (stepInfo.Assignment == Assignment.User.ToEnumString())
+            if (stepInfo.Assignment == Assignment.AssignedUser.ToEnumString())
             {
                 if (!context.UserConfigMap.TryGetValue(stepInfo.StepId, out var userInfo)
                     || !context.UserMap.TryGetValue(userInfo.UserId, out var targetUser)

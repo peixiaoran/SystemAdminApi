@@ -9,14 +9,13 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
     /// <summary>文件上传注册扩展</summary>
     public static class FileUploadExtensions
     {
-        /// <summary>绑定 FileUpload 配置，并把表单上传上限同步为 MaxSizeMB</summary>
+        /// <summary>绑定 FileUpload 配置（仅用于扩展名白名单校验，不再限制文件大小）</summary>
         public static IServiceCollection AddFileUploadSetup(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<FileUploadOptions>(configuration.GetSection("FileUpload"));
 
             services.AddOptions<FormOptions>()
-                .Configure<IOptions<FileUploadOptions>>((form, upload) =>
-                    form.MultipartBodyLengthLimit = upload.Value.MaxSizeMB * 1024L * 1024L);
+                .Configure(form => form.MultipartBodyLengthLimit = long.MaxValue);
 
             return services;
         }

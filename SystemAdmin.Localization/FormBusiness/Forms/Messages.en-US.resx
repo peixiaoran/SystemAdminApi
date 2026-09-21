@@ -127,7 +127,10 @@
     <value>Please upload at least one attachment</value>
   </data>
   <data name="AttachmentSizeLimit" xml:space="preserve">
-    <value>Each attachment must not exceed 25 MB</value>
+    <value>Each attachment must not exceed {0} MB</value>
+  </data>
+  <data name="RequestBodyTooLarge" xml:space="preserve">
+    <value>The upload is too large. Please reduce the number or size of files and try again (max {0} MB per request)</value>
   </data>
   <data name="UploadFailed" xml:space="preserve">
     <value>Failed to upload the attachment. Please try again</value>

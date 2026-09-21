@@ -93,8 +93,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
-            // 排序
-            query = query.OrderBy((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
+            // 排序：按创建时间倒序
+            query = query.OrderByDescending((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
 
             var page = await query.Select((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new FormPendingDto
             {
@@ -152,8 +152,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
-            // 排序
-            query = query.OrderBy((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new { instance.CreatedDate });
+            // 排序：按创建时间倒序
+            query = query.OrderByDescending((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
 
             var page = await query.Select((pending, instance, dic, formtype, applyuser, applyuserdept, useragent) => new FormPendingDto
             {

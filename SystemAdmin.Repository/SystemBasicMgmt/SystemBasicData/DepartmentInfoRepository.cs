@@ -43,16 +43,16 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         /// 厂区下拉
         /// </summary>
         /// <returns></returns>
-        public async Task<List<FactoryDropDto>> GetFactoryDrop()
+        public async Task<List<SiteDropDto>> GetSiteDrop()
         {
             return await _db.Queryable<DictionaryInfoEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(dic => dic.DicType == "Factorys")
+                            .Where(dic => dic.DicType == "Sites")
                             .OrderBy(dic => dic.SortOrder)
-                            .Select(dic => new FactoryDropDto
+                            .Select(dic => new SiteDropDto
                             {
-                                Factory = dic.DicCode,
-                                FactoryName = _lang.Locale == "zh-CN"
+                                Site = dic.DicCode,
+                                SiteName = _lang.Locale == "zh-CN"
                                               ? dic.DicNameCn
                                               : dic.DicNameEn
                             }).ToListAsync();
@@ -236,7 +236,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                         DepartmentNameCn = dept.DepartmentNameCn,
                                         DepartmentNameEn = dept.DepartmentNameEn,
                                         ParentId = dept.ParentId,
-                                        Factory = dept.Factory,
+                                        Site = dept.Site,
                                         DepartmentLevelId = dept.DepartmentLevelId,
                                         DepartmentFunctions = dept.DepartmentFunctions,
                                         DepartmentFunctionsName = _lang.Locale == "zh-CN"

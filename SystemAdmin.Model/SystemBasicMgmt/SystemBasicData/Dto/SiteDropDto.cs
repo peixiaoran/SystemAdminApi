@@ -3,16 +3,16 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
     /// <summary>
     /// 厂区下拉Dto
     /// </summary>
-    public class FactoryDropDto
+    public class SiteDropDto
     {
         /// <summary>
         /// 厂区编码
         /// </summary>
-        public string Factory { get; set; } = string.Empty;
+        public string Site { get; set; } = string.Empty;
 
         /// <summary>
         /// 厂区名称
         /// </summary>
-        public string FactoryName { get; set; } = string.Empty;
+        public string SiteName { get; set; } = string.Empty;
     }
 }

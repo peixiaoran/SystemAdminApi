@@ -12,7 +12,6 @@ using SystemAdmin.Model.FormBusiness.Workflow.FormReviewAction.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
-using SystemAdmin.Repository.FormBusiness.Workflow;
 using System.Data;
 
 namespace SystemAdmin.Repository.FormBusiness.FormOperate
@@ -20,13 +19,11 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
     public class ApplyHistoryRepository
     {
         private readonly SqlSugarScope _db;
-        private readonly WorkflowRuleConditions _workflowRuleConditions;
         private readonly Language _lang;
 
-        public ApplyHistoryRepository(SqlSugarScope db, WorkflowRuleConditions workflowRuleConditions, Language lang)
+        public ApplyHistoryRepository(SqlSugarScope db, Language lang)
         {
             _db = db;
-            _workflowRuleConditions = workflowRuleConditions;
             _lang = lang;
         }
 
@@ -97,8 +94,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
-            // 排序
-            query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.ModifiedDate });
+            // 排序：按创建时间倒序
+            query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => instance.CreatedDate);
 
             var page = await query.Select((instance, dic, formtype, applyuser, applydept, useragent) => new FormHistoryDto
             {
@@ -154,8 +151,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
-            // 排序
-            query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => new { instance.ModifiedDate });
+            // 排序：按创建时间倒序
+            query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent) => instance.CreatedDate);
 
             return await query.Select((instance, dic, formtype, applyuser, applydept, useragent) => new FormHistoryDto
             {

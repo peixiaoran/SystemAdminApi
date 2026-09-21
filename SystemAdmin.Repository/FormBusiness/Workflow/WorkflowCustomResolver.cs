@@ -1,5 +1,4 @@
 using SqlSugar;
-using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.PersonResolver.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
@@ -11,26 +10,22 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
     /// </summary>
     public class WorkflowCustomResolver
     {
-        private readonly CurrentUser _loginuser;
         private readonly SqlSugarScope _db;
-        private readonly Language _lang;
 
         // guidance(方法名) -> 实际方法
         private readonly Dictionary<string, Func<long, Task<CustomUser>>> _registry;
 
-        public WorkflowCustomResolver(CurrentUser loginuser, SqlSugarScope db, Language lang)
+        public WorkflowCustomResolver(SqlSugarScope db)
         {
-            _loginuser = loginuser;
             _db = db;
-            _lang = lang;
 
             // 登记所有自定义取人方法，新增方法只需在这里加一行
             _registry = new Dictionary<string, Func<long, Task<CustomUser>>>(StringComparer.OrdinalIgnoreCase)
             {
-                [nameof(DeparturePlantManager)] = DeparturePlantManager,
-                [nameof(DestinationPlantManager)] = DestinationPlantManager,
-                [nameof(DepartureFactoryHRManager)] = DepartureFactoryHRManager,
-                [nameof(DestinationFactoryHRManager)] = DestinationFactoryHRManager,
+                [nameof(DepartureSiteManager)] = DepartureSiteManager,
+                [nameof(DestinationSiteManager)] = DestinationSiteManager,
+                [nameof(DepartureSiteHRManager)] = DepartureSiteHRManager,
+                [nameof(DestinationSiteHRManager)] = DestinationSiteHRManager,
             };
         }
 
@@ -50,42 +45,42 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 出差单
         /// <summary>
-        /// 出发厂区厂长：根据出差单的出发厂区，定位该厂区下部门级别为厂级(Plant)、职级为厂长(S08)的角色
+        /// 出发厂区厂长：根据出差单的出发厂区，定位该厂区下部门级别为厂级(Site)、职级为厂长(S08)的角色
         /// </summary>
-        public async Task<CustomUser> DeparturePlantManager(long formId)
+        public async Task<CustomUser> DepartureSiteManager(long formId)
         {
-            var departureFactory = await _db.Queryable<OverseasTripAppEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .Where(trip => trip.FormId == formId)
-                                            .Select(trip => trip.DepartureFactory)
-                                            .FirstAsync();
+            var departureSite = await _db.Queryable<OverseasTripAppEntity>()
+                                         .With(SqlWith.NoLock)
+                                         .Where(trip => trip.FormId == formId)
+                                         .Select(trip => trip.DepartureSite)
+                                         .FirstAsync();
 
-            return await ResolvePlantManagerRole(departureFactory);
+            return await ResolveSiteManagerRole(departureSite);
         }
 
         /// <summary>
-        /// 目的厂区厂长：根据出差单的目的厂区，定位该厂区下部门级别为厂级(Plant)、职级为厂长(S08)的角色
+        /// 目的厂区厂长：根据出差单的目的厂区，定位该厂区下部门级别为厂级(Site)、职级为厂长(S08)的角色
         /// </summary>
-        public async Task<CustomUser> DestinationPlantManager(long formId)
+        public async Task<CustomUser> DestinationSiteManager(long formId)
         {
-            var destinationFactory = await _db.Queryable<OverseasTripAppEntity>()
-                                              .With(SqlWith.NoLock)
-                                              .Where(trip => trip.FormId == formId)
-                                              .Select(trip => trip.DestinationFactory)
-                                              .FirstAsync();
+            var destinationSite = await _db.Queryable<OverseasTripAppEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .Where(trip => trip.FormId == formId)
+                                           .Select(trip => trip.DestinationSite)
+                                           .FirstAsync();
 
-            return await ResolvePlantManagerRole(destinationFactory);
+            return await ResolveSiteManagerRole(destinationSite);
         }
 
         /// <summary>
-        /// 按厂区定位部门级别为厂级(Plant)、职级为厂长(S08)的角色
+        /// 按厂区定位部门级别为厂级(Site)、职级为厂长(S08)的角色
         /// </summary>
-        private async Task<CustomUser> ResolvePlantManagerRole(string? factory)
+        private async Task<CustomUser> ResolveSiteManagerRole(string? site)
         {
             var dept = await _db.Queryable<DepartmentInfoEntity>()
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<DepartmentLevelEntity>((dept, level) => dept.DepartmentLevelId == level.DepartmentLevelId)
-                                .Where((dept, level) => dept.Factory == factory && level.DepartmentLevelCode == "Plant")
+                                .Where((dept, level) => dept.Site == site && level.DepartmentLevelCode == "Site")
                                 .Select((dept, level) => dept)
                                 .FirstAsync();
 
@@ -95,39 +90,39 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 出发厂区人资经理：根据出差单的出发厂区，定位该厂区下部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
         /// </summary>
-        public async Task<CustomUser> DepartureFactoryHRManager(long formId)
+        public async Task<CustomUser> DepartureSiteHRManager(long formId)
         {
-            var departureFactory = await _db.Queryable<OverseasTripAppEntity>()
-                                            .With(SqlWith.NoLock)
-                                            .Where(trip => trip.FormId == formId)
-                                            .Select(trip => trip.DepartureFactory)
-                                            .FirstAsync();
+            var departureSite = await _db.Queryable<OverseasTripAppEntity>()
+                                         .With(SqlWith.NoLock)
+                                         .Where(trip => trip.FormId == formId)
+                                         .Select(trip => trip.DepartureSite)
+                                         .FirstAsync();
 
-            return await ResolveFactoryHRManagerRole(departureFactory);
+            return await ResolveSiteHRManagerRole(departureSite);
         }
 
         /// <summary>
         /// 目的厂区人资经理：根据出差单的目的厂区，定位该厂区下部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
         /// </summary>
-        public async Task<CustomUser> DestinationFactoryHRManager(long formId)
+        public async Task<CustomUser> DestinationSiteHRManager(long formId)
         {
-            var destinationFactory = await _db.Queryable<OverseasTripAppEntity>()
-                                              .With(SqlWith.NoLock)
-                                              .Where(trip => trip.FormId == formId)
-                                              .Select(trip => trip.DestinationFactory)
-                                              .FirstAsync();
+            var destinationSite = await _db.Queryable<OverseasTripAppEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .Where(trip => trip.FormId == formId)
+                                           .Select(trip => trip.DestinationSite)
+                                           .FirstAsync();
 
-            return await ResolveFactoryHRManagerRole(destinationFactory);
+            return await ResolveSiteHRManagerRole(destinationSite);
         }
 
         /// <summary>
         /// 按厂区定位部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
         /// </summary>
-        private async Task<CustomUser> ResolveFactoryHRManagerRole(string? factory)
+        private async Task<CustomUser> ResolveSiteHRManagerRole(string? site)
         {
             var dept = await _db.Queryable<DepartmentInfoEntity>()
                                 .With(SqlWith.NoLock)
-                                .Where(dept => dept.Factory == factory && dept.DepartmentFunctions == "HumanResources")
+                                .Where(dept => dept.Site == site && dept.DepartmentFunctions == "HumanResources")
                                 .FirstAsync();
 
             return await ResolveRole(dept, "S06");

@@ -127,7 +127,10 @@
     <value>请至少上传一个附件</value>
   </data>
   <data name="AttachmentSizeLimit" xml:space="preserve">
-    <value>单个附件大小不得超过 25 MB</value>
+    <value>单个附件大小不得超过 {0} MB</value>
+  </data>
+  <data name="RequestBodyTooLarge" xml:space="preserve">
+    <value>上传内容过大，请减少文件数量或压缩后重试（单次请求总大小不得超过 {0} MB）</value>
   </data>
   <data name="UploadFailed" xml:space="preserve">
     <value>附件上传失败，请重试</value>

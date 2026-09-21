@@ -22,7 +22,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
         private readonly CompanyNumberRepository _companyNumberRepository;
         private readonly NumberMappingRepository _numberMappingRepository;
         private readonly LocalizationService _localization;
-        private readonly Language _lang;
         private readonly string _this = "CustMat.CustMatBasicInfo.CompanyNumberInfo";
         private readonly string _thisExcel = "CustMat.CustMatBasicInfo.CompanyNumberExcel_";
         private readonly string _thisImport = "CustMat.CustMatBasicInfo.CompanyNumberImport_";
@@ -48,7 +47,7 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             ("Remark", false),
         };
 
-        public CompanyNumberService(CurrentUser loginuser, ILogger<CompanyNumberService> logger, SqlSugarScope db, CompanyNumberRepository companyNumberRepository, NumberMappingRepository numberMappingRepository, LocalizationService localization, Language lang)
+        public CompanyNumberService(CurrentUser loginuser, ILogger<CompanyNumberService> logger, SqlSugarScope db, CompanyNumberRepository companyNumberRepository, NumberMappingRepository numberMappingRepository, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -56,7 +55,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             _companyNumberRepository = companyNumberRepository;
             _numberMappingRepository = numberMappingRepository;
             _localization = localization;
-            _lang = lang;
         }
 
         /// <summary>

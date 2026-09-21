@@ -44,5 +44,10 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// 是否为起始步骤
         /// </summary>
         public int IsStartStep { get; set; }
+
+        /// <summary>
+        /// 排序
+        /// </summary>
+        public int SortOrder { get; set; }
     }
 }

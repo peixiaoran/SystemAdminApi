@@ -53,17 +53,17 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// 厂区下拉
         /// </summary>
         /// <returns></returns>
-        public async Task<Result<List<FactoryDropDto>>> GetFactoryDrop()
+        public async Task<Result<List<SiteDropDto>>> GetSiteDrop()
         {
             try
             {
-                var list = await _overseasTripApp.GetFactoryDrop();
-                return Result<List<FactoryDropDto>>.Ok(list);
+                var list = await _overseasTripApp.GetSiteDrop();
+                return Result<List<SiteDropDto>>.Ok(list);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<List<FactoryDropDto>>.Failure(500, ex.Message);
+                return Result<List<SiteDropDto>>.Failure(500, ex.Message);
             }
         }
 
@@ -78,13 +78,13 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             {
                 await _db.BeginTranAsync();
                 var formId = await _formmanger.InitFormInstance(long.Parse(formTypeId));
-                var departureFactory = await _overseasTripApp.GetApplicantFactory(long.Parse(formId));
+                var departureSite = await _overseasTripApp.GetApplicantSite(long.Parse(formId));
 
                 var overseasTripApp = new OverseasTripAppEntity()
                 {
                     FormId = long.Parse(formId),
-                    DepartureFactory = departureFactory,
-                    DestinationFactory = null,
+                    DepartureSite = departureSite,
+                    DestinationSite = null,
                     TripReason = null,
                     StartDate = null,
                     EndDate = null,
@@ -161,7 +161,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 var applicantUserId = await _overseasTripApp.GetApplicantUserId(long.Parse(formId));
 
-                // 查询申请人名下与本次出差时间重叠的其他出差单（排除已驳回、已作废）
+                // 查询申请人名下与本次出差时间重叠的其他出差单（排除已作废）
                 var conflicts = await _overseasTripApp.GetOverlappingTripConflicts(applicantUserId, long.Parse(formId), currentStart, currentEnd);
                 var conflict = conflicts.FirstOrDefault();
 
@@ -196,13 +196,13 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                var departureFactory = await _overseasTripApp.GetApplicantFactory(long.Parse(save.FormId));
+                var departureSite = await _overseasTripApp.GetApplicantSite(long.Parse(save.FormId));
 
                 var entity = new OverseasTripAppEntity()
                 {
                     FormId = long.Parse(save.FormId),
-                    DepartureFactory = departureFactory,
-                    DestinationFactory = save.DestinationFactory,
+                    DepartureSite = departureSite,
+                    DestinationSite = save.DestinationSite,
                     TripReason = save.TripReason,
                     StartDate = save.StartDate,
                     EndDate = save.EndDate,

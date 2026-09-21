@@ -363,7 +363,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                             .FirstAsync();
                 result = await GetDeptUserReviewUserCore(deptUserInfo.DepartmentId, deptUserInfo.PositionId, stepInfo.ReviewMode, withAgent);
             }
-            else if (stepInfo.Assignment == Assignment.User.ToEnumString())
+            else if (stepInfo.Assignment == Assignment.AssignedUser.ToEnumString())
             {
                 var userInfo = await _db.Queryable<WorkflowStepUserEntity>()
                                         .With(SqlWith.NoLock)

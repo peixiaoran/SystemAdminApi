@@ -108,19 +108,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentNotNull"));
                 }
 
-                long maxAttachmentSize = _attachmentUpload.MaxSizeMB * 1024L * 1024L;
-                var formAttachmentList = new List<FormAttachmentDto>();
-
-                await _db.BeginTranAsync();
                 foreach (var attachment in attachments)
                 {
                     if (attachment == null || attachment.Length == 0)
                     {
                         return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentNotNull"));
-                    }
-                    if (attachment.Length > maxAttachmentSize)
-                    {
-                        return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentSizeLimit"));
                     }
 
                     var attachmentExt = Path.GetExtension(attachment.FileName)?.ToLowerInvariant();
@@ -128,10 +120,21 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     {
                         return Result<List<FormAttachmentDto>>.Failure(400, _localization.ReturnMsg($"{_form}.AttachmentExtensionNotAllow"));
                     }
+                }
 
+                // 校验全部通过后再并发上传到 Minio，避免网络 I/O 逐个排队等待
+                var uploadResults = await Task.WhenAll(attachments.Select(async attachment =>
+                {
                     using var stream = attachment.OpenReadStream();
-                    var avatarUrl = await _minioService.UploadFile(attachment.FileName, stream, attachment.ContentType);
+                    var attachmentPath = await _minioService.UploadFile(attachment.FileName, stream, attachment.ContentType);
+                    return (attachment, attachmentPath);
+                }));
 
+                var formAttachmentList = new List<FormAttachmentDto>();
+
+                await _db.BeginTranAsync();
+                foreach (var (attachment, attachmentPath) in uploadResults)
+                {
                     int attachmentSizeKb = (int)(attachment.Length / 1024);
 
                     var attachmentItem = new FormAttachmentEntity
@@ -139,7 +142,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                         AttachmentId = SnowFlakeSingle.Instance.NextId(),
                         FormId = long.Parse(formId),
                         AttachmentName = attachment.FileName,
-                        AttachmentPath = avatarUrl.ToString(),
+                        AttachmentPath = attachmentPath,
                         AttachmentSize = attachmentSizeKb,
                         CreatedBy = _loginuser.UserId,
                         CreatedDate = DateTime.Now

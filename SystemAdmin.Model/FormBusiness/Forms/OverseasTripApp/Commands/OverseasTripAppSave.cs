@@ -13,7 +13,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Commands
         /// <summary>
         /// 目的厂区
         /// </summary>
-        public string? DestinationFactory { get; set; }
+        public string? DestinationSite { get; set; }
 
         /// <summary>
         /// 出差事由

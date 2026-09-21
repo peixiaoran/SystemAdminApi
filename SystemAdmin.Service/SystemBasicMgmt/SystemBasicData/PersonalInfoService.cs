@@ -100,14 +100,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     return Result<string>.Failure(400, _localization.ReturnMsg($"{_this}AvatarFileNotNull"));
                 }
 
-                // 2. 限制最大 2MB
-                const long maxSize = 2 * 1024 * 1024;
-                if (file.Length > maxSize)
-                {
-                    return Result<string>.Failure(400, _localization.ReturnMsg($"{_this}AvatarFileTooLarge", "2MB"));
-                }
-
-                // 3. 限制图片格式
+                // 2. 限制图片格式
                 var allowed = new[] { ".png", ".jpg", ".jpeg"};
                 var ext = Path.GetExtension(file.FileName)?.ToLowerInvariant();
 

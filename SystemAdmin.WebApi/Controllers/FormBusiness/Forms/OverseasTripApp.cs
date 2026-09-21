@@ -27,9 +27,9 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[出差单] 厂区下拉")]
-        public async Task<Result<List<FactoryDropDto>>> GetFactoryDrop()
+        public async Task<Result<List<SiteDropDto>>> GetSiteDrop()
         {
-            return await _overseasTripAppService.GetFactoryDrop();
+            return await _overseasTripAppService.GetSiteDrop();
         }
 
         [HttpPost]

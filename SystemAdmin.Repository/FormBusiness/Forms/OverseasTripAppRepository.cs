@@ -47,16 +47,16 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// 厂区下拉
         /// </summary>
         /// <returns></returns>
-        public async Task<List<FactoryDropDto>> GetFactoryDrop()
+        public async Task<List<SiteDropDto>> GetSiteDrop()
         {
             return await _db.Queryable<DictionaryInfoEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(dic => dic.DicType == "Factorys")
+                            .Where(dic => dic.DicType == "Sites")
                             .OrderBy(dic => dic.SortOrder)
-                            .Select(dic => new FactoryDropDto()
+                            .Select(dic => new SiteDropDto()
                             {
-                                Factory = dic.DicCode,
-                                FactoryName = _lang.Locale == "zh-CN"
+                                Site = dic.DicCode,
+                                SiteName = _lang.Locale == "zh-CN"
                                               ? dic.DicNameCn
                                               : dic.DicNameEn,
                             }).ToListAsync();
@@ -67,14 +67,14 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         /// </summary>
         /// <param name="formId"></param>
         /// <returns></returns>
-        public async Task<string?> GetApplicantFactory(long formId)
+        public async Task<string?> GetApplicantSite(long formId)
         {
             return await _db.Queryable<FormInstanceEntity>()
                             .With(SqlWith.NoLock)
                             .InnerJoin<UserInfoEntity>((form, user) => form.ApplicantUserId == user.UserId)
                             .InnerJoin<DepartmentInfoEntity>((form, user, dept) => user.DepartmentId == dept.DepartmentId)
                             .Where((form, user, dept) => form.FormId == formId)
-                            .Select((form, user, dept) => dept.Factory)
+                            .Select((form, user, dept) => dept.Site)
                             .FirstAsync();
         }
 
@@ -106,7 +106,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询申请人名下与指定时间段重叠的出差单（排除指定表单、已驳回及已作废的出差单）
+        /// 查询申请人名下与指定时间段重叠的出差单
         /// </summary>
         /// <param name="applicantUserId"></param>
         /// <param name="excludeFormId"></param>
@@ -120,7 +120,6 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                             .InnerJoin<FormInstanceEntity>((trip, instance) => trip.FormId == instance.FormId)
                             .Where((trip, instance) => instance.ApplicantUserId == applicantUserId
                                                      && instance.FormId != excludeFormId
-                                                     && instance.FormStatus != FormStatus.Rejected.ToEnumString()
                                                      && instance.FormStatus != FormStatus.Voided.ToEnumString()
                                                      && trip.StartDate < endDate && startDate < trip.EndDate)
                             .Select((trip, instance) => new TripConflictDto()
@@ -158,7 +157,8 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                  .ExecuteCommandAsync();
 
             await _formManager.SaveFormSearch(entity.FormId,
-                                              [entity.DepartureFactory, entity.DestinationFactory, entity.TripReason, entity.JobDescription]);
+                                              [entity.TripReason, entity.JobDescription],
+                                              [("Sites", entity.DepartureSite), ("Sites", entity.DestinationSite)]);
 
             return count;
         }
@@ -176,8 +176,8 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                             .InnerJoin<UserInfoEntity>((form, trip, user) => form.ApplicantUserId == user.UserId)
                             .InnerJoin<DepartmentInfoEntity>((form, trip, user, dept) => user.DepartmentId == dept.DepartmentId)
                             .InnerJoin<DictionaryInfoEntity>((form, trip, user, dept, dic) => dic.DicType == "FormStatus" && form.FormStatus == dic.DicCode)
-                            .LeftJoin<DictionaryInfoEntity>((form, trip, user, dept, dic, departureDic) => departureDic.DicType == "Factorys" && trip.DepartureFactory == departureDic.DicCode)
-                            .LeftJoin<DictionaryInfoEntity>((form, trip, user, dept, dic, departureDic, destinationDic) => destinationDic.DicType == "Factorys" && trip.DestinationFactory == destinationDic.DicCode)
+                            .LeftJoin<DictionaryInfoEntity>((form, trip, user, dept, dic, departureDic) => departureDic.DicType == "Sites" && trip.DepartureSite == departureDic.DicCode)
+                            .LeftJoin<DictionaryInfoEntity>((form, trip, user, dept, dic, departureDic, destinationDic) => destinationDic.DicType == "Sites" && trip.DestinationSite == destinationDic.DicCode)
                             .LeftJoin<DictionaryInfoEntity>((form, trip, user, dept, dic, departureDic, destinationDic, outboundDic) => outboundDic.DicType == "TravelMode" && trip.OutboundTravel == outboundDic.DicCode)
                             .LeftJoin<DictionaryInfoEntity>((form, trip, user, dept, dic, departureDic, destinationDic, outboundDic, returnDic) => returnDic.DicType == "TravelMode" && trip.ReturnTravel == returnDic.DicCode)
                             .Where((form, trip, user, dept, dic, departureDic, destinationDic, outboundDic, returnDic) => form.FormId == formId)
@@ -200,12 +200,12 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                                  ? dept.DepartmentNameCn
                                                  : dept.DepartmentNameEn,
                                 ApplicantDate = form.ApplicantDate,
-                                DepartureFactory = trip.DepartureFactory,
-                                DepartureFactoryName = _lang.Locale == "zh-CN"
+                                DepartureSite = trip.DepartureSite,
+                                DepartureSiteName = _lang.Locale == "zh-CN"
                                                  ? departureDic.DicNameCn
                                                  : departureDic.DicNameEn,
-                                DestinationFactory = trip.DestinationFactory,
-                                DestinationFactoryName = _lang.Locale == "zh-CN"
+                                DestinationSite = trip.DestinationSite,
+                                DestinationSiteName = _lang.Locale == "zh-CN"
                                                  ? destinationDic.DicNameCn
                                                  : destinationDic.DicNameEn,
                                 TripReason = trip.TripReason,

@@ -18,7 +18,7 @@
         /// <summary>
         /// 指定用户
         /// </summary>
-        User = 3,
+        AssignedUser = 3,
 
         /// <summary>
         /// 自定义规则

@@ -37,11 +37,6 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         public string LaborName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 国籍名称
-        /// </summary>
-        public string NationalityName { get; set; } = string.Empty;
-
-        /// <summary>
         /// 是否代理
         /// </summary>
         [JsonConverter(typeof(IntToStringConverter))]

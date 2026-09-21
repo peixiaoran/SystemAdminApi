@@ -49,17 +49,17 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         /// 厂区下拉
         /// </summary>
         /// <returns></returns>
-        public async Task<Result<List<FactoryDropDto>>> GetFactoryDrop()
+        public async Task<Result<List<SiteDropDto>>> GetSiteDrop()
         {
             try
             {
-                var drop = await _deptInfoRepo.GetFactoryDrop();
-                return Result<List<FactoryDropDto>>.Ok(drop, "");
+                var drop = await _deptInfoRepo.GetSiteDrop();
+                return Result<List<SiteDropDto>>.Ok(drop, "");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
-                return Result<List<FactoryDropDto>>.Failure(500, ex.Message.ToString());
+                return Result<List<SiteDropDto>>.Failure(500, ex.Message.ToString());
             }
         }
 
@@ -115,7 +115,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     DepartmentNameCn = upsert.DepartmentNameCn,
                     DepartmentNameEn = upsert.DepartmentNameEn,
                     ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
-                    Factory = upsert.Factory,
+                    Site = upsert.Site,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
                     DepartmentFunctions = upsert.DepartmentFunctions,
                     SortOrder = upsert.SortOrder,
@@ -213,7 +213,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     DepartmentNameCn = upsert.DepartmentNameCn,
                     DepartmentNameEn = upsert.DepartmentNameEn,
                     ParentId = long.TryParse(upsert.ParentId, out var iParentId) ? iParentId : null,
-                    Factory = upsert.Factory,
+                    Site = upsert.Site,
                     DepartmentLevelId = long.Parse(upsert.DepartmentLevelId),
                     DepartmentFunctions = upsert.DepartmentFunctions,
                     SortOrder = upsert.SortOrder,

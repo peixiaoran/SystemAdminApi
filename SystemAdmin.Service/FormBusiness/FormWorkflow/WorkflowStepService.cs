@@ -256,7 +256,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                         };
                         insertDeptUserCount = await _workflowStepRepo.InsertWorkflowStepDeptUser(stepDeptUserEntity);
                     }
-                    else if (upsert.Assignment.MatchEnum(Assignment.User))
+                    else if (upsert.Assignment.MatchEnum(Assignment.AssignedUser))
                     {
                         var userEntity = new WorkflowStepUserEntity()
                         {
@@ -425,7 +425,7 @@ namespace SystemAdmin.Service.FormBusiness.FormWorkflow
                     };
                     insertStepDeptUserCount = await _workflowStepRepo.InsertWorkflowStepDeptUser(stepDeptUserEntity);
                 }
-                else if (upsert.Assignment.MatchEnum(Assignment.User))
+                else if (upsert.Assignment.MatchEnum(Assignment.AssignedUser))
                 {
                     var stepUserEntity = new WorkflowStepUserEntity()
                     {

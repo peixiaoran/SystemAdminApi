@@ -1,6 +1,7 @@
 using Scalar.AspNetCore;
 using SystemAdmin.CommonSetup.DependencyInjection;
 using SystemAdmin.Hosting.DependencyInjection;
+using SystemAdmin.WebApi.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,12 +30,21 @@ builder.WebHost.ConfigureKestrel((context, options) =>
     context.Configuration
         .GetSection("Kestrel")
         .Bind(options);
+
+    // 项目不再限制上传文件大小，取消请求体上限（未显式配置 Kestrel:Limits:MaxRequestBodySize 时生效）
+    if (context.Configuration.GetValue<long?>("Kestrel:Limits:MaxRequestBodySize") is null)
+    {
+        options.Limits.MaxRequestBodySize = null;
+    }
 });
 
 var app = builder.Build();
 
 // HTTP 请求管道，还原 Scheme / Host，必须放在最前面
 app.UseForwardedHeaders();
+
+// 请求体过大时，把框架原始报错转换为友好提示，需在路由/模型绑定之前包裹整个管道
+app.UseMiddleware<RequestBodyTooLargeMiddleware>();
 
 // 仅开发环境开放 OpenAPI 与 Scalar 界面
 if (app.Environment.IsDevelopment())

@@ -92,8 +92,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
             }
 
-            // 排序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
+            // 排序：按创建时间倒序
+            query = query.OrderByDescending((instance, dic, formtype, applyuser, applyuserdept, useragent) => instance.CreatedDate);
 
             var page = await query.Select((instance, dic, formtype, applyuser, applyuserdept, useragent) => new VoidedFormDto
             {

@@ -33,7 +33,7 @@
         /// <summary>
         /// 厂区
         /// </summary>
-        public string Factory { get; set; } = string.Empty;
+        public string Site { get; set; } = string.Empty;
 
         /// <summary>
         /// 部门级别Id

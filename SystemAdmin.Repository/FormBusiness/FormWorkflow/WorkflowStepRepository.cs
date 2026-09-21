@@ -167,33 +167,31 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                            .InnerJoin<DepartmentInfoEntity>((user, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
-                           .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) =>
-                            user.Nationality == nation.NationId)
-                           .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
+                           .Where((user, dept, position, labor) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
             {
-                query = query.Where((user, dept, position, labor, nation) => user.UserNo.Contains(getPage.UserNo));
+                query = query.Where((user, dept, position, labor) => user.UserNo.Contains(getPage.UserNo));
             }
             // 用户姓名
             if (!string.IsNullOrEmpty(getPage.UserName))
             {
-                query = query.Where((user, dept, position, labor, nation) =>
+                query = query.Where((user, dept, position, labor) =>
                     user.UserNameCn.Contains(getPage.UserName) ||
                     user.UserNameEn.Contains(getPage.UserName));
             }
             // 部门Id
             if (!string.IsNullOrEmpty(getPage.DepartmentId) && long.Parse(getPage.DepartmentId) > -1)
             {
-                query = query.Where((user, dept, position, labor, nation) =>
+                query = query.Where((user, dept, position, labor) =>
                     user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
 
             // 排序
-            query = query.OrderBy((user, dept, position, labor, nation) => new { position.SortOrder, user.HireDate });
+            query = query.OrderBy((user, dept, position, labor) => new { position.SortOrder, user.HireDate });
 
-            var page = await query.Select((user, dept, position, labor, nation) => new UserInfoDto
+            var page = await query.Select((user, dept, position, labor) => new UserInfoDto
             {
                 UserId = user.UserId,
                 UserNo = user.UserNo,
@@ -209,9 +207,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                 LaborName = _lang.Locale == "zh-CN"
                            ? labor.LaborNameCn
                            : labor.LaborNameEn,
-                NationalityName = _lang.Locale == "zh-CN"
-                           ? nation.NationNameCn
-                           : nation.NationNameEn,
                 IsAgent = user.IsAgent,
                 IsReview = user.IsReview,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
@@ -434,6 +429,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                                      ? dic.DicNameCn
                                                      : dic.DicNameEn,
                                     IsStartStep = stepinfo.IsStartStep,
+                                    SortOrder = stepinfo.SortOrder,
                                 }).ToListAsync();
             return Result<List<WorkflowStepListDto>>.Ok(list.Adapt<List<WorkflowStepListDto>>());
         }
