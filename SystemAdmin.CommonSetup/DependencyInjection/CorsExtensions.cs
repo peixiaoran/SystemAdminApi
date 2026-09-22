@@ -26,7 +26,9 @@ namespace SystemAdmin.CommonSetup.DependencyInjection
                     if (corsOptions.Origins is { Length: > 0 })
                         policy.WithOrigins(corsOptions.Origins);
 
-                    if (corsOptions.AllowAnyHeader)
+                    if (corsOptions.Headers is { Length: > 0 })
+                        policy.WithHeaders(corsOptions.Headers);
+                    else
                         policy.AllowAnyHeader();
 
                     if (corsOptions.Methods is { Length: > 0 })

@@ -8,8 +8,9 @@ namespace SystemAdmin.CommonSetup.Security
 
         /// <summary>允许的扩展名</summary>
         public string[] AllowExtensions { get; set; } = {
-            ".xls", ".xlsx", ".csv",
+            ".xls", ".xlsx", ".xlsm", ".csv",
             ".pdf", ".doc", ".docx", ".txt",
+            ".ppt", ".pptx",
             ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp",
             ".zip", ".rar", ".7z"
         };

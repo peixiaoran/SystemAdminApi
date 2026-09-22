@@ -12,8 +12,8 @@ namespace SystemAdmin.CommonSetup.Security
         /// <summary>允许的 HTTP 方法，为空表示全部</summary>
         public string[] Methods { get; set; } = { "POST", "OPTIONS" };
 
-        /// <summary>是否允许任意请求头</summary>
-        public bool AllowAnyHeader { get; set; } = true;
+        /// <summary>允许的请求头，为空表示全部</summary>
+        public string[] Headers { get; set; } = { "Content-Type", "Authorization", "X-Requested-With" };
 
         /// <summary>是否允许携带凭据（需显式指定 Origins）</summary>
         public bool AllowCredentials { get; set; } = true;
