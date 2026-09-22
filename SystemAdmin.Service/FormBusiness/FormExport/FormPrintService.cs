@@ -9,6 +9,7 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.DocumentCirculate.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
@@ -28,6 +29,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         private readonly LeaveRequestRepository _leaveRequestRepo;
         private readonly LeaveCancellRepository _leaveCancellRepo;
         private readonly DocumentCirculateRepository _documentCirculateRepo;
+        private readonly OverseasTripAppRepository _overseasTripAppRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
@@ -55,7 +57,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             }
         }
 
-        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, OverseasTripAppRepository overseasTripAppRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -64,12 +66,13 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             _leaveRequestRepo = leaveRequestRepo;
             _leaveCancellRepo = leaveCancellRepo;
             _documentCirculateRepo = documentCirculateRepo;
+            _overseasTripAppRepo = overseasTripAppRepo;
             _formmanger = formmanger;
             _localization = localization;
         }
 
         /// <summary>
-        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单；checkPermission=false 跳过权限校验（综合查询打印用）
+        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单/TRV出差单；checkPermission=false 跳过权限校验（综合查询打印用）
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, bool checkPermission = true)
         {
@@ -83,6 +86,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                     "LVR" => await PrintLeaveRequestPdf(id, checkPermission),
                     "LCF" => await PrintLeaveCancellPdf(id, checkPermission),
                     "DCS" => await PrintDocumentCirculatePdf(id, checkPermission),
+                    "TRV" => await PrintOverseasTripAppPdf(id, checkPermission),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -215,9 +219,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                         ComposeFieldRow(column, row1);
 
                         var row2 = new List<PdfField>();
-                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
-                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
-                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo, Weight: 0.7f));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName, Weight: 0.7f));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName, Weight: 1.6f));
                         ComposeFieldRow(column, row2);
 
                         var row3 = new List<PdfField>();
@@ -304,9 +308,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                         ComposeFieldRow(column, row1);
 
                         var row2 = new List<PdfField>();
-                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
-                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
-                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo, Weight: 0.7f));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName, Weight: 0.7f));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName, Weight: 1.6f));
                         ComposeFieldRow(column, row2);
 
                         if (show("LeaveRequestTable"))
@@ -415,9 +419,9 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                         ComposeFieldRow(column, row1);
 
                         var row2 = new List<PdfField>();
-                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo));
-                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName));
-                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName));
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo, Weight: 0.7f));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName, Weight: 0.7f));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName, Weight: 1.6f));
                         ComposeFieldRow(column, row2);
 
                         if (show("IssueDept"))
@@ -499,6 +503,111 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                     }
                 });
             });
+        }
+
+        #endregion
+
+        #region 出差单PDF
+
+        private async Task<Result<FormPdfDto>> PrintOverseasTripAppPdf(long formId, bool checkPermission)
+        {
+            if (checkPermission && !await _formChecker.CanView(formId, "View"))
+            {
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
+            }
+
+            var form = await _overseasTripAppRepo.GetOverseasTripApp(formId);
+            form.Attachment = await _formmanger.GetAttachmentList(formId);
+            form.AddReview = await _formmanger.GetAddReviewList(formId);
+            form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
+            form.StepFieldPermission = checkPermission
+                ? await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId)
+                : [];
+
+            var pdf = new FormPdfDto
+            {
+                FileName = $"{Msg("PdfOverseasTripTitle")}_{form.FormNo}.pdf",
+                FileStream = BuildOverseasTripAppPdf(form)
+            };
+            return Result<FormPdfDto>.Ok(pdf);
+        }
+
+        private MemoryStream BuildOverseasTripAppPdf(OverseasTripAppDto form)
+        {
+            var show = BuildFieldVisibility(form.StepFieldPermission);
+
+            var tripPeriod = form.StartDate.HasValue && form.EndDate.HasValue
+                ? $"{form.StartDate:yyyy-MM-dd}  ~  {form.EndDate:yyyy-MM-dd}"
+                : string.Empty;
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    ConfigurePage(page);
+
+                    page.Content().Column(column =>
+                    {
+                        ComposeTitle(column, Msg("PdfOverseasTripTitle"));
+
+                        var row1 = new List<PdfField>();
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
+                        if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
+                        ComposeFieldRow(column, row1);
+
+                        var row2 = new List<PdfField>();
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo, Weight: 0.7f));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName, Weight: 0.7f));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName, Weight: 1.6f));
+                        ComposeFieldRow(column, row2);
+
+                        var row3 = new List<PdfField>();
+                        if (show("DepartureSite")) row3.Add(new PdfField(Msg("PdfDepartureSite"), form.DepartureSiteName ?? string.Empty));
+                        if (show("DestinationSite")) row3.Add(new PdfField(Msg("PdfDestinationSite"), form.DestinationSiteName ?? string.Empty));
+                        ComposeFieldRow(column, row3);
+
+                        if (show("TripReason"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfTripReason"), form.TripReason ?? string.Empty, MinHeight: 44f)
+                            });
+                        }
+
+                        var row4 = new List<PdfField>();
+                        if (show("OutboundTravel")) row4.Add(new PdfField(Msg("PdfOutboundTravel"), form.OutboundTravelName ?? string.Empty));
+                        if (show("ReturnTravel")) row4.Add(new PdfField(Msg("PdfReturnTravel"), form.ReturnTravelName ?? string.Empty));
+                        ComposeFieldRow(column, row4);
+
+                        var row5 = new List<PdfField>();
+                        if (show("TripPeriod")) row5.Add(new PdfField(Msg("PdfTripPeriod"), tripPeriod, Weight: 3f));
+                        if (show("TripDays")) row5.Add(new PdfField(Msg("PdfTripDays"), (form.Days ?? 0).ToString("0.##"), Emphasized: true));
+                        ComposeFieldRow(column, row5);
+
+                        if (show("JobDescription"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfJobDescription"), form.JobDescription ?? string.Empty, MinHeight: 44f)
+                            });
+                        }
+
+                        if (show("Upload"))
+                        {
+                            ComposeAttachmentTable(column, form.Attachment);
+                        }
+
+                        if (show("AddReivew"))
+                        {
+                            ComposeAddReviewTable(column, form.AddReview);
+                        }
+
+                        ComposeReviewRecordTable(column, form.ReviewRecord);
+                    });
+                });
+            });
+
+            return GeneratePdfStream(document);
         }
 
         #endregion

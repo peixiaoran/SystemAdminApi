@@ -309,4 +309,31 @@
   <data name="PdfBatchPrintFileName" xml:space="preserve">
     <value>批量打印</value>
   </data>
+  <data name="PdfOverseasTripTitle" xml:space="preserve">
+    <value>出差申请单</value>
+  </data>
+  <data name="PdfDepartureSite" xml:space="preserve">
+    <value>出发厂区</value>
+  </data>
+  <data name="PdfDestinationSite" xml:space="preserve">
+    <value>目的厂区</value>
+  </data>
+  <data name="PdfTripReason" xml:space="preserve">
+    <value>出差事由</value>
+  </data>
+  <data name="PdfOutboundTravel" xml:space="preserve">
+    <value>去程交通</value>
+  </data>
+  <data name="PdfReturnTravel" xml:space="preserve">
+    <value>返程交通</value>
+  </data>
+  <data name="PdfTripPeriod" xml:space="preserve">
+    <value>出差期间</value>
+  </data>
+  <data name="PdfTripDays" xml:space="preserve">
+    <value>出差天数</value>
+  </data>
+  <data name="PdfJobDescription" xml:space="preserve">
+    <value>工作说明</value>
+  </data>
 </root>

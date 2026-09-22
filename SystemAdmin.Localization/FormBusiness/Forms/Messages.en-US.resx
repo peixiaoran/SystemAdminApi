@@ -309,4 +309,31 @@
   <data name="PdfBatchPrintFileName" xml:space="preserve">
     <value>BatchPrint</value>
   </data>
+  <data name="PdfOverseasTripTitle" xml:space="preserve">
+    <value>Overseas Trip Application</value>
+  </data>
+  <data name="PdfDepartureSite" xml:space="preserve">
+    <value>Departure</value>
+  </data>
+  <data name="PdfDestinationSite" xml:space="preserve">
+    <value>Destination</value>
+  </data>
+  <data name="PdfTripReason" xml:space="preserve">
+    <value>Trip Reason</value>
+  </data>
+  <data name="PdfOutboundTravel" xml:space="preserve">
+    <value>Outbound</value>
+  </data>
+  <data name="PdfReturnTravel" xml:space="preserve">
+    <value>Return</value>
+  </data>
+  <data name="PdfTripPeriod" xml:space="preserve">
+    <value>Trip Period</value>
+  </data>
+  <data name="PdfTripDays" xml:space="preserve">
+    <value>Trip Days</value>
+  </data>
+  <data name="PdfJobDescription" xml:space="preserve">
+    <value>Job Description</value>
+  </data>
 </root>
