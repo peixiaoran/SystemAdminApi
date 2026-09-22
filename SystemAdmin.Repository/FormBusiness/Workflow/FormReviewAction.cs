@@ -696,9 +696,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new List<UserAppointment>();
             }
 
-            // 解析器定位到的是「部门 + 职级」这个角色，直接复用指定部门职级指派的既有取人逻辑：
-            // 实职优先、查不到再取生效中的兼任，命中人员再叠加生效中的代理人，
-            // 精确匹配落空则按同一套身份优先级（实 > 代 > 兼 > 兼代）沿部门链降级
+            // 解析器定位到「部门 + 职级」角色，复用部门职级指派的取人逻辑
             return await GetDeptUserReviewUserCore(custom.DepartmentId, custom.PositionId, reviewMode, withAgent);
         }
 

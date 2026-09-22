@@ -146,10 +146,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                             }).FirstAsync();
         }
 
-        /// <summary>
-        /// 预载步骤链、步骤配置与组织架构资料，使步骤循环内不再往返数据库；
-        /// maxSortOrder 限定时只预载其之前步骤的指派配置
-        /// </summary>
+        /// <summary>预载步骤链、步骤配置与组织架构资料，避免步骤循环内往返数据库</summary>
         private async Task<FlowContext> BuildFlowContext(ApplyFormDetail formDetail, int? maxSortOrder = null)
         {
             var ruleSteps = await _db.Queryable<WorkflowRuleStepEntity>()
@@ -419,8 +416,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 request.SkipWhenEmpty = true;
 
-                // 解析器定位到的是「部门 + 职级」这个角色，按部门职级指派同样的取人方式解析
-                // （实/兼/代/兼代身份、降级兜底均复用同一套逻辑，与 FormReviewAction 保持一致）
+                // 解析器定位到「部门 + 职级」角色，复用部门职级指派的取人方式
                 var custom = await _personResolver.Resolve(customInfo.Guidance, formDetail.FormId);
                 if (custom == null)
                 {
@@ -896,19 +892,20 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 bool isCurrentStep = currentStepId == flow.StepId;
 
-                // 有人在此之后核准过即视为该步骤已核准
-                bool stepHasApprove = approvesByStep[flow.StepId]
-                                      .Any(record => validAfter == null || record.ReviewDateTime > validAfter.Value);
+                var stepApproves = approvesByStep[flow.StepId]
+                                   .Where(record => validAfter == null || record.ReviewDateTime > validAfter.Value)
+                                   .ToList();
 
-                string result = stepHasApprove
-                    ? ReviewStatus.Approve.ToEnumString()
-                    : isCurrentStep
-                        ? ReviewStatus.UnderReview.ToEnumString()
-                        : ReviewStatus.Unsigned.ToEnumString();
-
+                // 按人匹配核准记录，未完成的步骤不能整体标记核准
                 foreach (var user in flow.StepReviewUser)
                 {
-                    user.Result = result;
+                    bool userHasApproved = stepApproves.Any(record => record.OriginalUserId == user.ReviewUserId);
+
+                    user.Result = userHasApproved
+                        ? ReviewStatus.Approve.ToEnumString()
+                        : isCurrentStep
+                            ? ReviewStatus.UnderReview.ToEnumString()
+                            : ReviewStatus.Unsigned.ToEnumString();
                 }
             }
         }
