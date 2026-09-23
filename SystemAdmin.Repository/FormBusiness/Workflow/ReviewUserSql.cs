@@ -167,6 +167,18 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
+        /// 身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代），数值越小越优先；与 BuildOrderCore 的非自动排序一致
+        /// </summary>
+        internal static int AppointmentPriority(string appointmentType)
+        {
+            if (appointmentType == AppointmentType.Actual.ToEnumString()) return 0;
+            if (appointmentType == AppointmentType.Agent.ToEnumString()) return 1;
+            if (appointmentType == AppointmentType.Concurrent.ToEnumString()) return 2;
+            if (appointmentType == AppointmentType.ConcurrentAgent.ToEnumString()) return 3;
+            return 9;
+        }
+
+        /// <summary>
         /// 取出所有 AppointmentType 枚举字符串
         /// </summary>
         internal static (string actual, string agent, string concurrent, string concurrentAgent, string autoActual, string autoAgent, string autoConcurrent, string autoConcurrentAgent) AppointmentEnumStrings() =>

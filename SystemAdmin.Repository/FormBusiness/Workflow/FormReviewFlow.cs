@@ -423,6 +423,18 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     return request;
                 }
 
+                // 解析器点名人员：每人取身份优先级最高一笔，单审再取其中一人；不降级、不校验审批权限
+                if (custom.UserIds.Count > 0)
+                {
+                    request.PickOneAcrossUsers = request.IsReview;
+                    request.IsReview = true;
+                    request.AllowDowngrade = false;
+                    request.RequireReviewAuth = false;
+                    request.Filter = ReviewUserFilter.User;
+                    request.UserIds.AddRange(custom.UserIds);
+                    return request;
+                }
+
                 request.Filter = ReviewUserFilter.Dept;
                 request.DepartmentId = custom.DepartmentId;
                 request.PositionSort = context.PositionSort(custom.PositionId);
@@ -465,6 +477,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             await FillDeptRequests(requests);
             await FillUserRequests(requests);
             await FillDowngradeRequests(context, requests);
+
+            // 自定义点名多人的单审步骤：只留身份优先级最高的一人（同优先级保留配置顺序）
+            foreach (var request in requests.Where(request => request.PickOneAcrossUsers && request.Item.Review.StepReviewUser.Count > 1))
+            {
+                var first = request.Item.Review.StepReviewUser
+                                   .OrderBy(user => ReviewUserSql.AppointmentPriority(user.AppointmentType))
+                                   .First();
+                request.Item.Review.StepReviewUser.RemoveAll(user => !ReferenceEquals(user, first));
+            }
 
             // 自定义 / 加审步骤查不到人即跳过
             foreach (var request in requests.Where(request => request.SkipWhenEmpty && request.Item.Review.StepReviewUser.Count == 0))
@@ -697,6 +718,9 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             /// <summary>精确匹配落空时是否自动降级</summary>
             public bool AllowDowngrade { get; set; } = true;
+
+            /// <summary>点名多人时是否只取其中身份优先级最高的一人（自定义点名的单审步骤）</summary>
+            public bool PickOneAcrossUsers { get; set; }
 
             /// <summary>降级沿申请人部门链查找（组织架构指派）</summary>
             public bool DowngradeFromApplicant { get; set; }

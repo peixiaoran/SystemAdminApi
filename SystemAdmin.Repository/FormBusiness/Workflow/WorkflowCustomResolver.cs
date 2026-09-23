@@ -1,5 +1,7 @@
 using SqlSugar;
+using SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.PersonResolver.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 
@@ -26,14 +28,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 [nameof(DestinationSiteManager)] = DestinationSiteManager,
                 [nameof(DepartureSiteHRManager)] = DepartureSiteHRManager,
                 [nameof(DestinationSiteHRManager)] = DestinationSiteHRManager,
+                [nameof(EstimatedTimeHandler)] = EstimatedTimeHandler,
+                [nameof(HandlerConfirmation)] = HandlerConfirmation,
+                [nameof(ApplicationConfirmation)] = ApplicationConfirmation,
             };
         }
 
         /// <summary>
         /// 按 guidance(配置的方法名) 分发到对应的自定义取人方法。
-        /// 解析结果只定位到「部门 + 职级」这一角色，具体由谁审批（实职 / 兼任 / 代理，
-        /// 以及精确匹配落空后的降级兜底）统一交给 FormReviewFlow / FormReviewAction
-        /// 既有的按部门职级取人逻辑处理，与其他指派方式共用同一套身份优先级
+        /// 解析结果定位到「部门 + 职级」这一角色，或直接点名人员（UserIds）；具体由谁审批（实职 / 兼任 / 代理，
+        /// 以及部门职级精确匹配落空后的降级兜底）统一交给 FormReviewFlow / FormReviewAction
+        /// 既有的取人逻辑处理，与其他指派方式共用同一套身份优先级
         /// </summary>
         public async Task<CustomUser> Resolve(string guidance, long formId)
         {
@@ -149,6 +154,69 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 DepartmentId = dept.DepartmentId,
                 DepartmentLevelId = dept.DepartmentLevelId,
                 PositionId = position.PositionId
+            };
+        }
+        #endregion
+
+        #region 资讯需求单
+        /// <summary>
+        /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 CategoryConfig 配置的负责人
+        /// </summary>
+        public async Task<CustomUser> EstimatedTimeHandler(long formId)
+        {
+            return await ResolveCategoryHandler(formId);
+        }
+
+        /// <summary>
+        /// 处理人确认：根据资讯需求单选择的需求类别，取 CategoryConfig 配置的负责人
+        /// </summary>
+        public async Task<CustomUser> HandlerConfirmation(long formId)
+        {
+            return await ResolveCategoryHandler(formId);
+        }
+
+        /// <summary>
+        /// 申请人确认：表单的发起申请人
+        /// </summary>
+        public async Task<CustomUser> ApplicationConfirmation(long formId)
+        {
+            var applicantUserId = await _db.Queryable<FormInstanceEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .Where(instance => instance.FormId == formId)
+                                           .Select(instance => instance.ApplicantUserId)
+                                           .FirstAsync();
+
+            return ResolveUsers(applicantUserId == 0 ? new List<long>() : new List<long> { applicantUserId });
+        }
+
+        /// <summary>
+        /// 按资讯需求单的需求类别取负责人
+        /// </summary>
+        private async Task<CustomUser> ResolveCategoryHandler(long formId)
+        {
+            var handlerIds = await _db.Queryable<InformationRequestEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .InnerJoin<CategoryConfigEntity>((info, config) => info.Category == config.System)
+                                      .Where((info, config) => info.FormId == formId)
+                                      .OrderBy((info, config) => config.SortOrder)
+                                      .Select((info, config) => config.PersonChargeId)
+                                      .ToListAsync();
+
+            return ResolveUsers(handlerIds);
+        }
+
+        /// <summary>
+        /// 组装点名人员结果；无人返回 null（步骤跳过）
+        /// </summary>
+        private static CustomUser ResolveUsers(List<long> userIds)
+        {
+            var distinctIds = userIds.Distinct().ToList();
+            if (distinctIds.Count == 0)
+                return null!;
+
+            return new CustomUser()
+            {
+                UserIds = distinctIds
             };
         }
         #endregion

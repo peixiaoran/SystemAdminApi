@@ -6,7 +6,7 @@ namespace SystemAdmin.Hosting.DependencyInjection
     /// <summary>OpenAPI 注册扩展</summary>
     public static class OpenApiExtensions
     {
-        /// <summary>注册 OpenAPI 文档（/openapi/{documentName}.json），并挂载 JWT 与 Accept-Language 转换器</summary>
+        /// <summary>注册 OpenAPI 文档（/openapi/{documentName}.json），并挂载 JWT、Accept-Language 与 X-Requested-With 转换器</summary>
         public static IServiceCollection AddOpenApiSetup(this IServiceCollection services, string documentName = "v1")
         {
             services.AddOpenApi(documentName, options =>

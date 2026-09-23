@@ -696,8 +696,41 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return new List<UserAppointment>();
             }
 
+            // 解析器点名人员：按步骤审批方式取人
+            if (custom.UserIds.Count > 0)
+            {
+                return await GetCustomUserAppointments(custom.UserIds, reviewMode, withAgent);
+            }
+
             // 解析器定位到「部门 + 职级」角色，复用部门职级指派的取人逻辑
             return await GetDeptUserReviewUserCore(custom.DepartmentId, custom.PositionId, reviewMode, withAgent);
+        }
+
+        /// <summary>
+        /// 查询自定义点名人员身份：每人取身份优先级最高一笔（实 &gt; 代 &gt; 兼 &gt; 兼代），
+        /// 单审再从中取优先级最高的一人，或审/会审取全部；点名指派查不到即略过、不降级、不校验审批权限
+        /// </summary>
+        private async Task<List<UserAppointment>> GetCustomUserAppointments(List<long> userIds, string reviewMode, bool withAgent)
+        {
+            var result = new List<UserAppointment>();
+
+            foreach (long userId in userIds)
+            {
+                var appointments = await QueryExactAppointments(ReviewUserFilter.User, parentDeptIds: string.Empty, isReview: true, withAgent, requireReviewAuth: false,
+                    new SugarParameter("@UserId", userId));
+
+                result.AddRange(appointments);
+            }
+
+            if (reviewMode == ReviewMode.Review.ToEnumString() && result.Count > 1)
+            {
+                // 稳定排序：同优先级保留配置顺序
+                return result.OrderBy(user => ReviewUserSql.AppointmentPriority(user.AppointmentType))
+                             .Take(1)
+                             .ToList();
+            }
+
+            return result;
         }
 
         /// <summary>

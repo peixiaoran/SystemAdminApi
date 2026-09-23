@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 
 namespace SystemAdmin.Hosting.DependencyInjection
 {
-    /// <summary>OpenAPI 文档转换器：添加 JWT Bearer 安全方案与 Accept-Language 公共参数</summary>
+    /// <summary>OpenAPI 文档转换器：添加 JWT Bearer 安全方案、Accept-Language 与 X-Requested-With 公共参数</summary>
     public sealed class OpenApiTransformer(IAuthenticationSchemeProvider schemeProvider) : IOpenApiDocumentTransformer
     {
         private const string SchemeKey = "Bearer";
@@ -18,6 +18,7 @@ namespace SystemAdmin.Hosting.DependencyInjection
                 AddJwtSecurity(document);
 
             AddAcceptLanguageParameter(document);
+            AddCsrfHeaderParameter(document);
         }
 
         private static void AddJwtSecurity(OpenApiDocument document)
@@ -65,6 +66,42 @@ namespace SystemAdmin.Hosting.DependencyInjection
             {
                 foreach (var operation in path.Operations?.Values ?? Enumerable.Empty<OpenApiOperation>())
                 {
+                    operation.Parameters ??= new List<IOpenApiParameter>();
+                    operation.Parameters.Add(parameter);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 防 CSRF 自定义头：JwtAuthorize 对非 GET/HEAD 请求强制校验 X-Requested-With: XMLHttpRequest，缺失即 403
+        /// </summary>
+        private static void AddCsrfHeaderParameter(OpenApiDocument document)
+        {
+            var parameter = new OpenApiParameter
+            {
+                Name = "X-Requested-With",
+                In = ParameterLocation.Header,
+                Description = "防 CSRF 请求头，非 GET/HEAD 请求必传，固定值 XMLHttpRequest",
+                Required = true,
+                Example = JsonValue.Create("XMLHttpRequest"),
+                Schema = new OpenApiSchema
+                {
+                    Type = JsonSchemaType.String,
+                    Default = "XMLHttpRequest",
+                    Enum = new List<JsonNode>
+                    {
+                        JsonValue.Create("XMLHttpRequest")!
+                    }
+                }
+            };
+
+            foreach (var path in document.Paths.Values)
+            {
+                foreach (var (method, operation) in path.Operations ?? new Dictionary<HttpMethod, OpenApiOperation>())
+                {
+                    if (method == HttpMethod.Get || method == HttpMethod.Head)
+                        continue;
+
                     operation.Parameters ??= new List<IOpenApiParameter>();
                     operation.Parameters.Add(parameter);
                 }
