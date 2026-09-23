@@ -66,7 +66,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// </summary>
         /// <param name="getPage"></param>
         /// <returns></returns>
-        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetFormHistoryPage getPage, long loginUserId)
+        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetReviewHistoryPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
             var query = _db.Queryable<FormInstanceEntity>()
@@ -75,7 +75,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
                            .InnerJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
                            .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
-                           .Where((instance, dic, formtype, applyuser, applydept) =>
+                           .LeftJoin<FormSearchEntity>((instance, dic, formtype, applyuser, applydept, search) => instance.FormId == search.FormId)
+                           .Where((instance, dic, formtype, applyuser, applydept, search) =>
                                SqlFunc.Subqueryable<FormReviewRecordEntity>()
                                       .InnerJoin<WorkflowStepEntity>((record, step) => record.StepId == step.StepId)
                                       .Where((record, step) => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId) && step.IsStartStep != 1)
@@ -84,23 +85,65 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
                     formtype.FormGroupId == long.Parse(getPage.FormGroupId));
             }
             // 表单类别Id
             if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
+            }
+            // 表单单号
+            if (!string.IsNullOrEmpty(getPage.FormNo))
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.FormNo.Contains(getPage.FormNo));
+            }
+            // 表单状态
+            if (!string.IsNullOrEmpty(getPage.FormStatus))
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.FormStatus == getPage.FormStatus);
+            }
+            // 申请日期范围
+            if (getPage.StartDate.HasValue)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.ApplicantDate >= getPage.StartDate.Value);
+            }
+            if (getPage.EndDate.HasValue)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.ApplicantDate <= getPage.EndDate.Value);
+            }
+            // 关键字
+            if (!string.IsNullOrEmpty(getPage.Keyword))
+            {
+                var keyword = getPage.Keyword;
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.FormNo.Contains(keyword) ||
+                    formtype.FormTypeNameCn.Contains(keyword) ||
+                    formtype.FormTypeNameEn.Contains(keyword) ||
+                    dic.DicNameCn.Contains(keyword) ||
+                    dic.DicNameEn.Contains(keyword) ||
+                    applyuser.UserNameCn.Contains(keyword) ||
+                    applyuser.UserNameEn.Contains(keyword) ||
+                    applydept.DepartmentNameCn.Contains(keyword) ||
+                    applydept.DepartmentNameEn.Contains(keyword) ||
+                    search.FormText.Contains(keyword) ||
+                    search.DetailText.Contains(keyword) ||
+                    search.AttachmentText.Contains(keyword) ||
+                    search.AddReviewText.Contains(keyword));
             }
 
             // 排序：按当前用户最新审批时间倒序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applydept) => 
+            query = query.OrderBy((instance, dic, formtype, applyuser, applydept, search) =>
                         SqlFunc.Subqueryable<FormReviewRecordEntity>()
                        .Where(record => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId))
                        .Max(record => record.ReviewDateTime), OrderByType.Desc);
 
-            var page = await query.Select((instance, dic, formtype, applyuser, applydept) => new FormHistoryDto
+            var page = await query.Select((instance, dic, formtype, applyuser, applydept, search) => new FormHistoryDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -130,7 +173,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <param name="getPage"></param>
         /// <param name="loginUserId"></param>
         /// <returns></returns>
-        public async Task<DataTable> GetReviewHistoryExcel(GetFormHistoryPage getPage, long loginUserId)
+        public async Task<DataTable> GetReviewHistoryExcel(GetReviewHistoryPage getPage, long loginUserId)
         {
             var query = _db.Queryable<FormInstanceEntity>()
                            .With(SqlWith.NoLock)
@@ -138,7 +181,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                            .InnerJoin<FormTypeEntity>((instance, dic, formtype) => instance.FormTypeId == formtype.FormTypeId)
                            .InnerJoin<UserInfoEntity>((instance, dic, formtype, applyuser) => instance.ApplicantUserId == applyuser.UserId)
                            .InnerJoin<DepartmentInfoEntity>((instance, dic, formtype, applyuser, applydept) => applyuser.DepartmentId == applydept.DepartmentId)
-                           .Where((instance, dic, formtype, applyuser, applydept) =>
+                           .LeftJoin<FormSearchEntity>((instance, dic, formtype, applyuser, applydept, search) => instance.FormId == search.FormId)
+                           .Where((instance, dic, formtype, applyuser, applydept, search) =>
                                SqlFunc.Subqueryable<FormReviewRecordEntity>()
                                       .InnerJoin<WorkflowStepEntity>((record, step) => record.StepId == step.StepId)
                                       .Where((record, step) => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId) && step.IsStartStep != 1)
@@ -147,23 +191,65 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             // 表单组别Id
             if (!string.IsNullOrEmpty(getPage.FormGroupId) && long.Parse(getPage.FormGroupId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
                     formtype.FormGroupId == long.Parse(getPage.FormGroupId));
             }
             // 表单类别Id
             if (!string.IsNullOrEmpty(getPage.FormTypeId) && long.Parse(getPage.FormTypeId) > 0)
             {
-                query = query.Where((instance, dic, formtype, applyuser, applydept) =>
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
                     formtype.FormTypeId == long.Parse(getPage.FormTypeId));
+            }
+            // 表单单号
+            if (!string.IsNullOrEmpty(getPage.FormNo))
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.FormNo.Contains(getPage.FormNo));
+            }
+            // 表单状态
+            if (!string.IsNullOrEmpty(getPage.FormStatus))
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.FormStatus == getPage.FormStatus);
+            }
+            // 申请日期范围
+            if (getPage.StartDate.HasValue)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.ApplicantDate >= getPage.StartDate.Value);
+            }
+            if (getPage.EndDate.HasValue)
+            {
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.ApplicantDate <= getPage.EndDate.Value);
+            }
+            // 关键字
+            if (!string.IsNullOrEmpty(getPage.Keyword))
+            {
+                var keyword = getPage.Keyword;
+                query = query.Where((instance, dic, formtype, applyuser, applydept, search) =>
+                    instance.FormNo.Contains(keyword) ||
+                    formtype.FormTypeNameCn.Contains(keyword) ||
+                    formtype.FormTypeNameEn.Contains(keyword) ||
+                    dic.DicNameCn.Contains(keyword) ||
+                    dic.DicNameEn.Contains(keyword) ||
+                    applyuser.UserNameCn.Contains(keyword) ||
+                    applyuser.UserNameEn.Contains(keyword) ||
+                    applydept.DepartmentNameCn.Contains(keyword) ||
+                    applydept.DepartmentNameEn.Contains(keyword) ||
+                    search.FormText.Contains(keyword) ||
+                    search.DetailText.Contains(keyword) ||
+                    search.AttachmentText.Contains(keyword) ||
+                    search.AddReviewText.Contains(keyword));
             }
 
             // 排序：按当前用户最新审批时间倒序
-            query = query.OrderBy((instance, dic, formtype, applyuser, applydept) =>
+            query = query.OrderBy((instance, dic, formtype, applyuser, applydept, search) =>
                         SqlFunc.Subqueryable<FormReviewRecordEntity>()
                        .Where(record => record.FormId == instance.FormId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId))
                        .Max(record => record.ReviewDateTime), OrderByType.Desc);
 
-            return await query.Select((instance, dic, formtype, applyuser, applydept) => new FormHistoryDto
+            return await query.Select((instance, dic, formtype, applyuser, applydept, search) => new FormHistoryDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,

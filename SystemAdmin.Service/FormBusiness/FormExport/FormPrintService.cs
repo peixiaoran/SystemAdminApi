@@ -588,7 +588,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                         {
                             ComposeFieldRow(column, new List<PdfField>
                             {
-                                new PdfField(Msg("PdfJobDescription"), form.JobDescription ?? string.Empty, MinHeight: 44f)
+                                new PdfField(Msg("PdfJobDescription"), form.JobDescription ?? string.Empty, MinHeight: 70f)
                             });
                         }
 

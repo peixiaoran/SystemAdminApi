@@ -59,7 +59,7 @@ namespace SystemAdmin.Service.FormBusiness.FormOperate
         /// 查询审批记录分页
         /// </summary>
         /// <returns></returns>
-        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetFormHistoryPage getpage)
+        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetReviewHistoryPage getpage)
         {
             try
             {

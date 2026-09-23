@@ -63,7 +63,6 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.CompreQuery
             return await _basicFormQueryService.GetFormPendingUsers(formId);
         }
 
-        // 综合表单查询下的打印/批量打印不判断 CanView 及 StepFieldPermission 控件权限
         [HttpPost]
         [Tags("表单业务管理-综合表单查询")]
         [EndpointSummary("[全部表单查询] 打印PDF")]

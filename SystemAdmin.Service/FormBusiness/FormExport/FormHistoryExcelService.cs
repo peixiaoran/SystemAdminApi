@@ -33,7 +33,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         /// <summary>
         /// 导出申请历史记录Excel
         /// </summary>
-        public async Task<Result<FormPdfDto>> ExportApplyHistoryExcel(GetFormHistoryPage getpage)
+        public async Task<Result<FormPdfDto>> ExportApplyHistoryExcel(GetApplyHistoryPage getpage)
         {
             try
             {
@@ -56,7 +56,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         /// <summary>
         /// 导出审批历史记录Excel
         /// </summary>
-        public async Task<Result<FormPdfDto>> ExportReviewHistoryExcel(GetFormHistoryPage getpage)
+        public async Task<Result<FormPdfDto>> ExportReviewHistoryExcel(GetReviewHistoryPage getpage)
         {
             try
             {

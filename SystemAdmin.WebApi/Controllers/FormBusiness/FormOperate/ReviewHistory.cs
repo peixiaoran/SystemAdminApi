@@ -42,7 +42,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[审批历史记录] 查询申请记录分页")]
-        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage([FromBody] GetFormHistoryPage getpage)
+        public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage([FromBody] GetReviewHistoryPage getpage)
         {
             return await _reviewHistoryService.GetReviewHistoryPage(getpage);
         }
@@ -84,7 +84,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.FormOperate
         [HttpPost]
         [Tags("表单业务管理-表单作业模块")]
         [EndpointSummary("[审批历史记录] 导出Excel")]
-        public async Task<IActionResult> ExportReviewHistoryExcel([FromBody] GetFormHistoryPage getpage)
+        public async Task<IActionResult> ExportReviewHistoryExcel([FromBody] GetReviewHistoryPage getpage)
         {
             var result = await _formExcelService.ExportReviewHistoryExcel(getpage);
             if (result.Code != 200)
