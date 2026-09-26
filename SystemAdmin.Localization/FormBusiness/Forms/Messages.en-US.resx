@@ -333,4 +333,37 @@
   <data name="PdfJobDescription" xml:space="preserve">
     <value>Job Description</value>
   </data>
+  <data name="PdfInformationRequestTitle" xml:space="preserve">
+    <value>Information Request</value>
+  </data>
+  <data name="PdfCategory" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="PdfEstimatedDays" xml:space="preserve">
+    <value>Est. Days</value>
+  </data>
+  <data name="PdfCurrentSituation" xml:space="preserve">
+    <value>Current Sit.</value>
+  </data>
+  <data name="PdfExpectations" xml:space="preserve">
+    <value>Expect.</value>
+  </data>
+  <data name="PdfRating" xml:space="preserve">
+    <value>Rating</value>
+  </data>
+  <data name="PdfRatingVeryPoor" xml:space="preserve">
+    <value>Very Poor</value>
+  </data>
+  <data name="PdfRatingPoor" xml:space="preserve">
+    <value>Poor</value>
+  </data>
+  <data name="PdfRatingAverage" xml:space="preserve">
+    <value>Average</value>
+  </data>
+  <data name="PdfRatingGood" xml:space="preserve">
+    <value>Good</value>
+  </data>
+  <data name="PdfRatingExcellent" xml:space="preserve">
+    <value>Excellent</value>
+  </data>
 </root>

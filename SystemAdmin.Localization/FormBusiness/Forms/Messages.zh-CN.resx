@@ -333,4 +333,37 @@
   <data name="PdfJobDescription" xml:space="preserve">
     <value>工作说明</value>
   </data>
+  <data name="PdfInformationRequestTitle" xml:space="preserve">
+    <value>资讯需求单</value>
+  </data>
+  <data name="PdfCategory" xml:space="preserve">
+    <value>需求类别</value>
+  </data>
+  <data name="PdfEstimatedDays" xml:space="preserve">
+    <value>预计处理天数</value>
+  </data>
+  <data name="PdfCurrentSituation" xml:space="preserve">
+    <value>现况说明</value>
+  </data>
+  <data name="PdfExpectations" xml:space="preserve">
+    <value>期望效益</value>
+  </data>
+  <data name="PdfRating" xml:space="preserve">
+    <value>评分</value>
+  </data>
+  <data name="PdfRatingVeryPoor" xml:space="preserve">
+    <value>极差</value>
+  </data>
+  <data name="PdfRatingPoor" xml:space="preserve">
+    <value>较差</value>
+  </data>
+  <data name="PdfRatingAverage" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="PdfRatingGood" xml:space="preserve">
+    <value>满意</value>
+  </data>
+  <data name="PdfRatingExcellent" xml:space="preserve">
+    <value>非常满意</value>
+  </data>
 </root>

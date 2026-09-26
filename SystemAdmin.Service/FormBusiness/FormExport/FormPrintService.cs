@@ -8,6 +8,7 @@ using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.FormOperate.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.DocumentCirculate.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
@@ -30,6 +31,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         private readonly LeaveCancellRepository _leaveCancellRepo;
         private readonly DocumentCirculateRepository _documentCirculateRepo;
         private readonly OverseasTripAppRepository _overseasTripAppRepo;
+        private readonly InformationRequestRepository _informationRequestRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
@@ -57,7 +59,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             }
         }
 
-        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, OverseasTripAppRepository overseasTripAppRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, OverseasTripAppRepository overseasTripAppRepo, InformationRequestRepository informationRequestRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -67,12 +69,13 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             _leaveCancellRepo = leaveCancellRepo;
             _documentCirculateRepo = documentCirculateRepo;
             _overseasTripAppRepo = overseasTripAppRepo;
+            _informationRequestRepo = informationRequestRepo;
             _formmanger = formmanger;
             _localization = localization;
         }
 
         /// <summary>
-        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单/TRV出差单；checkPermission=false 跳过权限校验（综合查询打印用）
+        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单/TRV出差单/INF资讯需求单；checkPermission=false 跳过权限校验（综合查询打印用）
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, bool checkPermission = true)
         {
@@ -87,6 +90,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                     "LCF" => await PrintLeaveCancellPdf(id, checkPermission),
                     "DCS" => await PrintDocumentCirculatePdf(id, checkPermission),
                     "TRV" => await PrintOverseasTripAppPdf(id, checkPermission),
+                    "INF" => await PrintInformationRequestPdf(id, checkPermission),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -612,6 +616,135 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
 
         #endregion
 
+        #region 资讯需求单PDF
+
+        private async Task<Result<FormPdfDto>> PrintInformationRequestPdf(long formId, bool checkPermission)
+        {
+            if (checkPermission && !await _formChecker.CanView(formId, "View"))
+            {
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
+            }
+
+            var form = await _informationRequestRepo.GetInformationRequest(formId);
+            form.Attachment = await _formmanger.GetAttachmentList(formId);
+            form.AddReview = await _formmanger.GetAddReviewList(formId);
+            form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
+            form.StepFieldPermission = checkPermission
+                ? await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId)
+                : [];
+
+            var pdf = new FormPdfDto
+            {
+                FileName = $"{Msg("PdfInformationRequestTitle")}_{form.FormNo}.pdf",
+                FileStream = BuildInformationRequestPdf(form)
+            };
+            return Result<FormPdfDto>.Ok(pdf);
+        }
+
+        private MemoryStream BuildInformationRequestPdf(InformationRequestDto form)
+        {
+            var show = BuildFieldVisibility(form.StepFieldPermission);
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    ConfigurePage(page);
+
+                    page.Content().Column(column =>
+                    {
+                        ComposeTitle(column, Msg("PdfInformationRequestTitle"));
+
+                        var row1 = new List<PdfField>();
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
+                        if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
+                        ComposeFieldRow(column, row1);
+
+                        var row2 = new List<PdfField>();
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo, Weight: 0.7f));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName, Weight: 0.7f));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName, Weight: 1.6f));
+                        ComposeFieldRow(column, row2);
+
+                        var row3 = new List<PdfField>();
+                        if (show("Category")) row3.Add(new PdfField(Msg("PdfCategory"), form.CategoryName ?? string.Empty, Width: FirstValueCellWidth));
+                        if (show("EstimatedDays")) row3.Add(new PdfField(Msg("PdfEstimatedDays"), form.EstimatedDays?.ToString("0.##") ?? string.Empty));
+                        ComposeFieldRow(column, row3);
+
+                        if (show("CurrentSituation"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfCurrentSituation"), form.CurrentSituation ?? string.Empty, MinHeight: 60f)
+                            });
+                        }
+
+                        if (show("Expectations"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfExpectations"), form.Expectations ?? string.Empty, MinHeight: 60f)
+                            });
+                        }
+
+                        if (show("Upload"))
+                        {
+                            ComposeAttachmentTable(column, form.Attachment);
+                        }
+
+                        if (show("AddReivew"))
+                        {
+                            ComposeAddReviewTable(column, form.AddReview);
+                        }
+
+                        if (show("Rating") && form.Rating.HasValue)
+                        {
+                            ComposeRatingRow(column, form.Rating.Value);
+                        }
+
+                        ComposeReviewRecordTable(column, form.ReviewRecord);
+                    });
+                });
+            });
+
+            return GeneratePdfStream(document);
+        }
+
+        // 评分：星标 + 中英文文案，星标数与 Rating(1~5) 对应
+        private void ComposeRatingRow(ColumnDescriptor column, int rating)
+        {
+            column.Item().PaddingBottom(10).Row(row =>
+            {
+                row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfRating")).FontColor(LabelTextColor);
+                row.RelativeItem().Element(container => ValueCell(container)).Row(inner =>
+                {
+                    inner.AutoItem().Text(text =>
+                    {
+                        for (var i = 1; i <= 5; i++)
+                        {
+                            text.Span(i <= rating ? "★" : "☆")
+                                .FontSize(12)
+                                .FontColor(i <= rating ? RatingStarColor : MutedTextColor);
+                            if (i < 5) text.Span(" ");
+                        }
+                    });
+                    inner.AutoItem().PaddingLeft(8).AlignMiddle().Text(RatingLabel(rating)).FontColor(BodyTextColor);
+                });
+            });
+        }
+
+        private string RatingLabel(int rating) => rating switch
+        {
+            1 => Msg("PdfRatingVeryPoor"),
+            2 => Msg("PdfRatingPoor"),
+            3 => Msg("PdfRatingAverage"),
+            4 => Msg("PdfRatingGood"),
+            5 => Msg("PdfRatingExcellent"),
+            _ => string.Empty
+        };
+
+        #endregion
+
         #region PDF通用组件（多表单共用：样式、页面、标题、栏位行、表格）
 
         private const string FontFamilyName = "Microsoft YaHei";
@@ -622,6 +755,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         private const string MutedTextColor = "#909399";
         private const string EmphasizedColor = "#F56C6C";
         private const string HighlightColor = "#409EFF";
+        private const string RatingStarColor = "#F7BA2A";
 
         // 标签格宽度 / 每行第一个值格的固定宽度（保证各行第二个栏位起始位置对齐）
         private const float LabelCellWidth = 66f;
