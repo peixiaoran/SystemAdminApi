@@ -61,7 +61,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 documentCirculateDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 documentCirculateDto.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                 documentCirculateDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                documentCirculateDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                documentCirculateDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId, "Review");
                 return Result<DocumentCirculateDto>.Ok(documentCirculateDto);
             }
             catch (Exception ex)
@@ -92,7 +92,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type == "Verification");
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type);
                 return Result<DocumentCirculateDto>.Ok(form);
             }
             catch (Exception ex)

@@ -71,10 +71,10 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
 
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
-        [EndpointSummary("[表单公共接口] 修改加审")]
-        public async Task<Result<int>> UpdateFormAddReview([FromBody] FormAddReviewUpsert upsert)
+        [EndpointSummary("[表单公共接口] 覆盖加审")]
+        public async Task<Result<int>> UpdateFormAddReview([FromBody] List<FormAddReviewUpsert> upserts)
         {
-            return await _publicFormService.UpdateFormAddReview(upsert);
+            return await _publicFormService.UpdateFormAddReview(upserts);
         }
 
         [HttpPost]

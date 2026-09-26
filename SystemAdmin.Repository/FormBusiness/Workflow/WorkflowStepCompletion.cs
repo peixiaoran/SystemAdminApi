@@ -1,7 +1,8 @@
-﻿using SqlSugar;
+using SqlSugar;
 using SystemAdmin.Common.Enums.FormBusiness;
 using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
+using SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
@@ -13,37 +14,46 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 步骤结束执行😇
+    /// 步骤完成后置处理
     /// </summary>
     public class WorkflowStepCompletion
     {
         private readonly SqlSugarScope _db;
         private readonly LocalizationService _localization;
         private readonly Language _lang;
+        private readonly CurrentUser _loginuser;
         private readonly Dictionary<string, Func<long, Task<Result<bool>>>> _registry;
         private readonly string _this = "FormBusiness.Workflow";
 
-        public WorkflowStepCompletion(SqlSugarScope db, Language lang, LocalizationService localization)
+        public WorkflowStepCompletion(SqlSugarScope db, Language lang, LocalizationService localization, CurrentUser loginuser)
         {
             _db = db;
             _localization = localization;
             _lang = lang;
+            _loginuser = loginuser;
             _registry = new Dictionary<string, Func<long, Task<Result<bool>>>>(StringComparer.OrdinalIgnoreCase)
             {
+                // 请假单
                 [nameof(ProcessLeaveRequest)] = ProcessLeaveRequest,
+                // 销假单
                 [nameof(ProcessLeaveCancell)] = ProcessLeaveCancell,
+                // 资讯需求单
+                [nameof(InforCategoryApply)] = InforCategoryApply,
+                [nameof(InforCategoryEstimated)] = InforCategoryEstimated,
+                [nameof(InforCategoryProcessStart)] = InforCategoryProcessStart,
+                [nameof(InforCategoryProcessEnd)] = InforCategoryProcessEnd,
+                [nameof(InforCategoryRating)] = InforCategoryRating,
             };
         }
 
         public async Task<Result<bool>> Resolve(string guidance, long formId)
         {
-            // 没有配置 Guidance:不算失败,正常放行
+            // 未配置 Guidance 时直接放行
             if (string.IsNullOrWhiteSpace(guidance))
             {
                 return Result<bool>.Ok(true);
             }
 
-            // Resolve 内
             if (!_registry.TryGetValue(guidance, out var handler))
             {
                 return Result<bool>.Failure(500, _localization.ReturnMsg($"{_this}.GuidanceHandlerNotFound", _lang.Locale, guidance));
@@ -78,7 +88,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var startTime = leaveRequest.StartDateTime!.Value;
                 var endTime = leaveRequest.EndDateTime!.Value;
 
-                // 按年度拆分请假工时（上午 8-12、下午 13-17，跨年按自然年归集）
+                // 按年度拆分请假工时
                 var leaveHoursByYear = CalcHoursByYear(startTime, endTime);
 
                 var userInfo = await _db.Queryable<UserInfoEntity>()
@@ -132,11 +142,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }
             }
 
-            // 记录代理人信息
+            // SubstituteUserId：被代理人（申请人），AgentUserId：代理人
             var userAgent = new UserAgentEntity
             {
-                SubstituteUserId = formInstance.ApplicantUserId, // 被代理人（申请人）
-                AgentUserId = leaveRequest.AgentUserId!.Value, // 代理人
+                SubstituteUserId = formInstance.ApplicantUserId,
+                AgentUserId = leaveRequest.AgentUserId!.Value,
                 StartTime = leaveRequest.StartDateTime!.Value,
                 EndTime = leaveRequest.EndDateTime!.Value,
                 CreatedBy = formInstance.CreatedBy,
@@ -185,7 +195,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var startTime = cancell.StartDateTime!.Value;
             var endTime = cancell.EndDateTime!.Value;
 
-            // 按年度拆分销假工时（与请假单一致：上午 8-12、下午 13-17，跨年按自然年归集）
+            // 按年度拆分销假工时
             var cancellHoursByYear = CalcHoursByYear(startTime, endTime);
 
             var formInstance = await _db.Queryable<FormInstanceEntity>()
@@ -205,7 +215,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var updateBalance = 0;
             foreach (var (year, hours) in cancellHoursByYear)
             {
-                // 按天数加回，保留两位小数（如 4 小时 = 0.5 天，1 小时 = 0.13 天）
+                // 按天数加回，保留两位小数
                 var days = Math.Round((decimal)hours / 8, 2, MidpointRounding.AwayFromZero);
                 var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
                                            .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveType);
@@ -220,7 +230,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     }));
                 }
 
-                // 销假：把之前扣掉的额度加回去，最多不超过给予天数
+                // 加回额度，不超过给予天数
                 var restoredDays = Math.Min(leaveAnnual.RemainingDays + days, leaveAnnual.RenderDays);
                 updateBalance = await _db.Updateable<UserLeaveBalanceEntity>()
                                          .SetColumns(annual => new UserLeaveBalanceEntity
@@ -237,8 +247,178 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #endregion
 
+        #region 资讯需求单
+
         /// <summary>
-        /// 将一段时间按自然年拆分并累计工作时数（上午 8:00-12:00、下午 13:00-17:00，午休不计）
+        /// 提交：写入申请人（已有数据则更新）
+        /// </summary>
+        public async Task<Result<bool>> InforCategoryApply(long formId)
+        {
+            var formInstance = await _db.Queryable<FormInstanceEntity>()
+                                        .FirstAsync(instance => instance.FormId == formId);
+
+            var affected = await UpsertInforCategoryResult(
+                formId,
+                () => new InforCategoryResultEntity
+                {
+                    FormId = formId,
+                    ApplicantUserId = formInstance.ApplicantUserId,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                },
+                () => _db.Updateable<InforCategoryResultEntity>()
+                        .SetColumns(result => new InforCategoryResultEntity
+                        {
+                            ApplicantUserId = formInstance.ApplicantUserId,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = DateTime.Now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 预估处理时间：写入预计处理天数和处理人（已有数据则更新）
+        /// </summary>
+        public async Task<Result<bool>> InforCategoryEstimated(long formId)
+        {
+            var estimatedDays = await _db.Queryable<InformationRequestEntity>()
+                                         .Where(info => info.FormId == formId)
+                                         .Select(info => info.EstimatedDays)
+                                         .FirstAsync();
+
+            var affected = await UpsertInforCategoryResult(
+                formId,
+                () => new InforCategoryResultEntity
+                {
+                    FormId = formId,
+                    EstimatedDays = estimatedDays,
+                    HandlerId = _loginuser.UserId,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                },
+                () => _db.Updateable<InforCategoryResultEntity>()
+                        .SetColumns(result => new InforCategoryResultEntity
+                        {
+                            EstimatedDays = estimatedDays,
+                            HandlerId = _loginuser.UserId,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = DateTime.Now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 处理开始：写入当前时间（已有数据则更新）
+        /// </summary>
+        public async Task<Result<bool>> InforCategoryProcessStart(long formId)
+        {
+            var now = DateTime.Now;
+
+            var affected = await UpsertInforCategoryResult(
+                formId,
+                () => new InforCategoryResultEntity
+                {
+                    FormId = formId,
+                    ProcessStartTime = now,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = now
+                },
+                () => _db.Updateable<InforCategoryResultEntity>()
+                        .SetColumns(result => new InforCategoryResultEntity
+                        {
+                            ProcessStartTime = now,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 处理完成：写入当前时间（已有数据则更新）
+        /// </summary>
+        public async Task<Result<bool>> InforCategoryProcessEnd(long formId)
+        {
+            var now = DateTime.Now;
+
+            var affected = await UpsertInforCategoryResult(
+                formId,
+                () => new InforCategoryResultEntity
+                {
+                    FormId = formId,
+                    ProcessEndTime = now,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = now
+                },
+                () => _db.Updateable<InforCategoryResultEntity>()
+                        .SetColumns(result => new InforCategoryResultEntity
+                        {
+                            ProcessEndTime = now,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 评分：写入表单评分（已有数据则更新）
+        /// </summary>
+        public async Task<Result<bool>> InforCategoryRating(long formId)
+        {
+            var rating = await _db.Queryable<InformationRequestEntity>()
+                                  .Where(info => info.FormId == formId)
+                                  .Select(info => info.Rating)
+                                  .FirstAsync();
+
+            var affected = await UpsertInforCategoryResult(
+                formId,
+                () => new InforCategoryResultEntity
+                {
+                    FormId = formId,
+                    Rating = rating,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                },
+                () => _db.Updateable<InforCategoryResultEntity>()
+                        .SetColumns(result => new InforCategoryResultEntity
+                        {
+                            Rating = rating,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = DateTime.Now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// InforCategoryResult 按 FormId 新增或修改
+        /// </summary>
+        private async Task<int> UpsertInforCategoryResult(long formId, Func<InforCategoryResultEntity> buildInsertEntity, Func<Task<int>> update)
+        {
+            var exists = await _db.Queryable<InforCategoryResultEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .AnyAsync(result => result.FormId == formId);
+
+            if (exists)
+            {
+                return await update();
+            }
+
+            return await _db.Insertable(buildInsertEntity()).ExecuteCommandAsync();
+        }
+
+        #endregion
+
+        /// <summary>
+        /// 按自然年拆分时间段并累计工时（8-12、13-17，午休不计）
         /// </summary>
         private static Dictionary<int, double> CalcHoursByYear(DateTime startTime, DateTime endTime)
         {

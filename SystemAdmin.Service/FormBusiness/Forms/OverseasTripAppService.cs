@@ -104,7 +104,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 overseasTripAppDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 overseasTripAppDto.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                 overseasTripAppDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                overseasTripAppDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                overseasTripAppDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId, "Review");
                 return Result<OverseasTripAppDto>.Ok(overseasTripAppDto);
             }
             catch (Exception ex)
@@ -135,7 +135,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.AddReview = await _formmanger.GetAddReviewList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type == "Verification");
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type);
                 return Result<OverseasTripAppDto>.Ok(form);
             }
             catch (Exception ex)

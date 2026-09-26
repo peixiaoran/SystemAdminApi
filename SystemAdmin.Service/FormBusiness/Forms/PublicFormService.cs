@@ -277,31 +277,35 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 修改加审人的加审位置
+        /// 覆盖加审
         /// </summary>
-        /// <param name="upsert"></param>
+        /// <param name="upserts"></param>
         /// <returns></returns>
-        public async Task<Result<int>> UpdateFormAddReview(FormAddReviewUpsert upsert)
+        public async Task<Result<int>> UpdateFormAddReview(List<FormAddReviewUpsert> upserts)
         {
             try
             {
-                long formId = long.Parse(upsert.FormId);
-                long userId = long.Parse(upsert.UserId);
+                if (upserts == null || upserts.Count == 0)
+                {
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_form}.AddReviewUpdateFailed"));
+                }
 
-                var entity = new FormAddReviewEntity
+                long formId = long.Parse(upserts[0].FormId);
+
+                var entities = upserts.Select(upsert => new FormAddReviewEntity
                 {
                     FormId = formId,
                     DeptName = upsert.DeptName,
-                    UserId = userId,
+                    UserId = long.Parse(upsert.UserId),
                     UserNo = upsert.UserNo,
                     UserName = upsert.UserName,
                     SortOrder = upsert.SortOrder,
-                    ModifiedBy = _loginuser.UserId,
-                    ModifiedDate = DateTime.Now
-                };
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                }).ToList();
 
                 await _db.BeginTranAsync();
-                int count = await _formmanger.UpdateAddReview(entity);
+                int count = await _formmanger.UpdateAddReview(formId, entities);
                 await _db.CommitTranAsync();
 
                 return count >= 1

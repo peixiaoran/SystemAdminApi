@@ -460,7 +460,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var leaveRequestDto = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
                 leaveRequestDto.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 leaveRequestDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                leaveRequestDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                leaveRequestDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId, "Review");
                 return Result<LeaveRequestDto>.Ok(leaveRequestDto);
             }
             catch (Exception ex)
@@ -489,7 +489,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 var form = await _leaveRequest.GetLeaveRequest(long.Parse(formId));
                 form.Attachment = await _formmanger.GetAttachmentList(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type == "Verification");
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type);
                 return Result<LeaveRequestDto>.Ok(form);
             }
             catch (Exception ex)

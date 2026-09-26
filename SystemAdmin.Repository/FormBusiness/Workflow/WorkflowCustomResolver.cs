@@ -24,10 +24,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             // 登记所有自定义取人方法，新增方法只需在这里加一行
             _registry = new Dictionary<string, Func<long, Task<CustomUser>>>(StringComparer.OrdinalIgnoreCase)
             {
+                // 出差单
                 [nameof(DepartureSiteManager)] = DepartureSiteManager,
                 [nameof(DestinationSiteManager)] = DestinationSiteManager,
                 [nameof(DepartureSiteHRManager)] = DepartureSiteHRManager,
                 [nameof(DestinationSiteHRManager)] = DestinationSiteHRManager,
+                // 资讯需求单
                 [nameof(EstimatedTimeHandler)] = EstimatedTimeHandler,
                 [nameof(HandlerConfirmation)] = HandlerConfirmation,
                 [nameof(ApplicationConfirmation)] = ApplicationConfirmation,
@@ -160,7 +162,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 资讯需求单
         /// <summary>
-        /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 CategoryConfig 配置的负责人
+        /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 InforCategoryConfig 配置的负责人
         /// </summary>
         public async Task<CustomUser> EstimatedTimeHandler(long formId)
         {
@@ -168,7 +170,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 处理人确认：根据资讯需求单选择的需求类别，取 CategoryConfig 配置的负责人
+        /// 处理人确认：根据资讯需求单选择的需求类别，取 InforCategoryConfig 配置的负责人
         /// </summary>
         public async Task<CustomUser> HandlerConfirmation(long formId)
         {
@@ -196,7 +198,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         {
             var handlerIds = await _db.Queryable<InformationRequestEntity>()
                                       .With(SqlWith.NoLock)
-                                      .InnerJoin<CategoryConfigEntity>((info, config) => info.Category == config.System)
+                                      .InnerJoin<InforCategoryConfigEntity>((info, config) => info.Category == config.System)
                                       .Where((info, config) => info.FormId == formId)
                                       .OrderBy((info, config) => config.SortOrder)
                                       .Select((info, config) => config.PersonChargeId)

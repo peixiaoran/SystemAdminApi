@@ -62,7 +62,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 var leaveCancellDto = await _leaveCancell.GetLeaveCancell(long.Parse(formId));
                 leaveCancellDto.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                leaveCancellDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId);
+                leaveCancellDto.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(long.Parse(formId), _loginuser.UserId, "Review");
                 return Result<LeaveCancellDto>.Ok(leaveCancellDto);
             }
             catch (Exception ex)
@@ -91,7 +91,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
 
                 var form = await _leaveCancell.GetLeaveCancell(long.Parse(formId));
                 form.ReviewRecord = await _formmanger.GetReviewRecordList(long.Parse(formId));
-                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type == "Verification");
+                form.StepFieldPermission = await _formmanger.GetStepFieldPermissionList(form.FormId, _loginuser.UserId, type);
                 return Result<LeaveCancellDto>.Ok(form);
             }
             catch (Exception ex)

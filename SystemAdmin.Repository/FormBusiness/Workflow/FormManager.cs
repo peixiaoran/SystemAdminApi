@@ -566,27 +566,21 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 修改加审人
+        /// 覆盖加审
         /// </summary>
-        public async Task<int> UpdateAddReview(FormAddReviewEntity entity)
+        public async Task<int> UpdateAddReview(long formId, List<FormAddReviewEntity> entities)
         {
-            var count = await _db.Updateable<FormAddReviewEntity>()
-                                 .SetColumns(addReview => new FormAddReviewEntity
-                                 {
-                                     DeptName = entity.DeptName,
-                                     UserId = entity.UserId,
-                                     UserNo = entity.UserNo,
-                                     UserName = entity.UserName,
-                                     SortOrder = entity.SortOrder,
-                                     ModifiedBy = entity.ModifiedBy,
-                                     ModifiedDate = entity.ModifiedDate
-                                 }).Where(addReview => addReview.FormId == entity.FormId && addReview.SortOrder == entity.SortOrder)
-                                 .ExecuteCommandAsync();
-            if (count > 0)
-            {
-                await RefreshAddReviewText(entity.FormId);
-            }
-            return count;
+            var deleteCount = await _db.Deleteable<FormAddReviewEntity>()
+                                       .Where(addreview => addreview.FormId == formId)
+                                       .ExecuteCommandAsync();
+
+            var insertCount = entities.Count > 0
+                ? await _db.Insertable(entities).ExecuteCommandAsync()
+                : 0;
+
+            await RefreshAddReviewText(formId);
+
+            return deleteCount + insertCount;
         }
 
         /// <summary>
@@ -641,9 +635,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 查询步骤栏位权限列表
         /// </summary>
-        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formId, long loginUserId, bool isVerification = false)
+        /// <param name="type">Verification=全部固定可见且禁用；Review=按当前步骤取权限；其余（View，含 PDF 打印）=按已参与步骤综合取最大权限</param>
+        public async Task<List<StepFieldPermissionDto>> GetStepFieldPermissionList(long formId, long loginUserId, string type = "View")
         {
-            if (isVerification)
+            if (type == "Verification")
             {
                 var verificationFields = await _db.Queryable<FormInstanceEntity>()
                                       .InnerJoin<FormTypeFieldEntity>((formInstance, formTypeField) => formInstance.FormTypeId == formTypeField.FormTypeId)
@@ -660,28 +655,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 }).ToList();
             }
 
-            // 1. 该用户在「待审批」中所属的步骤（含代理：当前用户是待审批人的代理人）
-            var pendingStepIds = await _db.Queryable<PendingReviewEntity>()
-                                          .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
-                                          .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == loginUserId || useragent.AgentUserId == loginUserId))
-                                          .Select((pending, useragent) => pending.StepId)
-                                          .ToListAsync();
-
-            // 2. 该用户在「审批记录」中所属的步骤（原始指派人 / 实际操作人 / 原始指派人的代理人）
-            var recordStepIds = await _db.Queryable<FormReviewRecordEntity>()
-                                         .LeftJoin<UserAgentEntity>((record, useragent) => record.OriginalUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
-                                         .Where((record, useragent) => record.FormId == formId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId || useragent.AgentUserId == loginUserId))
-                                         .Select((record, useragent) => record.StepId)
-                                         .ToListAsync();
-
-            // 合并去重，得到该用户在此表单的所有审批步骤（待审批 StepId 可空，过滤 null 后转 long 再与记录步骤合并）
-            var stepIds = pendingStepIds.Where(stepId => stepId.HasValue)
-                                        .Select(stepId => stepId!.Value)
-                                        .Concat(recordStepIds)
-                                        .Distinct()
-                                        .ToList();
-
-            // 3. 取该表单类型下的所有栏位（FormInstance INNER JOIN FormTypeField，一次查询拿到，省一次往返）
             var fields = await _db.Queryable<FormInstanceEntity>()
                                   .InnerJoin<FormTypeFieldEntity>((formInstance, formTypeField) => formInstance.FormTypeId == formTypeField.FormTypeId)
                                   .Where((formInstance, formTypeField) => formInstance.FormId == formId)
@@ -689,26 +662,33 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                   .Select((formInstance, formTypeField) => formTypeField)
                                   .ToListAsync();
 
-            // 4. 取这些步骤的栏位权限
+            var isReview = type == "Review";
+
+            var stepIds = isReview
+                ? await GetCurrentStepIdIfOwnedByUser(formId, loginUserId)
+                : await GetParticipatedStepIds(formId, loginUserId);
+
             var permissions = await _db.Queryable<StepFieldPermissionEntity>()
                                        .Where(permission => stepIds.Contains(permission.StepId))
                                        .ToListAsync();
 
-            // 5. 按栏位聚合「最大权限」：IsVisible / IsDisabled 都取 Max（1 表示有权限，1 > 0）
-            var maxPermissionByFieldId = permissions
-                                        .GroupBy(permission => permission.FieldId)
-                                        .ToDictionary(
-                                            group => group.Key,
-                                            group => new
-                                            {
-                                                IsVisible = group.Max(permission => permission.IsVisible),
-                                                IsDisabled = group.Max(permission => permission.IsDisabled)
-                                            });
+            // IsVisible 取 Max（有一个步骤可见即可见），IsDisabled：Review 取 Min（权限最大化），View 维持 Max
+            var mergedPermissionByFieldId = permissions
+                                            .GroupBy(permission => permission.FieldId)
+                                            .ToDictionary(
+                                                group => group.Key,
+                                                group => new
+                                                {
+                                                    IsVisible = group.Max(permission => permission.IsVisible),
+                                                    IsDisabled = isReview
+                                                        ? group.Min(permission => permission.IsDisabled)
+                                                        : group.Max(permission => permission.IsDisabled)
+                                                });
 
-            // 6. 以表单类型的栏位为基准组装结果；无权限配置的栏位默认 0/0（不显示、不可编辑）
-            var result = fields.Select(field =>
+            // 无权限配置的栏位默认 0/0（不显示、不可编辑）
+            return fields.Select(field =>
             {
-                maxPermissionByFieldId.TryGetValue(field.FieldId, out var permission);
+                mergedPermissionByFieldId.TryGetValue(field.FieldId, out var permission);
                 return new StepFieldPermissionDto
                 {
                     FieldKey = field.FieldKey,
@@ -716,8 +696,55 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     IsDisabled = permission?.IsDisabled ?? 0
                 };
             }).ToList();
+        }
 
-            return result;
+        /// <summary>
+        /// 该用户在此表单参与过的所有步骤（待审批 + 历史审批记录，含代理）
+        /// </summary>
+        private async Task<List<long>> GetParticipatedStepIds(long formId, long loginUserId)
+        {
+            var pendingStepIds = await _db.Queryable<PendingReviewEntity>()
+                                          .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                          .Where((pending, useragent) => pending.FormId == formId && (pending.ReviewUserId == loginUserId || useragent.AgentUserId == loginUserId))
+                                          .Select((pending, useragent) => pending.StepId)
+                                          .ToListAsync();
+
+            var recordStepIds = await _db.Queryable<FormReviewRecordEntity>()
+                                         .LeftJoin<UserAgentEntity>((record, useragent) => record.OriginalUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                         .Where((record, useragent) => record.FormId == formId && (record.OriginalUserId == loginUserId || record.OperationUserId == loginUserId || useragent.AgentUserId == loginUserId))
+                                         .Select((record, useragent) => record.StepId)
+                                         .ToListAsync();
+
+            return pendingStepIds.Where(stepId => stepId.HasValue)
+                                 .Select(stepId => stepId!.Value)
+                                 .Concat(recordStepIds)
+                                 .Distinct()
+                                 .ToList();
+        }
+
+        /// <summary>
+        /// 表单当前步骤Id：仅当该用户确实是当前步骤的待审批人（或其代理人）时才返回，否则视为无权限
+        /// </summary>
+        private async Task<List<long>> GetCurrentStepIdIfOwnedByUser(long formId, long loginUserId)
+        {
+            var currentStepId = await _db.Queryable<FormInstanceEntity>()
+                                         .Where(instance => instance.FormId == formId)
+                                         .Select(instance => instance.CurrentStepId)
+                                         .FirstAsync();
+
+            if (currentStepId == null)
+            {
+                return [];
+            }
+
+            var isOwnedByUser = await _db.Queryable<PendingReviewEntity>()
+                                         .LeftJoin<UserAgentEntity>((pending, useragent) => pending.ReviewUserId == useragent.SubstituteUserId && useragent.StartTime <= DateTime.Now && useragent.EndTime >= DateTime.Now)
+                                         .Where((pending, useragent) => pending.FormId == formId
+                                                                      && pending.StepId == currentStepId
+                                                                      && (pending.ReviewUserId == loginUserId || useragent.AgentUserId == loginUserId))
+                                         .AnyAsync();
+
+            return isOwnedByUser ? [currentStepId.Value] : [];
         }
     }
 }
