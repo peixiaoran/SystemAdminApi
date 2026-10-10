@@ -171,6 +171,9 @@
   <data name="ForecastVersionHasUnlocked" xml:space="preserve">
     <value>Forecast version {0} has not been locked yet. Please lock it before adding another version</value>
   </data>
+  <data name="ForecastVersionHasUnuploadedPartNumbers" xml:space="preserve">
+    <value>Cannot lock: the following customers have company part numbers without a forecast yet: {0}</value>
+  </data>
   <data name="FoWeeklyDetailVersionNotFound" xml:space="preserve">
     <value>Forecast version does not exist</value>
   </data>
@@ -192,17 +195,17 @@
   <data name="FoWeeklyDetailExcel_Index" xml:space="preserve">
     <value>Index</value>
   </data>
-  <data name="FoWeeklyDetailExcel_DayTotal" xml:space="preserve">
-    <value>Day Total</value>
+  <data name="FoWeeklyDetailExcel_PreviousTotal" xml:space="preserve">
+    <value>Previous Total</value>
   </data>
-  <data name="FoWeeklyDetailExcel_WeekTotal" xml:space="preserve">
-    <value>Week Total</value>
+  <data name="FoWeeklyDetailExcel_CurrentTotal" xml:space="preserve">
+    <value>Current Total</value>
   </data>
-  <data name="FoWeeklyDetailExcel_DayWoW" xml:space="preserve">
-    <value>Day WoW %</value>
+  <data name="FoWeeklyDetailExcel_TotalDiff" xml:space="preserve">
+    <value>Diff</value>
   </data>
-  <data name="FoWeeklyDetailExcel_WeekWoW" xml:space="preserve">
-    <value>Week WoW %</value>
+  <data name="FoWeeklyDetailExcel_TotalDiffRate" xml:space="preserve">
+    <value>Diff Rate %</value>
   </data>
   <data name="FoWeeklyDetailImport_FileEmpty" xml:space="preserve">
     <value>Please select a file to upload</value>

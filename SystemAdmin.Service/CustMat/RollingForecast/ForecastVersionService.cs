@@ -163,6 +163,14 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
             try
             {
                 var id = long.Parse(versionId);
+
+                if (status == ForecastVersionStatus.Lock)
+                {
+                    var unuploadedMessage = await BuildUnuploadedPartNumbersMessage(id);
+                    if (!string.IsNullOrEmpty(unuploadedMessage))
+                        return Result<int>.Failure(400, unuploadedMessage);
+                }
+
                 await _db.BeginTranAsync();
                 int count = await _forecastVersionRepo.UpdateForecastVersionStatus(id, status.ToEnumString(), _loginuser.UserId, DateTime.Now);
 
@@ -188,6 +196,29 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
             }
+        }
+
+        /// <summary>
+        /// 锁定前校验：找出有客户对照关系、但本版本尚未上传预测的公司料号，按对应客户归集后生成提示文案；全部已上传时返回null
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <returns></returns>
+        private async Task<string?> BuildUnuploadedPartNumbersMessage(long versionId)
+        {
+            var customers = await _forecastVersionRepo.GetCompanyPartNumberCustomers();
+            if (customers.Count == 0)
+                return null;
+
+            var uploadedPartNumbers = await _forecastVersionRepo.GetUploadedPartNumbers(versionId);
+            var missingCustomers = customers.Where(customer => !uploadedPartNumbers.Contains(customer.PartNumber)).ToList();
+            if (missingCustomers.Count == 0)
+                return null;
+
+            var customerDescriptions = missingCustomers
+                .GroupBy(customer => customer.CustomerCode)
+                .Select(group => $"{group.First().CustomerName}（{group.Key}）");
+
+            return _localization.ReturnMsg($"{_this}HasUnuploadedPartNumbers", (object)string.Join("、", customerDescriptions));
         }
 
         /// <summary>
@@ -255,22 +286,16 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 按料号填充天/周数量合计及环比变化百分比
+        /// 按料号填充本周/上周合计及环比变化百分比
         /// </summary>
         /// <param name="version"></param>
         /// <param name="periods"></param>
         /// <param name="rows"></param>
         private async Task FillTotalsAndChangeRates(ForecastVersionEntity version, List<FoWeeklyPeriodDto> periods, List<FoWeeklyRowDto> rows)
         {
-            var dayType = ForecastPeriodType.Day.ToEnumString();
-            var weekType = ForecastPeriodType.Week.ToEnumString();
-            var dayKeys = periods.Where(period => period.PeriodType == dayType).Select(period => period.PeriodKey).ToHashSet();
-            var weekKeys = periods.Where(period => period.PeriodType == weekType).Select(period => period.PeriodKey).ToHashSet();
-
             foreach (var row in rows)
             {
-                row.DayTotal = dayKeys.Sum(key => row.Quantities[key]);
-                row.WeekTotal = weekKeys.Sum(key => row.Quantities[key]);
+                row.CurrentTotal = row.Quantities.Values.Sum();
             }
 
             var previousVersion = await _forecastVersionRepo.GetPreviousVersion(version.StartDate);
@@ -279,16 +304,16 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
 
             var previousDetails = await _forecastVersionRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
             var previousQtyOfPartNumber = previousDetails
-                .GroupBy(detail => (detail.PartNumber, detail.PeriodType))
+                .GroupBy(detail => detail.PartNumber)
                 .ToDictionary(group => group.Key, group => group.Sum(detail => detail.Qty));
 
             foreach (var row in rows)
             {
-                var previousDayQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, dayType), 0m);
-                var previousWeekQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, weekType), 0m);
+                var previousQty = previousQtyOfPartNumber.GetValueOrDefault(row.PartNumber, 0m);
 
-                row.DayQtyChangeRate = previousDayQty == 0 ? null : Math.Round((row.DayTotal - previousDayQty) / previousDayQty * 100, 2);
-                row.WeekQtyChangeRate = previousWeekQty == 0 ? null : Math.Round((row.WeekTotal - previousWeekQty) / previousWeekQty * 100, 2);
+                row.PreviousTotal = previousQty;
+                row.TotalDiff = row.CurrentTotal - previousQty;
+                row.TotalDiffRate = previousQty == 0 ? null : Math.Round(row.TotalDiff / previousQty * 100, 2);
             }
         }
 

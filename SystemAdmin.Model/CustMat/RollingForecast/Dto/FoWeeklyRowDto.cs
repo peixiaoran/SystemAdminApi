@@ -35,23 +35,23 @@ namespace SystemAdmin.Model.CustMat.RollingForecast.Dto
         public Dictionary<string, decimal> Quantities { get; set; } = [];
 
         /// <summary>
-        /// 天数量合计（21天之和）
+        /// 上周FO版本合计
         /// </summary>
-        public decimal DayTotal { get; set; }
+        public decimal PreviousTotal { get; set; }
 
         /// <summary>
-        /// 周数量合计（13周之和）
+        /// 本周FO版本合计
         /// </summary>
-        public decimal WeekTotal { get; set; }
+        public decimal CurrentTotal { get; set; }
 
         /// <summary>
-        /// 天数量环比上周变化百分比（%，保留2位小数），上周数量为0时为空
+        /// 本周合计减去上周合计的差异
         /// </summary>
-        public decimal? DayQtyChangeRate { get; set; }
+        public decimal TotalDiff { get; set; }
 
         /// <summary>
-        /// 周数量环比上周变化百分比（%，保留2位小数），上周数量为0时为空
+        /// 环比上周变化百分比（%，保留2位小数），上周合计为0时为空
         /// </summary>
-        public decimal? WeekQtyChangeRate { get; set; }
+        public decimal? TotalDiffRate { get; set; }
     }
 }

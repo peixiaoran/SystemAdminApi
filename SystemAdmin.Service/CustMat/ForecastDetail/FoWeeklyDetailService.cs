@@ -232,7 +232,7 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
         }
 
         /// <summary>
-        /// 按料号填充天/周数量合计及环比变化百分比
+        /// 按料号填充本周/上周合计及环比变化百分比
         /// </summary>
         /// <param name="version"></param>
         /// <param name="periods"></param>
@@ -242,15 +242,9 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
             if (rows.Count == 0)
                 return;
 
-            var dayType = ForecastPeriodType.Day.ToEnumString();
-            var weekType = ForecastPeriodType.Week.ToEnumString();
-            var dayKeys = periods.Where(period => period.PeriodType == dayType).Select(period => period.PeriodKey).ToHashSet();
-            var weekKeys = periods.Where(period => period.PeriodType == weekType).Select(period => period.PeriodKey).ToHashSet();
-
             foreach (var row in rows)
             {
-                row.DayTotal = dayKeys.Sum(key => row.Quantities[key]);
-                row.WeekTotal = weekKeys.Sum(key => row.Quantities[key]);
+                row.CurrentTotal = row.Quantities.Values.Sum();
             }
 
             var previousVersion = await _foWeeklyDetailRepo.GetPreviousVersion(version.StartDate);
@@ -259,16 +253,16 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
 
             var previousDetails = await _foWeeklyDetailRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
             var previousQtyOfPartNumber = previousDetails
-                .GroupBy(detail => (detail.PartNumber, detail.PeriodType))
+                .GroupBy(detail => detail.PartNumber)
                 .ToDictionary(group => group.Key, group => group.Sum(detail => detail.Qty));
 
             foreach (var row in rows)
             {
-                var previousDayQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, dayType), 0m);
-                var previousWeekQty = previousQtyOfPartNumber.GetValueOrDefault((row.PartNumber, weekType), 0m);
+                var previousQty = previousQtyOfPartNumber.GetValueOrDefault(row.PartNumber, 0m);
 
-                row.DayQtyChangeRate = previousDayQty == 0 ? null : Math.Round((row.DayTotal - previousDayQty) / previousDayQty * 100, 2);
-                row.WeekQtyChangeRate = previousWeekQty == 0 ? null : Math.Round((row.WeekTotal - previousWeekQty) / previousWeekQty * 100, 2);
+                row.PreviousTotal = previousQty;
+                row.TotalDiff = row.CurrentTotal - previousQty;
+                row.TotalDiffRate = previousQty == 0 ? null : Math.Round(row.TotalDiff / previousQty * 100, 2);
             }
         }
 
@@ -285,10 +279,10 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
             ws.Cells[1, 1].Value = _localization.ReturnMsg($"{_thisExcel}Index");
             ws.Cells[1, 2].Value = _localization.ReturnMsg($"{_thisExcel}PartNumber");
             ws.Cells[1, 3].Value = _localization.ReturnMsg($"{_thisExcel}PartName");
-            ws.Cells[1, 4].Value = _localization.ReturnMsg($"{_thisExcel}DayTotal");
-            ws.Cells[1, 5].Value = _localization.ReturnMsg($"{_thisExcel}WeekTotal");
-            ws.Cells[1, 6].Value = _localization.ReturnMsg($"{_thisExcel}DayWoW");
-            ws.Cells[1, 7].Value = _localization.ReturnMsg($"{_thisExcel}WeekWoW");
+            ws.Cells[1, 4].Value = _localization.ReturnMsg($"{_thisExcel}PreviousTotal");
+            ws.Cells[1, 5].Value = _localization.ReturnMsg($"{_thisExcel}CurrentTotal");
+            ws.Cells[1, 6].Value = _localization.ReturnMsg($"{_thisExcel}TotalDiff");
+            ws.Cells[1, 7].Value = _localization.ReturnMsg($"{_thisExcel}TotalDiffRate");
 
             for (int i = 0; i < periods.Count; i++)
             {
@@ -302,17 +296,14 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
                 ws.Cells[rowIndex, 1].Value = r + 1;
                 ws.Cells[rowIndex, 2].Value = row.PartNumber;
                 ws.Cells[rowIndex, 3].Value = row.PartName;
-                ws.Cells[rowIndex, 4].Value = row.DayTotal;
-                ws.Cells[rowIndex, 5].Value = row.WeekTotal;
-                if (row.DayQtyChangeRate.HasValue)
+                ws.Cells[rowIndex, 4].Value = row.PreviousTotal;
+                ws.Cells[rowIndex, 5].Value = row.CurrentTotal;
+                ws.Cells[rowIndex, 6].Value = row.TotalDiff;
+                SetChangeRateFontColor(ws.Cells[rowIndex, 6], row.TotalDiff);
+                if (row.TotalDiffRate.HasValue)
                 {
-                    ws.Cells[rowIndex, 6].Value = row.DayQtyChangeRate.Value;
-                    SetChangeRateFontColor(ws.Cells[rowIndex, 6], row.DayQtyChangeRate.Value);
-                }
-                if (row.WeekQtyChangeRate.HasValue)
-                {
-                    ws.Cells[rowIndex, 7].Value = row.WeekQtyChangeRate.Value;
-                    SetChangeRateFontColor(ws.Cells[rowIndex, 7], row.WeekQtyChangeRate.Value);
+                    ws.Cells[rowIndex, 7].Value = row.TotalDiffRate.Value;
+                    SetChangeRateFontColor(ws.Cells[rowIndex, 7], row.TotalDiffRate.Value);
                 }
                 for (int c = 0; c < periods.Count; c++)
                 {
@@ -325,8 +316,8 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
 
             // 料号列按文本格式，避免被识别为数字
             ws.Cells[2, 2, totalRows, 2].Style.Numberformat.Format = "@";
-            // 环比百分比列已是百分数数值，追加%后缀显示，为空时留空
-            ws.Cells[2, 6, totalRows, 7].Style.Numberformat.Format = "0.00\"%\"";
+            // 差异比例列已是百分数数值，追加%后缀显示，为空时留空
+            ws.Cells[2, 7, totalRows, 7].Style.Numberformat.Format = "0.00\"%\"";
 
             var headerRange = ws.Cells[1, 1, 1, totalCols];
             headerRange.Style.Font.Name = "微软雅黑";

@@ -171,6 +171,9 @@
   <data name="ForecastVersionHasUnlocked" xml:space="preserve">
     <value>预测版本 {0} 尚未锁定，请先将其锁定后再新增其他版本</value>
   </data>
+  <data name="ForecastVersionHasUnuploadedPartNumbers" xml:space="preserve">
+    <value>以下客户对应公司料号尚未预测，不能锁定：{0}</value>
+  </data>
   <data name="FoWeeklyDetailVersionNotFound" xml:space="preserve">
     <value>预测版本不存在</value>
   </data>
@@ -192,17 +195,17 @@
   <data name="FoWeeklyDetailExcel_Index" xml:space="preserve">
     <value>序号</value>
   </data>
-  <data name="FoWeeklyDetailExcel_DayTotal" xml:space="preserve">
-    <value>天合计</value>
+  <data name="FoWeeklyDetailExcel_PreviousTotal" xml:space="preserve">
+    <value>上周合计</value>
   </data>
-  <data name="FoWeeklyDetailExcel_WeekTotal" xml:space="preserve">
-    <value>周合计</value>
+  <data name="FoWeeklyDetailExcel_CurrentTotal" xml:space="preserve">
+    <value>本周合计</value>
   </data>
-  <data name="FoWeeklyDetailExcel_DayWoW" xml:space="preserve">
-    <value>天环比%</value>
+  <data name="FoWeeklyDetailExcel_TotalDiff" xml:space="preserve">
+    <value>差异</value>
   </data>
-  <data name="FoWeeklyDetailExcel_WeekWoW" xml:space="preserve">
-    <value>周环比%</value>
+  <data name="FoWeeklyDetailExcel_TotalDiffRate" xml:space="preserve">
+    <value>差异比例%</value>
   </data>
   <data name="FoWeeklyDetailImport_FileEmpty" xml:space="preserve">
     <value>请先选择要上传的文件</value>

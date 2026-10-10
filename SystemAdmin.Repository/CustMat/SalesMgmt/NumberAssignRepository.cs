@@ -150,7 +150,41 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                                       UserNo = user.UserNo,
                                       UserName = _lang.Locale == "zh-CN" ? user.UserNameCn : user.UserNameEn,
                                   }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
+
+            var customerCodeOfPartNumber = await GetCustomerCodesOfPartNumbers([.. page.Select(row => row.PartNumber)]);
+            foreach (var row in page)
+            {
+                row.CustomerCode = customerCodeOfPartNumber.GetValueOrDefault(row.PartNumber, string.Empty);
+            }
+
             return ResultPaged<NumberAssignDto>.Ok(page, totalCount, "");
+        }
+
+        /// <summary>
+        /// 批量查询公司料号对应的客户编码（经客户料号对照表关联），一个公司料号可能对应多个客户时以"、"连接
+        /// </summary>
+        /// <param name="partNumbers"></param>
+        /// <returns></returns>
+        private async Task<Dictionary<string, string>> GetCustomerCodesOfPartNumbers(List<string> partNumbers)
+        {
+            if (partNumbers.Count == 0)
+                return [];
+
+            var mappings = await _db.Queryable<NumberMappingEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .InnerJoin<CustomerNumberEntity>((mapping, customerNumber) => mapping.CustomerPartNumber == customerNumber.PartNumber)
+                                    .InnerJoin<CustomerInfoEntity>((mapping, customerNumber, customer) => customerNumber.CustomerCode == customer.CustomerCode)
+                                    .Where(mapping => partNumbers.Contains(mapping.CompanyPartNumber))
+                                    .Select((mapping, customerNumber, customer) => new
+                                    {
+                                        mapping.CompanyPartNumber,
+                                        customer.CustomerCode,
+                                    })
+                                    .Distinct()
+                                    .ToListAsync();
+
+            return mappings.GroupBy(mapping => mapping.CompanyPartNumber)
+                           .ToDictionary(group => group.Key, group => string.Join("、", group.Select(mapping => mapping.CustomerCode).Distinct()));
         }
 
         /// <summary>

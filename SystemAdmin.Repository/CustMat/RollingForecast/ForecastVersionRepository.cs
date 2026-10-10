@@ -236,6 +236,43 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
+        /// 查询指定版本下已上传过预测周明细的公司料号（去重）
+        /// </summary>
+        /// <param name="versionId"></param>
+        /// <returns></returns>
+        public async Task<List<string>> GetUploadedPartNumbers(long versionId)
+        {
+            return await _db.Queryable<ForecastWeeklyDetailEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(detail => detail.VersionId == versionId)
+                            .Select(detail => detail.PartNumber)
+                            .Distinct()
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 查询全部有效公司料号对应的客户名称（经客户料号对照表关联，一个公司料号可能对应多个客户）
+        /// </summary>
+        /// <returns></returns>
+        public async Task<List<CompanyPartNumberCustomerDto>> GetCompanyPartNumberCustomers()
+        {
+            return await _db.Queryable<CompanyNumberEntity>()
+                            .With(SqlWith.NoLock)
+                            .InnerJoin<NumberMappingEntity>((companyNumber, mapping) => companyNumber.PartNumber == mapping.CompanyPartNumber)
+                            .InnerJoin<CustomerNumberEntity>((companyNumber, mapping, customerNumber) => mapping.CustomerPartNumber == customerNumber.PartNumber)
+                            .InnerJoin<CustomerInfoEntity>((companyNumber, mapping, customerNumber, customer) => customerNumber.CustomerCode == customer.CustomerCode)
+                            .Where(companyNumber => companyNumber.Status == 1)
+                            .Select((companyNumber, mapping, customerNumber, customer) => new CompanyPartNumberCustomerDto
+                            {
+                                PartNumber = companyNumber.PartNumber,
+                                CustomerCode = customer.CustomerCode,
+                                CustomerName = _lang.Locale == "zh-CN" ? customer.CustomerNameCn : customer.CustomerNameEn,
+                            })
+                            .Distinct()
+                            .ToListAsync();
+        }
+
+        /// <summary>
         /// 清空指定版本下的预测周明细归档（重新锁定时覆盖）
         /// </summary>
         /// <param name="versionId"></param>
