@@ -88,6 +88,19 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
+        /// 查询指定开始时间对应的预测版本（无论是否存在，不存在时返回null）
+        /// </summary>
+        /// <param name="startDate"></param>
+        /// <returns></returns>
+        public async Task<ForecastVersionEntity?> GetVersionByStartDate(DateTime startDate)
+        {
+            return await _db.Queryable<ForecastVersionEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(version => version.StartDate == startDate)
+                            .FirstAsync();
+        }
+
+        /// <summary>
         /// 查询指定业务负责人所负责的公司料号
         /// </summary>
         /// <param name="salesUserId"></param>

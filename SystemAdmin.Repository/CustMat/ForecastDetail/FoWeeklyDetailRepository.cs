@@ -76,16 +76,15 @@ namespace SystemAdmin.Repository.CustMat.ForecastDetail
         }
 
         /// <summary>
-        /// 查询指定开始时间之前最近的一个预测版本（上一周版本）
+        /// 查询指定开始时间对应的预测版本（无论是否存在，不存在时返回null）
         /// </summary>
         /// <param name="startDate"></param>
         /// <returns></returns>
-        public async Task<ForecastVersionEntity?> GetPreviousVersion(DateTime startDate)
+        public async Task<ForecastVersionEntity?> GetVersionByStartDate(DateTime startDate)
         {
             return await _db.Queryable<ForecastVersionEntity>()
                             .With(SqlWith.NoLock)
-                            .Where(version => version.StartDate < startDate)
-                            .OrderByDescending(version => version.StartDate)
+                            .Where(version => version.StartDate == startDate)
                             .FirstAsync();
         }
 

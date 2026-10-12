@@ -247,11 +247,10 @@ namespace SystemAdmin.Service.CustMat.ForecastDetail
                 row.CurrentTotal = row.Quantities.Values.Sum();
             }
 
-            var previousVersion = await _foWeeklyDetailRepo.GetPreviousVersion(version.StartDate);
-            if (previousVersion == null)
-                return;
-
-            var previousDetails = await _foWeeklyDetailRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
+            var previousVersion = await _foWeeklyDetailRepo.GetVersionByStartDate(version.StartDate.AddDays(-7));
+            var previousDetails = previousVersion == null
+                ? []
+                : await _foWeeklyDetailRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
             var previousQtyOfPartNumber = previousDetails
                 .GroupBy(detail => detail.PartNumber)
                 .ToDictionary(group => group.Key, group => group.Sum(detail => detail.Qty));

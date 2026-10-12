@@ -298,11 +298,10 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 row.CurrentTotal = row.Quantities.Values.Sum();
             }
 
-            var previousVersion = await _forecastVersionRepo.GetPreviousVersion(version.StartDate);
-            if (previousVersion == null)
-                return;
-
-            var previousDetails = await _forecastVersionRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
+            var previousVersion = await _forecastVersionRepo.GetVersionByStartDate(version.StartDate.AddDays(-7));
+            var previousDetails = previousVersion == null
+                ? []
+                : await _forecastVersionRepo.GetForecastWeeklyDetails(previousVersion.VersionId, [.. rows.Select(row => row.PartNumber)]);
             var previousQtyOfPartNumber = previousDetails
                 .GroupBy(detail => detail.PartNumber)
                 .ToDictionary(group => group.Key, group => group.Sum(detail => detail.Qty));

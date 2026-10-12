@@ -29,5 +29,10 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
         /// 启用状态
         /// </summary>
         public int Status { get; set; }
+
+        /// <summary>
+        /// 客户编码，经客户料号对照表关联，一个公司料号可能对应多个客户时以"、"连接，无对照关系时为空
+        /// </summary>
+        public string CustomerCode { get; set; } = string.Empty;
     }
 }
