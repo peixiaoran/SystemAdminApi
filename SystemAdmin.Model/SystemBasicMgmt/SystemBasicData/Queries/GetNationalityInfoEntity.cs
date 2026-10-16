@@ -8,6 +8,6 @@
         /// <summary>
         /// 国籍Id
         /// </summary>
-        public string NationId { get; set; } = string.Empty;
+        public string NationalityId { get; set; } = string.Empty;
     }
 }

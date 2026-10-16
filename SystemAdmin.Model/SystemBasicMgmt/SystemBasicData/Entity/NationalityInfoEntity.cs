@@ -12,7 +12,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         /// 国籍Id
         /// </summary>
         [SugarColumn(IsPrimaryKey = true, ColumnDescription = "Primary Key")]
-        public long NationId { get; set; }
+        public long NationalityId { get; set; }
 
         /// <summary>
         /// 国籍名称（中文）

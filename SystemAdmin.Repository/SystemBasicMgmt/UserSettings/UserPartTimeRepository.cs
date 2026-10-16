@@ -171,7 +171,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .LeftJoin<DepartmentInfoEntity>((user, dept) => user.DepartmentId == dept.DepartmentId)
                            .LeftJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .LeftJoin<NationalityInfoEntity>((user, dept, position, nation) =>
-                            user.Nationality == nation.NationId)
+                            user.Nationality == nation.NationalityId)
                            .LeftJoin<UserLaborEntity>((user, dept, position, nation, labor) => user.LaborId == labor.LaborId)
                            .Where((user, dept, position, nation, labor) => user.IsEmployed == 1 && user.IsFreeze == 0);
 

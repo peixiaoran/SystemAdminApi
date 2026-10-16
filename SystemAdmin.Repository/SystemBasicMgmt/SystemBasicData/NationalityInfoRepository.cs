@@ -27,12 +27,12 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         /// <summary>
         /// 删除国籍
         /// </summary>
-        /// <param name="nationId"></param>
+        /// <param name="nationalityId"></param>
         /// <returns></returns>
-        public async Task<int> DeleteNationalityInfo(long nationId)
+        public async Task<int> DeleteNationalityInfo(long nationalityId)
         {
             return await _db.Deleteable<NationalityInfoEntity>()
-                            .Where(Nationality => Nationality.NationId == nationId)
+                            .Where(Nationality => Nationality.NationalityId == nationalityId)
                             .ExecuteCommandAsync();
         }
 
@@ -46,25 +46,30 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
             return await _db.Updateable(entity)
                             .IgnoreColumns(Nationality => new
                             {
-                                Nationality.NationId,
+                                Nationality.NationalityId,
                                 Nationality.CreatedBy,
                                 Nationality.CreatedDate,
-                            }).Where(Nationality => Nationality.NationId == entity.NationId)
+                            }).Where(Nationality => Nationality.NationalityId == entity.NationalityId)
                             .ExecuteCommandAsync();
         }
 
         /// <summary>
         /// 查询国籍实体
         /// </summary>
-        /// <param name="nationId"></param>
+        /// <param name="nationalityId"></param>
         /// <returns></returns>
-        public async Task<NationalityInfoDto> GetNationalityEntity(long nationId)
+        public async Task<NationalityInfoDto> GetNationalityEntity(long nationalityId)
         {
-            var entity = await _db.Queryable<NationalityInfoEntity>()
-                                  .With(SqlWith.NoLock)
-                                  .Where(userPos => userPos.NationId == nationId)
-                                  .FirstAsync();
-            return entity.Adapt<NationalityInfoDto>();
+            return await _db.Queryable<NationalityInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .Where(userPos => userPos.NationalityId == nationalityId)
+                            .Select(nation => new NationalityInfoDto
+                            {
+                                NationalityId = nation.NationalityId,
+                                NationNameCn = nation.NationNameCn,
+                                NationNameEn = nation.NationNameEn,
+                                Remark = nation.Remark,
+                            }).FirstAsync();
         }
 
         /// <summary>
@@ -73,10 +78,15 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
         /// <returns></returns>
         public async Task<List<NationalityInfoDto>> GetNationalityInfoList()
         {
-            var list = await _db.Queryable<NationalityInfoEntity>()
-                                .With(SqlWith.NoLock)
-                                .ToListAsync();
-            return list.Adapt<List<NationalityInfoDto>>();
+            return await _db.Queryable<NationalityInfoEntity>()
+                            .With(SqlWith.NoLock)
+                            .Select(nation => new NationalityInfoDto
+                            {
+                                NationalityId = nation.NationalityId,
+                                NationNameCn = nation.NationNameCn,
+                                NationNameEn = nation.NationNameEn,
+                                Remark = nation.Remark,
+                            }).ToListAsync();
         }
     }
 }

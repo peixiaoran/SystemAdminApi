@@ -37,7 +37,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
             {
                 var entity = new NationalityInfoEntity()
                 {
-                    NationId = SnowFlakeSingle.Instance.NextId(),
+                    NationalityId = SnowFlakeSingle.Instance.NextId(),
                     NationNameCn = upsert.NationNameCn,
                     NationNameEn = upsert.NationNameEn,
                     Remark = upsert.Remark,
@@ -66,12 +66,12 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         /// </summary>
         /// <param name="upsert"></param>
         /// <returns></returns>
-        public async Task<Result<int>> DeleteNationalityInfo(string nationId)
+        public async Task<Result<int>> DeleteNationalityInfo(string nationalityId)
         {
             try
             {
                 await _db.BeginTranAsync();
-                int count = await _nationRepo.DeleteNationalityInfo(long.Parse(nationId));
+                int count = await _nationRepo.DeleteNationalityInfo(long.Parse(nationalityId));
                 await _db.CommitTranAsync();
 
                 return count >= 1
@@ -98,7 +98,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
             {
                 var entity = new NationalityInfoEntity()
                 {
-                    NationId = long.Parse(upsert.NationId),
+                    NationalityId = long.Parse(upsert.NationalityId),
                     NationNameCn = upsert.NationNameCn,
                     NationNameEn = upsert.NationNameEn,
                     Remark = upsert.Remark,
@@ -127,11 +127,11 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         /// </summary>
         /// <param name="getEntity"></param>
         /// <returns></returns>
-        public async Task<Result<NationalityInfoDto>> GetNationalityEntity(string nationId)
+        public async Task<Result<NationalityInfoDto>> GetNationalityEntity(string nationalityId)
         {
             try
             {
-                var entity = await _nationRepo.GetNationalityEntity(long.Parse(nationId));
+                var entity = await _nationRepo.GetNationalityEntity(long.Parse(nationalityId));
                 return Result<NationalityInfoDto>.Ok(entity, "");
             }
             catch (Exception ex)

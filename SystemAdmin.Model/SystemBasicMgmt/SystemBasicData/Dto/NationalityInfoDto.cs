@@ -12,7 +12,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// 国籍Id
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long NationId { get; set; }
+        public long NationalityId { get; set; }
 
         /// <summary>
         /// 国籍名称（中文）

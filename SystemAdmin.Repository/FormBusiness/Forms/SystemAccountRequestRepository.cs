@@ -74,7 +74,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                             .With(SqlWith.NoLock)
                             .Select(nation => new NationalityDropDto
                             {
-                                NationId = nation.NationId,
+                                NationalityId = nation.NationalityId,
                                 NationName = _lang.Locale == "zh-CN"
                                              ? nation.NationNameCn
                                              : nation.NationNameEn

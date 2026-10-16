@@ -36,7 +36,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                             .With(SqlWith.NoLock)
                             .Select(nation => new NationalityDropDto
                             {
-                                NationId = nation.NationId,
+                                NationalityId = nation.NationalityId,
                                 NationName = _lang.Locale == "zh-CN"
                                              ? nation.NationNameCn
                                              : nation.NationNameEn
@@ -309,7 +309,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                            .InnerJoin<UserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
                            .InnerJoin<DepartmentInfoEntity>((user, userrole, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
-                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationId);
+                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationalityId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
@@ -395,7 +395,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                            .InnerJoin<UserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
                            .InnerJoin<DepartmentInfoEntity>((user, userrole, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
-                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationId);
+                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationalityId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getUserExcel.UserNo))
