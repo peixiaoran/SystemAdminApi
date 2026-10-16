@@ -14,6 +14,7 @@
     <PackageReference Include="MimeKit" Version="4.18.1" />
     <PackageReference Include="Minio" Version="7.0.0" />
     <PackageReference Include="SqlSugarCoreNoDrive" Version="5.1.4.221" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>
