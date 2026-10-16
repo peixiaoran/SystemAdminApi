@@ -337,7 +337,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按指派类型确定取人条件；级别不足或配置缺失时标记步骤跳过
+        /// 按指派类型确定取人条件；部门层级不足或配置缺失时标记步骤跳过
         /// </summary>
         private async Task<StepUserRequest> BuildStepUserRequest(ApplyFormDetail formDetail, FlowContext context, WorkflowStepEntity stepInfo, StepReview stepReview)
         {
@@ -361,7 +361,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 int deptLevelSort = context.DeptLevelSort(orgInfo.DeptLeaveId);
                 int positionSort = context.PositionSort(orgInfo.PositionId);
 
-                if (formDetail.DeptLevelSort < deptLevelSort || formDetail.PositionSort <= positionSort)
+                if (formDetail.DeptLevelSort < deptLevelSort)
                 {
                     stepReview.Skip = 1;
                     return request;

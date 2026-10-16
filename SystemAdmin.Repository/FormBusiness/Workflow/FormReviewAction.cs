@@ -844,7 +844,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 return !reviewUsers.Any();
             }
 
-            // 组织架构：申请人级别不足即跳过
+            // 组织架构：申请人部门层级不足即跳过
             if (stepInfo.Assignment != Assignment.Org.ToEnumString())
             {
                 return false;
@@ -855,12 +855,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                       .InnerJoin<UserInfoEntity>((instance, user) => instance.ApplicantUserId == user.UserId)
                                       .InnerJoin<DepartmentInfoEntity>((instance, user, dept) => user.DepartmentId == dept.DepartmentId)
                                       .InnerJoin<DepartmentLevelEntity>((instance, user, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
-                                      .InnerJoin<PositionInfoEntity>((instance, user, dept, deptlevel, position) => user.PositionId == position.PositionId)
-                                      .Where((instance, user, dept, deptlevel, position) => instance.FormId == formId)
-                                      .Select((instance, user, dept, deptlevel, position) => new
+                                      .Where((instance, user, dept, deptlevel) => instance.FormId == formId)
+                                      .Select((instance, user, dept, deptlevel) => new
                                       {
                                           DeptLevelSort = deptlevel.SortOrder,
-                                          PositionSort = position.SortOrder,
                                       }).FirstAsync();
 
             var orgInfo = await _db.Queryable<WorkflowStepOrgEntity>()
@@ -873,12 +871,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                            .Where(deptlevel => deptlevel.DepartmentLevelId == orgInfo.DeptLeaveId)
                                            .FirstAsync();
 
-            var configPosition = await _db.Queryable<PositionInfoEntity>()
-                                          .With(SqlWith.NoLock)
-                                          .Where(postion => postion.PositionId == orgInfo.PositionId)
-                                          .FirstAsync();
-
-            return formDetail.DeptLevelSort < configDeptLevel.SortOrder || formDetail.PositionSort <= configPosition.SortOrder;
+            return formDetail.DeptLevelSort < configDeptLevel.SortOrder;
         }
 
         /// <summary>

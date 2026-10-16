@@ -2,6 +2,7 @@ using SqlSugar;
 using SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Workflow.PersonResolver.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 
@@ -31,8 +32,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 [nameof(DestinationSiteHRManager)] = DestinationSiteHRManager,
                 // 资讯需求单
                 [nameof(EstimatedTimeHandler)] = EstimatedTimeHandler,
-                [nameof(HandlerConfirmation)] = HandlerConfirmation,
-                [nameof(ApplicationConfirmation)] = ApplicationConfirmation,
+                [nameof(PersonInCharge)] = PersonInCharge,
+                [nameof(ApplicantRating)] = ApplicantRating,
+                // 系统账号申请单
+                [nameof(SystemAccountPersonCharge)] = SystemAccountPersonCharge,
             };
         }
 
@@ -172,7 +175,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 处理人确认：根据资讯需求单选择的需求类别，取 InforCategoryConfig 配置的负责人
         /// </summary>
-        public async Task<CustomUser> HandlerConfirmation(long formId)
+        public async Task<CustomUser> PersonInCharge(long formId)
         {
             return await ResolveCategoryHandler(formId);
         }
@@ -180,7 +183,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 申请人确认：表单的发起申请人
         /// </summary>
-        public async Task<CustomUser> ApplicationConfirmation(long formId)
+        public async Task<CustomUser> ApplicantRating(long formId)
         {
             var applicantUserId = await _db.Queryable<FormInstanceEntity>()
                                            .With(SqlWith.NoLock)
@@ -206,7 +209,27 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             return ResolveUsers(handlerIds);
         }
+        #endregion
 
+        #region 系统账号申请单
+        /// <summary>
+        /// 系统负责人：根据系统账号申请单明细选择的系统，取 SystemAccountConfig 配置的负责人
+        /// </summary>
+        public async Task<CustomUser> SystemAccountPersonCharge(long formId)
+        {
+            var chargeIds = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                     .With(SqlWith.NoLock)
+                                     .InnerJoin<SystemAccountConfigEntity>((detail, config) => detail.System == config.System)
+                                     .Where((detail, config) => detail.FormId == formId)
+                                     .OrderBy((detail, config) => config.SortOrder)
+                                     .Select((detail, config) => config.PersonChargeId)
+                                     .ToListAsync();
+
+            return ResolveUsers(chargeIds);
+        }
+        #endregion
+
+        #region 公共
         /// <summary>
         /// 组装点名人员结果；无人返回 null（步骤跳过）
         /// </summary>
