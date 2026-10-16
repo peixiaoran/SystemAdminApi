@@ -11,7 +11,7 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 表单流程😈
+    /// 表单流程
     /// </summary>
     public class FormReviewFlow
     {

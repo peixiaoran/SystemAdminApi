@@ -14,7 +14,7 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 表单签核、驳回、撤回😈
+    /// 表单签核、驳回、撤回
     /// </summary>
     public class FormReviewAction
     {

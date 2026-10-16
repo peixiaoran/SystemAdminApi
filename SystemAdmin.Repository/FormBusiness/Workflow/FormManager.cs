@@ -19,7 +19,7 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 表单基础😈
+    /// 表单基础
     /// </summary>
     public class FormManager
     {

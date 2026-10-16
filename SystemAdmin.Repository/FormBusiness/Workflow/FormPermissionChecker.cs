@@ -9,7 +9,7 @@ using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 表单权限验证😈
+    /// 表单权限验证
     /// </summary>
     public class FormPermissionChecker
     {

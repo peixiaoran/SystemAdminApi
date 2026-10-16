@@ -9,7 +9,7 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 步骤自定义😇
+    /// 步骤自定义
     /// </summary>
     public class WorkflowCustomResolver
     {
