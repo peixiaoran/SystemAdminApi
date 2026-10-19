@@ -220,7 +220,8 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         /// <returns></returns>
         public async Task<int> InsertForecastWeeklyDetailList(List<ForecastWeeklyDetailEntity> list)
         {
-            return await _db.Insertable(list).ExecuteCommandAsync();
+            await _db.Fastest<ForecastWeeklyDetailEntity>().BulkCopyAsync(list);
+            return list.Count;
         }
     }
 }

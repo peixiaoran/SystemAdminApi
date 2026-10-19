@@ -267,15 +267,48 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                         errors.Add(_localization.ReturnMsg($"{_thisImport}DateHeaderMismatch", col, periods[i].StartDate.ToString("yyyy-MM-dd"), headerText ?? string.Empty));
                 }
 
-                // 一次性查询文件中所有公司料号的有效性、以及是否已配置为当前登录人负责
-                var filePartNumbers = new List<string>();
+                // 单次遍历Excel单元格，缓存每行的料号与各周期数量，避免重复访问EPPlus单元格
+                var fileRows = new List<(int Row, string PartNumber, decimal?[] Quantities, List<string> QtyErrors)>();
                 for (var row = 2; row <= ws.Dimension.End.Row; row++)
                 {
-                    var partNumber = ws.Cells[row, 1].Text?.Trim();
-                    if (!string.IsNullOrEmpty(partNumber))
-                        filePartNumbers.Add(partNumber);
+                    var partNumber = ws.Cells[row, 1].Text?.Trim() ?? string.Empty;
+                    var quantities = new decimal?[periods.Count];
+                    var qtyErrors = new List<string>();
+
+                    for (int i = 0; i < periods.Count; i++)
+                    {
+                        var col = FixedColumnCount + 1 + i;
+                        var cell = ws.Cells[row, col];
+                        var rawValue = cell.Value;
+                        if (rawValue == null || (rawValue is string text && string.IsNullOrWhiteSpace(text)))
+                            continue;
+
+                        decimal? qty = rawValue switch
+                        {
+                            decimal d => d,
+                            double d => (decimal)d,
+                            int n => n,
+                            _ => decimal.TryParse(cell.Text?.Trim(), out var parsed) ? parsed : null,
+                        };
+
+                        if (qty == null)
+                        {
+                            qtyErrors.Add(_localization.ReturnMsg($"{_thisImport}QtyNotNumeric", row, col, cell.Text?.Trim() ?? string.Empty));
+                            continue;
+                        }
+
+                        quantities[i] = qty;
+                    }
+
+                    fileRows.Add((row, partNumber, quantities, qtyErrors));
                 }
-                var distinctPartNumbers = filePartNumbers.Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+
+                // 一次性查询文件中所有公司料号的有效性、以及是否已配置为当前登录人负责
+                var distinctPartNumbers = fileRows
+                    .Where(fileRow => !string.IsNullOrEmpty(fileRow.PartNumber))
+                    .Select(fileRow => fileRow.PartNumber)
+                    .Distinct(StringComparer.OrdinalIgnoreCase)
+                    .ToList();
 
                 var validPartNumbers = new HashSet<string>(
                     await _foWeeklyDetailRepo.GetExistingCompanyNumbers(distinctPartNumbers),
@@ -287,38 +320,31 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 var entities = new List<ForecastWeeklyDetailEntity>();
                 var now = DateTime.Now;
 
-                for (var row = 2; row <= ws.Dimension.End.Row; row++)
+                foreach (var fileRow in fileRows)
                 {
-                    var partNumber = ws.Cells[row, 1].Text?.Trim() ?? string.Empty;
-                    if (string.IsNullOrEmpty(partNumber))
+                    if (string.IsNullOrEmpty(fileRow.PartNumber))
                     {
-                        errors.Add(_localization.ReturnMsg($"{_thisImport}PartNumberEmpty", row));
+                        errors.Add(_localization.ReturnMsg($"{_thisImport}PartNumberEmpty", fileRow.Row));
                         continue;
                     }
 
-                    if (!validPartNumbers.Contains(partNumber))
-                        errors.Add(_localization.ReturnMsg($"{_thisImport}PartNumberInvalid", row, partNumber));
+                    if (!validPartNumbers.Contains(fileRow.PartNumber))
+                        errors.Add(_localization.ReturnMsg($"{_thisImport}PartNumberInvalid", fileRow.Row, fileRow.PartNumber));
 
-                    if (!assignedPartNumbers.Contains(partNumber))
-                        errors.Add(_localization.ReturnMsg($"{_thisImport}PartNumberNotAssigned", row, partNumber));
+                    if (!assignedPartNumbers.Contains(fileRow.PartNumber))
+                        errors.Add(_localization.ReturnMsg($"{_thisImport}PartNumberNotAssigned", fileRow.Row, fileRow.PartNumber));
+
+                    errors.AddRange(fileRow.QtyErrors);
 
                     for (int i = 0; i < periods.Count; i++)
                     {
-                        var col = FixedColumnCount + 1 + i;
-                        var text = ws.Cells[row, col].Text?.Trim();
-                        if (string.IsNullOrEmpty(text))
+                        if (fileRow.Quantities[i] is not decimal qty)
                             continue;
-
-                        if (!decimal.TryParse(text, out var qty))
-                        {
-                            errors.Add(_localization.ReturnMsg($"{_thisImport}QtyNotNumeric", row, col, text));
-                            continue;
-                        }
 
                         entities.Add(new ForecastWeeklyDetailEntity
                         {
                             VersionId = version.VersionId,
-                            PartNumber = partNumber,
+                            PartNumber = fileRow.PartNumber,
                             HorizonDays = periods[i].StartDate,
                             PeriodType = periods[i].PeriodType,
                             Qty = qty,
