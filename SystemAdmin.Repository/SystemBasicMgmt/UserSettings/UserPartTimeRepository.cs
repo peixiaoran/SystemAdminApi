@@ -121,8 +121,11 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                 query = query.Where((user, userpart, dept, position, p_userdept, p_userpos) => p_userdept.DepartmentId == long.Parse(getPage.DepartmentId));
             }
 
-            // 排序
-            query = query.OrderBy((user, userpart, dept, position, p_userdept, p_userpos) => new { PositionInfoOrder = position.SortOrder, user.HireDate, PartTimePositionOrder = p_userpos.SortOrder });
+            // 排序：职级 + 是否审批（1优先） + 入职时间 + 兼任职级
+            query = query.OrderBy((user, userpart, dept, position, p_userdept, p_userpos) => position.SortOrder)
+                         .OrderByDescending((user, userpart, dept, position, p_userdept, p_userpos) => user.IsReview)
+                         .OrderBy((user, userpart, dept, position, p_userdept, p_userpos) => user.HireDate)
+                         .OrderBy((user, userpart, dept, position, p_userdept, p_userpos) => p_userpos.SortOrder);
 
             var page = await query.Select((user, userpart, dept, position, p_userdept, p_userpos) => new UserPartTimeDto
             {
@@ -194,8 +197,10 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                     user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
 
-            // 排序
-            query = query.OrderBy((user, dept, position, nation, labor) => new { position.SortOrder, user.HireDate });
+            // 排序：职级 + 是否审批（1优先） + 入职时间
+            query = query.OrderBy((user, dept, position, nation, labor) => position.SortOrder)
+                         .OrderByDescending((user, dept, position, nation, labor) => user.IsReview)
+                         .OrderBy((user, dept, position, nation, labor) => user.HireDate);
 
             var page = await query.Select((user, dept, position, nation, labor) => new UserPartTimeViewDto
             {

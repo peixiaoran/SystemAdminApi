@@ -6,6 +6,7 @@ using SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
+using SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Entity;
 using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
@@ -38,11 +39,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 // 销假单
                 [nameof(ProcessLeaveCancell)] = ProcessLeaveCancell,
                 // 资讯需求单
-                [nameof(InforCategoryApply)] = InforCategoryApply,
-                [nameof(InforCategoryEstimated)] = InforCategoryEstimated,
-                [nameof(InforCategoryProcessStart)] = InforCategoryProcessStart,
-                [nameof(InforCategoryProcessEnd)] = InforCategoryProcessEnd,
-                [nameof(InforCategoryRating)] = InforCategoryRating,
+                [nameof(InforRequestApply)] = InforRequestApply,
+                [nameof(InforRequestEstimated)] = InforRequestEstimated,
+                [nameof(InforRequestProcessStart)] = InforRequestProcessStart,
+                [nameof(InforRequestProcessEnd)] = InforRequestProcessEnd,
+                [nameof(InforRequestRating)] = InforRequestRating,
+                // 系统账号申请单
+                [nameof(SystemAccountApply)] = SystemAccountApply,
+                [nameof(SystemAccountProcessStart)] = SystemAccountProcessStart,
+                [nameof(SystemAccountProcessEnd)] = SystemAccountProcessEnd,
+                [nameof(SystemAccountRating)] = SystemAccountRating,
             };
         }
 
@@ -250,26 +256,31 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 资讯需求单
 
         /// <summary>
-        /// 提交：写入申请人（已有数据则更新）
+        /// 提交：写入申请人；重新提交时清空后续阶段字段，避免残留上一轮数据
         /// </summary>
-        public async Task<Result<bool>> InforCategoryApply(long formId)
+        public async Task<Result<bool>> InforRequestApply(long formId)
         {
             var formInstance = await _db.Queryable<FormInstanceEntity>()
                                         .FirstAsync(instance => instance.FormId == formId);
 
-            var affected = await UpsertInforCategoryResult(
+            var affected = await UpsertPersonInChargeResult(
                 formId,
-                () => new InforCategoryResultEntity
+                () => new PersonInChargeResultEntity
                 {
                     FormId = formId,
                     ApplicantUserId = formInstance.ApplicantUserId,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now
                 },
-                () => _db.Updateable<InforCategoryResultEntity>()
-                        .SetColumns(result => new InforCategoryResultEntity
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
                         {
                             ApplicantUserId = formInstance.ApplicantUserId,
+                            EstimatedDays = null,
+                            ProcessStartTime = null,
+                            ProcessEndTime = null,
+                            HandlerId = null,
+                            Rating = null,
                             ModifiedBy = _loginuser.UserId,
                             ModifiedDate = DateTime.Now
                         }).Where(result => result.FormId == formId)
@@ -279,30 +290,32 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 预估处理时间：写入预计处理天数和处理人（已有数据则更新）
+        /// 预估处理时间：写入预计天数；重新执行时清空后续阶段字段
         /// </summary>
-        public async Task<Result<bool>> InforCategoryEstimated(long formId)
+        public async Task<Result<bool>> InforRequestEstimated(long formId)
         {
             var estimatedDays = await _db.Queryable<InformationRequestEntity>()
                                          .Where(info => info.FormId == formId)
                                          .Select(info => info.EstimatedDays)
                                          .FirstAsync();
 
-            var affected = await UpsertInforCategoryResult(
+            var affected = await UpsertPersonInChargeResult(
                 formId,
-                () => new InforCategoryResultEntity
+                () => new PersonInChargeResultEntity
                 {
                     FormId = formId,
                     EstimatedDays = estimatedDays,
-                    HandlerId = _loginuser.UserId,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now
                 },
-                () => _db.Updateable<InforCategoryResultEntity>()
-                        .SetColumns(result => new InforCategoryResultEntity
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
                         {
                             EstimatedDays = estimatedDays,
-                            HandlerId = _loginuser.UserId,
+                            ProcessStartTime = null,
+                            ProcessEndTime = null,
+                            HandlerId = null,
+                            Rating = null,
                             ModifiedBy = _loginuser.UserId,
                             ModifiedDate = DateTime.Now
                         }).Where(result => result.FormId == formId)
@@ -312,25 +325,28 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 处理开始：写入当前时间（已有数据则更新）
+        /// 处理开始：写入开始时间；重新开始时清空后续阶段字段，避免结束时间早于开始时间
         /// </summary>
-        public async Task<Result<bool>> InforCategoryProcessStart(long formId)
+        public async Task<Result<bool>> InforRequestProcessStart(long formId)
         {
             var now = DateTime.Now;
 
-            var affected = await UpsertInforCategoryResult(
+            var affected = await UpsertPersonInChargeResult(
                 formId,
-                () => new InforCategoryResultEntity
+                () => new PersonInChargeResultEntity
                 {
                     FormId = formId,
                     ProcessStartTime = now,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = now
                 },
-                () => _db.Updateable<InforCategoryResultEntity>()
-                        .SetColumns(result => new InforCategoryResultEntity
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
                         {
                             ProcessStartTime = now,
+                            ProcessEndTime = null,
+                            HandlerId = null,
+                            Rating = null,
                             ModifiedBy = _loginuser.UserId,
                             ModifiedDate = now
                         }).Where(result => result.FormId == formId)
@@ -340,25 +356,45 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 处理完成：写入当前时间（已有数据则更新）
+        /// 处理完成：匹配登录人（或其代理人）配置的负责类别，写入处理人与结束时间；重新完成时清空评分
         /// </summary>
-        public async Task<Result<bool>> InforCategoryProcessEnd(long formId)
+        public async Task<Result<bool>> InforRequestProcessEnd(long formId)
         {
             var now = DateTime.Now;
 
-            var affected = await UpsertInforCategoryResult(
+            var isHandler = await _db.Queryable<InformationRequestEntity>()
+                                     .With(SqlWith.NoLock)
+                                     .InnerJoin<PersonInChargeConfigEntity>((info, config) => info.Category == config.System && config.Type == "InforRequest")
+                                     .LeftJoin<UserAgentEntity>((info, config, agent) =>
+                                         config.PersonChargeId == agent.SubstituteUserId &&
+                                         agent.StartTime <= now &&
+                                         agent.EndTime >= now)
+                                     .Where((info, config, agent) =>
+                                         info.FormId == formId &&
+                                         (config.PersonChargeId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
+                                     .AnyAsync();
+
+            if (!isHandler)
+            {
+                return Result<bool>.Ok(false);
+            }
+
+            var affected = await UpsertPersonInChargeResult(
                 formId,
-                () => new InforCategoryResultEntity
+                () => new PersonInChargeResultEntity
                 {
                     FormId = formId,
                     ProcessEndTime = now,
+                    HandlerId = _loginuser.UserId,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = now
                 },
-                () => _db.Updateable<InforCategoryResultEntity>()
-                        .SetColumns(result => new InforCategoryResultEntity
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
                         {
                             ProcessEndTime = now,
+                            HandlerId = _loginuser.UserId,
+                            Rating = null,
                             ModifiedBy = _loginuser.UserId,
                             ModifiedDate = now
                         }).Where(result => result.FormId == formId)
@@ -370,24 +406,24 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 评分：写入表单评分（已有数据则更新）
         /// </summary>
-        public async Task<Result<bool>> InforCategoryRating(long formId)
+        public async Task<Result<bool>> InforRequestRating(long formId)
         {
             var rating = await _db.Queryable<InformationRequestEntity>()
                                   .Where(info => info.FormId == formId)
                                   .Select(info => info.Rating)
                                   .FirstAsync();
 
-            var affected = await UpsertInforCategoryResult(
+            var affected = await UpsertPersonInChargeResult(
                 formId,
-                () => new InforCategoryResultEntity
+                () => new PersonInChargeResultEntity
                 {
                     FormId = formId,
                     Rating = rating,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now
                 },
-                () => _db.Updateable<InforCategoryResultEntity>()
-                        .SetColumns(result => new InforCategoryResultEntity
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
                         {
                             Rating = rating,
                             ModifiedBy = _loginuser.UserId,
@@ -399,11 +435,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// InforCategoryResult 按 FormId 新增或修改
+        /// PersonInHargeResult 按 FormId 新增或修改
         /// </summary>
-        private async Task<int> UpsertInforCategoryResult(long formId, Func<InforCategoryResultEntity> buildInsertEntity, Func<Task<int>> update)
+        private async Task<int> UpsertPersonInChargeResult(long formId, Func<PersonInChargeResultEntity> buildInsertEntity, Func<Task<int>> update)
         {
-            var exists = await _db.Queryable<InforCategoryResultEntity>()
+            var exists = await _db.Queryable<PersonInChargeResultEntity>()
                                   .With(SqlWith.NoLock)
                                   .AnyAsync(result => result.FormId == formId);
 
@@ -413,6 +449,175 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
 
             return await _db.Insertable(buildInsertEntity()).ExecuteCommandAsync();
+        }
+
+        #endregion
+
+        #region 系统账号申请单
+
+        /// <summary>
+        /// 提交：写入申请人，预计天数固定为 0；重新提交时清空后续阶段字段
+        /// </summary>
+        public async Task<Result<bool>> SystemAccountApply(long formId)
+        {
+            var formInstance = await _db.Queryable<FormInstanceEntity>()
+                                        .FirstAsync(instance => instance.FormId == formId);
+
+            var affected = await UpsertPersonInChargeResult(
+                formId,
+                () => new PersonInChargeResultEntity
+                {
+                    FormId = formId,
+                    ApplicantUserId = formInstance.ApplicantUserId,
+                    EstimatedDays = 0,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                },
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
+                        {
+                            ApplicantUserId = formInstance.ApplicantUserId,
+                            EstimatedDays = 0,
+                            ProcessStartTime = null,
+                            ProcessEndTime = null,
+                            HandlerId = null,
+                            Rating = null,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = DateTime.Now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 处理开始：写入开始时间；重新开始时清空后续阶段字段，避免结束时间早于开始时间
+        /// </summary>
+        public async Task<Result<bool>> SystemAccountProcessStart(long formId)
+        {
+            var now = DateTime.Now;
+
+            var affected = await UpsertPersonInChargeResult(
+                formId,
+                () => new PersonInChargeResultEntity
+                {
+                    FormId = formId,
+                    ProcessStartTime = now,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = now
+                },
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
+                        {
+                            ProcessStartTime = now,
+                            ProcessEndTime = null,
+                            HandlerId = null,
+                            Rating = null,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 处理完成：匹配登录人（或其代理人）负责的系统，写入处理人与结束时间，一人多系统只需匹配一笔；重新完成时清空评分
+        /// </summary>
+        public async Task<Result<bool>> SystemAccountProcessEnd(long formId)
+        {
+            var now = DateTime.Now;
+
+            var isHandler = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                     .With(SqlWith.NoLock)
+                                     .InnerJoin<PersonInChargeConfigEntity>((detail, config) => detail.System == config.System && config.Type == "SystemAccount")
+                                     .LeftJoin<UserAgentEntity>((detail, config, agent) =>
+                                         config.PersonChargeId == agent.SubstituteUserId &&
+                                         agent.StartTime <= now &&
+                                         agent.EndTime >= now)
+                                     .Where((detail, config, agent) =>
+                                         detail.FormId == formId &&
+                                         (config.PersonChargeId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
+                                     .AnyAsync();
+
+            if (!isHandler)
+            {
+                return Result<bool>.Ok(false);
+            }
+
+            var affected = await UpsertPersonInChargeResult(
+                formId,
+                () => new PersonInChargeResultEntity
+                {
+                    FormId = formId,
+                    ProcessEndTime = now,
+                    HandlerId = _loginuser.UserId,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = now
+                },
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
+                        {
+                            ProcessEndTime = now,
+                            HandlerId = _loginuser.UserId,
+                            Rating = null,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
+        }
+
+        /// <summary>
+        /// 评分：匹配登录人（或其代理人）负责的系统，一人多系统取平均分写入；处理人由 <see cref="SystemAccountProcessEnd"/> 统一写入
+        /// </summary>
+        public async Task<Result<bool>> SystemAccountRating(long formId)
+        {
+            var now = DateTime.Now;
+
+            var ratings = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                   .With(SqlWith.NoLock)
+                                   .InnerJoin<PersonInChargeConfigEntity>((d, config) => d.System == config.System && config.Type == "SystemAccount")
+                                   .LeftJoin<UserAgentEntity>((d, config, agent) =>
+                                       config.PersonChargeId == agent.SubstituteUserId &&
+                                       agent.StartTime <= now &&
+                                       agent.EndTime >= now)
+                                   .Where((d, config, agent) =>
+                                       d.FormId == formId &&
+                                       (config.PersonChargeId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
+                                   .Select((d, config, agent) => d.Rating)
+                                   .ToListAsync();
+
+            if (ratings.Count == 0)
+            {
+                return Result<bool>.Ok(false);
+            }
+
+            var validRatings = ratings.Where(rating => rating.HasValue).Select(rating => rating!.Value).ToList();
+            int? avgRating = validRatings.Count > 0
+                ? (int)Math.Round(validRatings.Average(), MidpointRounding.AwayFromZero)
+                : null;
+
+            var affected = await UpsertPersonInChargeResult(
+                formId,
+                () => new PersonInChargeResultEntity
+                {
+                    FormId = formId,
+                    Rating = avgRating,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = DateTime.Now
+                },
+                () => _db.Updateable<PersonInChargeResultEntity>()
+                        .SetColumns(result => new PersonInChargeResultEntity
+                        {
+                            Rating = avgRating,
+                            ModifiedBy = _loginuser.UserId,
+                            ModifiedDate = DateTime.Now
+                        }).Where(result => result.FormId == formId)
+                        .ExecuteCommandAsync());
+
+            return Result<bool>.Ok(affected >= 1);
         }
 
         #endregion

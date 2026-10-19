@@ -31,11 +31,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 [nameof(DepartureSiteHRManager)] = DepartureSiteHRManager,
                 [nameof(DestinationSiteHRManager)] = DestinationSiteHRManager,
                 // 资讯需求单
-                [nameof(EstimatedTimeHandler)] = EstimatedTimeHandler,
-                [nameof(PersonInCharge)] = PersonInCharge,
-                [nameof(ApplicantRating)] = ApplicantRating,
+                [nameof(InforRequestEstimatedTimeHandler)] = InforRequestEstimatedTimeHandler,
+                [nameof(InforRequestPersonInCharge)] = InforRequestPersonInCharge,
+                [nameof(InforRequestApplicantRating)] = InforRequestApplicantRating,
                 // 系统账号申请单
                 [nameof(SystemAccountPersonCharge)] = SystemAccountPersonCharge,
+                [nameof(SystemAccountApplicantRating)] = SystemAccountApplicantRating,
             };
         }
 
@@ -165,17 +166,17 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 资讯需求单
         /// <summary>
-        /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 InforCategoryConfig 配置的负责人
+        /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 PersonInHargeConfig 配置的负责人
         /// </summary>
-        public async Task<CustomUser> EstimatedTimeHandler(long formId)
+        public async Task<CustomUser> InforRequestEstimatedTimeHandler(long formId)
         {
             return await ResolveCategoryHandler(formId);
         }
 
         /// <summary>
-        /// 处理人确认：根据资讯需求单选择的需求类别，取 InforCategoryConfig 配置的负责人
+        /// 处理人确认：根据资讯需求单选择的需求类别，取 PersonInHargeConfig 配置的负责人
         /// </summary>
-        public async Task<CustomUser> PersonInCharge(long formId)
+        public async Task<CustomUser> InforRequestPersonInCharge(long formId)
         {
             return await ResolveCategoryHandler(formId);
         }
@@ -183,7 +184,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 申请人确认：表单的发起申请人
         /// </summary>
-        public async Task<CustomUser> ApplicantRating(long formId)
+        public async Task<CustomUser> InforRequestApplicantRating(long formId)
         {
             var applicantUserId = await _db.Queryable<FormInstanceEntity>()
                                            .With(SqlWith.NoLock)
@@ -201,7 +202,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         {
             var handlerIds = await _db.Queryable<InformationRequestEntity>()
                                       .With(SqlWith.NoLock)
-                                      .InnerJoin<InforCategoryConfigEntity>((info, config) => info.Category == config.System)
+                                      .InnerJoin<PersonInChargeConfigEntity>((info, config) => info.Category == config.System && config.Type == "InforRequest")
                                       .Where((info, config) => info.FormId == formId)
                                       .OrderBy((info, config) => config.SortOrder)
                                       .Select((info, config) => config.PersonChargeId)
@@ -213,19 +214,33 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 系统账号申请单
         /// <summary>
-        /// 系统负责人：根据系统账号申请单明细选择的系统，取 SystemAccountConfig 配置的负责人
+        /// 系统负责人：根据系统账号申请单明细选择的系统，取 PersonInHargeConfig 配置的负责人
         /// </summary>
         public async Task<CustomUser> SystemAccountPersonCharge(long formId)
         {
             var chargeIds = await _db.Queryable<SystemAccountRequestDetailsEntity>()
                                      .With(SqlWith.NoLock)
-                                     .InnerJoin<SystemAccountConfigEntity>((detail, config) => detail.System == config.System)
+                                     .InnerJoin<PersonInChargeConfigEntity>((detail, config) => detail.System == config.System && config.Type == "SystemAccount")
                                      .Where((detail, config) => detail.FormId == formId)
                                      .OrderBy((detail, config) => config.SortOrder)
                                      .Select((detail, config) => config.PersonChargeId)
                                      .ToListAsync();
 
             return ResolveUsers(chargeIds);
+        }
+
+        /// <summary>
+        /// 申请人确认：表单的发起申请人
+        /// </summary>
+        public async Task<CustomUser> SystemAccountApplicantRating(long formId)
+        {
+            var applicantUserId = await _db.Queryable<FormInstanceEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .Where(instance => instance.FormId == formId)
+                                           .Select(instance => instance.ApplicantUserId)
+                                           .FirstAsync();
+
+            return ResolveUsers(applicantUserId == 0 ? new List<long>() : new List<long> { applicantUserId });
         }
         #endregion
 

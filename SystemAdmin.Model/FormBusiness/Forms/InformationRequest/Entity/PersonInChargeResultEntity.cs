@@ -5,8 +5,8 @@ namespace SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Entity
     /// <summary>
     /// 资讯需求单处理结果实体
     /// </summary>
-    [SugarTable("[IT].[InforCategoryResult]")]
-    public class InforCategoryResultEntity
+    [SugarTable("[IT].[PersonInHargeResult]")]
+    public class PersonInChargeResultEntity
     {
         /// <summary>
         /// 表单Id

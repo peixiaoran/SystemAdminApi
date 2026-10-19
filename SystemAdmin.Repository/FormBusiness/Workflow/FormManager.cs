@@ -484,8 +484,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
 
-            // 排序
-            query = query.OrderBy((user, dept, position, labor, nation) => new { position.SortOrder, user.HireDate });
+            // 排序：职级 + 是否审批（1优先） + 入职时间
+            query = query.OrderBy((user, dept, position, labor, nation) => position.SortOrder)
+                         .OrderByDescending((user, dept, position, labor, nation) => user.IsReview)
+                         .OrderBy((user, dept, position, labor, nation) => user.HireDate);
 
             var page = await query.Select((user, dept, position, labor, nation) => new AddReviewUserDto
             {

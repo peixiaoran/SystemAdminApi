@@ -179,7 +179,10 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
             }
 
             RefAsync<int> totalCount = 0;
-            var page = await query.OrderBy((user, userrole, dept, position, nation) => new { position.SortOrder, user.HireDate })
+            // 排序：职级 + 是否审批（1优先） + 入职时间
+            var page = await query.OrderBy((user, userrole, dept, position, nation) => position.SortOrder)
+                                  .OrderByDescending((user, userrole, dept, position, nation) => user.IsReview)
+                                  .OrderBy((user, userrole, dept, position, nation) => user.HireDate)
                                   .Select((user, userrole, dept, position, nation) => new SalesUserPageDto
                                   {
                                       UserId = user.UserId,

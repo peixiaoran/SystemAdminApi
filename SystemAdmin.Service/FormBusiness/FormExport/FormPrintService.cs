@@ -12,6 +12,7 @@ using SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Dto;
+using SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
 using System.IO.Compression;
@@ -32,6 +33,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
         private readonly DocumentCirculateRepository _documentCirculateRepo;
         private readonly OverseasTripAppRepository _overseasTripAppRepo;
         private readonly InformationRequestRepository _informationRequestRepo;
+        private readonly SystemAccountRequestRepository _systemAccountRequestRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
         private readonly string _this = "FormBusiness.FormOperate.FormPending";
@@ -59,7 +61,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             }
         }
 
-        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, OverseasTripAppRepository overseasTripAppRepo, InformationRequestRepository informationRequestRepo, FormManager formmanger, LocalizationService localization)
+        public FormPrintService(CurrentUser loginuser, ILogger<FormPrintService> logger, Language lang, FormPermissionChecker formChecker, LeaveRequestRepository leaveRequestRepo, LeaveCancellRepository leaveCancellRepo, DocumentCirculateRepository documentCirculateRepo, OverseasTripAppRepository overseasTripAppRepo, InformationRequestRepository informationRequestRepo, SystemAccountRequestRepository systemAccountRequestRepo, FormManager formmanger, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -70,12 +72,13 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             _documentCirculateRepo = documentCirculateRepo;
             _overseasTripAppRepo = overseasTripAppRepo;
             _informationRequestRepo = informationRequestRepo;
+            _systemAccountRequestRepo = systemAccountRequestRepo;
             _formmanger = formmanger;
             _localization = localization;
         }
 
         /// <summary>
-        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单/TRV出差单/INF资讯需求单；checkPermission=false 跳过权限校验（综合查询打印用）
+        /// 按前缀分发打印：LVR请假单/LCF销假单/DCS传签单/TRV出差单/INF资讯需求单/SAA系统账号申请单；checkPermission=false 跳过权限校验（综合查询打印用）
         /// </summary>
         public async Task<Result<FormPdfDto>> PrintFormPdf(string formId, bool checkPermission = true)
         {
@@ -91,6 +94,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                     "DCS" => await PrintDocumentCirculatePdf(id, checkPermission),
                     "TRV" => await PrintOverseasTripAppPdf(id, checkPermission),
                     "INF" => await PrintInformationRequestPdf(id, checkPermission),
+                    "SAA" => await PrintSystemAccountRequestPdf(id, checkPermission),
                     _ => Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_this}PrintNotSupport"))
                 };
             }
@@ -742,6 +746,178 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             5 => Msg("PdfRatingExcellent"),
             _ => string.Empty
         };
+
+        #endregion
+
+        #region 系统账号申请单PDF
+
+        private async Task<Result<FormPdfDto>> PrintSystemAccountRequestPdf(long formId, bool checkPermission)
+        {
+            if (checkPermission && !await _formChecker.CanView(formId, "View"))
+            {
+                return Result<FormPdfDto>.Failure(400, _localization.ReturnMsg($"{_forms}NotCanView"));
+            }
+
+            var form = await _systemAccountRequestRepo.GetSystemAccountRequest(formId);
+            form.Attachment = await _formmanger.GetAttachmentList(formId);
+            form.AddReview = await _formmanger.GetAddReviewList(formId);
+            form.ReviewRecord = await _formmanger.GetReviewRecordList(formId);
+            form.StepFieldPermission = checkPermission
+                ? await _formmanger.GetStepFieldPermissionList(formId, _loginuser.UserId)
+                : [];
+
+            var names = await _systemAccountRequestRepo.GetSystemAccountRequestPrint(form);
+
+            var pdf = new FormPdfDto
+            {
+                FileName = $"{Msg("PdfSystemAccountRequestTitle")}_{form.FormNo}.pdf",
+                FileStream = BuildSystemAccountRequestPdf(form, names)
+            };
+            return Result<FormPdfDto>.Ok(pdf);
+        }
+
+        private MemoryStream BuildSystemAccountRequestPdf(SystemAccountRequestDto form, SystemAccountRequestPrintDto names)
+        {
+            var show = BuildFieldVisibility(form.StepFieldPermission);
+
+            var genderName = form.RequesterGender switch
+            {
+                1 => Msg("PdfGenderMale"),
+                2 => Msg("PdfGenderFemale"),
+                _ => string.Empty
+            };
+
+            var document = Document.Create(container =>
+            {
+                container.Page(page =>
+                {
+                    ConfigurePage(page);
+
+                    page.Content().Column(column =>
+                    {
+                        ComposeTitle(column, Msg("PdfSystemAccountRequestTitle"));
+
+                        var row1 = new List<PdfField>();
+                        if (show("FormNo")) row1.Add(new PdfField(Msg("PdfFormNo"), form.FormNo, Width: FirstValueCellWidth));
+                        if (show("ApplyDate")) row1.Add(new PdfField(Msg("PdfApplicantDate"), form.ApplicantDate.ToString("yyyy-MM-dd")));
+                        ComposeFieldRow(column, row1);
+
+                        var row2 = new List<PdfField>();
+                        if (show("UserNo")) row2.Add(new PdfField(Msg("PdfUserNo"), form.ApplicantUserNo, Weight: 0.7f));
+                        if (show("UserName")) row2.Add(new PdfField(Msg("PdfUserName"), form.ApplicantUserName, Weight: 0.7f));
+                        if (show("Department")) row2.Add(new PdfField(Msg("PdfDepartment"), form.ApplicantDeptName, Weight: 1.6f));
+                        ComposeFieldRow(column, row2);
+
+                        column.Item().PaddingBottom(12).LineHorizontal(0.5f).LineColor(BorderColor);
+
+                        if (show("RequesterUserDept"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfRequesterDept"), names.DeptName)
+                            });
+                        }
+
+                        var row3 = new List<PdfField>();
+                        if (show("RequesterUserNo")) row3.Add(new PdfField(Msg("PdfRequesterUserNo"), form.RequesterUserNo ?? string.Empty, Width: FirstValueCellWidth));
+                        if (show("RequesterUserNameCn")) row3.Add(new PdfField(Msg("PdfRequesterNameCn"), form.RequesterUserNameCn ?? string.Empty));
+                        if (show("RequesterUserNameEn")) row3.Add(new PdfField(Msg("PdfRequesterNameEn"), form.RequesterUserNameEn ?? string.Empty));
+                        ComposeFieldRow(column, row3);
+
+                        var row4 = new List<PdfField>();
+                        if (show("Nationality")) row4.Add(new PdfField(Msg("PdfNationality"), names.NationalityName, Width: FirstValueCellWidth));
+                        if (show("RequesterGender")) row4.Add(new PdfField(Msg("PdfGender"), genderName));
+                        if (show("RequesterEmail")) row4.Add(new PdfField(Msg("PdfEmail"), form.RequesterEmail ?? string.Empty));
+                        ComposeFieldRow(column, row4);
+
+                        if (show("Reason"))
+                        {
+                            ComposeFieldRow(column, new List<PdfField>
+                            {
+                                new PdfField(Msg("PdfReason"), form.Reason ?? string.Empty, MinHeight: 44f)
+                            });
+                        }
+
+                        column.Item().PaddingBottom(12).LineHorizontal(0.5f).LineColor(BorderColor);
+
+                        // 系统明细由 System/Sites/Permissions/Rating 四个栏位分别控制列的显隐
+                        ComposeSystemAccountSystemTable(column, names.Systems, show("System"), show("Sites"), show("Permissions"), show("Rating"));
+
+                        if (show("Upload"))
+                        {
+                            ComposeAttachmentTable(column, form.Attachment);
+                        }
+
+                        // 本表单栏位配置的加审键为 AddReview（其他表单为 AddReivew）
+                        if (show("AddReview"))
+                        {
+                            ComposeAddReviewTable(column, form.AddReview);
+                        }
+
+                        ComposeReviewRecordTable(column, form.ReviewRecord);
+                    });
+                });
+            });
+
+            return GeneratePdfStream(document);
+        }
+
+        // 系统明细：序号 + 可见的系统/厂区/权限列；有评分数据且评分栏位可见时追加评分列
+        private void ComposeSystemAccountSystemTable(ColumnDescriptor column, List<SystemAccountSystemPrintDto> systems, bool showSystem, bool showSites, bool showPermissions, bool showRating)
+        {
+            showRating = showRating && systems.Any(system => system.Rating.HasValue);
+            if (!showSystem && !showSites && !showPermissions && !showRating)
+            {
+                return;
+            }
+
+            var columnCount = 1 + (showSystem ? 1 : 0) + (showSites ? 1 : 0) + (showPermissions ? 1 : 0) + (showRating ? 1 : 0);
+
+            column.Item().PaddingBottom(10).Row(row =>
+            {
+                row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfSystems")).FontColor(LabelTextColor);
+                row.RelativeItem().Table(table =>
+                {
+                    table.ColumnsDefinition(columns =>
+                    {
+                        columns.ConstantColumn(30);
+                        if (showSystem) columns.RelativeColumn(2f);
+                        if (showSites) columns.RelativeColumn(2.4f);
+                        if (showPermissions) columns.RelativeColumn(5f);
+                        if (showRating) columns.RelativeColumn(1.6f);
+                    });
+
+                    table.Header(header =>
+                    {
+                        header.Cell().Element(HeaderCell).Text("#").FontColor(LabelTextColor);
+                        if (showSystem) header.Cell().Element(HeaderCell).Text(Msg("PdfSystem")).FontColor(LabelTextColor);
+                        if (showSites) header.Cell().Element(HeaderCell).Text(Msg("PdfSites")).FontColor(LabelTextColor);
+                        if (showPermissions) header.Cell().Element(HeaderCell).Text(Msg("PdfPermissions")).FontColor(LabelTextColor);
+                        if (showRating) header.Cell().Element(HeaderCell).AlignCenter().Text(Msg("PdfRating")).FontColor(LabelTextColor);
+                    });
+
+                    if (systems.Count == 0)
+                    {
+                        table.Cell().ColumnSpan((uint)columnCount).Element(BodyCell).AlignCenter().Text(Msg("PdfNoData")).FontColor(MutedTextColor);
+                        return;
+                    }
+
+                    var index = 1;
+                    foreach (var system in systems)
+                    {
+                        table.Cell().Element(BodyCell).Text(index++.ToString());
+                        if (showSystem) table.Cell().Element(BodyCell).Text(system.SystemName);
+                        if (showSites) table.Cell().Element(BodyCell).Text(string.Join("、", system.SiteNames));
+                        if (showPermissions) table.Cell().Element(BodyCell).Text(string.Join("、", system.PermissionNames));
+                        if (showRating)
+                        {
+                            table.Cell().Element(BodyCell).AlignCenter()
+                                 .Text(system.Rating.HasValue ? $"{system.Rating} {RatingLabel(system.Rating.Value)}" : string.Empty);
+                        }
+                    }
+                });
+            });
+        }
 
         #endregion
 

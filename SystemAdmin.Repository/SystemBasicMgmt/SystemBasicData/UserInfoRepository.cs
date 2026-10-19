@@ -327,8 +327,10 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                 query = query.Where(user => user.DepartmentId == long.Parse(getPage.DepartmentId));
             }
 
-            // 排序
-            query = query.OrderBy((user, userrole, dept, position, nation) => new { position.SortOrder, user.HireDate });
+            // 排序：职级 + 是否审批（1优先） + 入职时间
+            query = query.OrderBy((user, userrole, dept, position, nation) => position.SortOrder)
+                         .OrderByDescending((user, userrole, dept, position, nation) => user.IsReview)
+                         .OrderBy((user, userrole, dept, position, nation) => user.HireDate);
 
             var page = await query.Select((user, userrole, dept, position, nation) => new UserInfoPageDto
             {

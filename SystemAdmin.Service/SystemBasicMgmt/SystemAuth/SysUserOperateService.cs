@@ -29,12 +29,12 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         private readonly LocalizationService _localization;
         private readonly HybridCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly TurnstileService _turnstile;
+        //private readonly TurnstileService _turnstile;
         private readonly string _this = "SystemBasicMgmt.SystemAuth.SysUserOperate";
         private const int CodeLength = 6;
         private static readonly Random _random = new Random();
 
-        public SysUserOperateService(CurrentUser loginuser, JwtTokenService jwt, ILogger<SysUserOperateService> logger, SqlSugarScope db, SysUserOperateRepository sysUserOperateRepo, MailKitEmailSender email, LocalizationService localization, HybridCache cache, IHttpContextAccessor httpContextAccessor, TurnstileService turnstile)
+        public SysUserOperateService(CurrentUser loginuser, JwtTokenService jwt, ILogger<SysUserOperateService> logger, SqlSugarScope db, SysUserOperateRepository sysUserOperateRepo, MailKitEmailSender email, LocalizationService localization, HybridCache cache, IHttpContextAccessor httpContextAccessor)
         {
             _loginuser = loginuser;
             _jwt = jwt;
@@ -45,7 +45,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
             _localization = localization;
             _cache = cache;
             _httpContextAccessor = httpContextAccessor;
-            _turnstile = turnstile;
+            //_turnstile = turnstile;
         }
 
         /// <summary>

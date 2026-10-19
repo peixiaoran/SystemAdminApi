@@ -22,6 +22,6 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// <summary>
         /// 逻辑说明
         /// </summary>
-        public string LogicalExplanation { get; set; } = string.Empty;
+        public string? LogicalExplanation { get; set; }
     }
 }

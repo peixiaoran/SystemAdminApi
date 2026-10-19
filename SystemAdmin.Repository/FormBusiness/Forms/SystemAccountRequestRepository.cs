@@ -265,6 +265,71 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
+        /// 查询打印用名称：部门、国籍、系统、厂区、权限的编码转当前语言名称，查不到时回退为原值
+        /// </summary>
+        /// <param name="form"></param>
+        /// <returns></returns>
+        public async Task<SystemAccountRequestPrintDto> GetSystemAccountRequestPrint(SystemAccountRequestDto form)
+        {
+            var print = new SystemAccountRequestPrintDto();
+
+            if (form.RequesterUserDept.HasValue)
+            {
+                print.DeptName = await _db.Queryable<DepartmentInfoEntity>()
+                                          .With(SqlWith.NoLock)
+                                          .Where(dept => dept.DepartmentId == form.RequesterUserDept.Value)
+                                          .Select(dept => _lang.Locale == "zh-CN"
+                                                          ? dept.DepartmentNameCn
+                                                          : dept.DepartmentNameEn)
+                                          .FirstAsync() ?? string.Empty;
+            }
+
+            if (form.NationalityId.HasValue)
+            {
+                print.NationalityName = await _db.Queryable<NationalityInfoEntity>()
+                                                 .With(SqlWith.NoLock)
+                                                 .Where(nation => nation.NationalityId == form.NationalityId.Value)
+                                                 .Select(nation => _lang.Locale == "zh-CN"
+                                                                   ? nation.NationNameCn
+                                                                   : nation.NationNameEn)
+                                                 .FirstAsync() ?? string.Empty;
+            }
+
+            if (form.Systems.Count == 0)
+                return print;
+
+            var systemNames = (await GetSystemDrop()).ToDictionary(item => item.System, item => item.SystemName);
+            var siteNames = (await GetSiteDrop()).ToDictionary(item => item.Site, item => item.SiteName);
+
+            var systems = form.Systems.Select(item => item.System).Distinct().ToList();
+            var permissionList = await _db.Queryable<SystemPermissionsInfoEntity>()
+                                          .With(SqlWith.NoLock)
+                                          .Where(info => systems.Contains(info.System))
+                                          .Select(info => new
+                                          {
+                                              info.System,
+                                              info.PermissionsCode,
+                                              Name = _lang.Locale == "zh-CN"
+                                                     ? info.PermissionsNameCn
+                                                     : info.PermissionsNameEn
+                                          }).ToListAsync();
+
+            // 同系统下不同厂区的同一权限编码名称一致，取第一条
+            var permissionNames = permissionList.GroupBy(item => (item.System, item.PermissionsCode))
+                                                .ToDictionary(group => group.Key, group => group.First().Name);
+
+            print.Systems = form.Systems.Select(item => new SystemAccountSystemPrintDto()
+            {
+                SystemName = systemNames.GetValueOrDefault(item.System, item.System),
+                SiteNames = item.Sites.Select(site => siteNames.GetValueOrDefault(site, site)).ToList(),
+                PermissionNames = item.Permissions.Select(code => permissionNames.GetValueOrDefault((item.System, code), code)).ToList(),
+                Rating = item.Rating,
+            }).ToList();
+
+            return print;
+        }
+
+        /// <summary>
         /// 逗号分隔的多选值转集合
         /// </summary>
         private static List<string> SplitMulti(string? value)

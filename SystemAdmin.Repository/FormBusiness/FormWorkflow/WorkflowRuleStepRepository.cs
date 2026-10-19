@@ -194,7 +194,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                     NextStepName = _lang.Locale == "zh-CN"
                                                       ? nextstep.StepNameCn
                                                       : nextstep.StepNameEn,
-                                    Guidance = rulestep.Guidance,
+                                    ProcessGuidance = rulestep.ProcessGuidance,
+                                    ConclusionGuidance = rulestep.ConclusionGuidance,
                                     SortOrder = rulestep.SortOrder,
                                 }).ToListAsync();
             return Result<List<WorkflowRuleStepDto>>.Ok(list);

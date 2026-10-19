@@ -46,10 +46,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var (stepInfo, ruleId) = await GetCurrentStepInfo(formId);
 
             // 手动核准
-            bool hasPendingUser = await ProcessApprove(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
+            var processResult = await ProcessApprove(formId, stepInfo, ReviewType.Manual, approveForm.Comment);
+            if (processResult.Code != 200)
+            {
+                return processResult;
+            }
 
             // 会审尚有其他人未签，不推进流程
-            if (hasPendingUser)
+            if (processResult.Data)
             {
                 return Result<bool>.Ok(true);
             }
@@ -78,8 +82,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 手动核准
         /// </summary>
-        /// <returns>true = 当前步骤还有剩余待审批人</returns>
-        public async Task<bool> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
+        /// <returns>Code=200 时 Data=true 表示当前步骤还有剩余待审批人</returns>
+        public async Task<Result<bool>> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
         {
             var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
@@ -95,9 +99,16 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                          .SetColumns(instance => instance.FormStatus == FormStatus.UnderReview.ToEnumString())
                          .Where(instance => instance.FormId == formId)
                          .ExecuteCommandAsync();
+
+                // 每有一人完成签核即执行过程导向 Guidance，不等待会签其余人员
+                var processGuidanceResult = await ExecuteStepProcessGuidance(formId);
+                if (processGuidanceResult.Code != 200)
+                {
+                    return processGuidanceResult;
+                }
             }
 
-            return await HasPendingReview(formId, stepInfo.StepId);
+            return Result<bool>.Ok(await HasPendingReview(formId, stepInfo.StepId));
         }
 
         /// <summary>
@@ -148,6 +159,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 if (selfAppointments.Count > 0)
                 {
                     await ApproveStepByMode(formId, stepInfo, selfPendingUserId, selfAppointments, string.Empty, ReviewType.Automatic);
+
+                    // 每有一人完成签核即执行过程导向 Guidance，不等待会签其余人员
+                    var processGuidanceResult = await ExecuteStepProcessGuidance(formId);
+                    if (processGuidanceResult.Code != 200)
+                    {
+                        return processGuidanceResult;
+                    }
 
                     // 尚有其他人未签，停在当前步骤
                     if (await HasPendingReview(formId, stepInfo.StepId))
@@ -931,21 +949,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 执行当前步骤的 Guidance
+        /// 执行当前步骤的结论导向 Guidance：步骤所有人签核完成（或跳过）后执行一次
         /// </summary>
         public async Task<Result<bool>> ExecuteStepGuidance(long formId)
         {
-            var form = await _db.Queryable<FormInstanceEntity>()
-                                .With(SqlWith.NoLock)
-                                .Where(instance => instance.FormId == formId)
-                                .Select(instance => new { instance.RuleId, instance.CurrentStepId })
-                                .FirstAsync();
-
-            var guidance = await _db.Queryable<WorkflowRuleStepEntity>()
-                                    .With(SqlWith.NoLock)
-                                    .Where(rulestep => rulestep.RuleId == form.RuleId && rulestep.CurrentStepId == form.CurrentStepId)
-                                    .Select(rulestep => rulestep.Guidance)
-                                    .FirstAsync();
+            var guidance = await GetRuleStepGuidance(formId, rulestep => rulestep.ConclusionGuidance);
 
             if (string.IsNullOrEmpty(guidance))
             {
@@ -953,6 +961,40 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             }
 
             return await _stepcomletion.Resolve(guidance, formId);
+        }
+
+        /// <summary>
+        /// 执行当前步骤的过程导向 Guidance：每有一人完成签核即执行，不等待会签其余人员
+        /// </summary>
+        public async Task<Result<bool>> ExecuteStepProcessGuidance(long formId)
+        {
+            var guidance = await GetRuleStepGuidance(formId, rulestep => rulestep.ProcessGuidance);
+
+            if (string.IsNullOrEmpty(guidance))
+            {
+                return Result<bool>.Ok(true);
+            }
+
+            return await _stepcomletion.Resolve(guidance, formId);
+        }
+
+        /// <summary>
+        /// 查询当前步骤在规则中配置的 Guidance（按指定字段取值）
+        /// </summary>
+        private async Task<string?> GetRuleStepGuidance(long formId, Func<WorkflowRuleStepEntity, string?> selector)
+        {
+            var form = await _db.Queryable<FormInstanceEntity>()
+                                .With(SqlWith.NoLock)
+                                .Where(instance => instance.FormId == formId)
+                                .Select(instance => new { instance.RuleId, instance.CurrentStepId })
+                                .FirstAsync();
+
+            var rulestep = await _db.Queryable<WorkflowRuleStepEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .Where(rulestep => rulestep.RuleId == form.RuleId && rulestep.CurrentStepId == form.CurrentStepId)
+                                    .FirstAsync();
+
+            return rulestep == null ? null : selector(rulestep);
         }
 
         #endregion

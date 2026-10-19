@@ -1,13 +1,19 @@
 using SqlSugar;
 
-namespace SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Entity
+namespace SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity
 {
     /// <summary>
-    /// 系统账号申请单系统负责人配置实体
+    /// 表单负责人配置实体（资讯需求单、系统账号申请单共用）
     /// </summary>
-    [SugarTable("[IT].[SystemAccountConfig]")]
-    public class SystemAccountConfigEntity
+    [SugarTable("[IT].[PersonInHargeConfig]")]
+    public class PersonInChargeConfigEntity
     {
+        /// <summary>
+        /// 单据类型：InforRequest=资讯需求单，SystemAccount=系统账号申请单
+        /// </summary>
+        [SugarColumn(IsPrimaryKey = true, ColumnDescription = "Primary Key")]
+        public string Type { get; set; } = string.Empty;
+
         /// <summary>
         /// 系统
         /// </summary>
