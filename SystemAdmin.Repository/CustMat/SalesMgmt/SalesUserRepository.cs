@@ -164,7 +164,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                            .InnerJoin<UserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
                            .InnerJoin<DepartmentInfoEntity>((user, userrole, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
-                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationalityId);
+                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.NationalityId == nation.NationalityId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))

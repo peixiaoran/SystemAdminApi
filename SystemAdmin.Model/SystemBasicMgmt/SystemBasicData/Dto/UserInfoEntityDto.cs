@@ -103,7 +103,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// 国籍
         /// </summary>
         [JsonConverter(typeof(LongToStringConverter))]
-        public long Nationality { get; set; }
+        public long NationalityId { get; set; }
 
         /// <summary>
         /// 国籍文字描述

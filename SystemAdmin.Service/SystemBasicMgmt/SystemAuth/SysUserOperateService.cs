@@ -61,11 +61,11 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 var ip = GetClientIp();
                 var nowTime = DateTime.Now;
 
-                // 人机验证
-                if (!await _turnstile.VerifyAsync(login.TurnstileToken, ip))
-                {
-                    return Result<SysUserLoginReturnDto>.Failure(400, _localization.ReturnMsg($"{_this}TurnstileVerifyFailed"));
-                }
+                //// 人机验证
+                //if (!await _turnstile.VerifyAsync(login.TurnstileToken, ip))
+                //{
+                //    return Result<SysUserLoginReturnDto>.Failure(400, _localization.ReturnMsg($"{_this}TurnstileVerifyFailed"));
+                //}
 
                 // 查询用户
                 var user = await _sysUserOperateRepo.GetUserInfo(login);

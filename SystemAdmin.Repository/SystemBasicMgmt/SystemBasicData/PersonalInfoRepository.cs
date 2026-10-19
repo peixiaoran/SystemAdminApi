@@ -116,7 +116,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                             .InnerJoin<DepartmentInfoEntity>((user, userrole, role, dept) => user.DepartmentId == dept.DepartmentId)
                             .InnerJoin<DepartmentLevelEntity>((user, userrole, role, dept, deptlevel) => dept.DepartmentLevelId == deptlevel.DepartmentLevelId)
                             .InnerJoin<PositionInfoEntity>((user, userrole, role, dept, deptlevel, position) => user.PositionId == position.PositionId).InnerJoin<UserLaborEntity>((user, userrole, role, dept, deptlevel, position, labor) => user.LaborId == labor.LaborId)
-                            .InnerJoin<NationalityInfoEntity>((user, userrole, role, dept, deptlevel, position, labor, nation) => user.Nationality == nation.NationalityId)
+                            .InnerJoin<NationalityInfoEntity>((user, userrole, role, dept, deptlevel, position, labor, nation) => user.NationalityId == nation.NationalityId)
                             .Where((user, userrole, role, dept, deptlevel, position, labor, nation) => user.UserId == loginUserId)
                              .Select((user, userrole, role, dept, deptlevel, position, labor, nation) => new PersonalInfoDto
                              {

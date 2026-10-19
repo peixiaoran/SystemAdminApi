@@ -278,7 +278,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                       PositionId = user.PositionId,
                                       RoleId = role.RoleId,
                                       HireDate = Convert.ToDateTime(user.HireDate).ToString("yyyy-MM-dd"),
-                                      Nationality = user.Nationality,
+                                      NationalityId = user.NationalityId,
                                       AvatarAddress = user.AvatarAddress,
                                       Email = user.Email,
                                       PhoneNumber = user.PhoneNumber,
@@ -309,7 +309,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                            .InnerJoin<UserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
                            .InnerJoin<DepartmentInfoEntity>((user, userrole, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
-                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationalityId);
+                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.NationalityId == nation.NationalityId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getPage.UserNo))
@@ -395,7 +395,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                            .InnerJoin<UserRoleEntity>((user, userrole) => user.UserId == userrole.UserId)
                            .InnerJoin<DepartmentInfoEntity>((user, userrole, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, userrole, dept, position) => user.PositionId == position.PositionId)
-                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.Nationality == nation.NationalityId);
+                           .InnerJoin<NationalityInfoEntity>((user, userrole, dept, position, nation) => user.NationalityId == nation.NationalityId);
 
             // 用户工号
             if (!string.IsNullOrEmpty(getUserExcel.UserNo))

@@ -462,7 +462,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) =>
-                            user.Nationality == nation.NationalityId)
+                            user.NationalityId == nation.NationalityId)
                            .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
             // 用户工号

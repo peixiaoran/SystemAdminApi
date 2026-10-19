@@ -51,7 +51,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         /// <summary>
         /// 国籍
         /// </summary>
-        public long Nationality { get; set; }
+        public long NationalityId { get; set; }
 
         /// <summary>
         /// 职业编码

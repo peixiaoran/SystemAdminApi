@@ -53,7 +53,7 @@
         /// <summary>
         /// 国籍
         /// </summary>
-        public string Nationality { get; set; } = string.Empty;
+        public string NationalityId { get; set; } = string.Empty;
 
         /// <summary>
         /// 职业Id

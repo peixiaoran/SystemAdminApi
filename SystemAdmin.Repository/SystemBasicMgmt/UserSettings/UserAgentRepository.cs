@@ -58,7 +58,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
                            .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) =>
-                            user.Nationality == nation.NationalityId)
+                            user.NationalityId == nation.NationalityId)
                            .Where((user, dept, position, labor, nation) => user.IsEmployed == 1 && user.IsFreeze == 0);
 
             // 用户工号
@@ -123,7 +123,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.UserSettings
                            .InnerJoin<DepartmentInfoEntity>((user, dept) => user.DepartmentId == dept.DepartmentId)
                            .InnerJoin<PositionInfoEntity>((user, dept, position) => user.PositionId == position.PositionId)
                            .InnerJoin<UserLaborEntity>((user, dept, position, labor) => user.LaborId == labor.LaborId)
-                           .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.Nationality == nation.NationalityId)
+                           .InnerJoin<NationalityInfoEntity>((user, dept, position, labor, nation) => user.NationalityId == nation.NationalityId)
                            .Where((user, dept, position, labor, nation) => user.UserId != long.Parse(getPage.SubstituteUserId) && user.IsFreeze == 0)
                            .WhereIF(occupiedUserIds.Count > 0, (user, dept, position, labor, nation) => !occupiedUserIds.Contains(user.UserId));
 
