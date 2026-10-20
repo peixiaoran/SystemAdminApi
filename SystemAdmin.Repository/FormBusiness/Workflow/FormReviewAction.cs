@@ -83,7 +83,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 手动核准
         /// </summary>
         /// <returns>Code=200 时 Data=true 表示当前步骤还有剩余待审批人</returns>
-        public async Task<Result<bool>> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string comment)
+        public async Task<Result<bool>> ProcessApprove(long formId, WorkflowStepEntity stepInfo, ReviewType reviewType, string? comment)
         {
             var selfAppointments = await GetStepReviewUser(formId, stepInfo, _loginuser.UserId);
 
@@ -196,7 +196,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 按审批方式（单审/或审/会审）落当前操作人的核准记录并清理待审批人
         /// </summary>
-        private async Task ApproveStepByMode(long formId, WorkflowStepEntity stepInfo, long selfOriginalUserId, List<UserAppointment> selfAppointments, string comment, ReviewType reviewType)
+        private async Task ApproveStepByMode(long formId, WorkflowStepEntity stepInfo, long selfOriginalUserId, List<UserAppointment> selfAppointments, string? comment, ReviewType reviewType)
         {
             string reviewMode = stepInfo.ReviewMode;
 
@@ -1055,7 +1055,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 审批日志记录
         /// </summary>
-        public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
+        public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string? comment, ReviewType reviewType, long operatorUserId)
         {
             if (!appointments.Any())
             {

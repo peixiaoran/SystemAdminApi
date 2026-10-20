@@ -38,7 +38,7 @@
         /// <summary>
         /// 意见
         /// </summary>
-        public string Comment { get; set; } = string.Empty;
+        public string? Comment { get; set; }
 
         /// <summary>
         /// 当前步骤名称（中文）

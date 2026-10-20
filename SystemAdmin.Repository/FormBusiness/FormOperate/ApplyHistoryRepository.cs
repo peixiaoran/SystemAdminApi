@@ -363,7 +363,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <param name="reviewType"></param>
         /// <param name="operatorUserId"></param>
         /// <returns></returns>
-        public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string comment, ReviewType reviewType, long operatorUserId)
+        public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string? comment, ReviewType reviewType, long operatorUserId)
         {
             if (!appointments.Any())
             {

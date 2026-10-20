@@ -1092,7 +1092,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                             result.Item().Text($"({record.RejectStepName})").FontSize(7.5f).FontColor(MutedTextColor);
                         }
                     });
-                    table.Cell().Element(BodyCell).Text(record.Comment);
+                    table.Cell().Element(BodyCell).Text(record.Comment ?? string.Empty);
                     table.Cell().Element(BodyCell).Text(record.ReviewDateTime.ToString("yyyy-MM-dd HH:mm:ss"));
                 }
             });
