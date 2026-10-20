@@ -456,7 +456,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 系统账号申请单
 
         /// <summary>
-        /// 提交：只新增一笔未指定处理人的结果（处理人随时可能变动，由处理完成、评分再同步）；重新提交时先清掉旧结果
+        /// 提交：清掉旧结果，只新增一笔未指定处理人的结果
         /// </summary>
         public async Task<Result<bool>> SystemAccountApply(long formId)
         {
@@ -480,7 +480,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 处理开始：写入开始时间；重新开始时重置为一笔未指定处理人的结果
+        /// 处理开始：重置为一笔未指定处理人的结果并写入开始时间
         /// </summary>
         public async Task<Result<bool>> SystemAccountProcessStart(long formId)
         {
@@ -502,7 +502,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 处理完成：先同步负责人变动，再只更新登录人（或其代理的负责人）那一笔，清空评分
+        /// 处理完成：同步负责人，并更新登录人（或其代理的负责人）那一笔
         /// </summary>
         public async Task<Result<bool>> SystemAccountProcessEnd(long formId)
         {
@@ -574,7 +574,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询表单下全部负责人结果，按创建时间排序
+        /// 查询表单的全部结果，按创建时间排序
         /// </summary>
         private async Task<List<PersonInChargeResultEntity>> GetSystemAccountResults(long formId)
         {
@@ -585,7 +585,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 重置为一笔未指定处理人的结果：保留第一笔并清空阶段字段，其余删除
+        /// 重置为一笔未指定处理人的结果：保留第一笔，其余删除
         /// </summary>
         private async Task<int> ResetSystemAccountResult(long formId, List<PersonInChargeResultEntity> existing, long? applicantUserId, decimal? estimatedDays, DateTime? processStartTime)
         {
@@ -627,7 +627,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 评分：不调整负责人；每笔结果取其负责系统的平均分，负责人已换人、找不到对应系统的取全单平均分
+        /// 评分：每笔取其负责系统的平均分，找不到对应系统的取全单平均分
         /// </summary>
         public async Task<Result<bool>> SystemAccountRating(long formId)
         {
@@ -684,8 +684,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按当前系统负责人同步每人一笔的结果，返回 负责人 -> 结果的处理人Id
-        /// 仍负责的保留，不再负责的改给新负责人或删除，新增的负责人新增一笔
+        /// 按当前系统负责人同步每人一笔的结果，返回 负责人 -> 处理人Id
         /// </summary>
         private async Task<(int Affected, Dictionary<long, long?> RowOfOwner)> SyncSystemAccountResults(long formId)
         {
@@ -775,7 +774,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 结果对应的当前负责人：处理人本人，或处理时的代理人；无则返回 null
+        /// 结果对应的负责人（处理人本人或处理时的代理人），无则 null
         /// </summary>
         private static long? FindRatingOwner(PersonInChargeResultEntity row, HashSet<long> pendingOwners, List<UserAgentEntity> agents, DateTime now)
         {
@@ -799,7 +798,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按处理人定位同表单的结果，处理人为空时按 IS NULL
+        /// 按处理人定位结果，处理人为空时按 IS NULL
         /// </summary>
         private static System.Linq.Expressions.Expression<Func<PersonInChargeResultEntity, bool>> SystemAccountResultOf(long formId, long? handlerId)
         {
@@ -810,7 +809,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 平均分：忽略未评分，四舍五入；全部未评分返回 null
+        /// 平均分：忽略未评分并四舍五入，无评分返回 null
         /// </summary>
         private static int? AverageRating(IEnumerable<int?> ratings)
         {
