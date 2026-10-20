@@ -37,7 +37,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Commands
         /// <summary>
         /// 头像图片地址
         /// </summary>
-        public string AvatarAddress { get; set; } = string.Empty;
+        public string? AvatarAddress { get; set; }
 
         /// <summary>
         /// 邮件通知语言

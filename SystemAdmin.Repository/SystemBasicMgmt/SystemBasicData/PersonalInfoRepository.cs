@@ -143,7 +143,6 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                  IsAgent = user.IsAgent,
                                  IsPartTime = user.IsPartTime,
                                  IsFreeze = user.IsFreeze,
-                                 Remark = user.Remark,
                              }).FirstAsync();
         }
 

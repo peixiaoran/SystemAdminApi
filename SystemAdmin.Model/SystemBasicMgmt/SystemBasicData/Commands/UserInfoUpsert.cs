@@ -88,7 +88,7 @@
         /// <summary>
         /// 头像图片地址
         /// </summary>
-        public string AvatarAddress { get; set; } = string.Empty;
+        public string? AvatarAddress { get; set; }
 
         /// <summary>
         /// 是否在职
@@ -124,10 +124,5 @@
         /// 密码过期天数
         /// </summary>
         public int ExpirationDays { get; set; }
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = string.Empty;
     }
 }

@@ -348,8 +348,7 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                 Gender = user.Gender,
                 IsEmployed = user.IsEmployed,
                 IsReview = user.IsReview,
-                IsFreeze = user.IsFreeze,
-                Remark = user.Remark
+                IsFreeze = user.IsFreeze
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<UserInfoPageDto>.Ok(page, totalCount, "");
         }

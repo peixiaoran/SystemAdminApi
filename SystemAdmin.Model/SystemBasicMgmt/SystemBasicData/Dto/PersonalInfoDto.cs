@@ -72,7 +72,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// <summary>
         /// 用户头像地址
         /// </summary>
-        public string AvatarAddress { get; set; } = string.Empty;
+        public string? AvatarAddress { get; set; }
 
         /// <summary>
         /// 邮箱地址
@@ -128,10 +128,5 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// 是否冻结
         /// </summary>
         public int IsFreeze { get; set; }
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = string.Empty;
     }
 }

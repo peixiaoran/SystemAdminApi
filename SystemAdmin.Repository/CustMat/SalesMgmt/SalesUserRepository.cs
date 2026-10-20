@@ -194,8 +194,7 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                                       Gender = user.Gender,
                                       IsEmployed = user.IsEmployed,
                                       IsReview = user.IsReview,
-                                      IsFreeze = user.IsFreeze,
-                                      Remark = user.Remark
+                                      IsFreeze = user.IsFreeze
                                   }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<SalesUserPageDto>.Ok(page, totalCount, "");
         }

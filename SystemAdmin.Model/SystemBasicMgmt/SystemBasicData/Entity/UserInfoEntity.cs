@@ -86,7 +86,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         /// <summary>
         /// 用户头像
         /// </summary>
-        public string AvatarAddress { get; set; } = string.Empty;
+        public string? AvatarAddress { get; set; }
 
         /// <summary>
         /// 是否在职
@@ -137,11 +137,6 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         /// 过期时间
         /// </summary>
         public DateTime ExpirationTime { get; set; }
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = string.Empty;
 
         /// <summary>
         /// 创建人

@@ -64,10 +64,5 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// 是否冻结
         /// </summary>
         public int IsFreeze { get; set; }
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = string.Empty;
     }
 }

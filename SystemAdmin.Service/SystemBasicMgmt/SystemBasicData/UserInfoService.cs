@@ -261,7 +261,6 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     IsFreeze = upsert.IsFreeze,
                     ExpirationDays = upsert.ExpirationDays,
                     ExpirationTime = DateTime.Now.AddDays(upsert.ExpirationDays),
-                    Remark = upsert.Remark,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now
                 };
@@ -386,7 +385,6 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
                     IsFreeze = upsert.IsFreeze,
                     ExpirationDays = upsert.ExpirationDays,
                     ExpirationTime = DateTime.Now.AddDays(upsert.ExpirationDays),
-                    Remark = upsert.Remark,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now
                 };

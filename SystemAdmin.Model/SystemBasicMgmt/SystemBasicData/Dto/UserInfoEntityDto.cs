@@ -139,7 +139,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// <summary>
         /// 用户头像地址
         /// </summary>
-        public string AvatarAddress { get; set; } = string.Empty;
+        public string? AvatarAddress { get; set; }
 
         /// <summary>
         /// 是否在职
