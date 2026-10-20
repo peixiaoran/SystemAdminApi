@@ -456,168 +456,368 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 系统账号申请单
 
         /// <summary>
-        /// 提交：写入申请人，预计天数固定为 0；重新提交时清空后续阶段字段
+        /// 提交：只新增一笔未指定处理人的结果（处理人随时可能变动，由处理完成、评分再同步）；重新提交时先清掉旧结果
         /// </summary>
         public async Task<Result<bool>> SystemAccountApply(long formId)
         {
             var formInstance = await _db.Queryable<FormInstanceEntity>()
                                         .FirstAsync(instance => instance.FormId == formId);
 
-            var affected = await UpsertPersonInChargeResult(
-                formId,
-                () => new PersonInChargeResultEntity
-                {
-                    FormId = formId,
-                    ApplicantUserId = formInstance.ApplicantUserId,
-                    EstimatedDays = 0,
-                    CreatedBy = _loginuser.UserId,
-                    CreatedDate = DateTime.Now
-                },
-                () => _db.Updateable<PersonInChargeResultEntity>()
-                        .SetColumns(result => new PersonInChargeResultEntity
-                        {
-                            ApplicantUserId = formInstance.ApplicantUserId,
-                            EstimatedDays = 0,
-                            ProcessStartTime = null,
-                            ProcessEndTime = null,
-                            HandlerId = null,
-                            Rating = null,
-                            ModifiedBy = _loginuser.UserId,
-                            ModifiedDate = DateTime.Now
-                        }).Where(result => result.FormId == formId)
-                        .ExecuteCommandAsync());
+            await _db.Deleteable<PersonInChargeResultEntity>()
+                     .Where(result => result.FormId == formId)
+                     .ExecuteCommandAsync();
+
+            var affected = await _db.Insertable(new PersonInChargeResultEntity
+            {
+                FormId = formId,
+                ApplicantUserId = formInstance.ApplicantUserId,
+                EstimatedDays = 0,
+                CreatedBy = _loginuser.UserId,
+                CreatedDate = DateTime.Now
+            }).ExecuteCommandAsync();
 
             return Result<bool>.Ok(affected >= 1);
         }
 
         /// <summary>
-        /// 处理开始：写入开始时间；重新开始时清空后续阶段字段，避免结束时间早于开始时间
+        /// 处理开始：写入开始时间；重新开始时重置为一笔未指定处理人的结果
         /// </summary>
         public async Task<Result<bool>> SystemAccountProcessStart(long formId)
         {
             var now = DateTime.Now;
 
-            var affected = await UpsertPersonInChargeResult(
-                formId,
-                () => new PersonInChargeResultEntity
-                {
-                    FormId = formId,
-                    ProcessStartTime = now,
-                    CreatedBy = _loginuser.UserId,
-                    CreatedDate = now
-                },
-                () => _db.Updateable<PersonInChargeResultEntity>()
-                        .SetColumns(result => new PersonInChargeResultEntity
-                        {
-                            ProcessStartTime = now,
-                            ProcessEndTime = null,
-                            HandlerId = null,
-                            Rating = null,
-                            ModifiedBy = _loginuser.UserId,
-                            ModifiedDate = now
-                        }).Where(result => result.FormId == formId)
-                        .ExecuteCommandAsync());
+            var existing = await GetSystemAccountResults(formId);
+            long? applicantUserId = existing.FirstOrDefault()?.ApplicantUserId;
+            if (applicantUserId == null)
+            {
+                applicantUserId = await _db.Queryable<FormInstanceEntity>()
+                                           .Where(instance => instance.FormId == formId)
+                                           .Select(instance => instance.ApplicantUserId)
+                                           .FirstAsync();
+            }
+
+            var affected = await ResetSystemAccountResult(formId, existing, applicantUserId, existing.FirstOrDefault()?.EstimatedDays, now);
 
             return Result<bool>.Ok(affected >= 1);
         }
 
         /// <summary>
-        /// 处理完成：匹配登录人（或其代理人）负责的系统，写入处理人与结束时间，一人多系统只需匹配一笔；重新完成时清空评分
+        /// 处理完成：先同步负责人变动，再只更新登录人（或其代理的负责人）那一笔，清空评分
         /// </summary>
         public async Task<Result<bool>> SystemAccountProcessEnd(long formId)
         {
             var now = DateTime.Now;
 
-            var isHandler = await _db.Queryable<SystemAccountRequestDetailsEntity>()
-                                     .With(SqlWith.NoLock)
-                                     .InnerJoin<PersonInChargeConfigEntity>((detail, config) => detail.System == config.System && config.Type == "SystemAccount")
-                                     .LeftJoin<UserAgentEntity>((detail, config, agent) =>
-                                         config.PersonChargeId == agent.SubstituteUserId &&
-                                         agent.StartTime <= now &&
-                                         agent.EndTime >= now)
-                                     .Where((detail, config, agent) =>
-                                         detail.FormId == formId &&
-                                         (config.PersonChargeId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
-                                     .AnyAsync();
+            // 登录人本人或其代理的负责人
+            var ownerIds = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .InnerJoin<PersonInChargeConfigEntity>((detail, config) => detail.System == config.System && config.Type == "SystemAccount")
+                                    .LeftJoin<UserAgentEntity>((detail, config, agent) =>
+                                        config.PersonChargeId == agent.SubstituteUserId &&
+                                        agent.StartTime <= now &&
+                                        agent.EndTime >= now)
+                                    .Where((detail, config, agent) =>
+                                        detail.FormId == formId &&
+                                        (config.PersonChargeId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
+                                    .Select((detail, config, agent) => config.PersonChargeId)
+                                    .ToListAsync();
 
-            if (!isHandler)
+            if (ownerIds.Count == 0)
             {
                 return Result<bool>.Ok(false);
             }
 
-            var affected = await UpsertPersonInChargeResult(
-                formId,
-                () => new PersonInChargeResultEntity
+            var (affected, rowOfOwner) = await SyncSystemAccountResults(formId);
+
+            // 登录人为代理人时处理人记为登录人，且只占一笔
+            var targetHandlers = ownerIds.Distinct()
+                                         .Where(owner => rowOfOwner.ContainsKey(owner))
+                                         .Select(owner => rowOfOwner[owner])
+                                         .Distinct()
+                                         .ToList();
+
+            var results = await GetSystemAccountResults(formId);
+            var loginClaimed = results.Any(result => result.HandlerId == _loginuser.UserId);
+
+            foreach (var handlerId in targetHandlers)
+            {
+                var claim = !loginClaimed && handlerId != _loginuser.UserId;
+                if (claim)
                 {
-                    FormId = formId,
-                    ProcessEndTime = now,
-                    HandlerId = _loginuser.UserId,
-                    CreatedBy = _loginuser.UserId,
-                    CreatedDate = now
-                },
-                () => _db.Updateable<PersonInChargeResultEntity>()
-                        .SetColumns(result => new PersonInChargeResultEntity
-                        {
-                            ProcessEndTime = now,
-                            HandlerId = _loginuser.UserId,
-                            Rating = null,
-                            ModifiedBy = _loginuser.UserId,
-                            ModifiedDate = now
-                        }).Where(result => result.FormId == formId)
-                        .ExecuteCommandAsync());
+                    loginClaimed = true;
+                    affected += await _db.Updateable<PersonInChargeResultEntity>()
+                                         .SetColumns(result => new PersonInChargeResultEntity
+                                         {
+                                             HandlerId = _loginuser.UserId,
+                                             ProcessEndTime = now,
+                                             Rating = null,
+                                             ModifiedBy = _loginuser.UserId,
+                                             ModifiedDate = now
+                                         }).Where(SystemAccountResultOf(formId, handlerId))
+                                         .ExecuteCommandAsync();
+                }
+                else
+                {
+                    affected += await _db.Updateable<PersonInChargeResultEntity>()
+                                         .SetColumns(result => new PersonInChargeResultEntity
+                                         {
+                                             ProcessEndTime = now,
+                                             Rating = null,
+                                             ModifiedBy = _loginuser.UserId,
+                                             ModifiedDate = now
+                                         }).Where(SystemAccountResultOf(formId, handlerId))
+                                         .ExecuteCommandAsync();
+                }
+            }
 
             return Result<bool>.Ok(affected >= 1);
         }
 
         /// <summary>
-        /// 评分：匹配登录人（或其代理人）负责的系统，一人多系统取平均分写入；处理人由 <see cref="SystemAccountProcessEnd"/> 统一写入
+        /// 查询表单下全部负责人结果，按创建时间排序
+        /// </summary>
+        private async Task<List<PersonInChargeResultEntity>> GetSystemAccountResults(long formId)
+        {
+            return await _db.Queryable<PersonInChargeResultEntity>()
+                            .Where(result => result.FormId == formId)
+                            .OrderBy(result => result.CreatedDate)
+                            .ToListAsync();
+        }
+
+        /// <summary>
+        /// 重置为一笔未指定处理人的结果：保留第一笔并清空阶段字段，其余删除
+        /// </summary>
+        private async Task<int> ResetSystemAccountResult(long formId, List<PersonInChargeResultEntity> existing, long? applicantUserId, decimal? estimatedDays, DateTime? processStartTime)
+        {
+            var now = DateTime.Now;
+
+            if (existing.Count == 0)
+            {
+                return await _db.Insertable(new PersonInChargeResultEntity
+                {
+                    FormId = formId,
+                    ApplicantUserId = applicantUserId,
+                    EstimatedDays = estimatedDays,
+                    ProcessStartTime = processStartTime,
+                    CreatedBy = _loginuser.UserId,
+                    CreatedDate = now
+                }).ExecuteCommandAsync();
+            }
+
+            foreach (var other in existing.Skip(1))
+            {
+                await _db.Deleteable<PersonInChargeResultEntity>()
+                         .Where(SystemAccountResultOf(formId, other.HandlerId))
+                         .ExecuteCommandAsync();
+            }
+
+            return await _db.Updateable<PersonInChargeResultEntity>()
+                            .SetColumns(result => new PersonInChargeResultEntity
+                            {
+                                ApplicantUserId = applicantUserId,
+                                EstimatedDays = estimatedDays,
+                                ProcessStartTime = processStartTime,
+                                ProcessEndTime = null,
+                                HandlerId = null,
+                                Rating = null,
+                                ModifiedBy = _loginuser.UserId,
+                                ModifiedDate = now
+                            }).Where(SystemAccountResultOf(formId, existing[0].HandlerId))
+                            .ExecuteCommandAsync();
+        }
+
+        /// <summary>
+        /// 评分：不调整负责人；每笔结果取其负责系统的平均分，负责人已换人、找不到对应系统的取全单平均分
         /// </summary>
         public async Task<Result<bool>> SystemAccountRating(long formId)
         {
             var now = DateTime.Now;
 
-            var ratings = await _db.Queryable<SystemAccountRequestDetailsEntity>()
-                                   .With(SqlWith.NoLock)
-                                   .InnerJoin<PersonInChargeConfigEntity>((d, config) => d.System == config.System && config.Type == "SystemAccount")
-                                   .LeftJoin<UserAgentEntity>((d, config, agent) =>
-                                       config.PersonChargeId == agent.SubstituteUserId &&
-                                       agent.StartTime <= now &&
-                                       agent.EndTime >= now)
-                                   .Where((d, config, agent) =>
-                                       d.FormId == formId &&
-                                       (config.PersonChargeId == _loginuser.UserId || agent.AgentUserId == _loginuser.UserId))
-                                   .Select((d, config, agent) => d.Rating)
-                                   .ToListAsync();
+            var allRatings = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                      .With(SqlWith.NoLock)
+                                      .Where(detail => detail.FormId == formId)
+                                      .Select(detail => detail.Rating)
+                                      .ToListAsync();
+            var formAverage = AverageRating(allRatings);
 
-            if (ratings.Count == 0)
+            // 当前各负责人名下系统的评分
+            var ownerRatings = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                        .With(SqlWith.NoLock)
+                                        .InnerJoin<PersonInChargeConfigEntity>((d, config) => d.System == config.System && config.Type == "SystemAccount")
+                                        .Where((d, config) => d.FormId == formId)
+                                        .Select((d, config) => new { config.PersonChargeId, d.Rating })
+                                        .ToListAsync();
+
+            var ownerIds = ownerRatings.Select(item => item.PersonChargeId).Distinct().ToList();
+            var agents = await _db.Queryable<UserAgentEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(agent => ownerIds.Contains(agent.SubstituteUserId))
+                                  .ToListAsync();
+
+            var affected = 0;
+            foreach (var row in await GetSystemAccountResults(formId))
             {
-                return Result<bool>.Ok(false);
+                // 处理人本人或处理时的代理人所对应的负责人
+                var handledTime = row.ProcessEndTime ?? now;
+                var owners = ownerIds.Where(owner => row.HandlerId == owner ||
+                                                     agents.Any(agent => agent.SubstituteUserId == owner &&
+                                                                         agent.AgentUserId == row.HandlerId &&
+                                                                         agent.StartTime <= handledTime &&
+                                                                         agent.EndTime >= handledTime))
+                                     .ToList();
+
+                var rowRating = owners.Count > 0
+                    ? AverageRating(ownerRatings.Where(item => owners.Contains(item.PersonChargeId)).Select(item => item.Rating))
+                    : formAverage;
+
+                affected += await _db.Updateable<PersonInChargeResultEntity>()
+                                     .SetColumns(result => new PersonInChargeResultEntity
+                                     {
+                                         Rating = rowRating,
+                                         ModifiedBy = _loginuser.UserId,
+                                         ModifiedDate = now
+                                     }).Where(SystemAccountResultOf(formId, row.HandlerId))
+                                     .ExecuteCommandAsync();
             }
 
-            var validRatings = ratings.Where(rating => rating.HasValue).Select(rating => rating!.Value).ToList();
-            int? avgRating = validRatings.Count > 0
-                ? (int)Math.Round(validRatings.Average(), MidpointRounding.AwayFromZero)
-                : null;
+            return Result<bool>.Ok(affected >= 1);
+        }
 
-            var affected = await UpsertPersonInChargeResult(
-                formId,
-                () => new PersonInChargeResultEntity
+        /// <summary>
+        /// 按当前系统负责人同步每人一笔的结果，返回 负责人 -> 结果的处理人Id
+        /// 仍负责的保留，不再负责的改给新负责人或删除，新增的负责人新增一笔
+        /// </summary>
+        private async Task<(int Affected, Dictionary<long, long?> RowOfOwner)> SyncSystemAccountResults(long formId)
+        {
+            var now = DateTime.Now;
+            var rowOfOwner = new Dictionary<long, long?>();
+
+            var details = await _db.Queryable<SystemAccountRequestDetailsEntity>()
+                                   .With(SqlWith.NoLock)
+                                   .InnerJoin<PersonInChargeConfigEntity>((d, config) => d.System == config.System && config.Type == "SystemAccount")
+                                   .Where((d, config) => d.FormId == formId)
+                                   .Select((d, config) => config.PersonChargeId)
+                                   .ToListAsync();
+
+            if (details.Count == 0)
+            {
+                return (0, rowOfOwner);
+            }
+
+            var existing = await GetSystemAccountResults(formId);
+
+            var ownerIds = details.Distinct().ToList();
+            var agents = await _db.Queryable<UserAgentEntity>()
+                                  .With(SqlWith.NoLock)
+                                  .Where(agent => ownerIds.Contains(agent.SubstituteUserId))
+                                  .ToListAsync();
+
+            var affected = 0;
+            var pendingOwners = new HashSet<long>(ownerIds);
+            var pendingRows = new List<PersonInChargeResultEntity>(existing);
+
+            // 仍属于当前负责人的结果（处理人为本人或代理人）
+            foreach (var row in existing)
+            {
+                var owner = FindRatingOwner(row, pendingOwners, agents, now);
+                if (owner == null)
+                {
+                    continue;
+                }
+
+                pendingOwners.Remove(owner.Value);
+                pendingRows.Remove(row);
+                rowOfOwner[owner.Value] = row.HandlerId;
+            }
+
+            // 负责人变更：旧结果改给新负责人，多余的删除
+            var newOwners = pendingOwners.ToList();
+            var reassignCount = Math.Min(pendingRows.Count, newOwners.Count);
+            for (var i = 0; i < reassignCount; i++)
+            {
+                var newOwner = newOwners[i];
+                rowOfOwner[newOwner] = newOwner;
+                affected += await _db.Updateable<PersonInChargeResultEntity>()
+                                     .SetColumns(result => new PersonInChargeResultEntity
+                                     {
+                                         HandlerId = newOwner,
+                                         ModifiedBy = _loginuser.UserId,
+                                         ModifiedDate = now
+                                     }).Where(SystemAccountResultOf(formId, pendingRows[i].HandlerId))
+                                     .ExecuteCommandAsync();
+            }
+
+            foreach (var row in pendingRows.Skip(reassignCount))
+            {
+                affected += await _db.Deleteable<PersonInChargeResultEntity>()
+                                     .Where(SystemAccountResultOf(formId, row.HandlerId))
+                                     .ExecuteCommandAsync();
+            }
+
+            // 新增负责人：沿用表单级字段
+            var template = existing.FirstOrDefault();
+            foreach (var newOwner in newOwners.Skip(reassignCount))
+            {
+                rowOfOwner[newOwner] = newOwner;
+                affected += await _db.Insertable(new PersonInChargeResultEntity
                 {
                     FormId = formId,
-                    Rating = avgRating,
+                    ApplicantUserId = template?.ApplicantUserId,
+                    HandlerId = newOwner,
+                    EstimatedDays = template?.EstimatedDays,
+                    ProcessStartTime = template?.ProcessStartTime,
                     CreatedBy = _loginuser.UserId,
-                    CreatedDate = DateTime.Now
-                },
-                () => _db.Updateable<PersonInChargeResultEntity>()
-                        .SetColumns(result => new PersonInChargeResultEntity
-                        {
-                            Rating = avgRating,
-                            ModifiedBy = _loginuser.UserId,
-                            ModifiedDate = DateTime.Now
-                        }).Where(result => result.FormId == formId)
-                        .ExecuteCommandAsync());
+                    CreatedDate = now
+                }).ExecuteCommandAsync();
+            }
 
-            return Result<bool>.Ok(affected >= 1);
+            return (affected, rowOfOwner);
+        }
+
+        /// <summary>
+        /// 结果对应的当前负责人：处理人本人，或处理时的代理人；无则返回 null
+        /// </summary>
+        private static long? FindRatingOwner(PersonInChargeResultEntity row, HashSet<long> pendingOwners, List<UserAgentEntity> agents, DateTime now)
+        {
+            if (!row.HandlerId.HasValue)
+            {
+                return null;
+            }
+
+            if (pendingOwners.Contains(row.HandlerId.Value))
+            {
+                return row.HandlerId.Value;
+            }
+
+            var handledTime = row.ProcessEndTime ?? now;
+            return agents.Where(agent => agent.AgentUserId == row.HandlerId.Value &&
+                                         pendingOwners.Contains(agent.SubstituteUserId) &&
+                                         agent.StartTime <= handledTime &&
+                                         agent.EndTime >= handledTime)
+                         .Select(agent => (long?)agent.SubstituteUserId)
+                         .FirstOrDefault();
+        }
+
+        /// <summary>
+        /// 按处理人定位同表单的结果，处理人为空时按 IS NULL
+        /// </summary>
+        private static System.Linq.Expressions.Expression<Func<PersonInChargeResultEntity, bool>> SystemAccountResultOf(long formId, long? handlerId)
+        {
+            var id = handlerId ?? 0;
+            return handlerId.HasValue
+                ? result => result.FormId == formId && result.HandlerId == id
+                : result => result.FormId == formId && result.HandlerId == null;
+        }
+
+        /// <summary>
+        /// 平均分：忽略未评分，四舍五入；全部未评分返回 null
+        /// </summary>
+        private static int? AverageRating(IEnumerable<int?> ratings)
+        {
+            var validRatings = ratings.Where(rating => rating.HasValue).Select(rating => rating!.Value).ToList();
+            return validRatings.Count > 0
+                ? (int)Math.Round(validRatings.Average(), MidpointRounding.AwayFromZero)
+                : null;
         }
 
         #endregion
