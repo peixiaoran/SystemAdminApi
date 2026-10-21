@@ -78,7 +78,7 @@
         /// <summary>
         /// 登录密码
         /// </summary>
-        public string PassWord { get; set; } = string.Empty;
+        public string? PassWord { get; set; } = string.Empty;
 
         /// <summary>
         /// 头像图片地址

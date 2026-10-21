@@ -22,7 +22,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Commands
         /// <summary>
         /// 登录密码
         /// </summary>
-        public string PassWord { get; set; } = string.Empty;
+        public string? PassWord { get; set; } = string.Empty;
 
         /// <summary>
         /// 是否实时邮件通知
