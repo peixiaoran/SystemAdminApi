@@ -1,0 +1,147 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{Title}}</title>
+
+    <!--[if mso]>
+    <style type="text/css">
+        body, table, td, a {
+            font-family: "Microsoft YaHei", "微软雅黑", Arial, sans-serif !important;
+        }
+    </style>
+    <![endif]-->
+
+    <style type="text/css">
+        @media only screen and (max-width: 480px) {
+            .ep-page {
+                padding: 10px 8px !important;
+            }
+
+            .ep-card {
+                width: 100% !important;
+                border-radius: 8px !important;
+            }
+
+            .ep-section {
+                padding-left: 20px !important;
+                padding-right: 20px !important;
+            }
+
+            .ep-title {
+                font-size: 18px !important;
+            }
+
+            .ep-btn {
+                display: inline-block !important;
+                padding-top: 8px !important;
+                padding-bottom: 8px !important;
+                padding-left: 16px !important;
+                padding-right: 16px !important;
+            }
+        }
+    </style>
+</head>
+
+<body style="margin:0;padding:0;background-color:#f5f7fa;font-family:'Microsoft YaHei','微软雅黑',-apple-system,BlinkMacSystemFont,'Segoe UI','Helvetica Neue',Helvetica,Arial,sans-serif;color:#303133;-webkit-font-smoothing:antialiased;">
+
+    <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#f5f7fa;">
+        <tr>
+            <td align="left" class="ep-page" style="padding:10px 12px;">
+
+                <!-- Main Card -->
+                <table role="presentation" width="640" border="0" cellspacing="0" cellpadding="0" align="left" class="ep-card" style="width:640px;max-width:640px;background-color:#ffffff;border-radius:12px;overflow:hidden;border:1px solid #ebeef5;box-shadow:0 4px 18px rgba(0,0,0,0.04);">
+
+                    <!-- Top Blue Bar -->
+                    <tr>
+                        <td style="height:5px;background-color:#409eff;font-size:0;line-height:0;">&nbsp;</td>
+                    </tr>
+
+                    <!-- Header -->
+                    <tr>
+                        <td class="ep-section" style="padding:30px 36px 18px 36px;">
+                            <div class="ep-title" style="font-size:21px;font-weight:600;color:#303133;line-height:1.45;">
+                                {{Title}}
+                            </div>
+                            <div style="margin-top:8px;font-size:13px;color:#909399;line-height:1.6;">
+                                {{Greeting}}
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- Intro -->
+                    <tr>
+                        <td class="ep-section" style="padding:0 36px 22px 36px;">
+                            <table role="presentation" width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color:#ecf5ff;border:1px solid #d9ecff;border-radius:8px;">
+                                <tr>
+                                    <td style="padding:16px 18px;font-size:14px;color:#303133;line-height:1.8;">
+                                        {{Intro}}
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Button -->
+                    <tr>
+                        <td class="ep-section" style="padding:0 36px 16px 36px;">
+                            <!--[if mso]>
+                            <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word"
+                                href="{{BindUrl}}"
+                                style="height:36px;v-text-anchor:middle;width:150px;"
+                                arcsize="12%" stroke="f" fillcolor="#409eff">
+                                <w:anchorlock/>
+                                <center style="color:#ffffff;font-family:'Microsoft YaHei',sans-serif;font-size:14px;font-weight:500;">
+                                    {{BtnBind}}
+                                </center>
+                            </v:roundrect>
+                            <![endif]-->
+                            <!--[if !mso]><!-->
+                            <a href="{{BindUrl}}" class="ep-btn"
+                               style="display:inline-block;background-color:#409eff;color:#ffffff;text-decoration:none;font-size:14px;line-height:1;padding:10px 22px;border-radius:6px;border:1px solid #409eff;font-weight:500;">
+                                {{BtnBind}}
+                            </a>
+                            <!--<![endif]-->
+                        </td>
+                    </tr>
+
+                    <!-- Link fallback -->
+                    <tr>
+                        <td class="ep-section" style="padding:0 36px 16px 36px;">
+                            <div style="font-size:12px;color:#909399;line-height:1.7;">{{LinkHint}}</div>
+                            <div style="font-size:12px;color:#409eff;line-height:1.7;word-break:break-all;">{{BindUrl}}</div>
+                        </td>
+                    </tr>
+
+                    <!-- Expire Hint -->
+                    <tr>
+                        <td class="ep-section" style="padding:4px 36px 8px 36px;color:#e6a23c;font-size:12px;line-height:1.7;">
+                            {{ExpireHint}}
+                        </td>
+                    </tr>
+
+                    <!-- Ignore Hint -->
+                    <tr>
+                        <td class="ep-section" style="padding:0 36px 28px 36px;color:#909399;font-size:12px;line-height:1.7;">
+                            {{IgnoreHint}}
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td class="ep-section" style="padding:18px 36px;background-color:#fafafa;border-top:1px solid #ebeef5;">
+                            <div style="font-size:12px;color:#c0c4cc;line-height:1.7;">
+                                {{FooterText}}
+                            </div>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

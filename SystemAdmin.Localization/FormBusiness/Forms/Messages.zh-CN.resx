@@ -411,4 +411,46 @@
   <data name="PdfPermissions" xml:space="preserve">
     <value>系统权限</value>
   </data>
+  <data name="PasskeyBindUserNotFound" xml:space="preserve">
+    <value>未找到工号为 {0} 的在职用户</value>
+  </data>
+  <data name="PasskeyBindEmailInvalid" xml:space="preserve">
+    <value>邮箱格式不正确</value>
+  </data>
+  <data name="PasskeyBindTooFrequent" xml:space="preserve">
+    <value>操作过于频繁，请稍后再试</value>
+  </data>
+  <data name="PasskeyBindMailSent" xml:space="preserve">
+    <value>绑定 Passkey 的邮件已发送至 {0}</value>
+  </data>
+  <data name="PasskeyBindMailFailed" xml:space="preserve">
+    <value>邮件发送失败，请稍后重试（原因：{0}）</value>
+  </data>
+  <data name="PasskeyBindMailSubject" xml:space="preserve">
+    <value>请绑定您的 Passkey</value>
+  </data>
+  <data name="PasskeyBindMailTitle" xml:space="preserve">
+    <value>绑定 Passkey</value>
+  </data>
+  <data name="PasskeyBindMailGreeting" xml:space="preserve">
+    <value>尊敬的 {0}，您好！</value>
+  </data>
+  <data name="PasskeyBindMailIntro" xml:space="preserve">
+    <value>请点击下方按钮，在当前设备上绑定 Passkey。绑定后即可使用指纹、人脸或 PIN 快速登录系统。</value>
+  </data>
+  <data name="PasskeyBindMailButton" xml:space="preserve">
+    <value>立即绑定</value>
+  </data>
+  <data name="PasskeyBindMailLinkHint" xml:space="preserve">
+    <value>如果按钮无法点击，请复制以下链接到浏览器中打开：</value>
+  </data>
+  <data name="PasskeyBindMailExpireHint" xml:space="preserve">
+    <value>该链接将于 {0} 失效，且只能使用一次。</value>
+  </data>
+  <data name="PasskeyBindMailIgnoreHint" xml:space="preserve">
+    <value>如果这不是您本人的操作，请忽略此邮件，并及时联系系统管理员。</value>
+  </data>
+  <data name="PasskeyBindMailFooter" xml:space="preserve">
+    <value>系统自动发送，请勿回复</value>
+  </data>
 </root>

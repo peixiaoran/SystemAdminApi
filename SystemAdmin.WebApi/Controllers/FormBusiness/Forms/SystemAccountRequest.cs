@@ -82,5 +82,13 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         {
             return await _systemAccountRequestService.SaveSystemAccountRequest(save);
         }
+
+        [HttpPost]
+        [Tags("表单业务管理-表单Forms")]
+        [EndpointSummary("[系统账号申请单] 发送绑定Passkey邮件")]
+        public async Task<Result<int>> SendPasskeyBindMail([FromBody] PasskeyBindMailSend send)
+        {
+            return await _systemAccountRequestService.SendPasskeyBindMail(send);
+        }
     }
 }

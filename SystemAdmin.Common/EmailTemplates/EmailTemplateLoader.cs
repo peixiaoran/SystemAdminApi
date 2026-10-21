@@ -18,6 +18,11 @@ namespace SystemAdmin.Common.EmailTemplates
         public static string GetApprovedNotice() => Load("FormBusiness.ApprovedNotice.html");
 
         /// <summary>
+        /// 读取 Passkey 绑定链接邮件模板
+        /// </summary>
+        public static string GetPasskeyBindNotice() => Load("FormBusiness.PasskeyBindNotice.html");
+
+        /// <summary>
         /// 读取预测版本状态通知邮件模板
         /// </summary>
         public static string GetForecastVersionNotice() => Load("CustMat.ForecastVersionNotice.html");

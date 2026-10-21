@@ -123,6 +123,14 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
 
         [HttpPost]
         [Tags("系统基础管理-基本信息模块")]
+        [EndpointSummary("[用户信息] 发送绑定Passkey邮件")]
+        public async Task<Result<int>> SendPasskeyBindMail([FromForm] string userId)
+        {
+            return await _userInfoService.SendPasskeyBindMail(userId);
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-基本信息模块")]
         [EndpointSummary("[用户信息] 导出Excel表格")]
         public async Task<IActionResult> ExportUserExcel([FromBody] GetUserInfoExcel getExcel)
         {

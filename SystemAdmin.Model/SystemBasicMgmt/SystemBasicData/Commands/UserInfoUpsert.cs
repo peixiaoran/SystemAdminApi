@@ -81,11 +81,6 @@
         public string PassWord { get; set; } = string.Empty;
 
         /// <summary>
-        /// 密码盐
-        /// </summary>
-        public string PwdSalt { get; set; } = string.Empty;
-
-        /// <summary>
         /// 头像图片地址
         /// </summary>
         public string? AvatarAddress { get; set; }

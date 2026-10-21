@@ -13,6 +13,7 @@ using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Commands;
 using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Queries;
+using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Repository.SystemBasicMgmt.SystemAuth;
 
@@ -161,33 +162,10 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 await _sysUserOperateRepo.EmptyUserLock(user.UserId);
                 await _db.CommitTranAsync();
 
-                _jwt.SetAuthCookie(httpResponse, userId: user.UserId, userNo: user.UserNo);
-
-                // 签发 Refresh Token，用于 Access Token 过期后静默续期
-                var (rawRefreshToken, refreshTokenHash) = _jwt.GenerateRefreshToken();
-                var refreshExpiresAt = nowTime.AddDays(_jwt.RefreshTokenExpiresInDays);
-                await _sysUserOperateRepo.AddRefreshToken(new RefreshTokenEntity
-                {
-                    RefreshId = SnowFlakeSingle.Instance.NextId(),
-                    UserId = user.UserId,
-                    TokenHash = refreshTokenHash,
-                    ExpiresAt = refreshExpiresAt,
-                    CreatedDate = nowTime,
-                    CreatedByIp = ip
-                });
-                _jwt.SetRefreshTokenCookie(httpResponse, rawRefreshToken, refreshExpiresAt);
+                var loginReturn = await IssueLoginSession(httpResponse, user, nowTime, ip);
 
                 // 返回登录成功信息（JWT Cookie 已在其他层处理）
-                return Result<SysUserLoginReturnDto>.Ok(
-                    new SysUserLoginReturnDto
-                    {
-                        UserNo = user.UserNo,
-                        UserNameCn = user.UserNameCn,
-                        UserNameEn = user.UserNameEn,
-                        AvatarAddress = user.AvatarAddress
-                    },
-                    _localization.ReturnMsg($"{_this}LoginSuccessful")
-                );
+                return Result<SysUserLoginReturnDto>.Ok(loginReturn, _localization.ReturnMsg($"{_this}LoginSuccessful"));
             }
             catch(Exception ex)
             {
@@ -195,6 +173,41 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                 _logger.LogError(ex, ex.Message);
                 return Result<SysUserLoginReturnDto>.Failure(500, ex.Message);
             }
+        }
+
+        /// <summary>
+        /// 登录成功后签发会话：Access Token Cookie + Refresh Token（密码登录与 Passkey 登录共用）
+        /// </summary>
+        /// <param name="httpResponse"></param>
+        /// <param name="user"></param>
+        /// <param name="nowTime"></param>
+        /// <param name="ip"></param>
+        /// <returns></returns>
+        public async Task<SysUserLoginReturnDto> IssueLoginSession(HttpResponse httpResponse, UserInfoEntity user, DateTime nowTime, string ip)
+        {
+            _jwt.SetAuthCookie(httpResponse, userId: user.UserId, userNo: user.UserNo);
+
+            // 签发 Refresh Token，用于 Access Token 过期后静默续期
+            var (rawRefreshToken, refreshTokenHash) = _jwt.GenerateRefreshToken();
+            var refreshExpiresAt = nowTime.AddDays(_jwt.RefreshTokenExpiresInDays);
+            await _sysUserOperateRepo.AddRefreshToken(new RefreshTokenEntity
+            {
+                RefreshId = SnowFlakeSingle.Instance.NextId(),
+                UserId = user.UserId,
+                TokenHash = refreshTokenHash,
+                ExpiresAt = refreshExpiresAt,
+                CreatedDate = nowTime,
+                CreatedByIp = ip
+            });
+            _jwt.SetRefreshTokenCookie(httpResponse, rawRefreshToken, refreshExpiresAt);
+
+            return new SysUserLoginReturnDto
+            {
+                UserNo = user.UserNo,
+                UserNameCn = user.UserNameCn,
+                UserNameEn = user.UserNameEn,
+                AvatarAddress = user.AvatarAddress
+            };
         }
 
         /// <summary>

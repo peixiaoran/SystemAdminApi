@@ -210,4 +210,46 @@
   <data name="SysUserOperateTurnstileVerifyFailed" xml:space="preserve">
     <value>人机验证失败，请重试</value>
   </data>
+  <data name="PasskeyUserNotFound" xml:space="preserve">
+    <value>账号不存在或已停用</value>
+  </data>
+  <data name="PasskeyLimitReached" xml:space="preserve">
+    <value>最多只能绑定 {0} 个 Passkey</value>
+  </data>
+  <data name="PasskeyChallengeExpired" xml:space="preserve">
+    <value>验证已超时，请重试</value>
+  </data>
+  <data name="PasskeyRegisterSuccess" xml:space="preserve">
+    <value>Passkey 添加成功</value>
+  </data>
+  <data name="PasskeyRegisterFailed" xml:space="preserve">
+    <value>Passkey 添加失败，请重试</value>
+  </data>
+  <data name="PasskeyLoginFailed" xml:space="preserve">
+    <value>Passkey 验证失败，请重试或使用密码登录</value>
+  </data>
+  <data name="PasskeyNotFound" xml:space="preserve">
+    <value>未找到该 Passkey</value>
+  </data>
+  <data name="PasskeyRenameSuccess" xml:space="preserve">
+    <value>Passkey 已重命名</value>
+  </data>
+  <data name="PasskeyDeleteSuccess" xml:space="preserve">
+    <value>Passkey 已删除</value>
+  </data>
+  <data name="PasskeyBindTokenInvalid" xml:space="preserve">
+    <value>绑定链接无效，请确认链接完整或联系 IT 重新发送</value>
+  </data>
+  <data name="PasskeyBindTokenExpired" xml:space="preserve">
+    <value>绑定链接已过期，请联系 IT 重新发送</value>
+  </data>
+  <data name="PasskeyBindTokenUsed" xml:space="preserve">
+    <value>绑定链接已使用，如需再次绑定请联系 IT 重新发送</value>
+  </data>
+  <data name="PasskeyBindTokenRevoked" xml:space="preserve">
+    <value>绑定链接已失效，请使用最新一封邮件中的链接</value>
+  </data>
+  <data name="PasskeyBindSuccess" xml:space="preserve">
+    <value>Passkey 绑定成功，请返回登录页使用 Passkey 登录</value>
+  </data>
 </root>

@@ -186,6 +186,12 @@
   <data name="UserInfoDeleteFailed" xml:space="preserve">
     <value>Failed to delete user information</value>
   </data>
+  <data name="UserInfoPasskeyUserNotFound" xml:space="preserve">
+    <value>No active user found</value>
+  </data>
+  <data name="UserInfoPasskeyEmailEmpty" xml:space="preserve">
+    <value>This user has no email address. Please set one in the user profile first</value>
+  </data>
   <data name="UserInfoUpdateSuccess" xml:space="preserve">
     <value>User information updated successfully</value>
   </data>

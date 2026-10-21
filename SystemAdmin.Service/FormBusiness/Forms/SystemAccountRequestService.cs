@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Logging;
 using SqlSugar;
 using SystemAdmin.CommonSetup.Security;
+using SystemAdmin.Repository.SystemBasicMgmt.SystemAuth;
+using SystemAdmin.Service.SystemBasicMgmt.SystemAuth;
 using SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Commands;
 using SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Dto;
@@ -21,9 +23,11 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly SystemAccountRequestRepository _systemAccountRequest;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
+        private readonly PasskeyRepository _passkeyRepo;
+        private readonly PasskeyBindMailService _passkeyBindMail;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public SystemAccountRequestService(CurrentUser loginuser, ILogger<SystemAccountRequestService> logger, SqlSugarScope db, FormPermissionChecker formchecker, SystemAccountRequestRepository systemAccountRequest, FormManager formmanger, LocalizationService localization)
+        public SystemAccountRequestService(CurrentUser loginuser, ILogger<SystemAccountRequestService> logger, SqlSugarScope db, FormPermissionChecker formchecker, SystemAccountRequestRepository systemAccountRequest, FormManager formmanger, LocalizationService localization, PasskeyRepository passkeyRepo, PasskeyBindMailService passkeyBindMail)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -32,6 +36,8 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             _systemAccountRequest = systemAccountRequest;
             _formmanger = formmanger;
             _localization = localization;
+            _passkeyRepo = passkeyRepo;
+            _passkeyBindMail = passkeyBindMail;
         }
 
         /// <summary>
@@ -250,6 +256,32 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             catch (Exception ex)
             {
                 await _db.RollbackTranAsync();
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// 给用户发送 Passkey 绑定链接邮件：按工号定位用户，新链接签发后旧的未使用链接作废
+        /// </summary>
+        /// <param name="send"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> SendPasskeyBindMail(PasskeyBindMailSend send)
+        {
+            try
+            {
+                var userNo = send.UserNo?.Trim() ?? string.Empty;
+
+                var user = userNo.Length == 0 ? null : await _passkeyRepo.GetEmployedUserByUserNo(userNo);
+                if (user == null)
+                {
+                    return Result<int>.Failure(404, _localization.ReturnMsg($"{_form}PasskeyBindUserNotFound", (object)userNo));
+                }
+
+                return await _passkeyBindMail.SendBindMail(user, send.Email);
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, ex.Message);
                 return Result<int>.Failure(500, ex.Message);
             }

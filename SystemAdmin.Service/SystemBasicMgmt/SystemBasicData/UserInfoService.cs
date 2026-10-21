@@ -14,7 +14,9 @@ using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Queries;
 using SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Dto;
+using SystemAdmin.Repository.SystemBasicMgmt.SystemAuth;
 using SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData;
+using SystemAdmin.Service.SystemBasicMgmt.SystemAuth;
 
 namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
 {
@@ -26,10 +28,12 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
         private readonly MinioService _minioService;
         private readonly UserInfoRepository _userInfoRepo;
         private readonly LocalizationService _localization;
+        private readonly PasskeyRepository _passkeyRepo;
+        private readonly PasskeyBindMailService _passkeyBindMail;
         private readonly string _this = "SystemBasicMgmt.SystemBasicData.UserInfo";
         private readonly string _thisExcel = "SystemBasicMgmt.SystemBasicData.UserExcel_";
 
-        public UserInfoService(CurrentUser loginuser, ILogger<UserInfoService> logger, SqlSugarScope db, MinioService minioService, UserInfoRepository userInfoRepo, LocalizationService localization)
+        public UserInfoService(CurrentUser loginuser, ILogger<UserInfoService> logger, SqlSugarScope db, MinioService minioService, UserInfoRepository userInfoRepo, LocalizationService localization, PasskeyRepository passkeyRepo, PasskeyBindMailService passkeyBindMail)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -37,6 +41,37 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemBasicData
             _minioService = minioService;
             _userInfoRepo = userInfoRepo;
             _localization = localization;
+            _passkeyRepo = passkeyRepo;
+            _passkeyBindMail = passkeyBindMail;
+        }
+
+        /// <summary>
+        /// 给指定用户发送 Passkey 绑定链接邮件，发送到该用户资料里的邮箱
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        public async Task<Result<int>> SendPasskeyBindMail(string userId)
+        {
+            try
+            {
+                var user = long.TryParse(userId, out var id) ? await _passkeyRepo.GetEmployedUser(id) : null;
+                if (user == null)
+                {
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}PasskeyUserNotFound"));
+                }
+
+                if (string.IsNullOrWhiteSpace(user.Email))
+                {
+                    return Result<int>.Failure(400, _localization.ReturnMsg($"{_this}PasskeyEmailEmpty"));
+                }
+
+                return await _passkeyBindMail.SendBindMail(user, user.Email);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, ex.Message);
+                return Result<int>.Failure(500, ex.Message);
+            }
         }
 
         /// <summary>

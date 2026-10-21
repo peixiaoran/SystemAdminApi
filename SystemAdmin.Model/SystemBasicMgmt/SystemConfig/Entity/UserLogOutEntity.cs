@@ -19,7 +19,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity
         public string IP { get; set; } = string.Empty;
 
         /// <summary>
-        /// 操作状态（1：登录成功，2：密码错误，3：未找到工号，4：登出）
+        /// 操作状态（1：登录成功，2：密码错误，3：未找到工号，4：登出，5：Passkey登录成功）
         /// </summary>
         public string LoginType { get; set; } = string.Empty;
 

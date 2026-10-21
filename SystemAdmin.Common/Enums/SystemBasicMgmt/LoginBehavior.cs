@@ -24,5 +24,10 @@
         /// 登出
         /// </summary>
         LoggedOut = 4,
+
+        /// <summary>
+        /// Passkey 登入成功
+        /// </summary>
+        PasskeyLoginSuccessful = 5,
     }
 }

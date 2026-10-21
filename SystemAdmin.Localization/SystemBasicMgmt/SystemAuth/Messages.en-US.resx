@@ -210,4 +210,46 @@
   <data name="SysUserOperateTurnstileVerifyFailed" xml:space="preserve">
     <value>Human verification failed, please try again</value>
   </data>
+  <data name="PasskeyUserNotFound" xml:space="preserve">
+    <value>Account not found or disabled</value>
+  </data>
+  <data name="PasskeyLimitReached" xml:space="preserve">
+    <value>You can register up to {0} passkeys</value>
+  </data>
+  <data name="PasskeyChallengeExpired" xml:space="preserve">
+    <value>Verification timed out. Please try again</value>
+  </data>
+  <data name="PasskeyRegisterSuccess" xml:space="preserve">
+    <value>Passkey added</value>
+  </data>
+  <data name="PasskeyRegisterFailed" xml:space="preserve">
+    <value>Failed to add passkey. Please try again</value>
+  </data>
+  <data name="PasskeyLoginFailed" xml:space="preserve">
+    <value>Passkey verification failed. Try again or sign in with your password</value>
+  </data>
+  <data name="PasskeyNotFound" xml:space="preserve">
+    <value>Passkey not found</value>
+  </data>
+  <data name="PasskeyRenameSuccess" xml:space="preserve">
+    <value>Passkey renamed</value>
+  </data>
+  <data name="PasskeyDeleteSuccess" xml:space="preserve">
+    <value>Passkey deleted</value>
+  </data>
+  <data name="PasskeyBindTokenInvalid" xml:space="preserve">
+    <value>The binding link is invalid. Please check the link or ask IT to resend it</value>
+  </data>
+  <data name="PasskeyBindTokenExpired" xml:space="preserve">
+    <value>The binding link has expired. Please ask IT to resend it</value>
+  </data>
+  <data name="PasskeyBindTokenUsed" xml:space="preserve">
+    <value>The binding link has already been used. Ask IT to resend it if you need to bind again</value>
+  </data>
+  <data name="PasskeyBindTokenRevoked" xml:space="preserve">
+    <value>The binding link is no longer valid. Please use the link in the latest email</value>
+  </data>
+  <data name="PasskeyBindSuccess" xml:space="preserve">
+    <value>Passkey bound successfully. Return to the login page to sign in with your Passkey</value>
+  </data>
 </root>

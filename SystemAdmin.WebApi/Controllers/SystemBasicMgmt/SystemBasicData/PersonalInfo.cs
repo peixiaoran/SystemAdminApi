@@ -1,7 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Fido2NetLib;
+using Microsoft.AspNetCore.Mvc;
+using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Commands;
+using SystemAdmin.Model.SystemBasicMgmt.SystemAuth.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Commands;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Dto;
+using SystemAdmin.Service.SystemBasicMgmt.SystemAuth;
 using SystemAdmin.Service.SystemBasicMgmt.SystemBasicData;
 using SystemAdmin.WebApi.Attributes;
 
@@ -14,9 +18,11 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
     public class PersonalInfo : ControllerBase
     {
         private readonly PersonalInfoService _personalInfoService;
-        public PersonalInfo(PersonalInfoService personalInfoService)
+        private readonly PasskeyService _passkeyService;
+        public PersonalInfo(PersonalInfoService personalInfoService, PasskeyService passkeyService)
         {
             _personalInfoService = personalInfoService;
+            _passkeyService = passkeyService;
         }
 
         [HttpPost]
@@ -24,8 +30,7 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
         [EndpointSummary("[个人信息] 职业下拉")]
         public async Task<Result<List<UserLaborDropDto>>> GetLaborDrop()
         {
-            var ss = await _personalInfoService.GetLaborDrop();
-            return ss;
+            return await _personalInfoService.GetLaborDrop();
         }
 
         [HttpPost]
@@ -74,6 +79,46 @@ namespace SystemAdmin.WebApi.Controllers.SystemBasicMgmt.SystemBasicData
         public async Task<Result<int>> UpdatePersonalInfo([FromBody] PersonalInfoUpsert upsert)
         {
             return await _personalInfoService.UpdatePersonalInfo(upsert);
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-系统管理模块")]
+        [EndpointSummary("[个人信息] Passkey 注册-获取选项")]
+        public async Task<Result<CredentialCreateOptions>> PasskeyRegisterOptions()
+        {
+            return await _passkeyService.PasskeyRegisterOptions();
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-系统管理模块")]
+        [EndpointSummary("[个人信息] Passkey 注册-提交凭据")]
+        public async Task<Result<int>> PasskeyRegisterComplete([FromBody] PasskeyRegisterComplete complete)
+        {
+            return await _passkeyService.PasskeyRegisterComplete(complete);
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-系统管理模块")]
+        [EndpointSummary("[个人信息] Passkey 列表")]
+        public async Task<Result<List<PasskeyDto>>> GetPasskeyList()
+        {
+            return await _passkeyService.GetPasskeyList();
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-系统管理模块")]
+        [EndpointSummary("[个人信息] Passkey 重命名")]
+        public async Task<Result<int>> RenamePasskey([FromBody] PasskeyRename rename)
+        {
+            return await _passkeyService.RenamePasskey(rename);
+        }
+
+        [HttpPost]
+        [Tags("系统基础管理-系统管理模块")]
+        [EndpointSummary("[个人信息] Passkey 删除")]
+        public async Task<Result<int>> DeletePasskey([FromBody] PasskeyDelete delete)
+        {
+            return await _passkeyService.DeletePasskey(delete);
         }
     }
 }
