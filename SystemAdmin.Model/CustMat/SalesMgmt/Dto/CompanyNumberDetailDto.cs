@@ -80,16 +80,6 @@ namespace SystemAdmin.Model.CustMat.SalesMgmt.Dto
         public string SourceTypeName { get; set; } = string.Empty;
 
         /// <summary>
-        /// 制造商
-        /// </summary>
-        public string? Manufacturer { get; set; }
-
-        /// <summary>
-        /// 制造商料号
-        /// </summary>
-        public string? ManufacturerPartNumber { get; set; }
-
-        /// <summary>
         /// 是否批号管制
         /// </summary>
         public bool LotControl { get; set; }

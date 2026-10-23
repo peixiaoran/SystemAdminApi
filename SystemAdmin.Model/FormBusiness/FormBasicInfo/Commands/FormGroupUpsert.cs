@@ -24,15 +24,5 @@
         /// 排序
         /// </summary>
         public int SortOrder { get; set; }
-
-        /// <summary>
-        /// 表单组别描述（中文）
-        /// </summary>
-        public string DescriptionCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 表单组别描述（英文）
-        /// </summary>
-        public string DescriptionEn { get; set; } = string.Empty;
     }
 }

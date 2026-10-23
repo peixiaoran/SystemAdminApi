@@ -32,6 +32,6 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Dto
         /// <summary>
         /// 角色描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 }

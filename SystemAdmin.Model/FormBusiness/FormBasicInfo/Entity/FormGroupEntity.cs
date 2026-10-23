@@ -30,16 +30,6 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Entity
         public int SortOrder { get; set; }
 
         /// <summary>
-        /// 表单组别描述（中文）
-        /// </summary>
-        public string DescriptionCn { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 表单组别描述（英文）
-        /// </summary>
-        public string DescriptionEn { get; set; } = string.Empty;
-
-        /// <summary>
         /// 创建人
         /// </summary>
         public long CreatedBy { get; set; }

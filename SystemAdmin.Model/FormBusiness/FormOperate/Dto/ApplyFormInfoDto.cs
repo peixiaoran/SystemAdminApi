@@ -32,6 +32,6 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
         /// <summary>
         /// 表单类别描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 }

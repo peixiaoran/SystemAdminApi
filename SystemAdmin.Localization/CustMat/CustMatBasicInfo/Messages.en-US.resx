@@ -240,12 +240,6 @@
   <data name="CompanyNumberExcel_SourceType" xml:space="preserve">
     <value>Source Type</value>
   </data>
-  <data name="CompanyNumberExcel_Manufacturer" xml:space="preserve">
-    <value>Manufacturer</value>
-  </data>
-  <data name="CompanyNumberExcel_ManufacturerPartNumber" xml:space="preserve">
-    <value>Manufacturer Part Number</value>
-  </data>
   <data name="CompanyNumberExcel_LotControl" xml:space="preserve">
     <value>Lot Control</value>
   </data>

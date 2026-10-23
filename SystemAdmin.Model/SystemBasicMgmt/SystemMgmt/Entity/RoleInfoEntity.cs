@@ -32,12 +32,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Entity
         /// <summary>
         /// 角色描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
         /// <summary>
         /// 创建人

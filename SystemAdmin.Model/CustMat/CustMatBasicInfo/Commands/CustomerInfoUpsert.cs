@@ -28,6 +28,6 @@
         /// <summary>
         /// 客户描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 }

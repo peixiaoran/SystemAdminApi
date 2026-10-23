@@ -240,12 +240,6 @@
   <data name="CompanyNumberExcel_SourceType" xml:space="preserve">
     <value>来源类型</value>
   </data>
-  <data name="CompanyNumberExcel_Manufacturer" xml:space="preserve">
-    <value>制造商</value>
-  </data>
-  <data name="CompanyNumberExcel_ManufacturerPartNumber" xml:space="preserve">
-    <value>制造商料号</value>
-  </data>
   <data name="CompanyNumberExcel_LotControl" xml:space="preserve">
     <value>是否批号管制</value>
   </data>

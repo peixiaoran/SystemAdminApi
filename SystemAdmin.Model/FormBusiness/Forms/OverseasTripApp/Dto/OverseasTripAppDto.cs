@@ -71,27 +71,27 @@ namespace SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto
         /// <summary>
         /// 出发厂区
         /// </summary>
-        public string? DepartureSite { get; set; } = string.Empty;
+        public string? DepartureSite { get; set; }
 
         /// <summary>
         /// 出发厂区名称
         /// </summary>
-        public string? DepartureSiteName { get; set; } = string.Empty;
+        public string? DepartureSiteName { get; set; }
 
         /// <summary>
         /// 目的厂区
         /// </summary>
-        public string? DestinationSite { get; set; } = string.Empty;
+        public string? DestinationSite { get; set; }
 
         /// <summary>
         /// 目的厂区名称
         /// </summary>
-        public string? DestinationSiteName { get; set; } = string.Empty;
+        public string? DestinationSiteName { get; set; }
 
         /// <summary>
         /// 出差事由
         /// </summary>
-        public string? TripReason { get; set; } = string.Empty;
+        public string? TripReason { get; set; }
 
         /// <summary>
         /// 出差开始日期
@@ -111,27 +111,27 @@ namespace SystemAdmin.Model.FormBusiness.Forms.OverseasTripApp.Dto
         /// <summary>
         /// 去程交通方式
         /// </summary>
-        public string? OutboundTravel { get; set; } = string.Empty;
+        public string? OutboundTravel { get; set; }
 
         /// <summary>
         /// 去程交通方式名称
         /// </summary>
-        public string? OutboundTravelName { get; set; } = string.Empty;
+        public string? OutboundTravelName { get; set; }
 
         /// <summary>
         /// 返程交通方式
         /// </summary>
-        public string? ReturnTravel { get; set; } = string.Empty;
+        public string? ReturnTravel { get; set; }
 
         /// <summary>
         /// 返程交通方式名称
         /// </summary>
-        public string? ReturnTravelName { get; set; } = string.Empty;
+        public string? ReturnTravelName { get; set; }
 
         /// <summary>
         /// 工作内容
         /// </summary>
-        public string? JobDescription { get; set; } = string.Empty;
+        public string? JobDescription { get; set; }
 
         /// <summary>
         /// 附件列表

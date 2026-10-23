@@ -373,8 +373,6 @@ namespace SystemAdmin.Repository.CustMat.SalesMgmt
                                 Unit = companyNumber.Unit,
                                 SourceType = companyNumber.SourceType,
                                 SourceTypeName = _lang.Locale == "zh-CN" ? sourceDic.DicNameCn : sourceDic.DicNameEn,
-                                Manufacturer = companyNumber.Manufacturer,
-                                ManufacturerPartNumber = companyNumber.ManufacturerPartNumber,
                                 LotControl = companyNumber.LotControl,
                                 Status = companyNumber.Status,
                                 Remark = companyNumber.Remark,

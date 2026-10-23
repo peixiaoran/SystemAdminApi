@@ -28,10 +28,5 @@ namespace SystemAdmin.Model.FormBusiness.FormBasicInfo.Dto
         /// 排序
         /// </summary>
         public int SortOrder { get; set; }
-
-        /// <summary>
-        /// 表单描述
-        /// </summary>
-        public string Description { get; set; } = string.Empty;
     }
 }

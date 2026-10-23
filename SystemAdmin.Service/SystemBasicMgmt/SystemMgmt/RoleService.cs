@@ -63,8 +63,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemMgmt
                     RoleNameEn = upsert.RoleNameEn,
                     Description = upsert.Description,
                     CreatedBy = _loginuser.UserId,
-                    CreatedDate = DateTime.Now,
-                    Remark = upsert.Remark
+                    CreatedDate = DateTime.Now
                 };
 
                 await _db.BeginTranAsync();
@@ -141,8 +140,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemMgmt
                     RoleNameEn = upsert.RoleNameEn,
                     Description = upsert.Description,
                     ModifiedBy = _loginuser.UserId,
-                    ModifiedDate = DateTime.Now,
-                    Remark = upsert.Remark
+                    ModifiedDate = DateTime.Now
                 };
 
                 await _db.BeginTranAsync();
@@ -189,8 +187,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemMgmt
         {
             try
             {
-                var page = await _roleRepo.GetRolePage(getPage);
-                return page;
+                return await _roleRepo.GetRolePage(getPage);
             }
             catch (Exception ex)
             {

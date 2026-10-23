@@ -42,8 +42,6 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
                     FormGroupNameCn = upsert.FormGroupNameCn,
                     FormGroupNameEn = upsert.FormGroupNameEn,
                     SortOrder = upsert.SortOrder,
-                    DescriptionCn = upsert.DescriptionCn,
-                    DescriptionEn = upsert.DescriptionEn,
                     CreatedBy = _loginuser.UserId,
                     CreatedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 };
@@ -107,8 +105,6 @@ namespace SystemAdmin.Service.FormBusiness.FormBasicInfo
                     FormGroupNameCn = upsert.FormGroupNameCn,
                     FormGroupNameEn = upsert.FormGroupNameEn,
                     SortOrder = upsert.SortOrder,
-                    DescriptionCn = upsert.DescriptionCn,
-                    DescriptionEn = upsert.DescriptionEn,
                     ModifiedBy = _loginuser.UserId,
                     ModifiedDate = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"),
                 };

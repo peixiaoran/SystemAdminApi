@@ -52,7 +52,7 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         /// <summary>
         /// 部门描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
 
         /// <summary>
         /// 排序值
@@ -62,17 +62,17 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity
         /// <summary>
         /// 部门固定电话
         /// </summary>
-        public string Landline { get; set; } = string.Empty;
+        public string? Landline { get; set; }
 
         /// <summary>
         /// 部门邮箱
         /// </summary>
-        public string Email { get; set; } = string.Empty;
+        public string? Email { get; set; }
 
         /// <summary>
         /// 部门地址
         /// </summary>
-        public string Address { get; set; } = string.Empty;
+        public string? Address { get; set; }
 
         /// <summary>
         /// 创建人Id

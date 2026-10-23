@@ -76,7 +76,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
         /// <summary>
         /// 请假事由
         /// </summary>
-        public string? LeaveReason { get; set; } = string.Empty;
+        public string? LeaveReason { get; set; }
 
         /// <summary>
         /// 开始时间
@@ -102,7 +102,7 @@ namespace SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto
         /// <summary>
         /// 代理人姓名
         /// </summary>
-        public string? AgentUserName { get; set; } = string.Empty;
+        public string? AgentUserName { get; set; }
 
         /// <summary>
         /// 附件列表

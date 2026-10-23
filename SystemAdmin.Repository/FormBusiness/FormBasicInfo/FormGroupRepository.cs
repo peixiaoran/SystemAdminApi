@@ -110,9 +110,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormBasicInfo
                 FormGroupId = formgroup.FormGroupId,
                 FormGroupNameCn = formgroup.FormGroupNameCn,
                 FormGroupNameEn = formgroup.FormGroupNameEn,
-                Description = _lang.Locale == "zh-CN"
-                              ? formgroup.DescriptionCn
-                              : formgroup.DescriptionEn,
             }).ToPageListAsync(getPage.PageIndex, getPage.PageSize, totalCount);
             return ResultPaged<FormGroupDto>.Ok(page.Adapt<List<FormGroupDto>>(), totalCount, "");
         }

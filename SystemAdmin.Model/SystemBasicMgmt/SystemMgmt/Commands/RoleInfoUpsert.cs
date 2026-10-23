@@ -28,31 +28,6 @@
         /// <summary>
         /// 角色描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 备注
-        /// </summary>
-        public string Remark { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 创建人
-        /// </summary>
-        public string CreatedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 创建时间
-        /// </summary>
-        public string CreatedDate { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 修改人
-        /// </summary>
-        public string ModifiedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 修改时间
-        /// </summary>
-        public string? ModifiedDate { get; set; }
+        public string? Description { get; set; }
     }
 }

@@ -28,7 +28,7 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         /// <summary>
         /// 审批人员姓名 - 代
         /// </summary>
-        public string? AgentUserName { get; set; } = string.Empty;
+        public string? AgentUserName { get; set; }
 
         /// <summary>
         /// 审批身份

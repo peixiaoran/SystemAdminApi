@@ -27,6 +27,6 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto
         /// <summary>
         /// 备注
         /// </summary>
-        public string Remark { get; set; } = string.Empty;
+        public string? Remark { get; set; }
     }
 }

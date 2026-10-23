@@ -71,22 +71,22 @@ namespace SystemAdmin.Model.FormBusiness.Forms.InformationRequest.Dto
         /// <summary>
         /// 需求类别
         /// </summary>
-        public string? Category { get; set; } = string.Empty;
+        public string? Category { get; set; }
 
         /// <summary>
         /// 需求类别名称
         /// </summary>
-        public string? CategoryName { get; set; } = string.Empty;
+        public string? CategoryName { get; set; }
 
         /// <summary>
         /// 现状
         /// </summary>
-        public string? CurrentSituation { get; set; } = string.Empty;
+        public string? CurrentSituation { get; set; }
 
         /// <summary>
         /// 期望
         /// </summary>
-        public string? Expectations { get; set; } = string.Empty;
+        public string? Expectations { get; set; }
 
         /// <summary>
         /// 预计处理天数

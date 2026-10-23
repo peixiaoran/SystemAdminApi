@@ -48,11 +48,11 @@
         /// <summary>
         /// 表单类型描述（中文）
         /// </summary>
-        public string DescriptionCn { get; set; } = string.Empty;
+        public string? DescriptionCn { get; set; }
 
         /// <summary>
         /// 表单类型描述（英文）
         /// </summary>
-        public string DescriptionEn { get; set; } = string.Empty;
+        public string? DescriptionEn { get; set; }
     }
 }

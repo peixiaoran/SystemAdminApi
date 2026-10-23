@@ -17,12 +17,12 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Commands
         /// <summary>
         /// 电话号码
         /// </summary>
-        public string PhoneNumber { get; set; } = string.Empty;
+        public string? PhoneNumber { get; set; }
 
         /// <summary>
         /// 登录密码
         /// </summary>
-        public string? PassWord { get; set; } = string.Empty;
+        public string? PassWord { get; set; }
 
         /// <summary>
         /// 是否实时邮件通知

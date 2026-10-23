@@ -97,24 +97,6 @@ namespace SystemAdmin.Localization.CustMat.CustMatBasicInfo {
         }
         
         /// <summary>
-        ///   查找类似 制造商 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_Manufacturer {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_Manufacturer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   查找类似 制造商料号 的本地化字符串。
-        /// </summary>
-        internal static string CompanyNumberExcel_ManufacturerPartNumber {
-            get {
-                return ResourceManager.GetString("CompanyNumberExcel_ManufacturerPartNumber", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   查找类似 型号 的本地化字符串。
         /// </summary>
         internal static string CompanyNumberExcel_Model {

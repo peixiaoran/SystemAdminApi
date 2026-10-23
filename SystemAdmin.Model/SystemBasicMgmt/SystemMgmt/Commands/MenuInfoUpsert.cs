@@ -38,7 +38,7 @@
         /// <summary>
         /// 对应API路由
         /// </summary>
-        public string RoutePath { get; set; } = string.Empty;
+        public string? RoutePath { get; set; }
 
         /// <summary>
         /// 菜单图标
@@ -56,33 +56,13 @@
         public string Path { get; set; } = string.Empty;
 
         /// <summary>
-        /// 创建人
-        /// </summary>
-        public string CreatedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 创建日期
-        /// </summary>
-        public string CreatedDate { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 修改人
-        /// </summary>
-        public string ModifiedBy { get; set; } = string.Empty;
-
-        /// <summary>
-        /// 修改时间
-        /// </summary>
-        public string? ModifiedDate { get; set; }
-
-        /// <summary>
         /// 前端重定向
         /// </summary>
-        public string Redirect { get; set; } = string.Empty;
+        public string? Redirect { get; set; }
 
         /// <summary>
         /// 备注
         /// </summary>
-        public string Remark { get; set; } = string.Empty;
+        public string? Remark { get; set; }
     }
 }

@@ -23,6 +23,6 @@
         /// <summary>
         /// 职业描述
         /// </summary>
-        public string Description { get; set; } = string.Empty;
+        public string? Description { get; set; }
     }
 }

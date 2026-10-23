@@ -62,17 +62,17 @@ namespace SystemAdmin.Model.SystemBasicMgmt.SystemMgmt.Entity
         /// <summary>
         /// 对应API路由
         /// </summary>
-        public string RoutePath { get; set; } = string.Empty;
+        public string? RoutePath { get; set; }
 
         /// <summary>
         /// 前端重定向
         /// </summary>
-        public string Redirect { get; set; } = string.Empty;
+        public string? Redirect { get; set; }
 
         /// <summary>
         /// 备注
         /// </summary>
-        public string Remark { get; set; } = string.Empty;
+        public string? Remark { get; set; }
 
         /// <summary>
         /// 创建人

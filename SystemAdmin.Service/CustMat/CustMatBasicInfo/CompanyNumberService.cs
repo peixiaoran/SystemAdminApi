@@ -40,8 +40,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
             ("Version", true),
             ("Unit", true),
             ("SourceType", true),
-            ("Manufacturer", false),
-            ("ManufacturerPartNumber", false),
             ("LotControl", true),
             ("Status", true),
             ("Remark", false),
@@ -85,8 +83,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     Version = upsert.Version,
                     Unit = upsert.Unit,
                     SourceType = upsert.SourceType,
-                    Manufacturer = upsert.Manufacturer,
-                    ManufacturerPartNumber = upsert.ManufacturerPartNumber,
                     LotControl = upsert.LotControl,
                     Status = upsert.Status,
                     Remark = upsert.Remark,
@@ -163,8 +159,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     Version = upsert.Version,
                     Unit = upsert.Unit,
                     SourceType = upsert.SourceType,
-                    Manufacturer = upsert.Manufacturer,
-                    ManufacturerPartNumber = upsert.ManufacturerPartNumber,
                     LotControl = upsert.LotControl,
                     Status = upsert.Status,
                     Remark = upsert.Remark,
@@ -266,8 +260,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                     row["Version"] = entity.Version;
                     row["Unit"] = entity.Unit;
                     row["SourceType"] = entity.SourceTypeName;
-                    row["Manufacturer"] = entity.Manufacturer;
-                    row["ManufacturerPartNumber"] = entity.ManufacturerPartNumber;
                     row["LotControl"] = entity.LotControl ? yesText : noText;
                     row["Status"] = entity.Status == 1 ? yesText : noText;
                     row["Remark"] = entity.Remark;
@@ -510,8 +502,6 @@ namespace SystemAdmin.Service.CustMat.CustMatBasicInfo
                         Version = rowValues["Version"],
                         Unit = rowValues["Unit"],
                         SourceType = sourceTypeCode,
-                        Manufacturer = string.IsNullOrEmpty(rowValues["Manufacturer"]) ? null : rowValues["Manufacturer"],
-                        ManufacturerPartNumber = string.IsNullOrEmpty(rowValues["ManufacturerPartNumber"]) ? null : rowValues["ManufacturerPartNumber"],
                         LotControl = ParseBoolText(rowValues["LotControl"]),
                         Status = ParseStatusText(rowValues["Status"]),
                         Remark = string.IsNullOrEmpty(rowValues["Remark"]) ? null : rowValues["Remark"],

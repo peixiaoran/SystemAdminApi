@@ -44,12 +44,12 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         /// <summary>
         /// 过程导向：每有一人完成签核即执行，不等待会签其余人员（如会签场景第一人签核完成即执行）
         /// </summary>
-        public string? ProcessGuidance { get; set; } = string.Empty;
+        public string? ProcessGuidance { get; set; }
 
         /// <summary>
         /// 结论导向：步骤所有人签核完成（或跳过）后执行
         /// </summary>
-        public string? ConclusionGuidance { get; set; } = string.Empty;
+        public string? ConclusionGuidance { get; set; }
 
         /// <summary>
         /// 排序

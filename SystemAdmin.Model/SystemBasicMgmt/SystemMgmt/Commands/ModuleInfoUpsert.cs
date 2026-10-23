@@ -48,11 +48,11 @@
         /// <summary>
         /// 备注（中文）
         /// </summary>
-        public string RemarkCh { get; set; } = string.Empty;
+        public string? RemarkCh { get; set; }
 
         /// <summary>
         /// 备注（英文）
         /// </summary>
-        public string RemarkEn { get; set; } = string.Empty;
+        public string? RemarkEn { get; set; }
     }
 }
