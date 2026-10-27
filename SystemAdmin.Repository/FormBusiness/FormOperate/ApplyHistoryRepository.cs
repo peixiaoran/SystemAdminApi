@@ -30,7 +30,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单组别下拉
         /// </summary>
-        /// <returns></returns>
         public async Task<List<FormGroupDropDto>> GetFormGroupDrop()
         {
             return await _db.Queryable<FormGroupEntity>()
@@ -48,7 +47,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单类别下拉
         /// </summary>
-        /// <returns></returns>
         public async Task<List<FormTypeDropDto>> GetFormTypeDrop(long formGroupId)
         {
             return await _db.Queryable<FormTypeEntity>()
@@ -67,8 +65,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 查询申请记录分页
         /// </summary>
-        /// <param name="getPage"></param>
-        /// <returns></returns>
         public async Task<ResultPaged<FormHistoryDto>> GetApplyHistoryPage(GetApplyHistoryPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
@@ -165,11 +161,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 导出申请记录Excel（字段同 GetApplyHistoryPage，不分页）
+        /// 导出申请记录Excel（不分页）
         /// </summary>
-        /// <param name="getPage"></param>
-        /// <param name="loginUserId"></param>
-        /// <returns></returns>
         public async Task<DataTable> GetApplyHistoryExcel(GetApplyHistoryPage getPage, long loginUserId)
         {
             var query = _db.Queryable<FormInstanceEntity>()
@@ -309,8 +302,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 查询待审批用户
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<List<FormPendingUserDto>> GetFormPendingUsers(long formId)
         {
             return await _db.Queryable<PendingReviewEntity>()
@@ -342,9 +333,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单撤回
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="loginUserId"></param>
-        /// <returns></returns>
         public async Task<int> WithdrawPendingSubmit(long formId, long loginUserId)
         {
             var formTypeId = await _db.Queryable<FormInstanceEntity>()
@@ -382,8 +370,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 查询表单开始步骤信息
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<WorkflowStepEntity> GetStartStepInfo(long formId)
         {
             return await _db.Queryable<FormInstanceEntity>()
@@ -397,15 +383,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 新增审批记录
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepId"></param>
-        /// <param name="result"></param>
-        /// <param name="rejectStepId"></param>
-        /// <param name="appointments"></param>
-        /// <param name="comment"></param>
-        /// <param name="reviewType"></param>
-        /// <param name="operatorUserId"></param>
-        /// <returns></returns>
         public async Task<int> InsertReviewRecords(long formId, long stepId, ReviewResult result, long? rejectStepId, List<UserAppointment> appointments, string? comment, ReviewType reviewType, long operatorUserId)
         {
             if (!appointments.Any())
@@ -423,19 +400,17 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 {
                     bool isAgentOp = appoint.AgentUserId != null && appoint.AgentUserId == operatorUserId;
 
-                    // 代理操作：ReviewUserId 取代理人，AppointmentType 保持代理身份（Agent/ConcurrentAgent）
-                    // 本人操作：ReviewUserId 取归属人，AppointmentType 换回实/兼身份（去掉 Agent 后缀）
+                    // 代理操作取代理人并保持代理身份，本人操作取归属人并还原实/兼身份
                     string appointmentCode;
                     long reviewUserId;
 
                     if (isAgentOp)
                     {
-                        appointmentCode = appoint.AppointmentType; // 已是代理身份
+                        appointmentCode = appoint.AppointmentType;
                         reviewUserId = operatorUserId;
                     }
                     else
                     {
-                        // 本人操作，将 AppointmentType 中的代理身份还原为实/兼身份
                         appointmentCode = appoint.AppointmentType switch
                         {
                             var c when c == agentActual => AppointmentType.Actual.ToEnumString(),
@@ -469,10 +444,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单撤回
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="stepId"></param>
-        /// <param name="loginUserId"></param>
-        /// <returns></returns>
         public Task<int> WithdrawForm(long formId, long stepId, long loginUserId)
         {
             return _db.Updateable<FormInstanceEntity>()
@@ -489,9 +460,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单作废
         /// </summary>
-        /// <param name="formId"></param>
-        /// <param name="loginUserId"></param>
-        /// <returns></returns>
         public Task<int> VoidedForm(long formId, long loginUserId)
         {
             return _db.Updateable<FormInstanceEntity>()

@@ -27,7 +27,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单组别下拉
         /// </summary>
-        /// <returns></returns>
         public async Task<List<FormGroupDropDto>> GetFormGroupDrop()
         {
             return await _db.Queryable<FormGroupEntity>()
@@ -45,7 +44,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 表单类别下拉
         /// </summary>
-        /// <returns></returns>
         public async Task<List<FormTypeDropDto>> GetFormTypeDrop(long formGroupId)
         {
             return await _db.Queryable<FormTypeEntity>()
@@ -64,8 +62,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 查询审批记录分页
         /// </summary>
-        /// <param name="getPage"></param>
-        /// <returns></returns>
         public async Task<ResultPaged<FormHistoryDto>> GetReviewHistoryPage(GetReviewHistoryPage getPage, long loginUserId)
         {
             RefAsync<int> totalCount = 0;
@@ -168,11 +164,8 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         }
 
         /// <summary>
-        /// 导出审批记录Excel（字段同 GetReviewHistoryPage，不分页）
+        /// 导出审批记录Excel（不分页）
         /// </summary>
-        /// <param name="getPage"></param>
-        /// <param name="loginUserId"></param>
-        /// <returns></returns>
         public async Task<DataTable> GetReviewHistoryExcel(GetReviewHistoryPage getPage, long loginUserId)
         {
             var query = _db.Queryable<FormInstanceEntity>()
@@ -318,8 +311,6 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
         /// <summary>
         /// 查询待审批用户
         /// </summary>
-        /// <param name="formId"></param>
-        /// <returns></returns>
         public async Task<List<FormPendingUserDto>> GetFormPendingUsers(long formId)
         {
             return await _db.Queryable<PendingReviewEntity>()
