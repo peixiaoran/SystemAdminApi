@@ -6,10 +6,16 @@ namespace SystemAdmin.CommonSetup.Security
         /// <summary>SMTP 服务器地址</summary>
         public string SmtpServer { get; set; } = default!;
 
-        /// <summary>发件账号</summary>
+        /// <summary>SMTP 端口（内部 Exchange 通常为 25，加密为 587）</summary>
+        public int Port { get; set; } = 25;
+
+        /// <summary>连接加密方式：None / Auto / StartTls / SslOnConnect</summary>
+        public string Security { get; set; } = "Auto";
+
+        /// <summary>发件账号；为空时匿名发送</summary>
         public string UserName { get; set; } = default!;
 
-        /// <summary>SMTP 授权码</summary>
+        /// <summary>发件账号密码</summary>
         public string Password { get; set; } = default!;
 
         /// <summary>发件人邮箱</summary>

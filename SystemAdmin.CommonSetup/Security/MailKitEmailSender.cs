@@ -18,7 +18,7 @@ namespace SystemAdmin.CommonSetup.Security
             _db = db;
         }
 
-        /// <summary>通过 SMTP（587 / StartTls）发送邮件，无论成败均落库记录</summary>
+        /// <summary>通过 SMTP 发送邮件，无论成败均落库记录</summary>
         public async Task SendAsync(EmailMessage message, CancellationToken cancellationToken = default)
         {
             try
@@ -27,7 +27,10 @@ namespace SystemAdmin.CommonSetup.Security
 
                 using var client = new SmtpClient { Timeout = _options.Timeout };
 
-                await client.ConnectAsync(_options.SmtpServer, 587, SecureSocketOptions.StartTls, cancellationToken);
+                var secureOption = Enum.TryParse<SecureSocketOptions>(_options.Security, true, out var parsed)
+                    ? parsed
+                    : SecureSocketOptions.Auto;
+                await client.ConnectAsync(_options.SmtpServer, _options.Port, secureOption, cancellationToken);
 
                 if (!string.IsNullOrWhiteSpace(_options.UserName))
                     await client.AuthenticateAsync(_options.UserName, _options.Password, cancellationToken);
