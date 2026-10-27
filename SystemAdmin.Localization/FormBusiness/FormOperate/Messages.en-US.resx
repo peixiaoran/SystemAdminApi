@@ -162,6 +162,9 @@
   <data name="FormPendingExcelFormStatusName" xml:space="preserve">
     <value>Form Status</value>
   </data>
+  <data name="FormPendingExcelPendingUserName" xml:space="preserve">
+    <value>Pending Approver</value>
+  </data>
   <data name="FormPendingExcelApplyUserName" xml:space="preserve">
     <value>Applicant</value>
   </data>

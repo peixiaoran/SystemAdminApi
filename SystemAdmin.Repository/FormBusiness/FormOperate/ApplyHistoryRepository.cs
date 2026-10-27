@@ -240,7 +240,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
             // 排序：按创建时间倒序
             query = query.OrderByDescending((instance, dic, formtype, applyuser, applydept, useragent, search) => instance.CreatedDate);
 
-            return await query.Select((instance, dic, formtype, applyuser, applydept, useragent, search) => new FormHistoryDto
+            var dt = await query.Select((instance, dic, formtype, applyuser, applydept, useragent, search) => new FormHistoryDto
             {
                 FormId = instance.FormId,
                 FormNo = instance.FormNo,
@@ -261,6 +261,49 @@ namespace SystemAdmin.Repository.FormBusiness.FormOperate
                 ApplicantDate = instance.ApplicantDate,
                 ViewPath = formtype.ViewPath
             }).ToDataTableAsync();
+
+            await FillPendingUserName(dt);
+            return dt;
+        }
+
+        /// <summary>
+        /// 补充待审批人列
+        /// </summary>
+        private async Task FillPendingUserName(DataTable dt)
+        {
+            dt.Columns.Add(nameof(FormHistoryDto.PendingUserName), typeof(string));
+            if (dt.Rows.Count == 0)
+            {
+                return;
+            }
+
+            var formIds = dt.Rows.Cast<DataRow>()
+                            .Select(row => Convert.ToInt64(row[nameof(FormHistoryDto.FormId)]))
+                            .Distinct()
+                            .ToList();
+
+            var pendings = await _db.Queryable<PendingReviewEntity>()
+                                    .With(SqlWith.NoLock)
+                                    .InnerJoin<UserInfoEntity>((pending, user) => pending.ReviewUserId == user.UserId)
+                                    .Where((pending, user) => formIds.Contains(pending.FormId))
+                                    .Select((pending, user) => new
+                                    {
+                                        pending.FormId,
+                                        UserName = _lang.Locale == "zh-CN"
+                                                   ? user.UserNameCn
+                                                   : user.UserNameEn,
+                                    }).ToListAsync();
+
+            var separator = _lang.Locale == "zh-CN" ? "、" : ", ";
+            var nameMap = pendings.GroupBy(pending => pending.FormId)
+                                  .ToDictionary(group => group.Key,
+                                                group => string.Join(separator, group.Select(pending => pending.UserName).Distinct()));
+
+            foreach (DataRow row in dt.Rows)
+            {
+                var formId = Convert.ToInt64(row[nameof(FormHistoryDto.FormId)]);
+                row[nameof(FormHistoryDto.PendingUserName)] = nameMap.TryGetValue(formId, out var names) ? names : string.Empty;
+            }
         }
 
         /// <summary>

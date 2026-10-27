@@ -97,6 +97,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                 { "FormNo", Msg("ExcelFormNo") },
                 { "ApplicantDate", Msg("ExcelApplicantDate") },
                 { "FormStatusName", Msg("ExcelFormStatusName") },
+                { "PendingUserName", Msg("ExcelPendingUserName") },
                 { "ApplyUserName", Msg("ExcelApplyUserName") },
                 { "ApplyUserDeptName", Msg("ExcelApplyUserDeptName") },
             };

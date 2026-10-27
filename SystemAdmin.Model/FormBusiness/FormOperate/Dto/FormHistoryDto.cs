@@ -46,6 +46,11 @@ namespace SystemAdmin.Model.FormBusiness.FormOperate.Dto
         public string FormStatusName { get; set; } = string.Empty;
 
         /// <summary>
+        /// 待审批人姓名
+        /// </summary>
+        public string PendingUserName { get; set; } = string.Empty;
+
+        /// <summary>
         /// 申请人姓名
         /// </summary>
         public string ApplyUserName { get; set; } = string.Empty;
