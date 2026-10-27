@@ -720,21 +720,23 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
             column.Item().PaddingBottom(10).Row(row =>
             {
                 row.ConstantItem(LabelCellWidth).Element(LabelCell).Text(Msg("PdfRating")).FontColor(LabelTextColor);
-                row.RelativeItem().Element(container => ValueCell(container)).Row(inner =>
+                row.RelativeItem().Element(container => ValueCell(container)).Text(text =>
                 {
-                    inner.AutoItem().Text(text =>
-                    {
-                        for (var i = 1; i <= 5; i++)
-                        {
-                            text.Span(i <= rating ? "★" : "☆")
-                                .FontSize(12)
-                                .FontColor(i <= rating ? RatingStarColor : MutedTextColor);
-                            if (i < 5) text.Span(" ");
-                        }
-                    });
-                    inner.AutoItem().PaddingLeft(8).AlignMiddle().Text(RatingLabel(rating)).FontColor(BodyTextColor);
+                    AppendRatingStars(text, rating, 12);
+                    text.Span($"   {RatingLabel(rating)}").FontColor(BodyTextColor);
                 });
             });
+        }
+
+        private void AppendRatingStars(TextDescriptor text, int rating, float fontSize)
+        {
+            for (var i = 1; i <= 5; i++)
+            {
+                text.Span(i <= rating ? "★" : "☆")
+                    .FontSize(fontSize)
+                    .FontColor(i <= rating ? RatingStarColor : MutedTextColor);
+                if (i < 5) text.Span(" ");
+            }
         }
 
         private string RatingLabel(int rating) => rating switch
@@ -884,7 +886,7 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                         if (showSystem) columns.RelativeColumn(2f);
                         if (showSites) columns.RelativeColumn(2.4f);
                         if (showPermissions) columns.RelativeColumn(5f);
-                        if (showRating) columns.RelativeColumn(1.6f);
+                        if (showRating) columns.RelativeColumn(2.4f);
                     });
 
                     table.Header(header =>
@@ -911,8 +913,16 @@ namespace SystemAdmin.Service.FormBusiness.FormExport
                         if (showPermissions) table.Cell().Element(BodyCell).Text(string.Join("、", system.PermissionNames));
                         if (showRating)
                         {
-                            table.Cell().Element(BodyCell).AlignCenter()
-                                 .Text(system.Rating.HasValue ? $"{system.Rating} {RatingLabel(system.Rating.Value)}" : string.Empty);
+                            var cell = table.Cell().Element(BodyCell).AlignCenter();
+                            if (system.Rating.HasValue)
+                            {
+                                var rating = system.Rating.Value;
+                                cell.Column(ratingColumn =>
+                                {
+                                    ratingColumn.Item().AlignCenter().Text(text => AppendRatingStars(text, rating, 10));
+                                    ratingColumn.Item().AlignCenter().Text(RatingLabel(rating)).FontSize(8).FontColor(BodyTextColor);
+                                });
+                            }
                         }
                     }
                 });
