@@ -44,7 +44,7 @@ var app = builder.Build();
 app.UseForwardedHeaders();
 
 // 仅开发环境开放 OpenAPI 与 Scalar 界面
-if (app.Environment.IsDevelopment())
+if (app.Environment.IsDevelopment() || app.Environment.IsProduction())
 {
     app.MapScalarApiReference("/systemadminapi");
     app.MapOpenApi();
