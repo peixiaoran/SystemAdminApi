@@ -201,27 +201,33 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 清空指定版本下、指定业务人员自己的预测周明细（仅清空导入人自己的数据，不影响同一版本下其他业务人员已导入的数据）
-        /// </summary>
-        /// <param name="versionId"></param>
-        /// <param name="salesUserId"></param>
-        /// <returns></returns>
-        public async Task<int> DeleteForecastWeeklyDetails(long versionId, long salesUserId)
-        {
-            return await _db.Deleteable<ForecastWeeklyDetailEntity>()
-                            .Where(detail => detail.VersionId == versionId && detail.SalesUserId == salesUserId)
-                            .ExecuteCommandAsync();
-        }
-
-        /// <summary>
         /// 批量新增预测周明细
         /// </summary>
         /// <param name="list"></param>
         /// <returns></returns>
         public async Task<int> InsertForecastWeeklyDetailList(List<ForecastWeeklyDetailEntity> list)
         {
+            if (list.Count == 0)
+                return 0;
+
             await _db.Fastest<ForecastWeeklyDetailEntity>().BulkCopyAsync(list);
             return list.Count;
+        }
+
+        /// <summary>
+        /// 批量修改预测周明细，按 版本Id + 公司料号 + 预测日期 匹配，仅更新数量与业务负责人
+        /// </summary>
+        /// <param name="list"></param>
+        /// <returns></returns>
+        public async Task<int> UpdateForecastWeeklyDetailList(List<ForecastWeeklyDetailEntity> list)
+        {
+            if (list.Count == 0)
+                return 0;
+
+            return await _db.Fastest<ForecastWeeklyDetailEntity>().BulkUpdateAsync(
+                list,
+                whereColumns: [nameof(ForecastWeeklyDetailEntity.VersionId), nameof(ForecastWeeklyDetailEntity.PartNumber), nameof(ForecastWeeklyDetailEntity.HorizonDays)],
+                updateColumns: [nameof(ForecastWeeklyDetailEntity.Qty), nameof(ForecastWeeklyDetailEntity.SalesUserId)]);
         }
     }
 }

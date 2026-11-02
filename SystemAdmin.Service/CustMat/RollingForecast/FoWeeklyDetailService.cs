@@ -317,7 +317,8 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                     await _foWeeklyDetailRepo.GetAssignedPartNumbers(distinctPartNumbers, _loginuser.UserId),
                     StringComparer.OrdinalIgnoreCase);
 
-                var entities = new List<ForecastWeeklyDetailEntity>();
+                // 以 公司料号+预测日期 为键去重，文件内重复时以后出现的为准
+                var entityOfKey = new Dictionary<(string PartNumber, DateTime HorizonDays), ForecastWeeklyDetailEntity>();
                 var now = DateTime.Now;
 
                 foreach (var fileRow in fileRows)
@@ -341,30 +342,59 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                         if (fileRow.Quantities[i] is not decimal qty)
                             continue;
 
-                        entities.Add(new ForecastWeeklyDetailEntity
+                        entityOfKey[(fileRow.PartNumber.ToUpperInvariant(), periods[i].StartDate.Date)] = new ForecastWeeklyDetailEntity
                         {
                             VersionId = version.VersionId,
                             PartNumber = fileRow.PartNumber,
-                            HorizonDays = periods[i].StartDate,
+                            HorizonDays = periods[i].StartDate.Date,
                             PeriodType = periods[i].PeriodType,
                             Qty = qty,
                             SalesUserId = _loginuser.UserId,
                             CreatedDate = now,
-                        });
+                        };
                     }
                 }
 
                 if (errors.Count > 0)
                     return Result<int>.Failure(400, string.Join("\n", errors));
 
-                if (entities.Count == 0)
+                if (entityOfKey.Count == 0)
                     return Result<int>.Failure(400, _localization.ReturnMsg($"{_thisImport}NoData"));
 
                 await _db.BeginTranAsync();
-                await _foWeeklyDetailRepo.DeleteForecastWeeklyDetails(version.VersionId, _loginuser.UserId);
-                var count = await _foWeeklyDetailRepo.InsertForecastWeeklyDetailList(entities);
+
+                // 一次性查出该版本下文件中这些料号已有的明细，内存中区分新增与修改
+                var existingOfKey = new Dictionary<(string PartNumber, DateTime HorizonDays), ForecastWeeklyDetailEntity>();
+                foreach (var existing in await _foWeeklyDetailRepo.GetForecastWeeklyDetails(version.VersionId, distinctPartNumbers))
+                {
+                    existingOfKey.TryAdd((existing.PartNumber.ToUpperInvariant(), existing.HorizonDays.Date), existing);
+                }
+
+                var toInsert = new List<ForecastWeeklyDetailEntity>();
+                var toUpdate = new List<ForecastWeeklyDetailEntity>();
+                foreach (var (key, entity) in entityOfKey)
+                {
+                    if (!existingOfKey.TryGetValue(key, out var existing))
+                    {
+                        toInsert.Add(entity);
+                        continue;
+                    }
+
+                    // 数量与负责人均未变化的不再更新，减少写入量
+                    if (existing.Qty == entity.Qty && existing.SalesUserId == entity.SalesUserId)
+                        continue;
+
+                    // 按库中实际存储的料号写回，保证匹配条件与库中一致
+                    entity.PartNumber = existing.PartNumber;
+                    entity.HorizonDays = existing.HorizonDays;
+                    toUpdate.Add(entity);
+                }
+
+                await _foWeeklyDetailRepo.InsertForecastWeeklyDetailList(toInsert);
+                await _foWeeklyDetailRepo.UpdateForecastWeeklyDetailList(toUpdate);
                 await _db.CommitTranAsync();
 
+                var count = entityOfKey.Count;
                 return count >= 1
                         ? Result<int>.Ok(count, _localization.ReturnMsg($"{_thisImport}Success", count))
                         : Result<int>.Failure(500, _localization.ReturnMsg($"{_thisImport}NoData"));
