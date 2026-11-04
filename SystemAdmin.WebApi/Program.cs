@@ -16,7 +16,7 @@ builder.Services.AddPasskeySetup(builder.Configuration);    // Passkey（WebAuth
 builder.Services.AddMinioSetup(builder.Configuration);      // MinIO 对象存储
 builder.Services.AddFileUploadSetup(builder.Configuration); // 文件上传
 builder.Services.AddAppUrlSetup(builder.Configuration);     // 前端地址
-builder.Services.AddMailKitSetup(builder.Configuration);    // 邮件
+builder.Services.AddEmailQueueSetup();                       // 邮件待发送队列
 builder.Services.AddLocalizationSetup();                    // 本地化
 builder.Services.AddSqlSugarSetup(builder.Configuration);   // SqlSugar
 builder.Services.AddProjectClasses();                       // 业务服务与仓储

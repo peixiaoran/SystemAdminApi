@@ -26,7 +26,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         private readonly JwtTokenService _jwt;
         private readonly SqlSugarScope _db;
         private readonly SysUserOperateRepository _sysUserOperateRepo;
-        private readonly MailKitEmailSender _email;
+        private readonly EmailQueue _email;
         private readonly LocalizationService _localization;
         private readonly HybridCache _cache;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -35,7 +35,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         private const int CodeLength = 6;
         private static readonly Random _random = new Random();
 
-        public SysUserOperateService(CurrentUser loginuser, JwtTokenService jwt, ILogger<SysUserOperateService> logger, SqlSugarScope db, SysUserOperateRepository sysUserOperateRepo, MailKitEmailSender email, LocalizationService localization, HybridCache cache, IHttpContextAccessor httpContextAccessor)
+        public SysUserOperateService(CurrentUser loginuser, JwtTokenService jwt, ILogger<SysUserOperateService> logger, SqlSugarScope db, SysUserOperateRepository sysUserOperateRepo, EmailQueue email, LocalizationService localization, HybridCache cache, IHttpContextAccessor httpContextAccessor)
         {
             _loginuser = loginuser;
             _jwt = jwt;
@@ -374,7 +374,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     Subject = _localization.ReturnMsg($"{_this}EmailAccountUnlock"),
                     Body = _localization.ReturnMsg($"{_this}UnlockSendVcCodeBody", (object)code)
                 };
-                await _email.SendAsync(emailMsg);
+                await _email.EnqueueAsync(emailMsg);
 
                 return Result<string>.Ok("1", _localization.ReturnMsg($"{_this}SendVcCodeSuccess"));
             }
@@ -489,7 +489,7 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     Subject = _localization.ReturnMsg($"{_this}EmailAccountPasswordEx"),
                     Body = _localization.ReturnMsg($"{_this}PasswordExSendVcCodeBody", (object)code)
                 };
-                await _email.SendAsync(emailMsg);
+                await _email.EnqueueAsync(emailMsg);
 
                 return Result<string>.Ok("SendVcCode Success", _localization.ReturnMsg($"{_this}SendVcCodeSuccess"));
             }

@@ -32,7 +32,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly ILogger<PublicFormService> _logger;
         private readonly JwtTokenService _jwt;
         private readonly SqlSugarScope _db;
-        private readonly MailKitEmailSender _email;
+        private readonly EmailQueue _email;
         private readonly AppUrlOptions _formNotice;
         private readonly FileUploadOptions _attachmentUpload;
         private readonly MinioService _minioService;
@@ -45,7 +45,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private const string WorkflowLocalizationPrefix = "FormBusiness.Workflow";
         private readonly string _formLocalizationPrefix = "Form";
 
-        public PublicFormService(CurrentUser loginuser, ILogger<PublicFormService> logger, SqlSugarScope db, MailKitEmailSender email, IOptions<AppUrlOptions> formNotice, IOptions<FileUploadOptions> attachmentUpload, MinioService minioService, JwtTokenService jwt, FormManager formmanger, FormPermissionChecker formchecker, FormReviewAction formaction, FormReviewFlow formflow, LocalizationService localization)
+        public PublicFormService(CurrentUser loginuser, ILogger<PublicFormService> logger, SqlSugarScope db, EmailQueue email, IOptions<AppUrlOptions> formNotice, IOptions<FileUploadOptions> attachmentUpload, MinioService minioService, JwtTokenService jwt, FormManager formmanger, FormPermissionChecker formchecker, FormReviewAction formaction, FormReviewFlow formflow, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -510,17 +510,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     messages = await BuildPendingReviewerEmailsAsync(formIdValue, rejectStepId.Value, ReviewResult.Reject);
                 }
 
-                foreach (EmailMessage message in messages)
-                {
-                    try
-                    {
-                        await _email.SendAsync(message);
-                    }
-                    catch (Exception emailException)
-                    {
-                        _logger.LogError(emailException, emailException.Message);
-                    }
-                }
+                await _email.EnqueueAsync(messages);
             }
             catch (Exception notificationException)
             {

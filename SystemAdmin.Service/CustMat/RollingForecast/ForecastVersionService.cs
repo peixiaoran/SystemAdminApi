@@ -22,10 +22,10 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
         private readonly SqlSugarScope _db;
         private readonly ForecastVersionRepository _forecastVersionRepo;
         private readonly LocalizationService _localization;
-        private readonly MailKitEmailSender _email;
+        private readonly EmailQueue _email;
         private readonly string _this = "CustMat.RollingForecast.ForecastVersion";
 
-        public ForecastVersionService(CurrentUser loginuser, ILogger<ForecastVersionService> logger, SqlSugarScope db, ForecastVersionRepository forecastVersionRepo, LocalizationService localization, MailKitEmailSender email)
+        public ForecastVersionService(CurrentUser loginuser, ILogger<ForecastVersionService> logger, SqlSugarScope db, ForecastVersionRepository forecastVersionRepo, LocalizationService localization, EmailQueue email)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -405,7 +405,7 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                         Body = rendered.Html,
                         IsHtml = true,
                     };
-                    await _email.SendAsync(emailMsg);
+                    await _email.EnqueueAsync(emailMsg);
                 }
             }
             catch (Exception ex)

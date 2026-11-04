@@ -21,13 +21,13 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
         private readonly ILogger<PasskeyBindMailService> _logger;
         private readonly SqlSugarScope _db;
         private readonly PasskeyRepository _passkeyRepo;
-        private readonly MailKitEmailSender _email;
+        private readonly EmailQueue _email;
         private readonly AppUrlOptions _appUrl;
         private readonly PasskeyOptions _passkeyOptions;
         private readonly LocalizationService _localization;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public PasskeyBindMailService(CurrentUser loginuser, ILogger<PasskeyBindMailService> logger, SqlSugarScope db, PasskeyRepository passkeyRepo, MailKitEmailSender email, IOptions<AppUrlOptions> appUrl, IOptions<PasskeyOptions> passkeyOptions, LocalizationService localization)
+        public PasskeyBindMailService(CurrentUser loginuser, ILogger<PasskeyBindMailService> logger, SqlSugarScope db, PasskeyRepository passkeyRepo, EmailQueue email, IOptions<AppUrlOptions> appUrl, IOptions<PasskeyOptions> passkeyOptions, LocalizationService localization)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -80,23 +80,12 @@ namespace SystemAdmin.Service.SystemBasicMgmt.SystemAuth
                     CreatedDate = now
                 };
 
-                // 作废旧链接
+                // 作废旧链接，链接与待发送邮件同事务写入
                 await _db.BeginTranAsync();
                 await _passkeyRepo.RevokeActiveBindTokens(user.UserId);
                 await _passkeyRepo.AddBindToken(tokenEntity);
+                await _email.EnqueueAsync(BuildPasskeyBindMail(user.NoticeLanguage, user.UserNameCn, user.UserNameEn, email, rawToken, expiresAt));
                 await _db.CommitTranAsync();
-
-                try
-                {
-                    await _email.SendAsync(BuildPasskeyBindMail(user.NoticeLanguage, user.UserNameCn, user.UserNameEn, email, rawToken, expiresAt));
-                }
-                catch (Exception mailEx)
-                {
-                    // 邮件未发出，撤销链接
-                    await _passkeyRepo.RevokeBindToken(tokenEntity.BindTokenId);
-                    _logger.LogError(mailEx, mailEx.Message);
-                    return Result<int>.Failure(500, _localization.ReturnMsg($"{_form}PasskeyBindMailFailed", (object)mailEx.Message));
-                }
 
                 return Result<int>.Ok(1, _localization.ReturnMsg($"{_form}PasskeyBindMailSent", (object)email));
             }
