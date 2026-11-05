@@ -104,7 +104,7 @@ namespace SystemAdmin.WebApi.Controllers.FormBusiness.Forms
         [HttpPost]
         [Tags("表单业务管理-表单Forms")]
         [EndpointSummary("[表单公共接口] 表单核准")]
-        public async Task<Result<bool>> FromApprove([FromBody] ApproveForm reviewForm)
+        public async Task<Result<ApproveResultDto>> FromApprove([FromBody] ApproveForm reviewForm)
         {
             return await _publicFormService.FromApprove(reviewForm);
         }

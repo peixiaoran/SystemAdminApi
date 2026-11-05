@@ -42,6 +42,11 @@ namespace SystemAdmin.Model.FormBusiness.FormWorkflow.Dto
         public string NextStepName { get; set; } = string.Empty;
 
         /// <summary>
+        /// 是否自动签核（1是 0否）
+        /// </summary>
+        public int Automatic { get; set; }
+
+        /// <summary>
         /// 过程导向：每有一人完成签核即执行，不等待会签其余人员（如会签场景第一人签核完成即执行）
         /// </summary>
         public string? ProcessGuidance { get; set; }

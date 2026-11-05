@@ -401,11 +401,25 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         /// <param name="reviewForm"></param>
         /// <returns></returns>
-        public Task<Result<bool>> FromApprove(ApproveForm reviewForm) =>
-            ExecuteReviewAsync(
+        public async Task<Result<ApproveResultDto>> FromApprove(ApproveForm reviewForm)
+        {
+            var result = await ExecuteReviewAsync(
                 reviewForm.FormId,
                 ReviewResult.Approve,
                 () => _formction.FromApprove(reviewForm));
+
+            if (result.Code != 200)
+            {
+                return Result<ApproveResultDto>.Failure(result.Code, result.Message ?? string.Empty);
+            }
+
+            // 仓储层 Data=false 表示需再次手动签核
+            return Result<ApproveResultDto>.Ok(new ApproveResultDto
+            {
+                Success = true,
+                Automatic = result.Data ? 1 : 0,
+            }, result.Message);
+        }
 
         /// <summary>
         /// 表单驳回

@@ -194,6 +194,7 @@ namespace SystemAdmin.Repository.FormBusiness.FormWorkflow
                                     NextStepName = _lang.Locale == "zh-CN"
                                                       ? nextstep.StepNameCn
                                                       : nextstep.StepNameEn,
+                                    Automatic = rulestep.Automatic,
                                     ProcessGuidance = rulestep.ProcessGuidance,
                                     ConclusionGuidance = rulestep.ConclusionGuidance,
                                     SortOrder = rulestep.SortOrder,
