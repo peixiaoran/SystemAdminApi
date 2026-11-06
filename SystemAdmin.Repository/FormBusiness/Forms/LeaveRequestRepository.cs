@@ -157,7 +157,7 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
         }
 
         /// <summary>
-        /// 查询申请人名下占用假期余额的请假单（排除指定表单）
+        /// 查询申请人名下占用假期余额的请假单：审批中、已驳回（已批准的已直接扣减余额表），排除指定表单
         /// </summary>
         public async Task<List<LeaveRequestEntity>> GetApplicantPendingLeaves(long applicantUserId, long formId)
         {
@@ -166,8 +166,8 @@ namespace SystemAdmin.Repository.FormBusiness.Forms
                                 .InnerJoin<FormInstanceEntity>((leave, instance) => leave.FormId == instance.FormId)
                                 .Where((leave, instance) => instance.ApplicantUserId == applicantUserId
                                                          && instance.FormId != formId
-                                                         && instance.FormStatus != FormStatus.Voided.ToEnumString()
-                                                         && instance.FormStatus != FormStatus.Approved.ToEnumString()
+                                                         && (instance.FormStatus == FormStatus.UnderReview.ToEnumString()
+                                                             || instance.FormStatus == FormStatus.Rejected.ToEnumString())
                                                          && leave.StartDateTime != null
                                                          && leave.EndDateTime != null
                                                          && leave.LeaveType != null)

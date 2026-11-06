@@ -187,9 +187,9 @@
     <value>未配置表单完成后的导向处理，请联系系统管理员</value>
   </data>
   <data name="InsufficientLeaveBalance" xml:space="preserve">
-    <value>{0} 在 {1} 年度的「{2}」余额不足，剩余 {3} 天，本次申请 {4} 天，请调整申请天数</value>
+    <value>{0} 在 {1} 年度的「{2}」余额不足，剩余 {3} 小时，本次申请 {4} 小时，请调整申请时数</value>
   </data>
   <data name="LeaveAnnualNotFound" xml:space="preserve">
-    <value>{0} 在 {1} 年度的「{2}」已无剩余天数</value>
+    <value>{0} 在 {1} 年度的「{2}」已无剩余时数</value>
   </data>
 </root>

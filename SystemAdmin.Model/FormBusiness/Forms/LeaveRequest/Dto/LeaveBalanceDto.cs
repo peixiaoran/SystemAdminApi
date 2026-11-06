@@ -11,13 +11,13 @@
         public int Year { get; set; }
 
         /// <summary>
-        /// 年假剩余天数
+        /// 年假剩余时数
         /// </summary>
-        public decimal AnnualRemainingDays { get; set; }
+        public decimal AnnualRemainingHours { get; set; }
 
         /// <summary>
-        /// 病假剩余天数
+        /// 病假剩余时数
         /// </summary>
-        public decimal SickRemainingDays { get; set; }
+        public decimal SickRemainingHours { get; set; }
     }
 }

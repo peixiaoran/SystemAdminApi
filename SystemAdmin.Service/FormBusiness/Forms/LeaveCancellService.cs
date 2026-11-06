@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using SqlSugar;
+using SystemAdmin.Common.Utilities;
 using SystemAdmin.CommonSetup.Security;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Commands;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveCancell.Dto;
@@ -19,9 +20,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly LeaveCancellRepository _leaveCancell;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
+        private readonly LeaveValidator _leaveValidator;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public LeaveCancellService(CurrentUser loginuser, ILogger<LeaveCancellService> logger, SqlSugarScope db, FormPermissionChecker formchecker, LeaveCancellRepository leaveCancell, FormManager formmanger, LocalizationService localization)
+        public LeaveCancellService(CurrentUser loginuser, ILogger<LeaveCancellService> logger, SqlSugarScope db, FormPermissionChecker formchecker, LeaveCancellRepository leaveCancell, FormManager formmanger, LocalizationService localization, LeaveValidator leaveValidator)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -30,6 +32,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             _leaveCancell = leaveCancell;
             _formmanger = formmanger;
             _localization = localization;
+            _leaveValidator = leaveValidator;
         }
 
         /// <summary>
@@ -110,10 +113,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                // 计算销假时数（午休 12:00-13:00 不计入，去年及更早的部分不能消除）
+                // 销假时数：仅计本年度部分，午休不计
                 var cancellHours = save.StartDateTime == null || save.EndDateTime == null
                     ? 0m
-                    : Math.Round(CalcWorkingHours((DateTime)save.StartDateTime, (DateTime)save.EndDateTime), 2);
+                    : LeaveHoursCalculator.CalcHoursInYear((DateTime)save.StartDateTime, (DateTime)save.EndDateTime, DateTime.Now.Year);
 
                 // 前端"删除绑定的请假单"按钮会把 LeaveRequestId 传空字符串，视为解绑
                 long? leaveRequestId = string.IsNullOrEmpty(save.LeaveRequestId) ? null : long.Parse(save.LeaveRequestId);
@@ -176,15 +179,15 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     var leaveStart = (DateTime)leave.StartDateTime;
                     var leaveEnd = (DateTime)leave.EndDateTime;
 
-                    // 计算请假单可消除的总时数（午休 12:00-13:00 不计入，去年及更早的部分不能消除）
-                    decimal totalHours = CalcWorkingHours(leaveStart, leaveEnd);
+                    // 请假单本年度部分的总时数
+                    var totalHours = LeaveHoursCalculator.CalcHoursInYear(leaveStart, leaveEnd, currentYear);
 
-                    // 扣除该请假单已绑定销假单占用的时数
+                    // 扣除已绑定销假单在本年度占用的时数
                     var occupiedHours = boundCancells
                         .Where(cancell => cancell.LeaveRequestId == leave.LeaveRequestId)
-                        .Sum(cancell => cancell.CancellHours ?? 0);
+                        .Sum(cancell => LeaveValidator.CalcCancellHoursInYear(cancell, currentYear));
 
-                    var cancellableHours = Math.Round(totalHours - occupiedHours, 2);
+                    var cancellableHours = totalHours - occupiedHours;
 
                     // 可销假时数小于等于 0 的不显示在选择范围中
                     if (cancellableHours <= 0)
@@ -241,121 +244,13 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         {
             try
             {
-                var leaveRequestId = long.Parse(save.LeaveRequestId);
-                var formId = long.Parse(save.FormId);
-
-                // 请假单可销除的总时数
-                var leave = await _leaveCancell.GetLeaveRequest(leaveRequestId);
-                var totalHours = CalcWorkingHours((DateTime)leave!.StartDateTime!, (DateTime)leave!.EndDateTime!);
-
-                // 已被除作废外的销假单占用的时数（排除本单自身）
-                var boundCancells = await _leaveCancell.GetBoundLeaveCancells(leaveRequestId);
-                var otherCancells = boundCancells.Where(cancell => cancell.FormId != formId).ToList();
-                var occupiedHours = otherCancells.Sum(cancell => cancell.CancellHours ?? 0);
-
-                // 校验销假时间段是否与其他销假单重叠
-                if (save.StartDateTime != null && save.EndDateTime != null)
-                {
-                    var overlapped = otherCancells.FirstOrDefault(cancell =>
-                        cancell.StartDateTime != null && cancell.EndDateTime != null
-                        && cancell.StartDateTime < save.EndDateTime && save.StartDateTime < cancell.EndDateTime);
-
-                    if (overlapped != null)
-                    {
-                        return Result<bool>.Failure(400, _localization.ReturnMsg($"{_form}CancellPeriodOverlap", args: new object[]
-                        {
-                            overlapped.StartDateTime!.Value.ToString("yyyy-MM-dd HH:mm"),
-                            overlapped.EndDateTime!.Value.ToString("yyyy-MM-dd HH:mm")
-                        }));
-                    }
-                }
-
-                // 本次销假时数与剩余可销除时数比较
-                var cancellHours = save.StartDateTime == null || save.EndDateTime == null
-                    ? 0m
-                    : Math.Round(CalcWorkingHours((DateTime)save.StartDateTime, (DateTime)save.EndDateTime), 2);
-                var remainingHours = Math.Round(totalHours - occupiedHours, 2);
-
-                if (cancellHours > remainingHours)
-                {
-                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_form}CancellHoursExceed", args: new object[]
-                    {
-                        cancellHours.ToString("0.##"),
-                        remainingHours.ToString("0.##")
-                    }));
-                }
-
-                return Result<bool>.Ok(true);
+                return await _leaveValidator.ValidateLeaveCancell(long.Parse(save.LeaveRequestId), long.Parse(save.FormId), save.StartDateTime, save.EndDateTime);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, ex.Message);
                 return Result<bool>.Failure(500, ex.Message);
             }
-        }
-
-        /// <summary>
-        /// 计算指定时间段的工作时数
-        /// </summary>
-        /// <param name="start">开始时间</param>
-        /// <param name="end">结束时间</param>
-        /// <returns></returns>
-        private static decimal CalcWorkingHours(DateTime start, DateTime end)
-        {
-            var currentYear = DateTime.Now.Year;
-
-            decimal hours = 0m;
-            var cursor = start.Date;
-            var lastDate = end.Date;
-            while (cursor <= lastDate)
-            {
-                if (cursor.Year < currentYear)
-                {
-                    cursor = cursor.AddDays(1);
-                    continue;
-                }
-
-                var morningStart = cursor.AddHours(8);
-                var morningEnd = cursor.AddHours(12);
-                var afternoonStart = cursor.AddHours(13);
-                var afternoonEnd = cursor.AddHours(17);
-
-                if (cursor == start.Date && cursor == end.Date)
-                {
-                    // 同一天
-                    if (end <= morningEnd)
-                        hours += (decimal)(end - start).TotalHours;
-                    else if (start >= afternoonStart)
-                        hours += (decimal)(end - start).TotalHours;
-                    else
-                        hours += (decimal)(morningEnd - start).TotalHours + (decimal)(end - afternoonStart).TotalHours;
-                }
-                else if (cursor == start.Date)
-                {
-                    // 开始日期
-                    if (start < morningEnd)
-                        hours += (decimal)(morningEnd - start).TotalHours + 4;
-                    else
-                        hours += (decimal)(afternoonEnd - start).TotalHours;
-                }
-                else if (cursor == end.Date)
-                {
-                    // 结束日期
-                    if (end <= morningEnd)
-                        hours += (decimal)(end - morningStart).TotalHours;
-                    else
-                        hours += 4 + (decimal)(end - afternoonStart).TotalHours;
-                }
-                else
-                {
-                    // 中间的完整工作日
-                    hours += 8;
-                }
-
-                cursor = cursor.AddDays(1);
-            }
-
-            return hours;
         }
     }
 }

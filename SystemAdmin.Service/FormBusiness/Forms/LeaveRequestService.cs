@@ -7,6 +7,7 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Commands;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Dto;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Queries;
+using SystemAdmin.Model.HR.BasicInfo.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Dto;
 using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Repository.FormBusiness.Workflow;
@@ -25,9 +26,10 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         private readonly UserAgentRepository _userAgentRepo;
         private readonly FormManager _formmanger;
         private readonly LocalizationService _localization;
+        private readonly LeaveValidator _leaveValidator;
         private readonly string _form = "FormBusiness.Forms.";
 
-        public LeaveRequestService(CurrentUser loginuser, ILogger<LeaveRequestService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveRequestRepository leaveRequest, UserAgentRepository userAgentRepo, FormManager formmanger, LocalizationService localization)
+        public LeaveRequestService(CurrentUser loginuser, ILogger<LeaveRequestService> logger, SqlSugarScope db, Language lang, FormPermissionChecker formchecker, LeaveRequestRepository leaveRequest, UserAgentRepository userAgentRepo, FormManager formmanger, LocalizationService localization, LeaveValidator leaveValidator)
         {
             _loginuser = loginuser;
             _logger = logger;
@@ -38,6 +40,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
             _formChecker = formchecker;
             _formmanger = formmanger;
             _localization = localization;
+            _leaveValidator = leaveValidator;
         }
 
         /// <summary>
@@ -102,99 +105,23 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 .Select(yearText => int.Parse(yearText.Trim()))
                 .ToList();
 
-            // 1. 查询申请人基础余额
+            // 申请人基础余额
             var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), yearList);
 
-            // 2. 查询申请人占用余额的请假单（除作废、已批准外都计入；已批准的已直接扣减余额表）
+            // 其他审批中、已驳回请假单占用的工时（已批准的已直接扣减余额表）
             var applicantUserId = await _leaveRequest.GetApplicantUserId(long.Parse(formId));
             var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(applicantUserId, long.Parse(formId));
+            var pendingHours = LeaveValidator.CalcPendingHours(pendingLeaves);
 
-            // 3. 计算占用余额请假的占用工时（按年份和假别），逐日累计
-            var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
-
-            foreach (var leave in pendingLeaves)
-            {
-                var leaveStart = (DateTime)leave.StartDateTime!;
-                var leaveEnd = (DateTime)leave.EndDateTime!;
-
-                var cursor = leaveStart.Date;
-                var lastDate = leaveEnd.Date;
-                while (cursor <= lastDate)
-                {
-                    var morningStart = cursor.AddHours(8);
-                    var morningEnd = cursor.AddHours(12);
-                    var afternoonStart = cursor.AddHours(13);
-                    var afternoonEnd = cursor.AddHours(17);
-
-                    decimal dayHours;
-                    if (cursor == leaveStart.Date && cursor == leaveEnd.Date)
-                    {
-                        if (leaveEnd <= morningEnd)
-                            dayHours = (decimal)(leaveEnd - leaveStart).TotalHours;
-                        else if (leaveStart >= afternoonStart)
-                            dayHours = (decimal)(leaveEnd - leaveStart).TotalHours;
-                        else
-                            dayHours = (decimal)(morningEnd - leaveStart).TotalHours + (decimal)(leaveEnd - afternoonStart).TotalHours;
-                    }
-                    else if (cursor == leaveStart.Date)
-                    {
-                        if (leaveStart < morningEnd)
-                            dayHours = (decimal)(morningEnd - leaveStart).TotalHours + 4;
-                        else
-                            dayHours = (decimal)(afternoonEnd - leaveStart).TotalHours;
-                    }
-                    else if (cursor == leaveEnd.Date)
-                    {
-                        if (leaveEnd <= morningEnd)
-                            dayHours = (decimal)(leaveEnd - morningStart).TotalHours;
-                        else
-                            dayHours = 4 + (decimal)(leaveEnd - afternoonStart).TotalHours;
-                    }
-                    else
-                    {
-                        dayHours = 8;
-                    }
-
-                    var yearKey = cursor.Year.ToString();
-                    if (!pendingHoursByYearAndType.ContainsKey(yearKey))
-                        pendingHoursByYearAndType[yearKey] = new Dictionary<string, decimal>();
-                    if (!pendingHoursByYearAndType[yearKey].ContainsKey(leave.LeaveType!))
-                        pendingHoursByYearAndType[yearKey][leave.LeaveType!] = 0;
-                    pendingHoursByYearAndType[yearKey][leave.LeaveType!] += dayHours;
-
-                    cursor = cursor.AddDays(1);
-                }
-            }
-
-            // 4. 计算最终余额（天数，1天=8小时）
             var result = balanceList
                 .GroupBy(balance => balance.Year)
-                .Select(yearGroup =>
+                .Select(yearGroup => new LeaveBalanceDto
                 {
-                    var year = yearGroup.Key;
-                    var yearKey = year.ToString();
-                    var pendingByType = pendingHoursByYearAndType.ContainsKey(yearKey)
-                        ? pendingHoursByYearAndType[yearKey]
-                        : new Dictionary<string, decimal>();
-
-                    var annualRemaining = yearGroup
-                        .Where(b => b.LeaveType == LeaveType.Annual.ToEnumString())
-                        .Sum(b => b.RemainingDays);
-
-                    var sickRemaining = yearGroup
-                        .Where(b => b.LeaveType == LeaveType.Sick.ToEnumString())
-                        .Sum(b => b.RemainingDays);
-
-                    var annualPendingDays = Math.Round(pendingByType.GetValueOrDefault(LeaveType.Annual.ToEnumString(), 0) / 8, 2);
-                    var sickPendingDays = Math.Round(pendingByType.GetValueOrDefault(LeaveType.Sick.ToEnumString(), 0) / 8, 2);
-
-                    return new LeaveBalanceDto
-                    {
-                        Year = year,
-                        AnnualRemainingDays = Math.Round(annualRemaining - annualPendingDays, 2),
-                        SickRemainingDays = Math.Round(sickRemaining - sickPendingDays, 2)
-                    };
-                }).OrderBy(dto => dto.Year)
+                    Year = yearGroup.Key,
+                    AnnualRemainingHours = LeaveValidator.CalcAvailableHours(yearGroup, yearGroup.Key, LeaveType.Annual.ToEnumString(), pendingHours),
+                    SickRemainingHours = LeaveValidator.CalcAvailableHours(yearGroup, yearGroup.Key, LeaveType.Sick.ToEnumString(), pendingHours)
+                })
+                .OrderBy(dto => dto.Year)
                 .ToList();
 
             return Result<List<LeaveBalanceDto>>.Ok(result);
@@ -205,226 +132,15 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         public async Task<Result<bool>> ValidateLeaveRequest(string formId)
         {
-            // 查询当前表单请假信息
-            var currentLeave = await _leaveRequest.GetCurrentLeaveRequest(long.Parse(formId));
-
-            // 计算当前表单涉及的年份
-            var currentStart = (DateTime)currentLeave.StartDateTime!;
-            var currentEnd = (DateTime)currentLeave.EndDateTime!;
-            var involvedYears = Enumerable.Range(currentStart.Year, currentEnd.Year - currentStart.Year + 1).ToList();
-
-            var applicantUserId = await _leaveRequest.GetApplicantUserId(long.Parse(formId));
-
-            // 1. 校验申请人、代理人在本次请假期间是否已有请假单或代理关系
-            //    两人中任意一人，以申请人/被代理人或代理人任一角色出现，时间重叠即算冲突
-            var involvedUserIds = new List<long?> { applicantUserId, currentLeave.AgentUserId };
-
-            // 审批中、已驳回的请假单（已批准的请假单已写入代理关系表，由下方一并覆盖）
-            var pendingConflicts = await _userAgentRepo.GetOverlappingPendingLeaves(involvedUserIds, long.Parse(formId), currentStart, currentEnd);
-
-            // 已生效的代理关系
-            var agentConflicts = await _userAgentRepo.GetOverlappingUserAgents(involvedUserIds, currentStart, currentEnd);
-
-            var conflicts = pendingConflicts.Concat(agentConflicts).ToList();
-
-            // 申请人自身时间冲突：已有重叠的请假，或正代理他人（代理职责在身）
-            var applicantConflict = conflicts.FirstOrDefault(conflict =>
-                conflict.SubstituteUserId == applicantUserId || conflict.AgentUserId == applicantUserId);
-
-            if (applicantConflict != null)
+            try
             {
-                return Result<bool>.Failure(400, _localization.ReturnMsg(
-                    $"{_form}ApplicantTimeConflict",
-                    args: new object[]
-                    {
-                        applicantConflict.StartTime.ToString("yyyy-MM-dd HH:mm"),
-                        applicantConflict.EndTime.ToString("yyyy-MM-dd HH:mm")
-                    }
-                ));
+                return await _leaveValidator.ValidateLeaveRequest(long.Parse(formId));
             }
-
-            // 代理人时间冲突：本人也在请假/被代理，或已代理他人（一人同时只能代理一个人）
-            var agentConflict = currentLeave.AgentUserId.HasValue
-                ? conflicts.FirstOrDefault(conflict =>
-                    conflict.SubstituteUserId == currentLeave.AgentUserId || conflict.AgentUserId == currentLeave.AgentUserId)
-                : null;
-
-            if (agentConflict != null)
+            catch (Exception ex)
             {
-                return Result<bool>.Failure(400, _localization.ReturnMsg(
-                    $"{_form}AgentUserTimeConflict",
-                    args: new object[]
-                    {
-                        currentLeave.AgentUserName!,
-                        agentConflict.StartTime.ToString("yyyy-MM-dd HH:mm"),
-                        agentConflict.EndTime.ToString("yyyy-MM-dd HH:mm")
-                    }
-                ));
+                _logger.LogError(ex, ex.Message);
+                return Result<bool>.Failure(500, ex.Message);
             }
-
-            // 只有 Annual、Sick 假别需要校验余额，其余假别直接通过
-            var leaveType = currentLeave.LeaveType;
-            if (leaveType != LeaveType.Annual.ToEnumString() && leaveType != LeaveType.Sick.ToEnumString())
-                return Result<bool>.Ok(true);
-
-            // 查询申请人基础余额
-            var balanceList = await _leaveRequest.GetApplicantLeaveBalances(long.Parse(formId), involvedYears);
-
-            // 查询其余占用余额的请假单（除作废、已批准外都计入；已批准的已直接扣减余额表）
-            var pendingLeaves = await _leaveRequest.GetApplicantPendingLeaves(applicantUserId, long.Parse(formId));
-
-            // 3. 校验计算其余占用余额请假的占用工时（按年份和假别），逐日累计
-            var pendingHoursByYearAndType = new Dictionary<string, Dictionary<string, decimal>>();
-
-            foreach (var leave in pendingLeaves)
-            {
-                var leaveStart = (DateTime)leave.StartDateTime!;
-                var leaveEnd = (DateTime)leave.EndDateTime!;
-
-                var cursor = leaveStart.Date;
-                var lastDate = leaveEnd.Date;
-                while (cursor <= lastDate)
-                {
-                    var morningStart = cursor.AddHours(8);
-                    var morningEnd = cursor.AddHours(12);
-                    var afternoonStart = cursor.AddHours(13);
-                    var afternoonEnd = cursor.AddHours(17);
-
-                    decimal dayHours;
-                    if (cursor == leaveStart.Date && cursor == leaveEnd.Date)
-                    {
-                        if (leaveEnd <= morningEnd)
-                            dayHours = (decimal)(leaveEnd - leaveStart).TotalHours;
-                        else if (leaveStart >= afternoonStart)
-                            dayHours = (decimal)(leaveEnd - leaveStart).TotalHours;
-                        else
-                            dayHours = (decimal)(morningEnd - leaveStart).TotalHours + (decimal)(leaveEnd - afternoonStart).TotalHours;
-                    }
-                    else if (cursor == leaveStart.Date)
-                    {
-                        if (leaveStart < morningEnd)
-                            dayHours = (decimal)(morningEnd - leaveStart).TotalHours + 4;
-                        else
-                            dayHours = (decimal)(afternoonEnd - leaveStart).TotalHours;
-                    }
-                    else if (cursor == leaveEnd.Date)
-                    {
-                        if (leaveEnd <= morningEnd)
-                            dayHours = (decimal)(leaveEnd - morningStart).TotalHours;
-                        else
-                            dayHours = 4 + (decimal)(leaveEnd - afternoonStart).TotalHours;
-                    }
-                    else
-                    {
-                        dayHours = 8;
-                    }
-
-                    var yearKey = cursor.Year.ToString();
-                    if (!pendingHoursByYearAndType.ContainsKey(yearKey))
-                        pendingHoursByYearAndType[yearKey] = new Dictionary<string, decimal>();
-                    if (!pendingHoursByYearAndType[yearKey].ContainsKey(leave.LeaveType!))
-                        pendingHoursByYearAndType[yearKey][leave.LeaveType!] = 0;
-                    pendingHoursByYearAndType[yearKey][leave.LeaveType!] += dayHours;
-
-                    cursor = cursor.AddDays(1);
-                }
-            }
-
-            // 计算当前表单本次请假的占用工时（按年份），逐日累计
-            var currentHoursByYear = new Dictionary<string, decimal>();
-
-            var currentCursor = currentStart.Date;
-            var currentLastDate = currentEnd.Date;
-            while (currentCursor <= currentLastDate)
-            {
-                var morningStart = currentCursor.AddHours(8);
-                var morningEnd = currentCursor.AddHours(12);
-                var afternoonStart = currentCursor.AddHours(13);
-                var afternoonEnd = currentCursor.AddHours(17);
-
-                decimal dayHours;
-                if (currentCursor == currentStart.Date && currentCursor == currentEnd.Date)
-                {
-                    if (currentEnd <= morningEnd)
-                        dayHours = (decimal)(currentEnd - currentStart).TotalHours;
-                    else if (currentStart >= afternoonStart)
-                        dayHours = (decimal)(currentEnd - currentStart).TotalHours;
-                    else
-                        dayHours = (decimal)(morningEnd - currentStart).TotalHours + (decimal)(currentEnd - afternoonStart).TotalHours;
-                }
-                else if (currentCursor == currentStart.Date)
-                {
-                    if (currentStart < morningEnd)
-                        dayHours = (decimal)(morningEnd - currentStart).TotalHours + 4;
-                    else
-                        dayHours = (decimal)(afternoonEnd - currentStart).TotalHours;
-                }
-                else if (currentCursor == currentEnd.Date)
-                {
-                    if (currentEnd <= morningEnd)
-                        dayHours = (decimal)(currentEnd - morningStart).TotalHours;
-                    else
-                        dayHours = 4 + (decimal)(currentEnd - afternoonStart).TotalHours;
-                }
-                else
-                {
-                    dayHours = 8;
-                }
-
-                var yearKey = currentCursor.Year.ToString();
-                if (!currentHoursByYear.ContainsKey(yearKey))
-                    currentHoursByYear[yearKey] = 0;
-                currentHoursByYear[yearKey] += dayHours;
-
-                currentCursor = currentCursor.AddDays(1);
-            }
-
-            // 查询假别字典
-            var leaveTypeDics = await _leaveRequest.GetLeaveTypeDictionary();
-
-            // 4. 按年份逐一校验余额（天数，1天=8小时），遇到第一个不符合立即返回
-            foreach (var year in involvedYears)
-            {
-                var yearKey = year.ToString();
-
-                var baseRemainingDays = (decimal)balanceList
-                    .Where(b => b.Year == year && b.LeaveType == currentLeave.LeaveType)
-                    .Sum(b => b.RemainingDays);
-
-                var pendingHours = pendingHoursByYearAndType.ContainsKey(yearKey)
-                    && pendingHoursByYearAndType[yearKey].ContainsKey(currentLeave.LeaveType!)
-                    ? pendingHoursByYearAndType[yearKey][currentLeave.LeaveType!]
-                    : 0;
-
-                var currentHours = currentHoursByYear.ContainsKey(yearKey)
-                    ? currentHoursByYear[yearKey]
-                    : 0;
-
-                // 本次请假在该年为 0 工时（例如 17:00→次日 08:00 衔接），不校验、不提示
-                if (currentHours <= 0)
-                    continue;
-
-                // 转天数后统一保留 2 位小数，保证计算值与显示值一致
-                var availableRemainingDays = Math.Round(baseRemainingDays - (pendingHours / 8), 2);
-                var currentUsageDays = Math.Round(currentHours / 8, 2);
-                var remainingDays = availableRemainingDays - currentUsageDays;
-
-                if (remainingDays < 0)
-                {
-                    var leaveTypeDic = leaveTypeDics.FirstOrDefault(d => d.DicCode == currentLeave.LeaveType);
-                    var leaveTypeName = _lang.Locale == "zh-CN" ? leaveTypeDic?.DicNameCn : leaveTypeDic?.DicNameEn;
-
-                    return Result<bool>.Failure(400, _localization.ReturnMsg(
-                        $"{_form}LeaveBalanceNotEnough",
-                        year,
-                        leaveTypeName,
-                        currentUsageDays.ToString("0.##"),
-                        availableRemainingDays.ToString("0.##")
-                    ));
-                }
-            }
-
-            return Result<bool>.Ok(true);
         }
 
         /// <summary>
@@ -515,7 +231,7 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                     LeaveReason = save.LeaveReason,
                     StartDateTime = save.StartDateTime,
                     EndDateTime = save.EndDateTime,
-                    LeaveHours = CalculateLeaveHours(save.StartDateTime, save.EndDateTime),
+                    LeaveHours = LeaveHoursCalculator.CalcTotalHours(save.StartDateTime, save.EndDateTime),
                     AgentUserId = string.IsNullOrWhiteSpace(save.AgentUserId) ? null : long.Parse(save.AgentUserId),
                     AgentUserName = save.AgentUserName,
                     ModifiedBy = _loginuser.UserId,
@@ -537,85 +253,5 @@ namespace SystemAdmin.Service.FormBusiness.Forms
                 return Result<int>.Failure(500, ex.Message);
             }
         }
-
-        #region 计算请假时数
-
-        private decimal CalculateLeaveHours(DateTime startDateTime, DateTime endDateTime)
-        {
-            decimal totalHours = 0m;
-
-            DateTime currentDate = startDateTime.Date;
-            DateTime lastDate = endDateTime.Date;
-
-            while (currentDate <= lastDate)
-            {
-                DateTime dayMorningStart = currentDate.AddHours(8);
-                DateTime dayMorningEnd = currentDate.AddHours(12);
-                DateTime dayAfternoonStart = currentDate.AddHours(13);
-                DateTime dayAfternoonEnd = currentDate.AddHours(17);
-
-                if (currentDate == startDateTime.Date && currentDate == endDateTime.Date)
-                {
-                    // 同一天
-                    if (endDateTime <= dayMorningEnd)
-                    {
-                        // 都在上午
-                        totalHours += (decimal)(endDateTime - startDateTime).TotalHours;
-                    }
-                    else if (startDateTime >= dayAfternoonStart)
-                    {
-                        // 都在下午
-                        totalHours += (decimal)(endDateTime - startDateTime).TotalHours;
-                    }
-                    else
-                    {
-                        // 跨上下午：上午部分 + 下午部分
-                        totalHours += (decimal)(dayMorningEnd - startDateTime).TotalHours;
-                        totalHours += (decimal)(endDateTime - dayAfternoonStart).TotalHours;
-                    }
-                }
-                else if (currentDate == startDateTime.Date)
-                {
-                    // 开始日期
-                    if (startDateTime < dayMorningEnd)
-                    {
-                        // 开始时间在上午，算上午剩余 + 整个下午
-                        totalHours += (decimal)(dayMorningEnd - startDateTime).TotalHours;
-                        totalHours += 4;
-                    }
-                    else
-                    {
-                        // 开始时间在下午，只算下午部分
-                        totalHours += (decimal)(dayAfternoonEnd - startDateTime).TotalHours;
-                    }
-                }
-                else if (currentDate == endDateTime.Date)
-                {
-                    // 结束日期
-                    if (endDateTime <= dayMorningEnd)
-                    {
-                        // 结束时间在上午，只算上午部分
-                        totalHours += (decimal)(endDateTime - dayMorningStart).TotalHours;
-                    }
-                    else
-                    {
-                        // 结束时间在下午，算整个上午 + 下午部分
-                        totalHours += 4;
-                        totalHours += (decimal)(endDateTime - dayAfternoonStart).TotalHours;
-                    }
-                }
-                else
-                {
-                    // 中间的完整工作日
-                    totalHours += 8;
-                }
-
-                currentDate = currentDate.AddDays(1);
-            }
-
-            return Math.Round(totalHours, 2);
-        }
-
-        #endregion
     }
 }

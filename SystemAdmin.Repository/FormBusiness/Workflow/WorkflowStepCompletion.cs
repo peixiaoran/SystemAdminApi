@@ -8,6 +8,7 @@ using SystemAdmin.Model.FormBusiness.Forms.LeaveRequest.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.PublicForm.Entity;
 using SystemAdmin.Model.FormBusiness.Forms.SystemAccountRequest.Entity;
 using SystemAdmin.Model.HR.BasicInfo.Entity;
+using SystemAdmin.Repository.FormBusiness.Forms;
 using SystemAdmin.Model.SystemBasicMgmt.SystemBasicData.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.SystemConfig.Entity;
 using SystemAdmin.Model.SystemBasicMgmt.UserSettings.Entity;
@@ -23,20 +24,24 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private readonly LocalizationService _localization;
         private readonly Language _lang;
         private readonly CurrentUser _loginuser;
+        private readonly LeaveValidator _leaveValidator;
         private readonly Dictionary<string, Func<long, Task<Result<bool>>>> _registry;
         private readonly string _this = "FormBusiness.Workflow";
 
-        public WorkflowStepCompletion(SqlSugarScope db, Language lang, LocalizationService localization, CurrentUser loginuser)
+        public WorkflowStepCompletion(SqlSugarScope db, Language lang, LocalizationService localization, CurrentUser loginuser, LeaveValidator leaveValidator)
         {
             _db = db;
             _localization = localization;
             _lang = lang;
             _loginuser = loginuser;
+            _leaveValidator = leaveValidator;
             _registry = new Dictionary<string, Func<long, Task<Result<bool>>>>(StringComparer.OrdinalIgnoreCase)
             {
                 // 请假单
+                [nameof(LeaveRequestApply)] = LeaveRequestApply,
                 [nameof(ProcessLeaveRequest)] = ProcessLeaveRequest,
                 // 销假单
+                [nameof(LeaveCancellApply)] = LeaveCancellApply,
                 [nameof(ProcessLeaveCancell)] = ProcessLeaveCancell,
                 // 资讯需求单
                 [nameof(InforRequestApply)] = InforRequestApply,
@@ -71,6 +76,31 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 请假单
 
         /// <summary>
+        /// 请假单送审：加锁后校验（配置在起始步骤）
+        /// </summary>
+        public async Task<Result<bool>> LeaveRequestApply(long formId)
+        {
+            var leave = await _db.Queryable<LeaveRequestEntity>()
+                                 .With(SqlWith.NoLock)
+                                 .Where(item => item.FormId == formId)
+                                 .FirstAsync();
+
+            var applicantUserId = await _db.Queryable<FormInstanceEntity>()
+                                           .With(SqlWith.NoLock)
+                                           .Where(instance => instance.FormId == formId)
+                                           .Select(instance => instance.ApplicantUserId)
+                                           .FirstAsync();
+
+            // 申请人、代理人一并加锁
+            if (!await LeaveLock.LockUsersAsync(_db, applicantUserId, leave?.AgentUserId))
+            {
+                return Result<bool>.Failure(409, _localization.ReturnMsg("FormBusiness.Forms.LeaveBusy"));
+            }
+
+            return await _leaveValidator.ValidateLeaveRequest(formId);
+        }
+
+        /// <summary>
         /// 请假单审批完成后处理
         /// </summary>
         public async Task<Result<bool>> ProcessLeaveRequest(long formId)
@@ -85,6 +115,12 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var formInstance = await _db.Queryable<FormInstanceEntity>()
                                         .FirstAsync(instance => instance.FormId == formId);
 
+            // 与该申请人的送审校验、销假加回串行
+            if (!await LeaveLock.LockUsersAsync(_db, formInstance.ApplicantUserId))
+            {
+                return Result<bool>.Failure(409, _localization.ReturnMsg("FormBusiness.Forms.LeaveBusy"));
+            }
+
             // 仅 Annual、Sick 占用余额
             var needBalance = leaveRequest.LeaveType == LeaveType.Annual.ToEnumString() || leaveRequest.LeaveType == LeaveType.Sick.ToEnumString();
 
@@ -95,7 +131,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                 var endTime = leaveRequest.EndDateTime!.Value;
 
                 // 按年度拆分请假工时
-                var leaveHoursByYear = CalcHoursByYear(startTime, endTime);
+                var leaveHoursByYear = LeaveHoursCalculator.CalcHoursByYear(startTime, endTime);
 
                 var userInfo = await _db.Queryable<UserInfoEntity>()
                                         .FirstAsync(user => user.UserId == formInstance.ApplicantUserId);
@@ -110,7 +146,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
                 foreach (var (year, hours) in leaveHoursByYear)
                 {
-                    var days = Math.Ceiling(hours / 8);
                     var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
                                                .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType);
 
@@ -124,27 +159,27 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         }));
                     }
 
-                    var newRemainingDays = leaveAnnual.RemainingDays - (decimal)days;
-                    if (newRemainingDays < 0)
+                    // 条件扣减：余额充足才扣，防止并发覆盖和超扣
+                    updateBlance = await _db.Updateable<UserLeaveBalanceEntity>()
+                                            .SetColumns(annual => new UserLeaveBalanceEntity
+                                            {
+                                                RemainingHours = annual.RemainingHours - hours,
+                                                ModifiedBy = formInstance.CreatedBy,
+                                                ModifiedDate = DateTime.Now
+                                            }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType && annual.RemainingHours >= hours)
+                                            .ExecuteCommandAsync();
+
+                    if (updateBlance == 0)
                     {
                         return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.InsufficientLeaveBalance", args: new object[]
                         {
                             userName ?? formInstance.ApplicantUserId.ToString(),
                             year,
                             leaveName,
-                            leaveAnnual.RemainingDays,
-                            days
+                            leaveAnnual.RemainingHours,
+                            hours
                         }));
                     }
-
-                    updateBlance = await _db.Updateable<UserLeaveBalanceEntity>()
-                                            .SetColumns(annual => new UserLeaveBalanceEntity
-                                            {
-                                                RemainingDays = newRemainingDays,
-                                                ModifiedBy = formInstance.CreatedBy,
-                                                ModifiedDate = DateTime.Now
-                                            }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveRequest.LeaveType)
-                                            .ExecuteCommandAsync();
                 }
             }
 
@@ -176,6 +211,29 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         #region 销假单
 
         /// <summary>
+        /// 销假单送审：按请假单加锁后校验（配置在起始步骤）
+        /// </summary>
+        public async Task<Result<bool>> LeaveCancellApply(long formId)
+        {
+            var cancell = await _db.Queryable<LeaveCancellEntity>()
+                                   .With(SqlWith.NoLock)
+                                   .Where(item => item.FormId == formId)
+                                   .FirstAsync();
+
+            if (cancell?.LeaveRequestId == null)
+            {
+                return Result<bool>.Failure(400, _localization.ReturnMsg("FormBusiness.Forms.LeaveRequestNotFound"));
+            }
+
+            if (!await LeaveLock.LockLeaveRequestAsync(_db, cancell.LeaveRequestId.Value))
+            {
+                return Result<bool>.Failure(409, _localization.ReturnMsg("FormBusiness.Forms.LeaveBusy"));
+            }
+
+            return await _leaveValidator.ValidateLeaveCancell(cancell.LeaveRequestId.Value, formId, cancell.StartDateTime, cancell.EndDateTime);
+        }
+
+        /// <summary>
         /// 销假单审批完成后处理：将销假时数按年度加回对应假别的剩余额度
         /// </summary>
         public async Task<Result<bool>> ProcessLeaveCancell(long formId)
@@ -201,8 +259,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var startTime = cancell.StartDateTime!.Value;
             var endTime = cancell.EndDateTime!.Value;
 
-            // 按年度拆分销假工时
-            var cancellHoursByYear = CalcHoursByYear(startTime, endTime);
+            // 仅本年度部分可销假
+            var year = DateTime.Now.Year;
+            var hours = LeaveHoursCalculator.CalcHoursInYear(startTime, endTime, year);
+            if (hours <= 0)
+            {
+                return Result<bool>.Ok(true);
+            }
 
             var formInstance = await _db.Queryable<FormInstanceEntity>()
                                         .FirstAsync(instance => instance.FormId == formId);
@@ -218,35 +281,34 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                      .FirstAsync();
             var leaveName = isChinese ? leaveInfo.DicNameCn : leaveInfo.DicNameEn;
 
-            var updateBalance = 0;
-            foreach (var (year, hours) in cancellHoursByYear)
+            // 与该申请人的送审校验、请假扣减串行（同上）
+            if (!await LeaveLock.LockUsersAsync(_db, formInstance.ApplicantUserId))
             {
-                // 按天数加回，保留两位小数
-                var days = Math.Round((decimal)hours / 8, 2, MidpointRounding.AwayFromZero);
-                var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
-                                           .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveType);
+                return Result<bool>.Failure(409, _localization.ReturnMsg("FormBusiness.Forms.LeaveBusy"));
+            }
 
-                if (leaveAnnual == null)
+            var leaveAnnual = await _db.Queryable<UserLeaveBalanceEntity>()
+                                       .FirstAsync(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveType);
+
+            if (leaveAnnual == null)
+            {
+                return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
                 {
-                    return Result<bool>.Failure(400, _localization.ReturnMsg($"{_this}.LeaveAnnualNotFound", args: new object[]
-                    {
-                        userName ?? formInstance.ApplicantUserId.ToString(),
-                        year,
-                        leaveName
-                    }));
-                }
+                    userName ?? formInstance.ApplicantUserId.ToString(),
+                    year,
+                    leaveName
+                }));
+            }
 
-                // 加回额度，不超过给予天数
-                var restoredDays = Math.Min(leaveAnnual.RemainingDays + days, leaveAnnual.RenderDays);
-                updateBalance = await _db.Updateable<UserLeaveBalanceEntity>()
+            // 加回，不超过给予时数
+            var updateBalance = await _db.Updateable<UserLeaveBalanceEntity>()
                                          .SetColumns(annual => new UserLeaveBalanceEntity
                                          {
-                                             RemainingDays = restoredDays,
+                                             RemainingHours = SqlFunc.IIF(annual.RemainingHours + hours > annual.RenderHours, annual.RenderHours, annual.RemainingHours + hours),
                                              ModifiedBy = formInstance.CreatedBy,
                                              ModifiedDate = DateTime.Now
                                          }).Where(annual => annual.UserId == formInstance.ApplicantUserId && annual.Year == year && annual.LeaveType == leaveType)
                                          .ExecuteCommandAsync();
-            }
 
             return Result<bool>.Ok(updateBalance >= 1);
         }
@@ -820,64 +882,5 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         #endregion
-
-        /// <summary>
-        /// 按自然年拆分时间段并累计工时（8-12、13-17，午休不计）
-        /// </summary>
-        private static Dictionary<int, double> CalcHoursByYear(DateTime startTime, DateTime endTime)
-        {
-            var hoursByYear = new Dictionary<int, double>();
-
-            var currentDate = startTime.Date;
-            var endDate = endTime.Date;
-
-            while (currentDate <= endDate)
-            {
-                var dayStart = currentDate;
-                var dayEnd = currentDate.AddDays(1).AddTicks(-1);
-                var effectiveStart = dayStart < startTime ? startTime : dayStart;
-                var effectiveEnd = dayEnd > endTime ? endTime : dayEnd;
-
-                if (effectiveStart <= effectiveEnd)
-                {
-                    double dayHours = 0;
-
-                    var morningStart = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, 8, 0, 0);
-                    var morningEnd = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, 12, 0, 0);
-                    var morningCalculated = (morningStart > effectiveStart ? morningStart : effectiveStart);
-                    var morningEnd2 = (morningEnd < effectiveEnd ? morningEnd : effectiveEnd);
-                    if (morningCalculated < morningEnd2)
-                    {
-                        dayHours += (morningEnd2 - morningCalculated).TotalHours;
-                    }
-
-                    var afternoonStart = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, 13, 0, 0);
-                    var afternoonEnd = new DateTime(currentDate.Year, currentDate.Month, currentDate.Day, 17, 0, 0);
-                    var afternoonCalculated = (afternoonStart > effectiveStart ? afternoonStart : effectiveStart);
-                    var afternoonEnd2 = (afternoonEnd < effectiveEnd ? afternoonEnd : effectiveEnd);
-                    if (afternoonCalculated < afternoonEnd2)
-                    {
-                        dayHours += (afternoonEnd2 - afternoonCalculated).TotalHours;
-                    }
-
-                    if (dayHours > 0)
-                    {
-                        var year = currentDate.Year;
-                        if (hoursByYear.ContainsKey(year))
-                        {
-                            hoursByYear[year] += dayHours;
-                        }
-                        else
-                        {
-                            hoursByYear[year] = dayHours;
-                        }
-                    }
-                }
-
-                currentDate = currentDate.AddDays(1);
-            }
-
-            return hoursByYear;
-        }
     }
 }

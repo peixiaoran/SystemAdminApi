@@ -21,14 +21,14 @@ namespace SystemAdmin.Model.HR.BasicInfo.Entity
         public string LeaveType { get; set; } = string.Empty;
 
         /// <summary>
-        /// 给予天数
+        /// 给予时数
         /// </summary>
-        public decimal RenderDays { get; set; }
+        public decimal RenderHours { get; set; }
 
         /// <summary>
-        /// 剩余天数
+        /// 剩余时数
         /// </summary>
-        public decimal RemainingDays { get; set; }
+        public decimal RemainingHours { get; set; }
 
         /// <summary>
         /// 创建人

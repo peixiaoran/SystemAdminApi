@@ -154,7 +154,7 @@
     <value>You do not have permission to view this form</value>
   </data>
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
-    <value>Insufficient {1} leave balance for {0}. Requested {2} day(s), only {3} day(s) available</value>
+    <value>Insufficient {1} leave balance for {0}. Requested {2} hour(s), only {3} hour(s) available</value>
   </data>
   <data name="ApplicantTimeConflict" xml:space="preserve">
     <value>You already have a leave request or agent assignment from {0} to {1}, which conflicts with this request. Please choose a different time</value>
@@ -452,5 +452,23 @@
   </data>
   <data name="PasskeyBindMailFooter" xml:space="preserve">
     <value>This email was sent automatically. Please do not reply.</value>
+  </data>
+  <data name="LeaveTimeRequired" xml:space="preserve">
+    <value>Please fill in the leave start and end time</value>
+  </data>
+  <data name="LeaveTimeInvalid" xml:space="preserve">
+    <value>The leave end time must be later than the start time</value>
+  </data>
+  <data name="LeaveTypeRequired" xml:space="preserve">
+    <value>Please select a leave type</value>
+  </data>
+  <data name="AgentUserRequired" xml:space="preserve">
+    <value>Please select an agent</value>
+  </data>
+  <data name="CancellHoursNone" xml:space="preserve">
+    <value>This cancellation has no hours within the current year. Please reselect the time (only the part of a cross-year leave that falls in the current year can be cancelled)</value>
+  </data>
+  <data name="LeaveBusy" xml:space="preserve">
+    <value>The system is busy processing another leave or leave cancellation for the same user. Please try again later</value>
   </data>
 </root>

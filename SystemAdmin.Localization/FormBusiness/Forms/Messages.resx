@@ -154,7 +154,7 @@
     <value>您无权限查看此表单</value>
   </data>
   <data name="LeaveBalanceNotEnough" xml:space="preserve">
-    <value>{0} 年度「{1}」假期余额不足，本次申请 {2} 天，剩余可用 {3} 天</value>
+    <value>{0} 年度「{1}」假期余额不足，本次申请 {2} 小时，剩余可用 {3} 小时</value>
   </data>
   <data name="ApplicantTimeConflict" xml:space="preserve">
     <value>您在 {0} 至 {1} 期间已有请假或代理安排，与本次申请的时间冲突，请重新选择</value>
@@ -374,5 +374,23 @@
   </data>
   <data name="PasskeyBindMailFooter" xml:space="preserve">
     <value>系统自动发送，请勿回复</value>
+  </data>
+  <data name="LeaveTimeRequired" xml:space="preserve">
+    <value>请先填写请假开始时间和结束时间</value>
+  </data>
+  <data name="LeaveTimeInvalid" xml:space="preserve">
+    <value>请假结束时间必须晚于开始时间</value>
+  </data>
+  <data name="LeaveTypeRequired" xml:space="preserve">
+    <value>请先选择请假类别</value>
+  </data>
+  <data name="AgentUserRequired" xml:space="preserve">
+    <value>请先选择代理人</value>
+  </data>
+  <data name="CancellHoursNone" xml:space="preserve">
+    <value>本次销假在本年度没有可销假时数，请重新选择销假时间（跨年请假只能销本年度部分）</value>
+  </data>
+  <data name="LeaveBusy" xml:space="preserve">
+    <value>系统繁忙，同一用户的请假、销假正在处理中，请稍后重试</value>
   </data>
 </root>
