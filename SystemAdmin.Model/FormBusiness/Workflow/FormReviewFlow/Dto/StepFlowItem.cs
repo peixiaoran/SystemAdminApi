@@ -19,5 +19,10 @@ namespace SystemAdmin.Model.FormBusiness.Workflow.FormReviewFlow.Dto
         /// 是否起始步骤
         /// </summary>
         public int IsStartStep { get; set; }
+
+        /// <summary>
+        /// 审批方式
+        /// </summary>
+        public string ReviewMode { get; set; } = string.Empty;
     }
 }

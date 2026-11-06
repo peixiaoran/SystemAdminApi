@@ -96,14 +96,19 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             var context = await BuildFlowContext(formDetail, currentSortOrder);
             var flowSteps = await BuildStepReviewList(formDetail, context, currentSortOrder);
 
-            // 起始步骤始终保留；其余需在当前步骤之前，且操作人不在该步骤审批人中
+            // 起始步骤：申请人不是自己；其余：在当前步骤之前，且不含自己（或签除外）
+            bool IncludeSelf(StepFlowItem step) => step.Review.StepReviewUser.Any(user =>
+                user.ReviewUserId == _loginuser.UserId ||
+                user.AgentUserId == _loginuser.UserId);
+
+            string orReview = ReviewMode.OrReview.ToEnumString();
+
             return flowSteps
                    .Where(step => step.Review.Skip != 1)
                    .Where(step => step.IsStartStep == 1
-                                  || (step.SortOrder < currentSortOrder
-                                      && !step.Review.StepReviewUser.Any(user =>
-                                             user.ReviewUserId == _loginuser.UserId ||
-                                             user.AgentUserId == _loginuser.UserId)))
+                                  ? !IncludeSelf(step)
+                                  : step.SortOrder < currentSortOrder
+                                    && (!IncludeSelf(step) || step.ReviewMode != orReview))
                    .OrderBy(step => step.SortOrder)
                    .Select(step => new RejectStepDrop
                    {
@@ -325,6 +330,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                         Review = stepReview,
                         SortOrder = stepInfo.SortOrder,
                         IsStartStep = stepInfo.IsStartStep,
+                        ReviewMode = stepInfo.ReviewMode,
                     };
 
                     requests.Add(request);

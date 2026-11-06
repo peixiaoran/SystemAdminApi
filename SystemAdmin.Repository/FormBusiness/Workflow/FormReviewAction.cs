@@ -1052,7 +1052,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             await EnsurePendingReviewExists(formId, rejectStepId);
 
-            return Result<bool>.Ok(true);
+            // Data=false：驳回到的步骤包含当前操作人
+            return Result<bool>.Ok(await GetSelfPendingOriginalUserId(formId, rejectStepId) == 0);
         }
 
         #endregion

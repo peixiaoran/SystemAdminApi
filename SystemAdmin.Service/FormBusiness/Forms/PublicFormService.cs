@@ -401,37 +401,40 @@ namespace SystemAdmin.Service.FormBusiness.Forms
         /// </summary>
         /// <param name="reviewForm"></param>
         /// <returns></returns>
-        public async Task<Result<ApproveResultDto>> FromApprove(ApproveForm reviewForm)
-        {
-            var result = await ExecuteReviewAsync(
+        public async Task<Result<ReviewResultDto>> FromApprove(ApproveForm reviewForm) =>
+            ToReviewResult(await ExecuteReviewAsync(
                 reviewForm.FormId,
                 ReviewResult.Approve,
-                () => _formction.FromApprove(reviewForm));
-
-            if (result.Code != 200)
-            {
-                return Result<ApproveResultDto>.Failure(result.Code, result.Message ?? string.Empty);
-            }
-
-            // 仓储层 Data=false 表示需再次手动签核
-            return Result<ApproveResultDto>.Ok(new ApproveResultDto
-            {
-                Success = true,
-                Automatic = result.Data ? 1 : 0,
-            }, result.Message);
-        }
+                () => _formction.FromApprove(reviewForm)));
 
         /// <summary>
         /// 表单驳回
         /// </summary>
         /// <param name="rejectForm"></param>
         /// <returns></returns>
-        public Task<Result<bool>> FromReject(RejectForm rejectForm) =>
-            ExecuteReviewAsync(
+        public async Task<Result<ReviewResultDto>> FromReject(RejectForm rejectForm) =>
+            ToReviewResult(await ExecuteReviewAsync(
                 rejectForm.FormId,
                 ReviewResult.Reject,
                 () => _formction.FromReject(rejectForm),
-                rejectForm.RejectStepId);
+                rejectForm.RejectStepId));
+
+        /// <summary>
+        /// 仓储层 Data=false 转为 Automatic=0
+        /// </summary>
+        private static Result<ReviewResultDto> ToReviewResult(Result<bool> result)
+        {
+            if (result.Code != 200)
+            {
+                return Result<ReviewResultDto>.Failure(result.Code, result.Message ?? string.Empty);
+            }
+
+            return Result<ReviewResultDto>.Ok(new ReviewResultDto
+            {
+                Success = true,
+                Automatic = result.Data ? 1 : 0,
+            }, result.Message);
+        }
 
 
         /// <summary>

@@ -4,18 +4,49 @@ using SystemAdmin.Common.Utilities;
 namespace SystemAdmin.Repository.FormBusiness.Workflow
 {
     /// <summary>
-    /// 审批人查询 SQL 模板：专职 UNION ALL 兼职，可选关联生效中的代理人，外层按身份优先级 + 入职时间排序
+    /// 审批人过滤方式
+    /// </summary>
+    internal enum ReviewUserFilter
+    {
+        /// <summary>组织架构（上级部门链 + 部门级别 + 职级）</summary>
+        Org,
+
+        /// <summary>指定部门 + 职级</summary>
+        Dept,
+
+        /// <summary>指定人</summary>
+        User,
+    }
+
+    /// <summary>
+    /// 审批人查询投影
+    /// </summary>
+    /// <param name="WithNames">是否输出姓名、身份名称、排序列</param>
+    /// <param name="WithAgent">是否关联代理人</param>
+    /// <param name="IsChinese">名称取中文还是英文列（仅 WithNames 时生效）</param>
+    internal sealed record ReviewUserProjection(bool WithNames, bool WithAgent, bool IsChinese)
+    {
+        /// <summary>完整投影</summary>
+        internal static ReviewUserProjection Named(bool isChinese) => new(true, true, isChinese);
+
+        /// <summary>身份 + 代理</summary>
+        internal static ReviewUserProjection Appointment { get; } = new(false, true, false);
+
+        /// <summary>仅身份</summary>
+        internal static ReviewUserProjection AppointmentNoAgent { get; } = new(false, false, false);
+    }
+
+    /// <summary>
+    /// 审批人查询 SQL 模板
     /// </summary>
     internal static class ReviewUserSql
     {
         /// <summary>
-        /// 精确匹配查询。参数：Org → @DeptLevelSort、@PositionSort；Dept → @DepartmentId、@PositionSort；
-        /// User → @UserId；带代理时另需 @Now 及身份枚举参数。
-        /// requireReviewAuth 为 false 时不校验审批权限（加审为点名指派，无审批权限者亦可审批）
+        /// 精确匹配查询；requireReviewAuth 为 false 时不校验审批权限（加审）
         /// </summary>
         internal static string ExactSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string topN, string orderBy, bool requireReviewAuth = true)
         {
-            // 按指定人的精简投影无需组织架构关联；完整投影要输出排序列，始终关联
+            // 指定人且不输出名称时无需关联组织架构
             bool joinOrg = filter != ReviewUserFilter.User || projection.WithNames;
 
             string fullTimeWhere = filter switch
@@ -33,11 +64,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 批量精确匹配查询（单次往返）：一次为多组条件取回审批人，各行以 ComboKey 归属回所属条件组。
-        /// comboValues 为 (ComboKey, 条件...) 的值列表，列顺序依 filter 而定：
-        /// Org → (ComboKey, 部门级别排序, 职级排序)；Dept → (ComboKey, 部门Id, 职级排序)；User → (ComboKey, 人员Id)。
-        /// isReview 时按 ComboKey 分区取第一笔，等价于逐组各取 TOP 1。
-        /// requireReviewAuth 为 false 时不校验审批权限（加审为点名指派，无审批权限者亦可审批）
+        /// 批量精确匹配查询：一次取回多组条件的审批人，以 ComboKey 区分条件组；
+        /// isReview 时每组只取第一笔；requireReviewAuth 为 false 时不校验审批权限（加审）
         /// </summary>
         internal static string ExactBatchSql(ReviewUserProjection projection, ReviewUserFilter filter, string parentDeptIds, string comboValues, bool isReview, bool requireReviewAuth = true)
         {
@@ -108,8 +136,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 自动降级查询（单次往返）：取上级部门链内「职级最高、同职级下部门级别最内」的一组人，
-        /// 等价于逐组合尝试取第一个命中。参数：@MaxPositionSort、@MaxDeptLevelSort，带代理时另需 @Now 及 Auto 身份枚举参数
+        /// 自动降级查询：取上级部门链内职级最高、部门级别最内的一组人
         /// </summary>
         internal static string AutoRankedSql(ReviewUserProjection projection, string parentDeptIds, string topN, string orderBy)
         {
@@ -120,7 +147,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
             string fullTimeBranch = Branch(projection, partTime: false, joinOrg: true, where, isAuto: true, withSortColumns: true);
             string partTimeBranch = Branch(projection, partTime: true, joinOrg: true, where, isAuto: true, withSortColumns: true);
 
-            // 排名第一即逐组合尝试时第一个能命中的 (职级, 部门级别)
+            // 排名第一即首个命中的 (职级, 部门级别)
             return $@"
             SELECT {topN}
                 {OuterColumns(projection)}
@@ -143,7 +170,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         internal static string BuildOrderBy(bool isReview, bool isAuto) => $"ORDER BY {BuildOrderCore(isReview, isAuto)}";
 
         /// <summary>
-        /// 排序表达式本体（不含 ORDER BY），供窗口函数 OVER 子句复用
+        /// 排序表达式（不含 ORDER BY）
         /// </summary>
         internal static string BuildOrderCore(bool isReview, bool isAuto)
         {
@@ -167,7 +194,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代），数值越小越优先；与 BuildOrderCore 的非自动排序一致
+        /// 身份优先级（实 &gt; 代 &gt; 兼 &gt; 兼代），数值越小越优先
         /// </summary>
         internal static int AppointmentPriority(string appointmentType)
         {
@@ -298,7 +325,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             columns.Add("[user].HireDate AS HireDate");
 
-            // 批量查询时带出条件组标识，供调用方归属回各步骤
+            // 批量查询带出条件组标识
             if (!string.IsNullOrEmpty(comboJoin))
             {
                 columns.Add("combo.ComboKey AS ComboKey");
