@@ -13,6 +13,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.11.0" />
     <PackageReference Include="Minio" Version="7.0.0" />
     <PackageReference Include="SqlSugarCoreNoDrive" Version="5.1.4.221" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" Version="10.0.14" />
   </ItemGroup>
 
   <ItemGroup>
