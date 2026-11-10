@@ -239,8 +239,8 @@ namespace SystemAdmin.Service.CustMat.RollingForecast
                 ? await _forecastVersionRepo.GetAllSalesPartNumbers()
                 : await _forecastVersionRepo.GetAllImportedPartNumbers(version.VersionId);
 
-            // 每次锁定时清空归档表，只保留最新计算出的FO归档
-            await _forecastVersionRepo.DeleteForecastWeeklyArchives();
+            // 覆盖当前版本归档
+            await _forecastVersionRepo.DeleteForecastWeeklyArchives(versionId);
             if (rows.Count == 0)
                 return;
 

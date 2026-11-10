@@ -272,12 +272,14 @@ namespace SystemAdmin.Repository.CustMat.RollingForecast
         }
 
         /// <summary>
-        /// 清空预测周明细归档表的全部数据（每次锁定时都只保留最新一次归档）
+        /// 删除预测周明细归档
         /// </summary>
         /// <returns></returns>
-        public async Task<int> DeleteForecastWeeklyArchives()
+        public async Task<int> DeleteForecastWeeklyArchives(long versionId)
         {
-            return await _db.Deleteable<ForecastWeeklyArchiveEntity>().ExecuteCommandAsync();
+            return await _db.Deleteable<ForecastWeeklyArchiveEntity>()
+                            .Where(archive => archive.VersionId == versionId)
+                            .ExecuteCommandAsync();
         }
 
         /// <summary>
