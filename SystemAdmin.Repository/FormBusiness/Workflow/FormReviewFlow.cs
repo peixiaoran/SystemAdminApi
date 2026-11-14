@@ -420,14 +420,15 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                     return request;
                 }
 
-                request.SkipWhenEmpty = true;
-
                 // 解析器定位到「部门 + 职级」角色，复用部门职级指派的取人方式
                 var custom = await _personResolver.Resolve(customInfo.Guidance, formDetail.FormId);
                 if (custom == null)
                 {
+                    stepReview.Skip = 1;
                     return request;
                 }
+
+                request.SkipWhenEmpty = true;
 
                 // 解析器点名人员：每人取身份优先级最高一笔，单审再取其中一人；不降级、不校验审批权限
                 if (custom.UserIds.Count > 0)

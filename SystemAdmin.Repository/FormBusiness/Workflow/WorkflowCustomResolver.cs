@@ -16,14 +16,14 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         private readonly SqlSugarScope _db;
 
         // guidance(方法名) -> 实际方法
-        private readonly Dictionary<string, Func<long, Task<CustomUser>>> _registry;
+        private readonly Dictionary<string, Func<long, Task<CustomUser?>>> _registry;
 
         public WorkflowCustomResolver(SqlSugarScope db)
         {
             _db = db;
 
             // 登记所有自定义取人方法，新增方法只需在这里加一行
-            _registry = new Dictionary<string, Func<long, Task<CustomUser>>>(StringComparer.OrdinalIgnoreCase)
+            _registry = new Dictionary<string, Func<long, Task<CustomUser?>>>(StringComparer.OrdinalIgnoreCase)
             {
                 // 出差单
                 [nameof(DepartureSiteManager)] = DepartureSiteManager,
@@ -46,7 +46,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// 以及部门职级精确匹配落空后的降级兜底）统一交给 FormReviewFlow / FormReviewAction
         /// 既有的取人逻辑处理，与其他指派方式共用同一套身份优先级
         /// </summary>
-        public async Task<CustomUser> Resolve(string guidance, long formId)
+        /// <returns>找不到配置要求的角色或点名人员时返回 null，由调用方跳过步骤。</returns>
+        public async Task<CustomUser?> Resolve(string guidance, long formId)
         {
             if (string.IsNullOrWhiteSpace(guidance) || !_registry.TryGetValue(guidance, out var handler))
                 throw new InvalidOperationException($"未配置的取人方法: {guidance}");
@@ -58,7 +59,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 出发厂区厂长：根据出差单的出发厂区，定位该厂区下部门级别为厂级(Site)、职级为厂长(S08)的角色
         /// </summary>
-        public async Task<CustomUser> DepartureSiteManager(long formId)
+        public async Task<CustomUser?> DepartureSiteManager(long formId)
         {
             var departureSite = await _db.Queryable<OverseasTripAppEntity>()
                                          .With(SqlWith.NoLock)
@@ -72,7 +73,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 目的厂区厂长：根据出差单的目的厂区，定位该厂区下部门级别为厂级(Site)、职级为厂长(S08)的角色
         /// </summary>
-        public async Task<CustomUser> DestinationSiteManager(long formId)
+        public async Task<CustomUser?> DestinationSiteManager(long formId)
         {
             var destinationSite = await _db.Queryable<OverseasTripAppEntity>()
                                            .With(SqlWith.NoLock)
@@ -86,8 +87,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 按厂区定位部门级别为厂级(Site)、职级为厂长(S08)的角色
         /// </summary>
-        private async Task<CustomUser> ResolveSiteManagerRole(string? site)
+        private async Task<CustomUser?> ResolveSiteManagerRole(string? site)
         {
+            if (string.IsNullOrWhiteSpace(site))
+            {
+                return null;
+            }
+
             var dept = await _db.Queryable<DepartmentInfoEntity>()
                                 .With(SqlWith.NoLock)
                                 .InnerJoin<DepartmentLevelEntity>((dept, level) => dept.DepartmentLevelId == level.DepartmentLevelId)
@@ -101,7 +107,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 出发厂区人资经理：根据出差单的出发厂区，定位该厂区下部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
         /// </summary>
-        public async Task<CustomUser> DepartureSiteHRManager(long formId)
+        public async Task<CustomUser?> DepartureSiteHRManager(long formId)
         {
             var departureSite = await _db.Queryable<OverseasTripAppEntity>()
                                          .With(SqlWith.NoLock)
@@ -115,7 +121,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 目的厂区人资经理：根据出差单的目的厂区，定位该厂区下部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
         /// </summary>
-        public async Task<CustomUser> DestinationSiteHRManager(long formId)
+        public async Task<CustomUser?> DestinationSiteHRManager(long formId)
         {
             var destinationSite = await _db.Queryable<OverseasTripAppEntity>()
                                            .With(SqlWith.NoLock)
@@ -129,8 +135,13 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 按厂区定位部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
         /// </summary>
-        private async Task<CustomUser> ResolveSiteHRManagerRole(string? site)
+        private async Task<CustomUser?> ResolveSiteHRManagerRole(string? site)
         {
+            if (string.IsNullOrWhiteSpace(site))
+            {
+                return null;
+            }
+
             var dept = await _db.Queryable<DepartmentInfoEntity>()
                                 .With(SqlWith.NoLock)
                                 .Where(dept => dept.Site == site && dept.DepartmentFunctions == "HumanResources")
@@ -142,10 +153,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 组装角色结果：部门 + 该部门级别 + 目标职级编码对应的职级Id
         /// </summary>
-        private async Task<CustomUser> ResolveRole(DepartmentInfoEntity? dept, string positionNo)
+        private async Task<CustomUser?> ResolveRole(DepartmentInfoEntity? dept, string positionNo)
         {
             if (dept == null)
-                return null!;
+                return null;
 
             var position = await _db.Queryable<PositionInfoEntity>()
                                     .With(SqlWith.NoLock)
@@ -153,7 +164,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
                                     .FirstAsync();
 
             if (position == null)
-                return null!;
+                return null;
 
             return new CustomUser()
             {
@@ -168,7 +179,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 PersonInHargeConfig 配置的负责人
         /// </summary>
-        public async Task<CustomUser> InforRequestEstimatedTimeHandler(long formId)
+        public async Task<CustomUser?> InforRequestEstimatedTimeHandler(long formId)
         {
             return await ResolveCategoryHandler(formId);
         }
@@ -176,7 +187,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 处理人确认：根据资讯需求单选择的需求类别，取 PersonInHargeConfig 配置的负责人
         /// </summary>
-        public async Task<CustomUser> InforRequestPersonInCharge(long formId)
+        public async Task<CustomUser?> InforRequestPersonInCharge(long formId)
         {
             return await ResolveCategoryHandler(formId);
         }
@@ -184,7 +195,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 申请人确认：表单的发起申请人
         /// </summary>
-        public async Task<CustomUser> InforRequestApplicantRating(long formId)
+        public async Task<CustomUser?> InforRequestApplicantRating(long formId)
         {
             var applicantUserId = await _db.Queryable<FormInstanceEntity>()
                                            .With(SqlWith.NoLock)
@@ -198,7 +209,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 按资讯需求单的需求类别取负责人
         /// </summary>
-        private async Task<CustomUser> ResolveCategoryHandler(long formId)
+        private async Task<CustomUser?> ResolveCategoryHandler(long formId)
         {
             var handlerIds = await _db.Queryable<InformationRequestEntity>()
                                       .With(SqlWith.NoLock)
@@ -216,7 +227,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 系统负责人：根据系统账号申请单明细选择的系统，取 PersonInHargeConfig 配置的负责人
         /// </summary>
-        public async Task<CustomUser> SystemAccountPersonCharge(long formId)
+        public async Task<CustomUser?> SystemAccountPersonCharge(long formId)
         {
             var chargeIds = await _db.Queryable<SystemAccountRequestDetailsEntity>()
                                      .With(SqlWith.NoLock)
@@ -232,7 +243,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 申请人确认：表单的发起申请人
         /// </summary>
-        public async Task<CustomUser> SystemAccountApplicantRating(long formId)
+        public async Task<CustomUser?> SystemAccountApplicantRating(long formId)
         {
             var applicantUserId = await _db.Queryable<FormInstanceEntity>()
                                            .With(SqlWith.NoLock)
@@ -248,11 +259,11 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// <summary>
         /// 组装点名人员结果；无人返回 null（步骤跳过）
         /// </summary>
-        private static CustomUser ResolveUsers(List<long> userIds)
+        private static CustomUser? ResolveUsers(List<long> userIds)
         {
             var distinctIds = userIds.Distinct().ToList();
             if (distinctIds.Count == 0)
-                return null!;
+                return null;
 
             return new CustomUser()
             {
