@@ -438,15 +438,15 @@ namespace SystemAdmin.Repository.SystemBasicMgmt.SystemBasicData
                                                     : nation.NationNameEn,
                                    Email = user.Email,
                                    PhoneNumber = user.PhoneNumber,
-                                   IsEmployedName = _lang.Locale == "zh-CN"
+                                   IsEmployedName = user.IsEmployed == 1
                                                     ? _localization.ReturnMsg($"{_thisExcel}IsEmployedCurrent")
                                                     : _localization.ReturnMsg($"{_thisExcel}IsEmployedFormer"),
-                                   IsReviewName = _lang.Locale == "zh-CN"
+                                   IsReviewName = user.IsReview == 1
                                                     ? _localization.ReturnMsg($"{_thisExcel}IsReviewRequired")
                                                     : _localization.ReturnMsg($"{_thisExcel}IsReviewNorequired"),
-                                   IsFreezeName = _lang.Locale == "zh-CN"
-                                                    ? _localization.ReturnMsg($"{_thisExcel}IsFreezeNormal")
-                                                    : _localization.ReturnMsg($"{_thisExcel}IsReviewFrozen"),
+                                   IsFreezeName = user.IsFreeze == 1
+                                                    ? _localization.ReturnMsg($"{_thisExcel}IsReviewFrozen")
+                                                    : _localization.ReturnMsg($"{_thisExcel}IsFreezeNormal"),
                                }).ToDataTableAsync();
         }
     }
