@@ -566,17 +566,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询审批人身份 - 按组织架构（含代理人）
+        /// 查询审批人身份 - 按组织架构
         /// </summary>
-        public Task<List<UserAppointment>> GetOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, long deptLeaveId, long positionId, string reviewMode)
-            => GetOrgReviewUserCore(applyParentDept, deptLeaveId, positionId, reviewMode, withAgent: true);
-
-        /// <summary>
-        /// 查询审批人身份 - 按组织架构（仅实/兼）
-        /// </summary>
-        public Task<List<UserAppointment>> GetActualConOrgReviewUser(List<DepartmentInfoEntity> applyParentDept, long deptLeaveId, long positionId, string reviewMode)
-            => GetOrgReviewUserCore(applyParentDept, deptLeaveId, positionId, reviewMode, withAgent: false);
-
         private async Task<List<UserAppointment>> GetOrgReviewUserCore(List<DepartmentInfoEntity> applyParentDept, long deptLeaveId, long positionId, string reviewMode, bool withAgent)
         {
             int deptLevelSort = await _db.Queryable<DepartmentLevelEntity>()
@@ -607,17 +598,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询审批人身份 - 按指定部门职级（含代理人）
+        /// 查询审批人身份 - 按指定部门职级
         /// </summary>
-        public Task<List<UserAppointment>> GetDeptUserReviewUser(long departmentId, long positionId, string reviewMode)
-            => GetDeptUserReviewUserCore(departmentId, positionId, reviewMode, withAgent: true);
-
-        /// <summary>
-        /// 查询审批人身份 - 按指定部门职级（仅实/兼）
-        /// </summary>
-        public Task<List<UserAppointment>> GetActualConDeptUserReviewUser(long departmentId, long positionId, string reviewMode)
-            => GetDeptUserReviewUserCore(departmentId, positionId, reviewMode, withAgent: false);
-
         private async Task<List<UserAppointment>> GetDeptUserReviewUserCore(long departmentId, long positionId, string reviewMode, bool withAgent)
         {
             int positionSort = await _db.Queryable<PositionInfoEntity>()
@@ -669,17 +651,8 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 查询审批人身份 - 按指定人（含代理人）
+        /// 查询审批人身份 - 按指定人
         /// </summary>
-        public Task<List<UserAppointment>> GetUserReviewUser(long userId, string reviewMode)
-            => GetUserReviewUserCore(userId, reviewMode, withAgent: true);
-
-        /// <summary>
-        /// 查询审批人身份 - 按指定人（仅实/兼）
-        /// </summary>
-        public Task<List<UserAppointment>> GetActualConUserReviewUser(long userId, string reviewMode)
-            => GetUserReviewUserCore(userId, reviewMode, withAgent: false);
-
         private async Task<List<UserAppointment>> GetUserReviewUserCore(long userId, string reviewMode, bool withAgent)
         {
             bool isReview = reviewMode == ReviewMode.Review.ToEnumString();
@@ -714,12 +687,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         /// </summary>
         public Task<List<UserAppointment>> GetCustomReviewUser(long formId, string guidance, string reviewMode)
             => GetCustomReviewUserCore(formId, guidance, reviewMode, withAgent: true);
-
-        /// <summary>
-        /// 查询审批人身份 - 按自定义（仅实/兼）
-        /// </summary>
-        public Task<List<UserAppointment>> GetActualConCustomReviewUser(long formId, string guidance, string reviewMode)
-            => GetCustomReviewUserCore(formId, guidance, reviewMode, withAgent: false);
 
         private async Task<List<UserAppointment>> GetCustomReviewUserCore(long formId, string guidance, string reviewMode, bool withAgent)
         {
@@ -1119,20 +1086,6 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
             return await _db.Insertable(records).ExecuteCommandAsync();
         }
-
-        #endregion
-
-        #region 工具
-
-        /// <summary>
-        /// 排序
-        /// </summary>
-        public string BuildOrderBy(bool isReview, bool isAuto) => ReviewUserSql.BuildOrderBy(isReview, isAuto);
-
-        /// <summary>
-        /// 一次性取出所有 AppointmentType 枚举字符串
-        /// </summary>
-        public (string actual, string agent, string concurrent, string concurrentAgent, string autoActual, string autoAgent, string autoConcurrent, string autoConcurrentAgent) AppointmentEnumStrings() => ReviewUserSql.AppointmentEnumStrings();
 
         #endregion
     }

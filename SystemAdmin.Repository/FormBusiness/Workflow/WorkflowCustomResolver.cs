@@ -22,7 +22,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         {
             _db = db;
 
-            // 登记所有自定义取人方法，新增方法只需在这里加一行
+            // 新增取人方法在此登记
             _registry = new Dictionary<string, Func<long, Task<CustomUser?>>>(StringComparer.OrdinalIgnoreCase)
             {
                 // 出差单
@@ -41,12 +41,10 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按 guidance(配置的方法名) 分发到对应的自定义取人方法。
-        /// 解析结果定位到「部门 + 职级」这一角色，或直接点名人员（UserIds）；具体由谁审批（实职 / 兼任 / 代理，
-        /// 以及部门职级精确匹配落空后的降级兜底）统一交给 FormReviewFlow / FormReviewAction
-        /// 既有的取人逻辑处理，与其他指派方式共用同一套身份优先级
+        /// 按 guidance(方法名) 分发到对应取人方法。结果为「部门 + 职级」角色或点名人员(UserIds)，
+        /// 具体由谁审批（身份优先级、降级兜底）交给 FormReviewFlow / FormReviewAction
         /// </summary>
-        /// <returns>找不到配置要求的角色或点名人员时返回 null，由调用方跳过步骤。</returns>
+        /// <returns>找不到角色或人员时返回 null，步骤跳过</returns>
         public async Task<CustomUser?> Resolve(string guidance, long formId)
         {
             if (string.IsNullOrWhiteSpace(guidance) || !_registry.TryGetValue(guidance, out var handler))
@@ -57,7 +55,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 出差单
         /// <summary>
-        /// 出发厂区厂长：根据出差单的出发厂区，定位该厂区下部门级别为厂级(Site)、职级为厂长(S08)的角色
+        /// 出发厂区厂长
         /// </summary>
         public async Task<CustomUser?> DepartureSiteManager(long formId)
         {
@@ -71,7 +69,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 目的厂区厂长：根据出差单的目的厂区，定位该厂区下部门级别为厂级(Site)、职级为厂长(S08)的角色
+        /// 目的厂区厂长
         /// </summary>
         public async Task<CustomUser?> DestinationSiteManager(long formId)
         {
@@ -85,7 +83,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按厂区定位部门级别为厂级(Site)、职级为厂长(S08)的角色
+        /// 厂长角色：该厂区厂级(Site)部门 + 职级 S08
         /// </summary>
         private async Task<CustomUser?> ResolveSiteManagerRole(string? site)
         {
@@ -105,7 +103,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 出发厂区人资经理：根据出差单的出发厂区，定位该厂区下部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
+        /// 出发厂区人资经理
         /// </summary>
         public async Task<CustomUser?> DepartureSiteHRManager(long formId)
         {
@@ -119,7 +117,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 目的厂区人资经理：根据出差单的目的厂区，定位该厂区下部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
+        /// 目的厂区人资经理
         /// </summary>
         public async Task<CustomUser?> DestinationSiteHRManager(long formId)
         {
@@ -133,7 +131,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 按厂区定位部门职能为人力资源(HumanResources)、职级为人资经理(S06)的角色
+        /// 人资经理角色：该厂区人力资源(HumanResources)部门 + 职级 S06
         /// </summary>
         private async Task<CustomUser?> ResolveSiteHRManagerRole(string? site)
         {
@@ -151,7 +149,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 组装角色结果：部门 + 该部门级别 + 目标职级编码对应的职级Id
+        /// 组装角色结果：部门 + 部门级别 + 职级
         /// </summary>
         private async Task<CustomUser?> ResolveRole(DepartmentInfoEntity? dept, string positionNo)
         {
@@ -177,7 +175,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 资讯需求单
         /// <summary>
-        /// 预估处理时间人员：根据资讯需求单选择的需求类别，取 PersonInHargeConfig 配置的负责人
+        /// 预估处理时间人员：需求类别对应的负责人
         /// </summary>
         public async Task<CustomUser?> InforRequestEstimatedTimeHandler(long formId)
         {
@@ -185,7 +183,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
         }
 
         /// <summary>
-        /// 处理人确认：根据资讯需求单选择的需求类别，取 PersonInHargeConfig 配置的负责人
+        /// 处理人确认：需求类别对应的负责人
         /// </summary>
         public async Task<CustomUser?> InforRequestPersonInCharge(long formId)
         {
@@ -225,7 +223,7 @@ namespace SystemAdmin.Repository.FormBusiness.Workflow
 
         #region 系统账号申请单
         /// <summary>
-        /// 系统负责人：根据系统账号申请单明细选择的系统，取 PersonInHargeConfig 配置的负责人
+        /// 系统负责人：明细所选系统对应的负责人
         /// </summary>
         public async Task<CustomUser?> SystemAccountPersonCharge(long formId)
         {
